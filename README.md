@@ -1,1 +1,1 @@
-TODO: Create a file called LICENSE (not LICENSE.TXT, LICENSE.md, etc.)…
+This repo should be for SAP HANA landscape development.  We will not deploy directly from this repo.

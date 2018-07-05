@@ -16,9 +16,9 @@ resource "azurerm_resource_group" "myterraformgroup" {
 }
 
 # Create virtual network
-resource "azurerm_virtual_network" "myterraformnetwork" {
+resource "azurerm_virtual_network" "pv1-vnet" {
   name                = "myVnet"
-  address_space       = ["10.0.0.0/16"]
+  address_space       = ["10.0.0.0/21"]
   location            = "eastus"
   resource_group_name = "${azurerm_resource_group.myterraformgroup.name}"
 
@@ -28,11 +28,11 @@ resource "azurerm_virtual_network" "myterraformnetwork" {
 }
 
 # Create subnet
-resource "azurerm_subnet" "myterraformsubnet" {
+resource "azurerm_subnet" "pv1-subnet" {
   name                      = "mySubnet"
   resource_group_name       = "${azurerm_resource_group.myterraformgroup.name}"
-  virtual_network_name      = "${azurerm_virtual_network.myterraformnetwork.name}"
-  network_security_group_id = "${azurerm_network_security_group.myterraformnsg.id}"
+  virtual_network_name      = "${azurerm_virtual_network.pv1-vnet.name}"
+  network_security_group_id = "${azurerm_network_security_group.pv1-nsg.id}"
   address_prefix            = "10.0.1.0/24"
 }
 
@@ -51,7 +51,7 @@ resource "azurerm_public_ip" "myterraformpublicip" {
 }
 
 # Create Network Security Group and rule
-resource "azurerm_network_security_group" "myterraformnsg" {
+resource "azurerm_network_security_group" "pv1-nsg" {
   name                = "myNetworkSecurityGroup"
   location            = "eastus"
   resource_group_name = "${azurerm_resource_group.myterraformgroup.name}"
@@ -68,6 +68,7 @@ resource "azurerm_network_security_group" "myterraformnsg" {
     destination_address_prefix = "*"
   }
 
+  # TODO(pabowers): disable access after ssh connecting, mounting, and installing
   security_rule {
     name                       = "local-ip-allow-vnet"
     priority                   = 100
@@ -77,6 +78,42 @@ resource "azurerm_network_security_group" "myterraformnsg" {
     source_port_range          = "*"
     destination_port_range     = "*"
     source_address_prefix      = "${chomp(data.http.local_ip.body)}"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "open-hana-db-ports"
+    priority                   = 1020
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "30000-30099"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "HTTP"
+    priority                   = 1030
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8000"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "HTTPS"
+    priority                   = 1040
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "4300"
+    source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
 
@@ -90,7 +127,6 @@ locals {
   vmFqdn         = "${azurerm_public_ip.myterraformpublicip.fqdn}"
   hanaDataSize   = 512
   hanaLogSize    = 512
-  userSapSize    = 64
   hanaSharedSize = 512
 }
 
@@ -99,11 +135,11 @@ resource "azurerm_network_interface" "myterraformnic" {
   name                      = "myNIC"
   location                  = "eastus"
   resource_group_name       = "${azurerm_resource_group.myterraformgroup.name}"
-  network_security_group_id = "${azurerm_network_security_group.myterraformnsg.id}"
+  network_security_group_id = "${azurerm_network_security_group.pv1-nsg.id}"
 
   ip_configuration {
     name      = "myNicConfiguration"
-    subnet_id = "${azurerm_subnet.myterraformsubnet.id}"
+    subnet_id = "${azurerm_subnet.pv1-subnet.id}"
 
     private_ip_address_allocation = "dynamic"
     public_ip_address_id          = "${azurerm_public_ip.myterraformpublicip.id}"
@@ -138,12 +174,12 @@ resource "azurerm_storage_account" "mystorageaccount" {
 }
 
 # Create virtual machine
-resource "azurerm_virtual_machine" "myterraformvm" {
-  name                  = "myVM"
+resource "azurerm_virtual_machine" "db0" {
+  name                  = "db0"
   location              = "eastus"
   resource_group_name   = "${azurerm_resource_group.myterraformgroup.name}"
   network_interface_ids = ["${azurerm_network_interface.myterraformnic.id}"]
-  vm_size               = "Standard_DS14_v2"
+  vm_size               = "Standard_E8s_v3"
 
   storage_os_disk {
     name              = "myOsDisk"
@@ -231,6 +267,6 @@ resource "azurerm_virtual_machine" "myterraformvm" {
 // Print out login information
 // -------------------------------------------------------------------------
 output "ip" {
-  value = "Created vm ${azurerm_virtual_machine.myterraformvm.id}"
+  value = "Created vm ${azurerm_virtual_machine.db0.id}"
   value = "Connect using ${local.user_name}@${local.vmFqdn}"
 }

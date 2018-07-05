@@ -1,8 +1,19 @@
 # Configure the Microsoft Azure Provider
 provider "azurerm" {}
 
+variable "region" {}
+
 variable "userName" {
-    description = "name used to identify the resource group"
+    description = "The username of your HANA db vm."
+}
+variable "resource-group-name" {
+    default = "hana-db-pv-rg"
+}
+variable "SID" {
+    default = "pv1"
+}
+variable "instance-no" {
+    description = "the sap instance number which is in range 00-99"
 }
 
 data "http" "local_ip" {
@@ -11,53 +22,53 @@ data "http" "local_ip" {
 
 # Create a resource group if it doesn’t exist
 resource "azurerm_resource_group" "hana-resource-group" {
-  name     = "${var.userName}HanaResourceGroup"
-  location = "eastus"
+  name     = "${var.resource-group-name}"
+  location = "${var.region}"
 
   tags {
-    environment = "Terraform SAP deployment"
+    environment = "Terraform SAP HANA single node deployment"
   }
 }
 
 # Create virtual network
-resource "azurerm_virtual_network" "pv1-vnet" {
-  name                = "p1-vnet"
+resource "azurerm_virtual_network" "hana-vnet" {
+  name                = "${var.SID}-vnet"
   address_space       = ["10.0.0.0/21"]
-  location            = "eastus"
+  location            = "${var.region}"
   resource_group_name = "${azurerm_resource_group.hana-resource-group.name}"
 
   tags {
-    environment = "Terraform SAP deployment"
+    environment = "Terraform SAP HANA single node deployment"
   }
 }
 
 # Create subnet
-resource "azurerm_subnet" "pv1-subnet" {
-  name                      = "pv1-subnet"
+resource "azurerm_subnet" "hana-subnet" {
+  name                      = "${var.SID}-subnet"
   resource_group_name       = "${azurerm_resource_group.hana-resource-group.name}"
-  virtual_network_name      = "${azurerm_virtual_network.pv1-vnet.name}"
+  virtual_network_name      = "${azurerm_virtual_network.hana-vnet.name}"
   network_security_group_id = "${azurerm_network_security_group.pv1-nsg.id}"
   address_prefix            = "10.0.1.0/24"
 }
 
 # Create public IPs
-resource "azurerm_public_ip" "pv1-db0-pip" {
-  name                         = "pv1-db0-pip"
-  location                     = "eastus"
+resource "azurerm_public_ip" "hana-db-pip" {
+  name                         = "${var.SID}-db0-pip"
+  location                     = "${var.region}"
   resource_group_name          = "${azurerm_resource_group.hana-resource-group.name}"
   public_ip_address_allocation = "dynamic"
   idle_timeout_in_minutes      = 30
-  domain_name_label            = "hana-terraform-dn"
+  domain_name_label            = "hana-dn"
 
   tags {
-    environment = "Terraform SAP deployment"
+    environment = "Terraform SAP HANA single node deployment"
   }
 }
 
 # Create Network Security Group and rule
 resource "azurerm_network_security_group" "pv1-nsg" {
   name                = "pv1-nsg"
-  location            = "eastus"
+  location            = "${var.region}"
   resource_group_name = "${azurerm_resource_group.hana-resource-group.name}"
 
   security_rule {
@@ -91,7 +102,7 @@ resource "azurerm_network_security_group" "pv1-nsg" {
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "30000-30099"
+    destination_port_range     = "3${var.instance-no}00-3${var.instance-no}99"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
@@ -103,7 +114,7 @@ resource "azurerm_network_security_group" "pv1-nsg" {
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "8000"
+    destination_port_range     = "80${var.instance-no}"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
@@ -115,19 +126,18 @@ resource "azurerm_network_security_group" "pv1-nsg" {
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "4300"
+    destination_port_range     = "43${var.instance-no}"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
 
   tags {
-    environment = "Terraform SAP deployment"
+    environment = "Terraform SAP HANA single node deployment"
   }
 }
 
 locals {
-  user_name      = "azureuser"
-  vmFqdn         = "${azurerm_public_ip.pv1-db0-pip.fqdn}"
+  vmFqdn         = "${azurerm_public_ip.hana-db-pip.fqdn}"
   hanaDataSize   = 512
   hanaLogSize    = 512
   hanaSharedSize = 512
@@ -136,20 +146,20 @@ locals {
 # Create network interface
 resource "azurerm_network_interface" "pv1-db0-nic" {
   name                      = "pv1-db0-nic"
-  location                  = "eastus"
+  location                  = "${var.region}"
   resource_group_name       = "${azurerm_resource_group.hana-resource-group.name}"
   network_security_group_id = "${azurerm_network_security_group.pv1-nsg.id}"
 
   ip_configuration {
     name      = "myNicConfiguration"
-    subnet_id = "${azurerm_subnet.pv1-subnet.id}"
+    subnet_id = "${azurerm_subnet.hana-subnet.id}"
 
     private_ip_address_allocation = "dynamic"
-    public_ip_address_id          = "${azurerm_public_ip.pv1-db0-pip.id}"
+    public_ip_address_id          = "${azurerm_public_ip.hana-db-pip.id}"
   }
 
   tags {
-    environment = "Terraform SAP deployment"
+    environment = "Terraform SAP HANA single node deployment"
   }
 }
 
@@ -167,19 +177,19 @@ resource "random_id" "randomId" {
 resource "azurerm_storage_account" "mystorageaccount" {
   name                     = "diag${random_id.randomId.hex}"
   resource_group_name      = "${azurerm_resource_group.hana-resource-group.name}"
-  location                 = "eastus"
+  location                 = "${var.region}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
   tags {
-    environment = "Terraform SAP deployment"
+    environment = "Terraform SAP HANA single node deployment"
   }
 }
 
 # Create virtual machine
 resource "azurerm_virtual_machine" "db0" {
   name                  = "db0"
-  location              = "eastus"
+  location              = "${var.region}"
   resource_group_name   = "${azurerm_resource_group.hana-resource-group.name}"
   network_interface_ids = ["${azurerm_network_interface.pv1-db0-nic.id}"]
   vm_size               = "Standard_E8s_v3"
@@ -223,8 +233,8 @@ resource "azurerm_virtual_machine" "db0" {
   }
 
   os_profile {
-    computer_name  = "myvm"
-    admin_username = "${local.user_name}"
+    computer_name  = "pv1-db0"
+    admin_username = "${var.userName}"
   }
 
   os_profile_linux_config {
@@ -243,7 +253,7 @@ resource "azurerm_virtual_machine" "db0" {
   }
 
   connection {
-    user        = "${local.user_name}"
+    user        = "${var.userName}"
     private_key = "${file("~/.ssh/id_rsa")}"
     timeout     = "20m"
     host        = "${local.vmFqdn}"
@@ -262,7 +272,7 @@ resource "azurerm_virtual_machine" "db0" {
   }
 
   tags {
-    environment = "Terraform SAP deployment"
+    environment = "Terraform SAP HANA single node deployment"
   }
 }
 
@@ -271,5 +281,5 @@ resource "azurerm_virtual_machine" "db0" {
 // -------------------------------------------------------------------------
 output "ip" {
   value = "Created vm ${azurerm_virtual_machine.db0.id}"
-  value = "Connect using ${local.user_name}@${local.vmFqdn}"
+  value = "Connect using ${var.userName}@${local.vmFqdn}"
 }

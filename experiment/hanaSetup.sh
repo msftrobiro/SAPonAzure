@@ -38,4 +38,4 @@ cat << EOF | sudo tee -a /etc/fstab
 /dev/vg_hana_data_PV1/hana_data /hana/data/PV1 xfs  defaults,nofail  0  2
 EOF
 sudo mount -a
-sudo zypper --non-interactive up
+sudo zypper --non-interactive --no-gpg-checks up

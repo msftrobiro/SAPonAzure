@@ -6,7 +6,7 @@ data "http" "local_ip" {
 }
 
 # Create a resource group if it doesn’t exist
-resource "azurerm_resource_group" "myterraformgroup" {
+resource "azurerm_resource_group" "hana-resource-group" {
   name     = "pabowersResourceGroup"
   location = "eastus"
 
@@ -17,10 +17,10 @@ resource "azurerm_resource_group" "myterraformgroup" {
 
 # Create virtual network
 resource "azurerm_virtual_network" "pv1-vnet" {
-  name                = "myVnet"
+  name                = "p1-vnet"
   address_space       = ["10.0.0.0/21"]
   location            = "eastus"
-  resource_group_name = "${azurerm_resource_group.myterraformgroup.name}"
+  resource_group_name = "${azurerm_resource_group.hana-resource-group.name}"
 
   tags {
     environment = "Terraform SAP deployment"
@@ -30,17 +30,17 @@ resource "azurerm_virtual_network" "pv1-vnet" {
 # Create subnet
 resource "azurerm_subnet" "pv1-subnet" {
   name                      = "mySubnet"
-  resource_group_name       = "${azurerm_resource_group.myterraformgroup.name}"
+  resource_group_name       = "${azurerm_resource_group.hana-resource-group.name}"
   virtual_network_name      = "${azurerm_virtual_network.pv1-vnet.name}"
   network_security_group_id = "${azurerm_network_security_group.pv1-nsg.id}"
   address_prefix            = "10.0.1.0/24"
 }
 
 # Create public IPs
-resource "azurerm_public_ip" "myterraformpublicip" {
+resource "azurerm_public_ip" "pv1-db0-pip" {
   name                         = "myPublicIP"
   location                     = "eastus"
-  resource_group_name          = "${azurerm_resource_group.myterraformgroup.name}"
+  resource_group_name          = "${azurerm_resource_group.hana-resource-group.name}"
   public_ip_address_allocation = "dynamic"
   idle_timeout_in_minutes      = 30
   domain_name_label            = "hana-terraform-dn"
@@ -54,7 +54,7 @@ resource "azurerm_public_ip" "myterraformpublicip" {
 resource "azurerm_network_security_group" "pv1-nsg" {
   name                = "myNetworkSecurityGroup"
   location            = "eastus"
-  resource_group_name = "${azurerm_resource_group.myterraformgroup.name}"
+  resource_group_name = "${azurerm_resource_group.hana-resource-group.name}"
 
   security_rule {
     name                       = "SSH"
@@ -68,7 +68,6 @@ resource "azurerm_network_security_group" "pv1-nsg" {
     destination_address_prefix = "*"
   }
 
-  # TODO(pabowers): disable access after ssh connecting, mounting, and installing
   security_rule {
     name                       = "local-ip-allow-vnet"
     priority                   = 100
@@ -124,17 +123,17 @@ resource "azurerm_network_security_group" "pv1-nsg" {
 
 locals {
   user_name      = "azureuser"
-  vmFqdn         = "${azurerm_public_ip.myterraformpublicip.fqdn}"
+  vmFqdn         = "${azurerm_public_ip.pv1-db0-pip.fqdn}"
   hanaDataSize   = 512
   hanaLogSize    = 512
   hanaSharedSize = 512
 }
 
 # Create network interface
-resource "azurerm_network_interface" "myterraformnic" {
-  name                      = "myNIC"
+resource "azurerm_network_interface" "pv1-db0-nic" {
+  name                      = "pv1-db0-nic"
   location                  = "eastus"
-  resource_group_name       = "${azurerm_resource_group.myterraformgroup.name}"
+  resource_group_name       = "${azurerm_resource_group.hana-resource-group.name}"
   network_security_group_id = "${azurerm_network_security_group.pv1-nsg.id}"
 
   ip_configuration {
@@ -142,7 +141,7 @@ resource "azurerm_network_interface" "myterraformnic" {
     subnet_id = "${azurerm_subnet.pv1-subnet.id}"
 
     private_ip_address_allocation = "dynamic"
-    public_ip_address_id          = "${azurerm_public_ip.myterraformpublicip.id}"
+    public_ip_address_id          = "${azurerm_public_ip.pv1-db0-pip.id}"
   }
 
   tags {
@@ -154,7 +153,7 @@ resource "azurerm_network_interface" "myterraformnic" {
 resource "random_id" "randomId" {
   keepers = {
     # Generate a new ID only when a new resource group is defined
-    resource_group = "${azurerm_resource_group.myterraformgroup.name}"
+    resource_group = "${azurerm_resource_group.hana-resource-group.name}"
   }
 
   byte_length = 8
@@ -163,7 +162,7 @@ resource "random_id" "randomId" {
 # Create storage account for boot diagnostics
 resource "azurerm_storage_account" "mystorageaccount" {
   name                     = "diag${random_id.randomId.hex}"
-  resource_group_name      = "${azurerm_resource_group.myterraformgroup.name}"
+  resource_group_name      = "${azurerm_resource_group.hana-resource-group.name}"
   location                 = "eastus"
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -177,8 +176,8 @@ resource "azurerm_storage_account" "mystorageaccount" {
 resource "azurerm_virtual_machine" "db0" {
   name                  = "db0"
   location              = "eastus"
-  resource_group_name   = "${azurerm_resource_group.myterraformgroup.name}"
-  network_interface_ids = ["${azurerm_network_interface.myterraformnic.id}"]
+  resource_group_name   = "${azurerm_resource_group.hana-resource-group.name}"
+  network_interface_ids = ["${azurerm_network_interface.pv1-db0-nic.id}"]
   vm_size               = "Standard_E8s_v3"
 
   storage_os_disk {

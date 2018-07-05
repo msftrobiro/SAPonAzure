@@ -1,13 +1,17 @@
 # Configure the Microsoft Azure Provider
 provider "azurerm" {}
 
+variable "userName" {
+    description = "name used to identify the resource group"
+}
+
 data "http" "local_ip" {
   url = "http://ifconfig.co"
 }
 
 # Create a resource group if it doesn’t exist
 resource "azurerm_resource_group" "hana-resource-group" {
-  name     = "pabowersResourceGroup"
+  name     = "${var.userName}HanaResourceGroup"
   location = "eastus"
 
   tags {
@@ -29,7 +33,7 @@ resource "azurerm_virtual_network" "pv1-vnet" {
 
 # Create subnet
 resource "azurerm_subnet" "pv1-subnet" {
-  name                      = "mySubnet"
+  name                      = "pv1-subnet"
   resource_group_name       = "${azurerm_resource_group.hana-resource-group.name}"
   virtual_network_name      = "${azurerm_virtual_network.pv1-vnet.name}"
   network_security_group_id = "${azurerm_network_security_group.pv1-nsg.id}"
@@ -38,7 +42,7 @@ resource "azurerm_subnet" "pv1-subnet" {
 
 # Create public IPs
 resource "azurerm_public_ip" "pv1-db0-pip" {
-  name                         = "myPublicIP"
+  name                         = "pv1-db0-pip"
   location                     = "eastus"
   resource_group_name          = "${azurerm_resource_group.hana-resource-group.name}"
   public_ip_address_allocation = "dynamic"
@@ -52,7 +56,7 @@ resource "azurerm_public_ip" "pv1-db0-pip" {
 
 # Create Network Security Group and rule
 resource "azurerm_network_security_group" "pv1-nsg" {
-  name                = "myNetworkSecurityGroup"
+  name                = "pv1-nsg"
   location            = "eastus"
   resource_group_name = "${azurerm_resource_group.hana-resource-group.name}"
 

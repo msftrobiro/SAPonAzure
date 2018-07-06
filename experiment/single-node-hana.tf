@@ -4,16 +4,19 @@ provider "azurerm" {}
 variable "region" {}
 
 variable "userName" {
-    description = "The username of your HANA db vm."
+  description = "The username of your HANA db vm."
 }
+
 variable "resource-group-name" {
-    default = "hana-db-pv-rg"
+  default = "hana-db-pv-rg"
 }
+
 variable "SID" {
-    default = "pv1"
+  default = "pv1"
 }
+
 variable "instance-no" {
-    description = "the sap instance number which is in range 00-99"
+  description = "the sap instance number which is in range 00-99"
 }
 
 data "http" "local_ip" {

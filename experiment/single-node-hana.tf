@@ -70,7 +70,7 @@ resource "azurerm_public_ip" "hana-db-pip" {
 
 # Create Network Security Group and rule
 resource "azurerm_network_security_group" "pv1-nsg" {
-  name                = "pv1-nsg"
+  name                = "${var.SID}-nsg"
   location            = "${var.region}"
   resource_group_name = "${azurerm_resource_group.hana-resource-group.name}"
 
@@ -148,7 +148,7 @@ locals {
 
 # Create network interface
 resource "azurerm_network_interface" "pv1-db0-nic" {
-  name                      = "pv1-db0-nic"
+  name                      = "${var.SID}-db0-nic"
   location                  = "${var.region}"
   resource_group_name       = "${azurerm_resource_group.hana-resource-group.name}"
   network_security_group_id = "${azurerm_network_security_group.pv1-nsg.id}"
@@ -236,7 +236,7 @@ resource "azurerm_virtual_machine" "db0" {
   }
 
   os_profile {
-    computer_name  = "pv1-db0"
+    computer_name  = "${var.SID}-db0"
     admin_username = "${var.userName}"
   }
 
@@ -244,7 +244,7 @@ resource "azurerm_virtual_machine" "db0" {
     disable_password_authentication = true
 
     ssh_keys {
-      path     = "/home/azureuser/.ssh/authorized_keys"
+      path     = "/home/${var.userName}/.ssh/authorized_keys"
       key_data = "${file("~/.ssh/id_rsa.pub")}"
     }
   }
@@ -270,7 +270,7 @@ resource "azurerm_virtual_machine" "db0" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/hanaSetup.sh",
-      "sudo /tmp/hanaSetup.sh",
+      "sudo /tmp/hanaSetup.sh ${var.SID}",
     ]
   }
 

@@ -7,16 +7,44 @@ variable "userName" {
   description = "The username of your HANA db vm."
 }
 
+variable "sshKeyPath" {
+  description = "The path on the local machine to where the public and private keys are"
+}
+
 variable "resource-group-name" {
   default = "hana-db-pv-rg"
 }
 
 variable "SID" {
-  default = "pv1"
+  default = "PV1"
 }
 
 variable "instance-no" {
   description = "the sap instance number which is in range 00-99"
+}
+
+variable "sapCarBitsURL" {
+  description = "The url that points to the SAPCAR bits"
+}
+
+variable "sapHostAgentURL" {
+  description = "The url that points to the sap host agent 36 bits"
+}
+
+variable "hdbServerURL" {
+  description = "The url that points to the HDB server 122.17 bits"
+}
+
+variable "sapadmPW" {
+  description = "Password for the SAP admin"
+}
+
+variable "sidadmPW" {
+  description = "Password for this specific SID"
+}
+
+variable "systemPW" {
+  description = "Password for the database user SYSTEM"
 }
 
 data "http" "local_ip" {
@@ -236,7 +264,7 @@ resource "azurerm_virtual_machine" "db0" {
   }
 
   os_profile {
-    computer_name  = "${var.SID}-db0"
+    computer_name  = "${lower(var.SID)}-db0"
     admin_username = "${var.userName}"
   }
 
@@ -245,7 +273,7 @@ resource "azurerm_virtual_machine" "db0" {
 
     ssh_keys {
       path     = "/home/${var.userName}/.ssh/authorized_keys"
-      key_data = "${file("~/.ssh/id_rsa.pub")}"
+      key_data = "${file("${var.sshKeyPath}.pub")}"
     }
   }
 
@@ -257,7 +285,7 @@ resource "azurerm_virtual_machine" "db0" {
 
   connection {
     user        = "${var.userName}"
-    private_key = "${file("~/.ssh/id_rsa")}"
+    private_key = "${file("${var.sshKeyPath}")}"
     timeout     = "20m"
     host        = "${local.vmFqdn}"
   }
@@ -267,10 +295,32 @@ resource "azurerm_virtual_machine" "db0" {
     destination = "/tmp/hanaSetup.sh"
   }
 
+  provisioner "file" {
+    source      = "sid_config_template.txt"
+    destination = "/tmp/sid_config_template.txt"
+  }
+
+  provisioner "file" {
+    source      = "sid_passwords_template.txt"
+    destination = "/tmp/sid_passwords_template.txt"
+  }
+
+  provisioner "file" {
+    source      = "installHANA.sh"
+    destination = "/tmp/installHANA.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/hanaSetup.sh",
       "sudo /tmp/hanaSetup.sh ${var.SID}",
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/installHANA.sh",
+      "sudo /tmp/installHANA.sh ${urlencode(var.sapCarBitsURL)} ${var.sapHostAgentURL} ${var.hdbServerURL} ${var.SID} ${local.vmFqdn} ${var.instance-no} ${var.sapadmPW} ${var.sidadmPW} ${var.systemPW}",
     ]
   }
 

@@ -24,14 +24,17 @@ variable "instance-no" {
 }
 
 variable "sapCarBitsURL" {
+  type        = "string"
   description = "The url that points to the SAPCAR bits"
 }
 
 variable "sapHostAgentURL" {
+  type        = "string"
   description = "The url that points to the sap host agent 36 bits"
 }
 
 variable "hdbServerURL" {
+  type        = "string"
   description = "The url that points to the HDB server 122.17 bits"
 }
 
@@ -295,6 +298,13 @@ resource "azurerm_virtual_machine" "db0" {
     destination = "/tmp/hanaSetup.sh"
   }
 
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/hanaSetup.sh",
+      "sudo /tmp/hanaSetup.sh ${var.SID}",
+    ]
+  }
+
   provisioner "file" {
     source      = "sid_config_template.txt"
     destination = "/tmp/sid_config_template.txt"
@@ -312,15 +322,8 @@ resource "azurerm_virtual_machine" "db0" {
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/hanaSetup.sh",
-      "sudo /tmp/hanaSetup.sh ${var.SID}",
-    ]
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /tmp/installHANA.sh",
-      "sudo /tmp/installHANA.sh ${urlencode(var.sapCarBitsURL)} ${var.sapHostAgentURL} ${var.hdbServerURL} ${var.SID} ${local.vmFqdn} ${var.instance-no} ${var.sapadmPW} ${var.sidadmPW} ${var.systemPW}",
+      "chmod +x /tmp/installHANA.sh", 
+      "sudo /tmp/installHANA.sh \"${var.sapCarBitsURL}\" \"${var.sapHostAgentURL}\" \"${var.hdbServerURL}\" \"${var.SID}\" \"${local.vmFqdn}\" \"${var.instance-no}\" \"${var.sapadmPW}\" \"${var.sidadmPW}\" \"${var.systemPW}\"",
     ]
   }
 
@@ -336,3 +339,4 @@ output "ip" {
   value = "Created vm ${azurerm_virtual_machine.db0.id}"
   value = "Connect using ${var.userName}@${local.vmFqdn}"
 }
+

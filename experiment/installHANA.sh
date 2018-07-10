@@ -27,4 +27,4 @@ chmod 755 ./SAPCAR_1014-80000935.EXE
 awk -v sap_sid="$SAP_SID" -v sap_instance_num="$SAP_INSTANCE_NUM" -v sap_host_name="$SAP_HOST_NAME" '{gsub("<SAP_SID>", sap_sid); gsub("<SAP_HOST_NAME>", sap_host_name); gsub("<SAP_INSTANCE_NUM>", sap_instance_num);}1' /tmp/sid_config_template.txt > ${SAP_SID}_configfile
 temp=`awk -v sap_adm_pw="$SAP_ADM_PW" -v sid_adm_pw="$SID_ADM_PW" -v system_pw="$SYSTEM_PW" '{gsub("<SAP_ADM_PW>", sap_adm_pw); gsub("<SID_ADM_PW>", sid_adm_pw); gsub("<SYSTEM_PW>", system_pw);}1' /tmp/sid_passwords_template.txt`
 # Pass the configs into the HANA install
-echo $temp | ./hdblcm --batch --action=install --configfile=${SAP_SID}_configfile --read_password_from_stdin=xml
+echo $temp | /hana/shared/install/SAP_HANA_DATABASE/hdblcm --batch --action=install --configfile=${SAP_SID}_configfile --read_password_from_stdin=xml

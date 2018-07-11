@@ -1,57 +1,73 @@
 # Configure the Microsoft Azure Provider
-provider "azurerm" {}
+provider "azurerm" {} #TODO(pabowers): add ability to specify subscription
 
-variable "region" {}
+variable "az_region" {}
 
-variable "userName" {
+variable "vm_user" {
   description = "The username of your HANA db vm."
 }
 
-variable "sshKeyPath" {
+variable "az_domain_name" {
+    description = "A name that is used to access your HANA vm"
+}
+
+variable "sshkey_path" {
   description = "The path on the local machine to where the public and private keys are"
 }
 
-variable "resource-group-name" {
-  default = "hana-db-pv-rg"
+variable "az_resource_group" {
+  description = "Which azure resource group to deploy the HANA setup into.  i.e. <myResourceGroup>"
 }
 
-variable "SID" {
+variable "sap_sid" {
   default = "PV1"
 }
 
-variable "instance-no" {
-  description = "the sap instance number which is in range 00-99"
+variable "sap_instancenum" {
+  description = "The sap instance number which is in range 00-99"
 }
 
-variable "vmSize" {
-    default = "Standard_E8s_v3"
+variable "db_num" {
+    description = "which node is currently being created"
 }
 
-variable "sapCarBitsURL" {
+variable "vm_size" {
+  default = "Standard_E8s_v3"
+}
+
+variable "url_sap_sapcar" {
   type        = "string"
   description = "The url that points to the SAPCAR bits"
 }
 
-variable "sapHostAgentURL" {
+variable "url_sap_hostagent" {
   type        = "string"
   description = "The url that points to the sap host agent 36 bits"
 }
 
-variable "hdbServerURL" {
+variable "url_sap_hdbserver" {
   type        = "string"
   description = "The url that points to the HDB server 122.17 bits"
 }
 
-variable "sapadmPW" {
-  description = "Password for the SAP admin"
+variable "pw_os_sapadm" {
+  description = "Password for the SAP admin, which is an OS user"
 }
 
-variable "sidadmPW" {
-  description = "Password for this specific SID"
+variable "pw_os_sidadm" {
+  description = "Password for this specific sidadm, which is an OS user"
 }
 
-variable "systemPW" {
+variable "pw_db_system" {
   description = "Password for the database user SYSTEM"
+}
+
+locals {
+  vmFqdn         = "${azurerm_public_ip.hana-db-pip.fqdn}"
+  vmName         = "${var.sap_sid}-db${var.db_num}"
+  hanaDataSize   = 512
+  hanaLogSize    = 512
+  hanaSharedSize = 512
 }
 
 data "http" "local_ip" {
@@ -60,8 +76,8 @@ data "http" "local_ip" {
 
 # Create a resource group if it doesn’t exist
 resource "azurerm_resource_group" "hana-resource-group" {
-  name     = "${var.resource-group-name}"
-  location = "${var.region}"
+  name     = "${var.az_resource_group}"
+  location = "${var.az_region}"
 
   tags {
     environment = "Terraform SAP HANA single node deployment"
@@ -70,9 +86,9 @@ resource "azurerm_resource_group" "hana-resource-group" {
 
 # Create virtual network
 resource "azurerm_virtual_network" "hana-vnet" {
-  name                = "${var.SID}-vnet"
+  name                = "${var.sap_sid}-vnet"
   address_space       = ["10.0.0.0/21"]
-  location            = "${var.region}"
+  location            = "${var.az_region}"
   resource_group_name = "${azurerm_resource_group.hana-resource-group.name}"
 
   tags {
@@ -82,7 +98,7 @@ resource "azurerm_virtual_network" "hana-vnet" {
 
 # Create subnet
 resource "azurerm_subnet" "hana-subnet" {
-  name                      = "${var.SID}-subnet"
+  name                      = "${var.sap_sid}-subnet"
   resource_group_name       = "${azurerm_resource_group.hana-resource-group.name}"
   virtual_network_name      = "${azurerm_virtual_network.hana-vnet.name}"
   network_security_group_id = "${azurerm_network_security_group.pv1-nsg.id}"
@@ -91,12 +107,12 @@ resource "azurerm_subnet" "hana-subnet" {
 
 # Create public IPs
 resource "azurerm_public_ip" "hana-db-pip" {
-  name                         = "${var.SID}-db0-pip"
-  location                     = "${var.region}"
+  name                         = "${var.sap_sid}-db${var.db_num}-pip"
+  location                     = "${var.az_region}"
   resource_group_name          = "${azurerm_resource_group.hana-resource-group.name}"
   public_ip_address_allocation = "dynamic"
   idle_timeout_in_minutes      = 30
-  domain_name_label            = "hana-dn"
+  domain_name_label            = "${var.az_domain_name}"
 
   tags {
     environment = "Terraform SAP HANA single node deployment"
@@ -105,8 +121,8 @@ resource "azurerm_public_ip" "hana-db-pip" {
 
 # Create Network Security Group and rule
 resource "azurerm_network_security_group" "pv1-nsg" {
-  name                = "${var.SID}-nsg"
-  location            = "${var.region}"
+  name                = "${var.sap_sid}-nsg"
+  location            = "${var.az_region}"
   resource_group_name = "${azurerm_resource_group.hana-resource-group.name}"
 
   security_rule {
@@ -140,7 +156,7 @@ resource "azurerm_network_security_group" "pv1-nsg" {
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "3${var.instance-no}00-3${var.instance-no}99"
+    destination_port_range     = "3${var.sap_instancenum}00-3${var.sap_instancenum}99"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
@@ -152,7 +168,7 @@ resource "azurerm_network_security_group" "pv1-nsg" {
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "80${var.instance-no}"
+    destination_port_range     = "80${var.sap_instancenum}"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
@@ -164,7 +180,7 @@ resource "azurerm_network_security_group" "pv1-nsg" {
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "43${var.instance-no}"
+    destination_port_range     = "43${var.sap_instancenum}"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
@@ -174,18 +190,10 @@ resource "azurerm_network_security_group" "pv1-nsg" {
   }
 }
 
-locals {
-  vmFqdn         = "${azurerm_public_ip.hana-db-pip.fqdn}"
-  vmName	= "${var.SID}-db0"
-  hanaDataSize   = 512
-  hanaLogSize    = 512
-  hanaSharedSize = 512
-}
-
 # Create network interface
 resource "azurerm_network_interface" "pv1-db0-nic" {
-  name                      = "${var.SID}-db0-nic"
-  location                  = "${var.region}"
+  name                      = "${var.sap_sid}-db0-nic"
+  location                  = "${var.az_region}"
   resource_group_name       = "${azurerm_resource_group.hana-resource-group.name}"
   network_security_group_id = "${azurerm_network_security_group.pv1-nsg.id}"
 
@@ -216,7 +224,7 @@ resource "random_id" "randomId" {
 resource "azurerm_storage_account" "mystorageaccount" {
   name                     = "diag${random_id.randomId.hex}"
   resource_group_name      = "${azurerm_resource_group.hana-resource-group.name}"
-  location                 = "${var.region}"
+  location                 = "${var.az_region}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -228,10 +236,10 @@ resource "azurerm_storage_account" "mystorageaccount" {
 # Create virtual machine
 resource "azurerm_virtual_machine" "db0" {
   name                  = "db0"
-  location              = "${var.region}"
+  location              = "${var.az_region}"
   resource_group_name   = "${azurerm_resource_group.hana-resource-group.name}"
   network_interface_ids = ["${azurerm_network_interface.pv1-db0-nic.id}"]
-  vm_size               = "${var.vmSize}"
+  vm_size               = "${var.vm_size}"
 
   storage_os_disk {
     name              = "myOsDisk"
@@ -273,15 +281,15 @@ resource "azurerm_virtual_machine" "db0" {
 
   os_profile {
     computer_name  = "${local.vmName}"
-    admin_username = "${var.userName}"
+    admin_username = "${var.vm_user}"
   }
 
   os_profile_linux_config {
     disable_password_authentication = true
 
     ssh_keys {
-      path     = "/home/${var.userName}/.ssh/authorized_keys"
-      key_data = "${file("${var.sshKeyPath}.pub")}"
+      path     = "/home/${var.vm_user}/.ssh/authorized_keys"
+      key_data = "${file("${var.sshkey_path}.pub")}"
     }
   }
 
@@ -292,8 +300,8 @@ resource "azurerm_virtual_machine" "db0" {
   }
 
   connection {
-    user        = "${var.userName}"
-    private_key = "${file("${var.sshKeyPath}")}"
+    user        = "${var.vm_user}"
+    private_key = "${file("${var.sshkey_path}")}"
     timeout     = "20m"
     host        = "${local.vmFqdn}"
   }
@@ -306,7 +314,7 @@ resource "azurerm_virtual_machine" "db0" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/hanaSetup.sh",
-      "sudo /tmp/hanaSetup.sh ${var.SID}",
+      "sudo /tmp/hanaSetup.sh ${var.sap_sid}",
     ]
   }
 
@@ -327,8 +335,8 @@ resource "azurerm_virtual_machine" "db0" {
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/installHANA.sh", 
-      "sudo /tmp/installHANA.sh \"${var.sapCarBitsURL}\" \"${var.sapHostAgentURL}\" \"${var.hdbServerURL}\" \"${var.SID}\" \"${local.vmName}\" \"${var.instance-no}\" \"${var.sapadmPW}\" \"${var.sidadmPW}\" \"${var.systemPW}\"",
+      "chmod +x /tmp/installHANA.sh",
+      "sudo /tmp/installHANA.sh \"${var.url_sap_sapcar}\" \"${var.url_sap_hostagent}\" \"${var.url_sap_hdbserver}\" \"${var.sap_sid}\" \"${local.vmName}\" \"${var.sap_instancenum}\" \"${var.pw_os_sapadm}\" \"${var.pw_os_sidadm}\" \"${var.pw_db_system}\"",
     ]
   }
 
@@ -342,6 +350,5 @@ resource "azurerm_virtual_machine" "db0" {
 // -------------------------------------------------------------------------
 output "ip" {
   value = "Created vm ${azurerm_virtual_machine.db0.id}"
-  value = "Connect using ${var.userName}@${local.vmFqdn}"
+  value = "Connect using ${var.vm_user}@${local.vmFqdn}"
 }
-

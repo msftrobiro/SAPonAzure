@@ -23,6 +23,10 @@ variable "instance-no" {
   description = "the sap instance number which is in range 00-99"
 }
 
+variable "vmSize" {
+    default = "Standard_E8s_v3"
+}
+
 variable "sapCarBitsURL" {
   type        = "string"
   description = "The url that points to the SAPCAR bits"
@@ -172,6 +176,7 @@ resource "azurerm_network_security_group" "pv1-nsg" {
 
 locals {
   vmFqdn         = "${azurerm_public_ip.hana-db-pip.fqdn}"
+  vmName	= "${var.SID}-db0"
   hanaDataSize   = 512
   hanaLogSize    = 512
   hanaSharedSize = 512
@@ -226,7 +231,7 @@ resource "azurerm_virtual_machine" "db0" {
   location              = "${var.region}"
   resource_group_name   = "${azurerm_resource_group.hana-resource-group.name}"
   network_interface_ids = ["${azurerm_network_interface.pv1-db0-nic.id}"]
-  vm_size               = "Standard_E8s_v3"
+  vm_size               = "${var.vmSize}"
 
   storage_os_disk {
     name              = "myOsDisk"
@@ -267,7 +272,7 @@ resource "azurerm_virtual_machine" "db0" {
   }
 
   os_profile {
-    computer_name  = "${lower(var.SID)}-db0"
+    computer_name  = "${local.vmName}"
     admin_username = "${var.userName}"
   }
 
@@ -323,7 +328,7 @@ resource "azurerm_virtual_machine" "db0" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/installHANA.sh", 
-      "sudo /tmp/installHANA.sh \"${var.sapCarBitsURL}\" \"${var.sapHostAgentURL}\" \"${var.hdbServerURL}\" \"${var.SID}\" \"${local.vmFqdn}\" \"${var.instance-no}\" \"${var.sapadmPW}\" \"${var.sidadmPW}\" \"${var.systemPW}\"",
+      "sudo /tmp/installHANA.sh \"${var.sapCarBitsURL}\" \"${var.sapHostAgentURL}\" \"${var.hdbServerURL}\" \"${var.SID}\" \"${local.vmName}\" \"${var.instance-no}\" \"${var.sapadmPW}\" \"${var.sidadmPW}\" \"${var.systemPW}\"",
     ]
   }
 

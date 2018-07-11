@@ -9,7 +9,7 @@ SAP_HOST_NAME=$5
 SAP_INSTANCE_NUM=$6
 SAP_ADM_PW=$7
 SID_ADM_PW=$8
-SYSTEM_PW=$6
+SYSTEM_PW=$9
 # Creating /hana/shared/install and moving config templates
 mkdir /hana/shared/install
 cd /hana/shared/install

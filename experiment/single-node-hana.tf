@@ -71,7 +71,7 @@ locals {
 }
 
 data "http" "local_ip" {
-  url = "http://ifconfig.co"
+  url = "http://v4.ifconfig.co"
 }
 
 # Create a resource group if it doesn’t exist
@@ -307,14 +307,14 @@ resource "azurerm_virtual_machine" "db0" {
   }
 
   provisioner "file" {
-    source      = "hanaSetup.sh"
-    destination = "/tmp/hanaSetup.sh"
+    source      = "provision_hardware.sh"
+    destination = "/tmp/provision_hardware.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/hanaSetup.sh",
-      "sudo /tmp/hanaSetup.sh ${var.sap_sid}",
+      "chmod +x /tmp/provision_hardware.sh",
+      "sudo /tmp/provision_hardware.sh ${var.sap_sid}",
     ]
   }
 
@@ -329,13 +329,13 @@ resource "azurerm_virtual_machine" "db0" {
   }
 
   provisioner "file" {
-    source      = "installHANA.sh"
-    destination = "/tmp/installHANA.sh"
+    source      = "install_HANA.sh"
+    destination = "/tmp/install_HANA.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/installHANA.sh",
+      "chmod +x /tmp/install_HANA.sh",
       "sudo /tmp/installHANA.sh \"${var.url_sap_sapcar}\" \"${var.url_sap_hostagent}\" \"${var.url_sap_hdbserver}\" \"${var.sap_sid}\" \"${local.vmName}\" \"${var.sap_instancenum}\" \"${var.pw_os_sapadm}\" \"${var.pw_os_sidadm}\" \"${var.pw_db_system}\"",
     ]
   }

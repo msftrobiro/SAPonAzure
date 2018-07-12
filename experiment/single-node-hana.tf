@@ -345,7 +345,7 @@ resource "azurerm_virtual_machine" "db0" {
       "chmod +x /tmp/provision_hardware.sh",
       "sudo /tmp/provision_hardware.sh ${var.sap_sid}",
       "chmod +x /tmp/install_HANA.sh",
-      "sudo /tmp/installHANA.sh \"${var.url_sap_sapcar}\" \"${var.url_sap_hostagent}\" \"${var.url_sap_hdbserver}\" \"${var.sap_sid}\" \"${local.vmName}\" \"${var.sap_instancenum}\" \"${var.pw_os_sapadm}\" \"${var.pw_os_sidadm}\" \"${var.pw_db_system}\"",
+      "sudo /tmp/install_HANA.sh \"${var.url_sap_sapcar}\" \"${var.url_sap_hostagent}\" \"${var.url_sap_hdbserver}\" \"${var.sap_sid}\" \"${local.vmName}\" \"${var.sap_instancenum}\" \"${var.pw_os_sapadm}\" \"${var.pw_os_sidadm}\" \"${var.pw_db_system}\"",
     ]
   }
 

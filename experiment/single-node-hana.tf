@@ -8,7 +8,7 @@ variable "vm_user" {
 }
 
 variable "az_domain_name" {
-    description = "A name that is used to access your HANA vm"
+  description = "A name that is used to access your HANA vm"
 }
 
 variable "sshkey_path_private" {
@@ -32,7 +32,7 @@ variable "sap_instancenum" {
 }
 
 variable "db_num" {
-    description = "which node is currently being created"
+  description = "which node is currently being created"
 }
 
 variable "vm_size" {
@@ -315,13 +315,6 @@ resource "azurerm_virtual_machine" "db0" {
     destination = "/tmp/provision_hardware.sh"
   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /tmp/provision_hardware.sh",
-      "sudo /tmp/provision_hardware.sh ${var.sap_sid}",
-    ]
-  }
-
   provisioner "file" {
     source      = "sid_config_template.txt"
     destination = "/tmp/sid_config_template.txt"
@@ -337,10 +330,30 @@ resource "azurerm_virtual_machine" "db0" {
     destination = "/tmp/install_HANA.sh"
   }
 
+  provisioner "file" {
+    source      = "hardware_setup_tests.sh"
+    destination = "/tmp/hardware_setup.tests.sh"
+  }
+
+  provisioner "file" {
+    source      = "shunit2"
+    destination = "/tmp/shunit2"
+  }
+
   provisioner "remote-exec" {
     inline = [
+      "chmod +x /tmp/provision_hardware.sh",
+      "sudo /tmp/provision_hardware.sh ${var.sap_sid}",
       "chmod +x /tmp/install_HANA.sh",
       "sudo /tmp/installHANA.sh \"${var.url_sap_sapcar}\" \"${var.url_sap_hostagent}\" \"${var.url_sap_hdbserver}\" \"${var.sap_sid}\" \"${local.vmName}\" \"${var.sap_instancenum}\" \"${var.pw_os_sapadm}\" \"${var.pw_os_sidadm}\" \"${var.pw_db_system}\"",
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/hardware_setup_tests.sh",
+      "chmod +x /tmp/shunit2",
+      "sudo /tmp/hardware_setup_tests.sh",
     ]
   }
 

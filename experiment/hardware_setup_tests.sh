@@ -30,4 +30,9 @@ testSharedDirCreated() {
     checkMountPointCorrectSize "/hana/shared/PV1" "512G"
 }
 
+testDbSetup() {
+    RESULT="$(echo -e "select 1 from dummy;" | hdbsql -x -a -i 00 -u SYSTEM -p <SYSTEM password> | awk 'END{print}')";
+    assertEquals 1 $RESULT
+}
+
 . ./shunit2

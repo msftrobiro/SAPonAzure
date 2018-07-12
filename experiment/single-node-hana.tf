@@ -11,8 +11,12 @@ variable "az_domain_name" {
     description = "A name that is used to access your HANA vm"
 }
 
-variable "sshkey_path" {
-  description = "The path on the local machine to where the public and private keys are"
+variable "sshkey_path_private" {
+  description = "The path on the local machine to where the private key is"
+}
+
+variable "sshkey_path_public" {
+  description = "The path on the local machine to where the public key is"
 }
 
 variable "az_resource_group" {
@@ -289,7 +293,7 @@ resource "azurerm_virtual_machine" "db0" {
 
     ssh_keys {
       path     = "/home/${var.vm_user}/.ssh/authorized_keys"
-      key_data = "${file("${var.sshkey_path}.pub")}"
+      key_data = "${file("${var.sshkey_path_public}")}"
     }
   }
 
@@ -301,7 +305,7 @@ resource "azurerm_virtual_machine" "db0" {
 
   connection {
     user        = "${var.vm_user}"
-    private_key = "${file("${var.sshkey_path}")}"
+    private_key = "${file("${var.sshkey_path_private}")}"
     timeout     = "20m"
     host        = "${local.vmFqdn}"
   }

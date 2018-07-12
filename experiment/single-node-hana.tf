@@ -349,14 +349,6 @@ resource "azurerm_virtual_machine" "db0" {
     ]
   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /tmp/hardware_setup_tests.sh",
-      "chmod +x /tmp/shunit2",
-      "sudo /tmp/hardware_setup_tests.sh",
-    ]
-  }
-
   tags {
     environment = "Terraform SAP HANA single node deployment"
   }

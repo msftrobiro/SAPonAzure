@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Setting variables passed in
+# Set variables passed in
 param_url_sap_sapcar=$1
 param_url_sap_hostagent=$2
 param_url_sap_hdbserver=$3
@@ -10,9 +10,11 @@ param_sap_instancenum=$6
 param_sap_sapadm=$7
 param_pw_os_sidadm=$8
 param_pw_db_system=$9
-# Creating /hana/shared/install and moving config templates
+
+# Create /hana/shared/install and move config templates
 mkdir /hana/shared/install
 cd /hana/shared/install
+
 # Download the bits
 wget -O SAPCAR_LINUX.EXE $param_url_sap_sapcar
 wget -O SIGNATURE.SMF $param_url_sap_hostagent

@@ -105,7 +105,7 @@ resource "azurerm_subnet" "hana-subnet" {
   name                      = "${var.sap_sid}-subnet"
   resource_group_name       = "${azurerm_resource_group.hana-resource-group.name}"
   virtual_network_name      = "${azurerm_virtual_network.hana-vnet.name}"
-  network_security_group_id = "${azurerm_network_security_group.pv1-nsg.id}"
+  network_security_group_id = "${azurerm_network_security_group.sap-nsg.id}"
   address_prefix            = "10.0.1.0/24"
 }
 
@@ -124,7 +124,7 @@ resource "azurerm_public_ip" "hana-db-pip" {
 }
 
 # Create Network Security Group and rule
-resource "azurerm_network_security_group" "pv1-nsg" {
+resource "azurerm_network_security_group" "sap-nsg" {
   name                = "${var.sap_sid}-nsg"
   location            = "${var.az_region}"
   resource_group_name = "${azurerm_resource_group.hana-resource-group.name}"
@@ -199,7 +199,7 @@ resource "azurerm_network_interface" "db-nic" {
   name                      = "${var.sap_sid}-db${var.db_num}-nic"
   location                  = "${var.az_region}"
   resource_group_name       = "${azurerm_resource_group.hana-resource-group.name}"
-  network_security_group_id = "${azurerm_network_security_group.pv1-nsg.id}"
+  network_security_group_id = "${azurerm_network_security_group.sap-nsg.id}"
 
   ip_configuration {
     name      = "myNicConfiguration"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [$# -ne 9]; 
+if [ "$#" -ne 9 ]; 
     then echo " Invalid parameters"
 fi
 
@@ -15,7 +15,7 @@ param_sap_sapadm=$7
 param_pw_os_sidadm=$8
 param_pw_db_system=$9
 
-hana_path = "/hana/shared/install"
+hana_path="/hana/shared/install"
 # Create /hana/shared/install and move config templates
 mkdir $hana_path
 cd $hana_path

@@ -67,8 +67,8 @@ variable "pw_db_system" {
 }
 
 locals {
-  vm_fqdn              = "${azurerm_public_ip.hana-db-pip.fqdn}"
-  vm_name              = "${var.sap_sid}-db${var.db_num}"
+  vm_fqdn                 = "${azurerm_public_ip.hana-db-pip.fqdn}"
+  vm_name                 = "${var.sap_sid}-db${var.db_num}"
   disksize_gb_hana_data   = 512
   disksize_gb_hana_log    = 512
   disksize_gb_hana_shared = 512

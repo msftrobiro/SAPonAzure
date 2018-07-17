@@ -195,7 +195,7 @@ resource "azurerm_network_security_group" "pv1-nsg" {
 }
 
 # Create network interface
-resource "azurerm_network_interface" "pv1-db0-nic" {
+resource "azurerm_network_interface" "db-nic" {
   name                      = "${var.sap_sid}-db${var.db_num}-nic"
   location                  = "${var.az_region}"
   resource_group_name       = "${azurerm_resource_group.hana-resource-group.name}"
@@ -238,11 +238,11 @@ resource "azurerm_storage_account" "mystorageaccount" {
 }
 
 # Create virtual machine
-resource "azurerm_virtual_machine" "db0" {
+resource "azurerm_virtual_machine" "db" {
   name                  = "db0"
   location              = "${var.az_region}"
   resource_group_name   = "${azurerm_resource_group.hana-resource-group.name}"
-  network_interface_ids = ["${azurerm_network_interface.pv1-db0-nic.id}"]
+  network_interface_ids = ["${azurerm_network_interface.db-nic.id}"]
   vm_size               = "${var.vm_size}"
 
   storage_os_disk {
@@ -358,6 +358,6 @@ resource "azurerm_virtual_machine" "db0" {
 // Print out login information
 // -------------------------------------------------------------------------
 output "ip" {
-  value = "Created vm ${azurerm_virtual_machine.db0.id}"
+  value = "Created vm ${azurerm_virtual_machine.db.id}"
   value = "Connect using ${var.vm_user}@${local.vm_fqdn}"
 }

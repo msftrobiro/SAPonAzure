@@ -25,7 +25,7 @@ wget -O SAPCAR_LINUX.EXE $param_url_sap_sapcar
 wget -O SIGNATURE.SMF $param_url_sap_hostagent
 wget -O IMDB_SERVER_LINUX.SAR $param_url_sap_hdbserver
 
-chmod 755 ./SAPCAR_1014-80000935.EXE
+chmod 755 ./SAPCAR_LINUX.EXE
 
 # Extract the bits
 ./SAPCAR_LINUX.EXE -manifest SIGNATURE.SMF -xvf IMDB_SERVER_LINUX.SAR

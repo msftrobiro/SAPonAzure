@@ -331,8 +331,8 @@ resource "azurerm_virtual_machine" "db" {
   }
 
   provisioner "file" {
-    source      = "hardware_setup_tests.sh"
-    destination = "/tmp/hardware_setup.tests.sh"
+    source      = "machine_setup_tests.sh"
+    destination = "/tmp/machine_setup_tests.sh"
   }
 
   provisioner "file" {

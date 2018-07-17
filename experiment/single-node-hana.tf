@@ -67,11 +67,11 @@ variable "pw_db_system" {
 }
 
 locals {
-  vm_fqdn              = "${azurerm_public_ip.hana-db-pip.fqdn}"
-  vm_name              = "${var.sap_sid}-db${var.db_num}"
-  disksize_hana_data   = 512
-  disksize_hana_log    = 512
-  disksize_hana_shared = 512
+  vm_fqdn                 = "${azurerm_public_ip.hana-db-pip.fqdn}"
+  vm_name                 = "${var.sap_sid}-db${var.db_num}"
+  disksize_gb_hana_data   = 512
+  disksize_gb_hana_log    = 512
+  disksize_gb_hana_shared = 512
 }
 
 data "http" "local_ip" {
@@ -105,7 +105,7 @@ resource "azurerm_subnet" "hana-subnet" {
   name                      = "${var.sap_sid}-subnet"
   resource_group_name       = "${azurerm_resource_group.hana-resource-group.name}"
   virtual_network_name      = "${azurerm_virtual_network.hana-vnet.name}"
-  network_security_group_id = "${azurerm_network_security_group.pv1-nsg.id}"
+  network_security_group_id = "${azurerm_network_security_group.hdb-nsg.id}"
   address_prefix            = "10.0.1.0/24"
 }
 
@@ -124,7 +124,7 @@ resource "azurerm_public_ip" "hana-db-pip" {
 }
 
 # Create Network Security Group and rule
-resource "azurerm_network_security_group" "pv1-nsg" {
+resource "azurerm_network_security_group" "hdb-nsg" {
   name                = "${var.sap_sid}-nsg"
   location            = "${var.az_region}"
   resource_group_name = "${azurerm_resource_group.hana-resource-group.name}"
@@ -195,11 +195,11 @@ resource "azurerm_network_security_group" "pv1-nsg" {
 }
 
 # Create network interface
-resource "azurerm_network_interface" "pv1-db0-nic" {
+resource "azurerm_network_interface" "db-nic" {
   name                      = "${var.sap_sid}-db${var.db_num}-nic"
   location                  = "${var.az_region}"
   resource_group_name       = "${azurerm_resource_group.hana-resource-group.name}"
-  network_security_group_id = "${azurerm_network_security_group.pv1-nsg.id}"
+  network_security_group_id = "${azurerm_network_security_group.hdb-nsg.id}"
 
   ip_configuration {
     name      = "myNicConfiguration"
@@ -238,11 +238,11 @@ resource "azurerm_storage_account" "mystorageaccount" {
 }
 
 # Create virtual machine
-resource "azurerm_virtual_machine" "db0" {
-  name                  = "db0"
+resource "azurerm_virtual_machine" "db" {
+  name                  = "${var.sap_sid}-db${var.db_num}"
   location              = "${var.az_region}"
   resource_group_name   = "${azurerm_resource_group.hana-resource-group.name}"
-  network_interface_ids = ["${azurerm_network_interface.pv1-db0-nic.id}"]
+  network_interface_ids = ["${azurerm_network_interface.db-nic.id}"]
   vm_size               = "${var.vm_size}"
 
   storage_os_disk {
@@ -263,7 +263,7 @@ resource "azurerm_virtual_machine" "db0" {
     name              = "hana-data-disk"
     managed_disk_type = "Standard_LRS"
     create_option     = "Empty"
-    disk_size_gb      = "${local.disksize_hana_data}"
+    disk_size_gb      = "${local.disksize_gb_hana_data}"
     lun               = 0
   }
 
@@ -271,7 +271,7 @@ resource "azurerm_virtual_machine" "db0" {
     name              = "hana-log-disk"
     managed_disk_type = "Standard_LRS"
     create_option     = "Empty"
-    disk_size_gb      = "${local.disksize_hana_log}"
+    disk_size_gb      = "${local.disksize_gb_hana_log}"
     lun               = 1
   }
 
@@ -279,7 +279,7 @@ resource "azurerm_virtual_machine" "db0" {
     name              = "hana-shared-disk"
     managed_disk_type = "Standard_LRS"
     create_option     = "Empty"
-    disk_size_gb      = "${local.disksize_hana_shared}"
+    disk_size_gb      = "${local.disksize_gb_hana_shared}"
     lun               = 2
   }
 
@@ -331,8 +331,8 @@ resource "azurerm_virtual_machine" "db0" {
   }
 
   provisioner "file" {
-    source      = "hardware_setup_tests.sh"
-    destination = "/tmp/hardware_setup.tests.sh"
+    source      = "machine_setup_tests.sh"
+    destination = "/tmp/machine_setup_tests.sh"
   }
 
   provisioner "file" {
@@ -358,6 +358,6 @@ resource "azurerm_virtual_machine" "db0" {
 // Print out login information
 // -------------------------------------------------------------------------
 output "ip" {
-  value = "Created vm ${azurerm_virtual_machine.db0.id}"
+  value = "Created vm ${azurerm_virtual_machine.db.id}"
   value = "Connect using ${var.vm_user}@${local.vm_fqdn}"
 }

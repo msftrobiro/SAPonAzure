@@ -239,7 +239,7 @@ resource "azurerm_storage_account" "mystorageaccount" {
 
 # Create virtual machine
 resource "azurerm_virtual_machine" "db" {
-  name                  = "db${var.db_num}"
+  name                  = "${var.sap_sid}-db${var.db_num}"
   location              = "${var.az_region}"
   resource_group_name   = "${azurerm_resource_group.hana-resource-group.name}"
   network_interface_ids = ["${azurerm_network_interface.db-nic.id}"]

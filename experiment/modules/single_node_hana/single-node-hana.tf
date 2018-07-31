@@ -147,16 +147,6 @@ resource "azurerm_virtual_machine" "db" {
   }
 
   provisioner "file" {
-    source      = "${path.module}/install_HANA.sh"
-    destination = "/tmp/install_HANA.sh"
-  }
-
-  provisioner "file" {
-    source      = "${path.module}/machine_setup_tests.sh"
-    destination = "/tmp/machine_setup_tests.sh"
-  }
-
-  provisioner "file" {
     source      = "${path.module}/shunit2"
     destination = "/tmp/shunit2"
   }
@@ -165,9 +155,11 @@ resource "azurerm_virtual_machine" "db" {
     inline = [
       "chmod +x /tmp/provision_hardware.sh",
       "sudo /tmp/provision_hardware.sh ${var.sap_sid}",
-      "chmod +x /tmp/install_HANA.sh",
-      "sudo /tmp/install_HANA.sh \"${var.url_sap_sapcar}\" \"${var.url_sap_hostagent}\" \"${var.url_sap_hdbserver}\" \"${var.sap_sid}\" \"${local.vm_name}\" \"${var.sap_instancenum}\" \"${var.pw_os_sapadm}\" \"${var.pw_os_sidadm}\" \"${var.pw_db_system}\"",
     ]
+  }
+
+  provisioner "local-exec" {
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ${var.vm_user} --private-key '${var.sshkey_path_private}' -i '${local.vm_fqdn},' ansible/playbook.yml"
   }
 
   tags {

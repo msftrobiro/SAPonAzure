@@ -10,7 +10,7 @@ checkmnt=
 sapmnt=/hana/shared
 
 # Local Host Name ( Default: pv1-db0 )
-hostname=<SAP_HOSTNAME>
+hostname={{ sap_hostname }}
 
 # Install SSH Key ( Default: y )
 install_ssh_key=y
@@ -28,10 +28,10 @@ storage_cfg=
 internal_network=
 
 # SAP HANA System ID
-sid=<SAP_SID>
+sid={{ sap_sid|upper }}
 
 # Instance Number
-number=<SAP_INSTANCENUM>
+number={{ sap_instancenum }}
 
 # Database Mode ( Default: single_container; Valid values: single_container | multiple_containers )
 db_mode=single_container

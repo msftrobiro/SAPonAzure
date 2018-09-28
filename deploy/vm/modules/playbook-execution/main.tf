@@ -1,3 +1,4 @@
+# This is how we call Ansible and pass in variables from Terraform.
 resource null_resource "mount-disks-and-configure-hana" {
   provisioner "local-exec" {
     command = <<EOT

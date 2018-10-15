@@ -50,4 +50,6 @@ Example terraform.tfvars:
  pw_db_system =  
  useHana2 =  
  install_xsa =  
+ azure_service_principal_id = 
+ azure_service_principal_pw = 
 

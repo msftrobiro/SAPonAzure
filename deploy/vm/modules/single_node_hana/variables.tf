@@ -143,3 +143,13 @@ variable "vm_size" {
 variable "vm_user" {
   description = "The username of your HANA database VM."
 }
+
+variable "azure_service_principal_id" {
+  description = "Service principal Id"
+  default     = ""
+}
+
+variable "azure_service_principal_pw" {
+  description = "Service principal password"
+  default     = ""
+}

@@ -87,6 +87,12 @@ In this simple example, we'll deploy a simple single-node SAP HANA instance (spe
 
     # Unique domain name for easy VM access (example: "hana-on-azure1")
     az_domain_name = "hana-on-azure1"
+ 
+    # Set your Azure service principal id.
+    azure_service_principal_id = "XXX"
+ 
+    # Set your Azure service principal password
+    azure_service_principal_pw = "XXX"
 
     # Size of the VM to be deployed (example: "Standard_E8s_v3")
     # For HANA platform edition, a minimum of 32 GB of RAM is recommended
@@ -151,11 +157,29 @@ In this simple example, we'll deploy a simple single-node SAP HANA instance (spe
 
 #### Running the deployment
 
-11. Log into your Azure subscription:
+11. Log into your Azure subscription and configure Ansible and Terraform:
 
     ```sh
     az login
     ```
+
+    Configure Ansible:
+    ```sh
+    export AZURE_SUBSCRIPTION_ID='XXX'
+    export AZURE_CLIENT_ID='XXX'
+    export AZURE_SECRET='XXX'
+    export AZURE_TENANT='XXX'
+    ```
+
+    Configure Terraform:
+    ```sh
+    export ARM_SUBSCRIPTION_ID='XXX'
+    export ARM_TENANT_ID='XXX'
+    export ARM_CLIENT_ID='XXX'
+    export ARM_CLIENT_SECRET='XXX'
+    ```
+
+    *(**Note:** Please note that you will need to create a service principal. If you don't have a service principal, please follow the instructions to create one, [How to create a service principal](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli?toc=%2Fen-us%2Fazure%2Fazure-resource-manager%2Ftoc.json&bc=%2Fen-us%2Fazure%2Fbread%2Ftoc.json&view=azure-cli-latest))*
 
 12. Trigger the deployment:
 

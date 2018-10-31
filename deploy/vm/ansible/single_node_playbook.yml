@@ -24,3 +24,8 @@
     ansible_winrm_server_cert_validation: ignore
   roles:
     - set-up-windows-bastion
+
+- name: run playbook for linux bastion host
+  vars:
+    config_json_file: ../modules/single_node_hana/temp.json
+  import_playbook: linux_bastion_host.yml

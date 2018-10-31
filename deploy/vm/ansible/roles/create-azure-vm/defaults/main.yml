@@ -1,0 +1,6 @@
+---
+azure_resource_group:
+azure_user:
+azure_nic:
+path_ssh_key:
+azure_vm_name:

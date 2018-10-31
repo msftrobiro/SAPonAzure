@@ -54,6 +54,10 @@ variable "private_ip_address_windows_bastion" {
   default     = "10.0.0.4"
 }
 
+variable "private_ip_address_linux_bastion" {
+  default = "10.0.0.5"
+}
+
 variable "public_ip_allocation_type" {
   description = "Defines whether the IP address is static or dynamic. Options are Static or Dynamic."
   default     = "Dynamic"
@@ -127,6 +131,11 @@ variable "url_hana_studio_windows" {
   default     = ""
 }
 
+variable "url_hana_studio_linux" {
+  description = "URL for the Linux version of HANA Studio to install on the bastion host"
+  default     = ""
+}
+
 variable "url_portal_services" {
   description = "URL for Portal Services"
   default     = ""
@@ -144,6 +153,11 @@ variable "url_sap_sapcar" {
 
 variable "url_sapcar_windows" {
   description = "URL for SAPCAR for Windows to run on the bastion host"
+  default     = ""
+}
+
+variable "url_sapcar_linux" {
+  description = "URL for SAPCAR for Linux to run on the bastion host"
   default     = ""
 }
 
@@ -193,4 +207,14 @@ variable "azure_service_principal_pw" {
 variable "windows_bastion" {
   description = "Whether or not you want a windows bastion host"
   default     = false
+}
+
+variable "linux_bastion" {
+  description = "Whether or not you want a linux bastion host"
+  default     = false
+}
+
+locals {
+  #name of the linux vm
+  linux_vm_name = "${lower(var.sap_sid)}-linux-bastion"
 }

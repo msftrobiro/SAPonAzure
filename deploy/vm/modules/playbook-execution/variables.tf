@@ -172,3 +172,8 @@ variable "azure_service_principal_id" {
 variable "azure_service_principal_pw" {
   description = "service principal password"
 }
+
+variable "linux_bastion" {
+  description = "flag to determine if linux bastion host is needed or not"
+  default     = false
+}

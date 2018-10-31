@@ -51,6 +51,10 @@ variable "private_ip_address_iscsi" {
   default = "10.0.0.17"
 }
 
+variable "private_ip_address_linux_bastion" {
+  default = "10.0.0.5"
+}
+
 variable "private_ip_address_lb_frontend" {
   default = "10.0.0.13"
 }
@@ -138,6 +142,11 @@ variable "url_hana_studio_windows" {
   default     = ""
 }
 
+variable "url_hana_studio_linux" {
+  description = "URL for the Linux version of HANA Studio to install on the bastion host"
+  default     = ""
+}
+
 variable "url_portal_services" {
   description = "URL for Portal Services"
   default     = ""
@@ -155,6 +164,11 @@ variable "url_sap_sapcar" {
 
 variable "url_sapcar_windows" {
   description = "URL for SAPCAR for Windows to run on the bastion host"
+  default     = ""
+}
+
+variable "url_sapcar_linux" {
+  description = "URL for SAPCAR for Linux to run on the bastion host"
   default     = ""
 }
 
@@ -206,7 +220,15 @@ variable "windows_bastion" {
   default     = false
 }
 
+variable "linux_bastion" {
+  description = "Whether or not you want a linux bastion host"
+  default     = false
+}
+
 locals {
+  # name of the linux vm
+  linux_vm_name = "${lower(var.sap_sid)}-linux-bastion"
+
   # These are the load balancing ports specifically for HANA1 pacemaker. DO NOT ALTER
   hana1_lb_ports = [
     "3${var.sap_instancenum}15",

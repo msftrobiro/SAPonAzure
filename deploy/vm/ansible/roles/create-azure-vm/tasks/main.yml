@@ -1,0 +1,22 @@
+---
+- name: create Linux Bastion VM
+  vars:
+          public_key_data: "{{ lookup('file','{{ public_key_path }}') }}"
+  azure_rm_virtualmachine:
+          resource_group: "{{ azure_resource_group }}"
+          name: "{{ azure_vm_name }}"
+          vm_size: Standard_D8s_v3
+          admin_username: "{{ azure_user }}"
+          ssh_password_enabled: false
+          ssh_public_keys:
+              - path: "/home/{{ azure_user }}/.ssh/authorized_keys"
+                key_data: "{{ public_key_data }}"
+          network_interfaces: "{{ azure_nic }}"
+          started: yes
+          state: present
+          image:
+               offer: SLES-SAP
+               publisher: SUSE
+               sku: 12-SP3
+               version: latest
+

@@ -21,6 +21,7 @@
       when: az_json.linux_bastion == true
     - debug:
           msg: "linux_bastion vm :{{ ip_sample.state.dns_settings.fqdn }}"
+      when: az_json.linux_bastion == true
     - name: NIC for linux bastion host
       azure_rm_networkinterface:
           resource_group: "{{ az_json.az_resource_group }}"

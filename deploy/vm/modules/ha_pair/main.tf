@@ -225,3 +225,18 @@ resource null_resource "destroy-vm" {
 EOT
   }
 }
+
+resource null_resource "delete-iscsi-public-ip" {
+  depends_on = ["module.configure_vm"]
+
+  provisioner "local-exec" {
+    command = <<EOT
+               OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES \
+               AZURE_RESOURCE_GROUPS="${var.az_resource_group}" \
+               ANSIBLE_HOST_KEY_CHECKING="False" \
+	       ansible-playbook -u '${var.vm_user}' \
+	       --private-key '${var.sshkey_path_private}' \
+	       --extra-vars="{ ip_config_name: \"iscsi-nic-configuration\",azure_nic: \"${module.nic_and_pip_setup_iscsi.nic_name}\", azure_vnet:  \"${module.common_setup.vnet_name}\", azure_subnet: \"hdb-subnet\", azure_nsg: \"${module.common_setup.nsg_id}\", azure_private_ip: \"${var.private_ip_address_iscsi}\", azure_resource_group: \"${module.common_setup.resource_group_name}\", azure_public_ip:  \"${module.nic_and_pip_setup_iscsi.pip_name}\"}" ../../ansible/delete_iscsi_public_ip.yml
+EOT
+  }
+}

@@ -15,10 +15,11 @@ resource null_resource "mount-disks-and-configure-hana" {
      \"pwd_os_sidadm\": \"${var.pw_os_sidadm}\", \
      \"pwd_db_system\": \"${var.pw_db_system}\", \
      \"pwd_hacluster\": \"${var.pw_hacluster}\", \
-     \"use_hana2\": \"${var.useHana2}\", \
      \"hdb_num\": \"${var.hdb_num}\", \
      \"hdb0_ip\": \"${var.private_ip_address_hdb0}\", \
      \"hdb1_ip\": \"${var.private_ip_address_hdb1}\", \
+     \"use_hana2\": ${var.useHana2}, \
+     \"hana1_db_mode\": \"${var.hana1_db_mode}\", \
      \"lb_frontend_ip\": \"${var.private_ip_address_lb_frontend}\", \
      \"resource_group\": \"${var.az_resource_group}\", \
      \"url_xsa_runtime\": \"${var.url_xsa_runtime}\", \

@@ -1,4 +1,7 @@
-- name: Backup the database
+- debug:
+        msg: "using hana2: {{use_hana2}} and hana1 db mode:{{hana1_db_mode}}"
+
+- name: Backup the database SYSTEM DB and TENANT DB [HANA 2.0]
   shell: |
     . ~/.bashrc
     hdbsql -d SYSTEMDB -u SYSTEM -p "{{ pwd_db_system }}" -i {{ sap_instancenum }} "BACKUP DATA USING FILE ('initialbackupSYS')"
@@ -6,6 +9,25 @@
   args: 
     executable: '/bin/bash'
   register: check_hdbsql
+  when: use_hana2 == true
+
+- name: Backup the database [HANA 1.0, Multitenant DB Container]
+  shell: |
+    . ~/.bashrc
+    hdbsql -d SYSTEMDB -u SYSTEM -p "{{ pwd_db_system }}" -i {{ sap_instancenum }} "BACKUP DATA USING FILE ('initialbackupSYS')"
+  args:
+    executable: '/bin/bash'
+  register: check_hdbsql
+  when: use_hana2 == false and hana1_db_mode == "multiple_containers"
+
+- name: Backup the database [HANA 1.0, SingleTenant DB container]
+  shell: |
+    . ~/.bashrc
+    hdbsql -u SYSTEM -p "{{ pwd_db_system }}" -i {{ sap_instancenum }} "BACKUP DATA USING FILE ('initialbackup{{ sap_sid|upper }}')"
+  args:
+    executable: '/bin/bash'
+  register: check_hdbsql
+  when: use_hana2 == false and hana1_db_mode == "single_container"
 
 - debug:
     msg: "{{ check_hdbsql }}"

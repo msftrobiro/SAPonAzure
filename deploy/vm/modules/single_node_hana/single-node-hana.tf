@@ -62,6 +62,7 @@ module "configure_vm" {
   pw_db_system               = "${var.pw_db_system}"
   useHana2                   = "${var.useHana2}"
   vms_configured             = "${module.create_hdb.machine_hostname}, ${module.windows_bastion_host.machine_hostname}"
+  hana1_db_mode              = "${var.hana1_db_mode}"
   url_xsa_runtime            = "${var.url_xsa_runtime}"
   url_di_core                = "${var.url_di_core}"
   url_sapui5                 = "${var.url_sapui5}"

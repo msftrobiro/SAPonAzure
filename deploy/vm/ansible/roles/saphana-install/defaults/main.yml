@@ -13,3 +13,4 @@ pwd_os_sapadm:
 pwd_os_sidadm: 
 pwd_db_system: 
 use_hana2:
+hana1_db_mode:

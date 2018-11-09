@@ -157,6 +157,11 @@ variable "useHana2" {
   default     = false
 }
 
+variable "hana1_db_mode" {
+  description = "The database mode to use if deploying HANA 1. The acceptable values are: single_container, multiple_containers"
+  default     = "multiple_containers"
+}
+
 variable "vm_user" {
   description = "The username of your HANA database VM."
 }

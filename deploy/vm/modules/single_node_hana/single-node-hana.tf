@@ -11,12 +11,12 @@ module "common_setup" {
   useHana2          = "${var.useHana2}"
 }
 
-module "create_db" {
-  source = "../create_db_node"
+module "create_hdb" {
+  source = "../create_hdb_node"
 
   az_resource_group         = "${module.common_setup.resource_group_name}"
   az_region                 = "${var.az_region}"
-  db_num                    = "${var.db_num}"
+  hdb_num                   = "${var.hdb_num}"
   hana_subnet_id            = "${module.common_setup.vnet_subnets[0]}"
   nsg_id                    = "${module.common_setup.nsg_id}"
   private_ip_address        = "${var.private_ip_address_hdb}"
@@ -50,7 +50,7 @@ module "configure_vm" {
   source                     = "../playbook-execution"
   ansible_playbook_path      = "${var.ansible_playbook_path}"
   az_resource_group          = "${module.common_setup.resource_group_name}"
-  db_num                     = "${var.db_num}"
+  hdb_num                    = "${var.hdb_num}"
   sshkey_path_private        = "${var.sshkey_path_private}"
   sap_instancenum            = "${var.sap_instancenum}"
   sap_sid                    = "${var.sap_sid}"
@@ -61,7 +61,7 @@ module "configure_vm" {
   pw_os_sidadm               = "${var.pw_os_sidadm}"
   pw_db_system               = "${var.pw_db_system}"
   useHana2                   = "${var.useHana2}"
-  vms_configured             = "${module.create_db.machine_hostname}, ${module.windows_bastion_host.machine_hostname}"
+  vms_configured             = "${module.create_hdb.machine_hostname}, ${module.windows_bastion_host.machine_hostname}"
   url_xsa_runtime            = "${var.url_xsa_runtime}"
   url_di_core                = "${var.url_di_core}"
   url_sapui5                 = "${var.url_sapui5}"

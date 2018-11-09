@@ -39,11 +39,11 @@ variable "install_xsa" {
   default     = false
 }
 
-variable "private_ip_address_db0" {
+variable "private_ip_address_hdb0" {
   default = "10.0.0.6"
 }
 
-variable "private_ip_address_db1" {
+variable "private_ip_address_hdb1" {
   default = "10.0.0.7"
 }
 

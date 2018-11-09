@@ -14,7 +14,7 @@ variable "bastion_username_windows" {
   default     = "bastion_user"
 }
 
-variable "db_num" {
+variable "hdb_num" {
   description = "which node is currently being created"
   default     = "0"
 }

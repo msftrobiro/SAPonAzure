@@ -10,7 +10,7 @@ variable "bastion_username_windows" {
   description = "The username for the bastion host"
 }
 
-variable "db_num" {
+variable "hdb_num" {
   description = "which node is currently being created"
   default     = 0
 }
@@ -35,14 +35,14 @@ variable "install_xsa" {
   default     = false
 }
 
-variable "private_ip_address_db0" {
-  description = "Private ip address of db0 in HA pair"
-  default     = ""                                     # not needed in single node case
+variable "private_ip_address_hdb0" {
+  description = "Private ip address of hdb0 in HA pair"
+  default     = ""                                      # not needed in single node case
 }
 
-variable "private_ip_address_db1" {
-  description = "Private ip address of db1 in HA pair"
-  default     = ""                                     # not needed in single node case
+variable "private_ip_address_hdb1" {
+  description = "Private ip address of hdb1 in HA pair"
+  default     = ""                                      # not needed in single node case
 }
 
 variable "private_ip_address_lb_frontend" {

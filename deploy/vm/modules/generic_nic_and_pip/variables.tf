@@ -4,6 +4,10 @@ variable "az_resource_group" {
   description = "Which Azure resource group to deploy the HANA setup into.  i.e. <myResourceGroup>"
 }
 
+variable "az_domain_name" {
+  description = "Prefix to be used in the domain name"
+}
+
 variable "backend_ip_pool_ids" {
   type        = "list"
   description = "The ids that associate the load balancer's back end IP pool with this NIC."

@@ -3,6 +3,10 @@ variable "ansible_playbook_path" {
   default     = "../../ansible/single_node_playbook.yml"
 }
 
+variable "az_domain_name" {
+  description = "Prefix to be used in the domain name"
+}
+
 variable "az_region" {}
 
 variable "az_resource_group" {

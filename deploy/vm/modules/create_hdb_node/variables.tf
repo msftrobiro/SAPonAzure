@@ -3,6 +3,10 @@ variable "availability_set_id" {
   default     = ""                                                                 # Empty string denotes that this VM is not in an availability set.
 }
 
+variable "az_domain_name" {
+  description = "Prefix to be used in the domain name"
+}
+
 variable "az_region" {}
 
 variable "az_resource_group" {

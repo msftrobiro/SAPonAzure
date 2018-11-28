@@ -4,6 +4,7 @@ module "nic_and_pip_setup" {
 
   az_resource_group         = "${var.az_resource_group}"
   az_region                 = "${var.az_region}"
+  az_domain_name            = "${var.az_domain_name}"
   name                      = "${local.machine_name}"
   nsg_id                    = "${var.nsg_id}"
   subnet_id                 = "${var.hana_subnet_id}"

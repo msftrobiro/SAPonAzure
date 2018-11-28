@@ -91,13 +91,13 @@ In this simple example, we'll deploy a simple single-node SAP HANA instance (spe
 
     ```python
     # Azure region to deploy resource in; please choose the same region as your storage from step 3 (example: "westus2")
-    # The current azurerm provider used with the terraform module requires the resource group name to be all lower case and have no underscores.
     az_region = "westus2"
 
     # Name of resource group to deploy (example: "demo1")
     az_resource_group = "demo1"
 
     # Unique domain name for easy VM access (example: "hana-on-azure1")
+    # Domain name should be all lower case and have no special characters except '-'.
     az_domain_name = "hana-on-azure1"
  
     # Set your Azure service principal id.

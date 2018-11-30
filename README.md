@@ -64,7 +64,7 @@ In this simple example, we'll deploy a simple single-node SAP HANA instance (spe
 
 | SWDC filename | Package name | OS | Version | Template parameter |
 | ------------- | ------------ | -- | ------- | ------------------ |
-| `SAPCAR_1110-80000935.EXE` | SAPCAR | Linux x86_64 | 7.21 | `url_sap_sapcar` |
+| `SAPCAR_1110-80000935.EXE` | SAPCAR | Linux x86_64 | 7.21 | `url_sap_sapcar_linux` |
 | `IMDB_SERVER100_122_17-10009569.SAR` | HANA DB Server | Linux x86_64 | 122.17 (SPS12) for HANA DB 1.00 | `url_sap_hdbserver` |
 
 *(**Note**: See the section on [**Required SAP Downloads**](#required-sap-downloads) for a full list of SAP packages, if you want to install additional applications on top of HANA, such as XSA.)*
@@ -126,7 +126,7 @@ In this simple example, we'll deploy a simple single-node SAP HANA instance (spe
     sap_instancenum = "01"
 
     # URL to download SAPCAR binary from (see step 6)
-    url_sap_sapcar = "https://XXX"
+    url_sap_sapcar_linux = "https://XXX"
 
     # URL to download HANA DB server package from (see step 6)
     url_sap_hdbserver = "https://XXX"
@@ -252,7 +252,7 @@ Depending on your application requirements, you may need to download additional 
 
 | Name | OS | Version | SWDC filename | Scenario | Template parameter |
 | ---- | -- | ------- | ------------- | ---------| ------------------ |
-| SAPCAR | Linux x86_64 | 7.21 | `SAPCAR_1110-80000935.EXE` | All | `url_sap_sapcar` |
+| SAPCAR | Linux x86_64 | 7.21 | `SAPCAR_1110-80000935.EXE` | All | `url_sap_sapcar_linux` |
 | SAPCAR | Windows 64-bit | 7.21 | `SAPCAR_1110-80000938.EXE` | Windows bastion host | `url_sap_sapcar_win` |
 | SAP Host Agent | Linux x86_64 | 7.21 SP36 | `SAPHOSTAGENT36_36-20009394.SAR` | All | `url_sap_hostagent` |
 | HANA DB Server | Linux x86_64 | 122.17 (SPS12) for HANA DB 1.00 | `IMDB_SERVER100_122_17-10009569.SAR` | HANA 1.0 landscapes | `url_sap_hdbserver` |

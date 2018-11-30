@@ -150,17 +150,12 @@ variable "url_sap_hdbserver" {
   description = "The URL that points to the HDB server 122.17 bits"
 }
 
-variable "url_sap_sapcar" {
-  type        = "string"
-  description = "The URL that points to the SAPCAR bits"
-}
-
 variable "url_sapcar_windows" {
   description = "URL for SAPCAR for Windows to run on the bastion host"
   default     = ""
 }
 
-variable "url_sapcar_linux" {
+variable "url_sap_sapcar_linux" {
   description = "URL for SAPCAR for Linux to run on the bastion host"
   default     = ""
 }

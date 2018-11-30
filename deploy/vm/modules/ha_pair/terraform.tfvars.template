@@ -33,7 +33,7 @@ sap_sid = "HA1"
 sap_instancenum = "01"
 
 # URL to download SAPCAR binary from (see step 6)
-url_sap_sapcar = "https://XXX"
+url_sap_sapcar_linux = "https://XXX"
 
 # URL to download HANA DB server package from (see step 6)
 url_sap_hdbserver = "https://XXX"

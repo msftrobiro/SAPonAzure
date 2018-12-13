@@ -4,15 +4,16 @@ provider "azurerm" {}
 module "common_setup" {
   source = "../common_setup"
 
+  allow_ips         = "${var.allow_ips}"
   az_region         = "${var.az_region}"
   az_resource_group = "${var.az_resource_group}"
   existing_nsg_name = "${var.existing_nsg_name}"
   existing_nsg_rg   = "${var.existing_nsg_rg}"
+  install_xsa       = "${var.install_xsa}"
   sap_instancenum   = "${var.sap_instancenum}"
   sap_instancenum   = "${var.sap_instancenum}"
   sap_sid           = "${var.sap_sid}"
   use_existing_nsg  = "${var.use_existing_nsg}"
-  useHana2          = "${var.useHana2}"
 }
 
 resource "azurerm_availability_set" "ha-pair-availset" {
@@ -158,6 +159,7 @@ module "vm_and_disk_creation_iscsi" {
 
 module "windows_bastion_host" {
   source             = "../windows_bastion_host"
+  allow_ips          = "${var.allow_ips}"
   az_resource_group  = "${module.common_setup.resource_group_name}"
   az_region          = "${var.az_region}"
   sap_sid            = "${var.sap_sid}"

@@ -4,6 +4,16 @@ variable "nsg_name" {
   description = "The name of the NSG to be created."
 }
 
+variable "allow_ips" {
+  description = "The ip addresses that will be allowed by the nsg"
+  type        = "list"
+}
+
+variable "install_xsa" {
+  description = "Flag that determines whether to install XSA on the host"
+  default     = false
+}
+
 variable "use_existing_nsg" {
   description = "Lets you disable creation of the NSG if you would like to use your own"
   default     = false
@@ -17,11 +27,8 @@ variable "sap_instancenum" {
   description = "The sap instance number which is in range 00-99"
 }
 
-variable "useHana2" {
-  description = "If this is set to true, then, ports specifically for HANA 2.0 will be opened."
-  default     = false
-}
-
 locals {
+  all_ips      = "\\\"*\\\""
+  empty_list   = []
   empty_string = ""
 }

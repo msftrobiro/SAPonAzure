@@ -1,4 +1,4 @@
-- name: remove vm and all resources except public ips
+- name: remove vm and all associated resources
   azure_rm_virtualmachine:
      resource_group: "{{ az_resource_group }}"
      name: "{{ az_vm_name }}"

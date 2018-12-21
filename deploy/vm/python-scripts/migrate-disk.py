@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 '''
 This script detaches the disks from a (failed) node and attaches to another (standby).
 

@@ -7,3 +7,5 @@ vm_user:
 vm_group: "hana"
 domain_name_prefix: "hana"
 vm_count:
+hana_subnet: "hana-subnet"
+hana_vnet: "hana-vnet"

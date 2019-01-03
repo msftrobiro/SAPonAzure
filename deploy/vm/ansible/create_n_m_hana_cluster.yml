@@ -43,3 +43,10 @@
           managed_by: "hanavm-{{ item }}"
        with_sequence: start=1 end="{{ n }}"
 
+- name: Install azure python sdk
+  hosts: hana
+  become: yes
+  become_method: sudo
+  roles:
+      - { role: install-python-sdk }
+

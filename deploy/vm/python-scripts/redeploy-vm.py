@@ -6,7 +6,6 @@ Example:  python redeploy-vm.py hanavm-1
 
 import os
 import json
-import requests
 import sys
 import urllib2
 import copy

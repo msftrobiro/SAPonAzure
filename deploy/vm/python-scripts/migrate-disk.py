@@ -8,7 +8,6 @@ To Run the script:
 
 import os
 import json
-import requests
 import sys
 import urllib2
 import copy

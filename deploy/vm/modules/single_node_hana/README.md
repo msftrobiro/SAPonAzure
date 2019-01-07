@@ -2,7 +2,7 @@
 
 This simple scenario deploys a single-node HANA instance and an optional bastion host in the Azure Cloud.
 
-<img src="https://raw.githubusercontent.com/Azure/sap-hana/2899be649c1582e0a14d7d03b95944d2a3befaa8/sld-single.png" alt="Landscape Diagram" width="450"/>
+<img src="https://raw.githubusercontent.com/Azure/sap-hana/1790182ba0e00a0731d48560573c00fba79b553b/deploy/vm/modules/single_node_hana/sld-single.png" alt="Landscape Diagram" width="450"/>
 
 ## Table of contents
 

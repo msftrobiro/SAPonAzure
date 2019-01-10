@@ -119,7 +119,8 @@
     - configure-hsr-hana
     - { role: shine-install, when: install_xsa == true and install_shine == true }
     - { role: cockpit-install, when: install_xsa == true and install_cockpit == true }
-
+    - { role: webide-install, when: install_xsa == true and install_webide == true }
+    
 - hosts: hdb0
   become: true
   roles:

@@ -27,6 +27,9 @@ resource null_resource "mount-disks-and-configure-hana" {
      \"url_portal_services\": \"${var.url_portal_services}\", \
      \"url_xs_services\": \"${var.url_xs_services}\", \
      \"url_shine_xsa\": \"${var.url_shine_xsa}\", \
+     \"url_xsa_hrtt\": \"${var.url_xsa_hrtt}\", \
+     \"url_xsa_webide\": \"${var.url_xsa_webide}\", \
+     \"url_xsa_mta\": \"${var.url_xsa_mta}\", \
      \"url_sapcar_windows\": \"${var.url_sapcar_windows}\", \
      \"url_hana_studio_windows\": \"${var.url_hana_studio_windows}\", \
      \"pwd_db_xsaadmin\": \"${var.pwd_db_xsaadmin}\", \
@@ -38,6 +41,7 @@ resource null_resource "mount-disks-and-configure-hana" {
      \"install_xsa\": ${var.install_xsa}, \
      \"install_shine\": ${var.install_shine}, \
      \"install_cockpit\": ${var.install_cockpit}, \
+     \"install_webide\": ${var.install_webide}, \
      \"url_cockpit\": \"${var.url_cockpit}\" }" \
      -i '../../ansible/azure_rm.py' ${var.ansible_playbook_path}
      EOT

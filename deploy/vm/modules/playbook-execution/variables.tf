@@ -30,6 +30,11 @@ variable "install_xsa" {
   default     = false
 }
 
+variable "install_webide" {
+  description = "Flag that determines whether to install WebIDE on the host"
+  default     = false
+}
+
 variable "private_ip_address_hdb0" {
   description = "Private ip address of hdb0 in HA pair"
   default     = ""                                      # not needed in single node case
@@ -144,6 +149,21 @@ variable "url_xs_services" {
 
 variable "url_xsa_runtime" {
   description = "URL for XSA runtime"
+  default     = ""
+}
+
+variable "url_xsa_hrtt" {
+  description = "URL for HRTT"
+  default     = ""
+}
+
+variable "url_xsa_webide" {
+  description = "URL for WebIDE"
+  default     = ""
+}
+
+variable "url_xsa_mta" {
+  description = "URL for MTA ext"
   default     = ""
 }
 

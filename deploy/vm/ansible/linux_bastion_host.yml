@@ -34,6 +34,18 @@
             - config_json: "{{ az_json }}"
       when: az_json.linux_bastion == true
 
+- hosts: localhost
+  tasks:
+    - name: Retrieve the public IP of the new linux bastion vm
+      azure_rm_publicipaddress_facts:
+        resource_group: "{{ az_json.az_resource_group }}"
+        name:  "{{ az_json.az_vm_name }}-pip"
+      register: lbh_metadata
+    - name: Log the information in a file
+      copy:
+        content: "{{ lbh_metadata }}"
+        dest: "pip-linux_bastion.json"
+
 - hosts: bastion_linux_group
   tasks:
     - include_vars:

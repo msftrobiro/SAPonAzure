@@ -30,12 +30,6 @@
     state: present
     disable_recommends: no
 
-- name: Install dbus-1-python
-  package:
-    name: dbus-1-python
-    state: present
-    disable_recommends: no
-
 - name: Start and enable targetcli service
   service: name=targetcli enabled=yes state=started
 

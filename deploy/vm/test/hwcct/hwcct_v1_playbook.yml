@@ -27,14 +27,21 @@
                 creates: /hana/shared/hwcct/
           - name: copy config file
             copy:
-                src: hwcct_config.json
+                src: "{{ test_config }}"
                 dest: /hana/shared/hwcct/
           - name: run hwcct
-            shell: source envprofile.sh; ./hwval -f hwcct_config.json> hwcct_out.log
+            shell: source envprofile.sh; ./hwval -f "{{ test_config }}"
             args:
                 chdir: /hana/shared/hwcct/
                 executable: /bin/bash
-          - fetch:
-                src: /hana/shared/hwcct/hwcct_out.log
-                dest: /tmp/
-                fail_on_missing: yes
+          - name: collect the report
+            shell: ls | grep "report"
+            args:
+                chdir: /hana/shared/hwcct/
+                executable: /bin/bash
+            register: hwcct_out
+          - synchronize:
+                mode: pull
+                src: "/hana/shared/hwcct/{{item}}/"
+                dest: /tmp/hwcct_test/
+            with_items: "{{hwcct_out.stdout_lines}}"

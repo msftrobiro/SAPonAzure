@@ -99,7 +99,7 @@ def skip_until(string, untilString, f_iter):
         string = next(f_iter)
     return string
 
-def parseDISKTest(logfile):
+def parseDISKTest(logfile, outputfile):
     with open(logfile) as f:
         for line in f:
             if line.startswith("***"):
@@ -124,15 +124,16 @@ def parseDISKTest(logfile):
                 if line.startswith("Results of Read Test"):
                     line = test_blockParser("ReadTest",line,f,test_case[blocksize])
                 hwcct_test["test"].append(test_case)
-    print(hwcct_test)
+    with open(outputfile, 'w') as outfile:
+        json.dump(hwcct_test,outfile)
 
 def main():
-    print("This is a HWCCT parser")
+    print("This is a HWCCT DISK IO test parser")
     parser = argparse.ArgumentParser(description='Process ')
-    parser.add_argument('-l', "--log", required=True, help='an integer for the accumulator')
-
+    parser.add_argument('-l', "--log", required=True, help='hwcct I/O test output files ')
+    parser.add_argument('-o', "--output", required=True, help='write the parsed result to this file ')
     args = parser.parse_args()
-    parseDISKTest(args.log)
+    parseDISKTest(args.log, args.output)
 
 if __name__=='__main__':
     main()

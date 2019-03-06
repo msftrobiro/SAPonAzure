@@ -69,7 +69,7 @@ import json
 global test_count
 test_count = 0
 hwcct_test = {}
-hwcct_test["test"]=[]
+hwcct_test["test"]={}
 #hwcct_test["write"]=[]
 #hwcct_test["read"]=[]
 def test_blockParser(testName,line,f,testCase):
@@ -107,7 +107,7 @@ def parseDISKTest(logfile, outputfile):
                 line = skip_until(line,"* Output",f)
                 test_case = {}
                 blocksize = line.split("for")[1]
-                blocksize = blocksize.split(" ")[1]
+                blocksize = 'B'+blocksize.split(" ")[1]
                 test_case[blocksize] = {}
                 #skip until line starts with Results
                 line = skip_until(line,"Results",f)
@@ -123,7 +123,7 @@ def parseDISKTest(logfile, outputfile):
                 line = skip_until(line,"Results",f)
                 if line.startswith("Results of Read Test"):
                     line = test_blockParser("ReadTest",line,f,test_case[blocksize])
-                hwcct_test["test"].append(test_case)
+                hwcct_test["test"][blocksize]=test_case[blocksize]
     with open(outputfile, 'w') as outfile:
         json.dump(hwcct_test,outfile)
 

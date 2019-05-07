@@ -3,7 +3,7 @@
   hosts: all
   tasks:
           - zypper_repository:
-                repo: https://download.opensuse.org/repositories/benchmark/SLE_12_SP3_Backports/benchmark.repo
+                repo: https://download.opensuse.org/repositories/benchmark/SLE_12_SP4/benchmark.repo
             become: yes
             become_method: sudo
           - zypper:

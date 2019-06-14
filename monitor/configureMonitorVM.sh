@@ -1,5 +1,6 @@
 #!/bin/sh
 
+#Updating apt-get
 apt-get -y update
 apt-get -y install python3-pip
 pip3 install --upgrade pip==19.1.1

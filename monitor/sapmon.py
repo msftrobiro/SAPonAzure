@@ -280,7 +280,7 @@ class _Context:
       self.vmInstance = AzureInstanceMetadataService.getComputeInstance()
       vmTags          = dict(map(lambda s : s.split(':'), self.vmInstance["tags"].split(";")))
       self.sapmonId   = vmTags["SapMonId"]
-      self.azKv       = AzureKeyVault("sapmon-%s" % self.sapmonId)
+      self.azKv       = AzureKeyVault("sapmon%s" % self.sapmonId)
       self.lastPull   = self.readLastPullTimestamp()
 
    def readLastPullTimestamp(self):

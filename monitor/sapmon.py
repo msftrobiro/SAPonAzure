@@ -363,7 +363,7 @@ def onboard(args):
    Store credentials in the customer KeyVault.
    (To be executed as custom script upon initial deployment of collector VM.)
    """
-   # Credentials (provided by user) to the existing HANA Dinstance
+   # Credentials (provided by user) to the existing HANA instance
    hanaSecretName  = "SapHana-%s" % args.HanaDbName
    hanaSecretValue = json.dumps({
       "HanaHostname":   args.HanaHostname,
@@ -381,6 +381,13 @@ def onboard(args):
       "LogAnalyticsSharedKey":   args.LogAnalyticsSharedKey,
       })
    ctx.azKv.setSecret(laSecretName, laSecretValue)
+
+   # Check connectivity to HANA instance
+   hana = SapHana(hanaDetails = json.loads(hanaSecretValue))
+   hana.connect()
+   hana.runQuery("SELECT 0 FROM DUMMY")
+   hana.disconnect()
+   return
 
 def monitor(args):
    """

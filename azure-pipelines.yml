@@ -32,8 +32,10 @@ jobs:
     displayName: 'Install python tools'
   - script: |
       ssh-keygen -b 4096 -t rsa -f /tmp/sshkey -q -N ""
+      export BUILD_MACHINE_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
       cp deploy/vm/test/terraform.tfvars deploy/vm/modules/single_node_hana
       cd deploy/vm/modules/single_node_hana
+      echo allow_ips = [\"$BUILD_MACHINE_IP\"] >> terraform.tfvars
       echo "Terraform apply started. Resource group: $TF_VAR_az_resource_group"  
       terraform init
       terraform apply -auto-approve -no-color

@@ -579,15 +579,19 @@ class _Context(object):
  
    def addQueueLogHandler(self):
       global logger
-      storageQueue = AzureStorageQueue(sapmonId=self.sapmonId, msiClientID=self.vmTags.get("SapMonMsiClientId", None),subscriptionId=self.vmInstance["subscriptionId"],resourceGroup=self.vmInstance["resourceGroupName"])
-      storageKey = storageQueue.getAccessKey()
-      queueStorageLogHandler = QueueStorageHandler(account_name=storageQueue.accountName,
+      try:
+         storageQueue = AzureStorageQueue(sapmonId=self.sapmonId, msiClientID=self.vmTags.get("SapMonMsiClientId", None),subscriptionId=self.vmInstance["subscriptionId"],resourceGroup=self.vmInstance["resourceGroupName"])
+         storageKey = storageQueue.getAccessKey()
+         queueStorageLogHandler = QueueStorageHandler(account_name=storageQueue.accountName,
                                                    account_key=storageKey,
                                                    protocol="https",
                                                    queue=storageQueue.name)
-      queueStorageLogHandler.level = DEFAULT_QUEUE_LOG_LEVEL
-      formatter = logging.Formatter(LOG_CONFIG["formatters"]["detailed"]["format"])
-      queueStorageLogHandler.setFormatter(formatter)
+         queueStorageLogHandler.level = DEFAULT_QUEUE_LOG_LEVEL
+         formatter = logging.Formatter(LOG_CONFIG["formatters"]["detailed"]["format"])
+         queueStorageLogHandler.setFormatter(formatter)
+      except Exception as e:
+         logger.error("could not add handler for the storage queue logging: %s "%sys.exc_info(e))
+         return
       logger.addHandler(queueStorageLogHandler)
       return
 

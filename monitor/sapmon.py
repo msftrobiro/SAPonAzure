@@ -28,7 +28,7 @@ import sys
 
 ###############################################################################
 
-PAYLOAD_VERSION                   = "0.6.0"
+PAYLOAD_VERSION                   = "0.6.1"
 PAYLOAD_DIRECTORY                 = os.path.dirname(os.path.realpath(__file__))
 STATE_FILE                        = "%s/sapmon.state" % PAYLOAD_DIRECTORY
 TIME_FORMAT_LOG_ANALYTICS         = "%a, %d %b %Y %H:%M:%S GMT"
@@ -713,7 +713,6 @@ class _Context(object):
       hanaSecrets = sliceDict(secrets, "SapHana-")
       for h in hanaSecrets.keys():
          hanaDetails = json.loads(hanaSecrets[h])
-         logger.debug("hanaDetails[%s]=%s" % (h, hanaDetails))
          if not hanaDetails["HanaDbPassword"]:
             logger.info("no HANA password provided; need to fetch password from separate KeyVault")
             try:
@@ -721,14 +720,14 @@ class _Context(object):
                   hanaDetails["HanaDbPasswordKeyVaultUrl"],
                   hanaDetails["PasswordKeyVaultMsiClientId"])
                hanaDetails["HanaDbPassword"] = password
-               logger.debug("retrieved HANA password successfully from KeyVault; password=%s" % password)
+               logger.debug("retrieved HANA password successfully from KeyVault")
             except Exception as e:
-               logger.critical("could not fetch HANA password (instance=%s) from separate KeyVault (%s)" % (h, e))
+               logger.critical("could not fetch HANA password (instance=%s) from KeyVault (%s)" % (h, e))
                sys.exit(ERROR_GETTING_HANA_CREDENTIALS)
          try:
             hanaInstance = SapHana(hanaDetails = hanaDetails)
          except Exception as e:
-            logger.error("could not create HANA instance (hanaDetails=%s) (%s)" % (hanaDetails, e))
+            logger.error("could not create HANA instance %s) (%s)" % (h, e))
             continue
          self.hanaInstances.append(hanaInstance)
 
@@ -793,7 +792,6 @@ def onboard(args):
       "HanaDbSqlPort":               args.HanaDbSqlPort,
       "PasswordKeyVaultMsiClientId": args.PasswordKeyVaultMsiClientId,
       })
-   logger.debug("hanaSecretValue=%s" % hanaSecretValue)
    logger.info("storing HANA credentials as KeyVault secret")
    try:
       ctx.azKv.setSecret(hanaSecretName, hanaSecretValue)
@@ -808,7 +806,6 @@ def onboard(args):
       "LogAnalyticsWorkspaceId": args.LogAnalyticsWorkspaceId,
       "LogAnalyticsSharedKey":   args.LogAnalyticsSharedKey,
       })
-   logger.debug("laSecretValue=%s" % laSecretValue)
    logger.info("storing Log Analytics credentials as KeyVault secret")
    try:
       ctx.azKv.setSecret(laSecretName, laSecretValue)
@@ -817,7 +814,6 @@ def onboard(args):
       sys.exit(ERROR_SETTING_KEYVAULT_SECRET)
 
    hanaDetails = json.loads(hanaSecretValue)
-   logger.debug("hanaDetails=%s" % hanaDetails)
    if not hanaDetails["HanaDbPassword"]:
       logger.info("no HANA password provided; need to fetch password from separate KeyVault")
       hanaDetails["HanaDbPassword"] = ctx.fetchHanaPasswordFromKeyVault(

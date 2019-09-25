@@ -18,6 +18,7 @@ import hashlib
 import hmac
 import http.client as http_client
 import json
+import jsondatetime
 import logging
 import logging.config
 import os
@@ -33,6 +34,7 @@ PAYLOAD_VERSION                   = "0.6.3"
 PAYLOAD_DIRECTORY                 = os.path.dirname(os.path.realpath(__file__))
 STATE_FILE                        = "%s/sapmon.state" % PAYLOAD_DIRECTORY
 TIME_FORMAT_LOG_ANALYTICS         = "%a, %d %b %Y %H:%M:%S GMT"
+TIME_FORMAT_JSON                  = "%Y-%m-%dT%H:%M:%S.%fZ"
 DEFAULT_CONSOLE_LOG_LEVEL         = logging.INFO
 DEFAULT_FILE_LOG_LEVEL            = logging.INFO
 DEFAULT_QUEUE_LOG_LEVEL           = logging.DEBUG
@@ -647,7 +649,7 @@ class _Context(object):
          logger.debug("STATE_FILE=%s" % STATE_FILE)
          with open(STATE_FILE, "r") as file:
             data = file.read()
-         jsonData = json.loads(data, object_hook=_JsonDecoder.datetimeHook)
+         jsonData = jsondatetime.loads(data)
       except FileNotFoundError as e:
          logger.warning("state file %s does not exist" % STATE_FILE)
       except Exception as e:
@@ -676,8 +678,8 @@ class _Context(object):
          for c in self.availableChecks:
             sectionKey = "%s_%s" % (c.prefix, c.name)
             jsonData[sectionKey] = c.state
-         with open(STATE_FILE, "w") as f:
-            json.dump(jsonData, f, indent=3, cls=_JsonEncoder)
+         with open(STATE_FILE, "w") as file:
+            json.dump(jsonData, file, indent=3, cls=_JsonEncoder)
          success = True
       except Exception as e:
          logger.error("could not write state file %s (%s)" % (STATE_FILE, e))
@@ -754,20 +756,8 @@ class _JsonEncoder(json.JSONEncoder):
       if isinstance(o, decimal.Decimal):
          return float(o)
       elif isinstance(o, (datetime, date)):
-         return o.isoformat()
+         return datetime.strftime(o, TIME_FORMAT_JSON)
       return super(_JsonEncoder, self).default(o)
-
-class _JsonDecoder(json.JSONDecoder):
-   """
-   Helper class to de-serialize JSON into datetime and Decimal objects
-   """
-   def datetimeHook(jsonData):
-      for (k, v) in jsonData.items():
-         try:
-            jsonData[k] = datetime.strptime(v, "%Y-%m-%dT%H:%M:%S.%f")
-         except Exception as e:
-            pass
-      return jsonData
 
 ###############################################################################
 

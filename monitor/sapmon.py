@@ -25,10 +25,11 @@ import pyhdb
 import re
 import requests
 import sys
+import traceback
 
 ###############################################################################
 
-PAYLOAD_VERSION                   = "0.6.1"
+PAYLOAD_VERSION                   = "0.6.3"
 PAYLOAD_DIRECTORY                 = os.path.dirname(os.path.realpath(__file__))
 STATE_FILE                        = "%s/sapmon.state" % PAYLOAD_DIRECTORY
 TIME_FORMAT_LOG_ANALYTICS         = "%a, %d %b %Y %H:%M:%S GMT"
@@ -589,8 +590,8 @@ class _Context(object):
          queueStorageLogHandler.level = DEFAULT_QUEUE_LOG_LEVEL
          formatter = logging.Formatter(LOG_CONFIG["formatters"]["detailed"]["format"])
          queueStorageLogHandler.setFormatter(formatter)
-      except Exception as e:
-         logger.error("could not add handler for the storage queue logging: %s "%sys.exc_info(e))
+      except Exception:
+         logger.error("could not add handler for the storage queue logging: %s "%traceback.format_exc())
          return
       logger.addHandler(queueStorageLogHandler)
       return

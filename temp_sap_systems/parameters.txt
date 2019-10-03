@@ -1,2 +1,29 @@
 # use this file to create parameters
 # Azure specific parameters first
+
+# specify your azure deployment region, westeurope, useast2, etc
+export AZLOC=
+
+# specify azure deployment region in short 3 letter format, e.g WEU for westeurope, UE2 for USeast2, FRN for France North etc
+# in uppercase
+export AZLOCTLA=
+
+# specify the resource group name
+export RGNAME=
+
+# specify OS username for first user to be deployed during VM creation
+# root or <sapsid>adm are forbidden, use own user for emergency access with ssh key, e.g. andrea, susan or jeniffer
+# in lowercase
+export ADMINUSR=
+
+# specify ssh public
+
+# specify SAP specific parameters
+# SAP SID (uppercase)
+export SAPSID=
+
+# SAP ASCS instance number
+export ASCSNO=
+
+# SAP PAS instance number (any app server will just increase by 1 from this)
+export PASNO=

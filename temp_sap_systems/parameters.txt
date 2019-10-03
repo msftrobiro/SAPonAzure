@@ -2,7 +2,11 @@
 # WRITE IN SPECIFIED LOWERCASE OR UPPERCASE (THAT MEANS ALL CHARACTERS)
 # Azure specific parameters first
 
+# specify your Azure subscription ID (just the ID, not name, e.g. ebea7935-160d-4cfaffaf-blabla....)
+export AZSUB=
+
 # specify your azure deployment region, westeurope, useast2, etc
+# ensure to pick a zone with Availability Zones (or adapt scripts to not use AvZone)
 # lowercase
 export AZLOC=
 
@@ -12,7 +16,7 @@ export AZLOCTLA=
 
 # specify the resource group name - this should be empty
 # lowercase
-export RGNAME=
+export RESOURCEGROUP=
 
 # specify OS username for first user to be deployed during VM creation
 # root or <sapsid>adm are forbidden, use own user for emergency access with ssh key, e.g. andrea, susan or jeniffer
@@ -20,11 +24,21 @@ export RGNAME=
 export ADMINUSR=
 
 # specify ssh public key file (.pub typically) which can be used for deployment
+# provide with FULL absolute path for the file, within doublequotes (e.g. "~/.ssh/bob_azure.pub")
 export ADMINUSRSSH=
 
 # specify subdomain name to be used for your jumpserver - e.g. bobsjumphost or susanjumpbox
 # lowercase
 export JUMPFQDN=
+
+# specify IP range to use for hub VNET, if not sure use 10.10.10.0/24
+# must be at least /25 network or larger, include the network size too! e.g. 10.10.10.0/24 as value
+export HUBIP=
+
+# specify IP range to use for SAP VNET, if not sure use 10.10.20.0/24, DIFFERENT TO HUB VNET, duh
+# must be at least /24 network or larger, include the network size too! e.g. 10.10.10.0/24 as value
+# last octet must be 0
+export SAPIP=
 
 # --- specify SAP specific parameters now ---
 # SAP SID of the system you want to install

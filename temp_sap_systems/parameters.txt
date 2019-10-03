@@ -1,29 +1,50 @@
 # use this file to create parameters
+# WRITE IN SPECIFIED LOWERCASE OR UPPERCASE (THAT MEANS ALL CHARACTERS)
 # Azure specific parameters first
 
 # specify your azure deployment region, westeurope, useast2, etc
+# lowercase
 export AZLOC=
 
 # specify azure deployment region in short 3 letter format, e.g WEU for westeurope, UE2 for USeast2, FRN for France North etc
 # in uppercase
 export AZLOCTLA=
 
-# specify the resource group name
+# specify the resource group name - this should be empty
+# lowercase
 export RGNAME=
 
 # specify OS username for first user to be deployed during VM creation
 # root or <sapsid>adm are forbidden, use own user for emergency access with ssh key, e.g. andrea, susan or jeniffer
-# in lowercase
+# lowercase
 export ADMINUSR=
 
-# specify ssh public
+# specify ssh public key file (.pub typically) which can be used for deployment
+export ADMINUSRSSH=
 
-# specify SAP specific parameters
-# SAP SID (uppercase)
+# specify subdomain name to be used for your jumpserver - e.g. bobsjumphost or susanjumpbox
+# lowercase
+export JUMPFQDN=
+
+# --- specify SAP specific parameters now ---
+# SAP SID of the system you want to install
+# uppercase
 export SAPSID=
+
+# HANA SID of the system you want to install
+# uppercase
+export HANASID=
 
 # SAP ASCS instance number
 export ASCSNO=
 
-# SAP PAS instance number (any app server will just increase by 1 from this)
+# SAP instance number for first app server (any app server will just increase by 1 from this)
 export PASNO=
+
+# HANA instance numbers
+export HDBNO=
+
+# specify master password - will be used for all OS users (sidadm, sapadm etc) as well as SAP and DB logons
+# Must contains one upper and lowercase character each and one number, lenght 8 alphanumeric chars minimum
+export MASTERPW=
+

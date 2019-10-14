@@ -23,14 +23,14 @@ Storage design leans on cost-concious setup with Standard_SSDs mostly, yet still
 # Prerequisites for use
 - Software download and storage account - Azure Storage Account with your chosen name and blob container, using access keys for authentication.
 - SAP software can only be sourced from SAP, you need to provide following files in your storage account blob container. 
- - Linux SAPCAR executable (not SAR archive), named sapcar_linux
- - Linux SWPM SAR file, latest version, named SWPM.SAR
- - Linux SAP ABAP Kernel SAR file, latest version for Netweaver 7.50 (e.g. SAPEXE_753), named SAPEXE.SAR
- - Linux SAP ABAP Kernel disp+work SAR file, matching the above kernel, named DW.SAR
- - Linux SAP ABAP HANA Kernel SAR file, same version as above kernel, named SAPEXEDB.SAR
- - Linux SAP Host Agent in latest version as SAR file, named SAPHOSTAGENT.SAR
- - Linux HANA DB Server patch, for latest version HANA2, named IMDB_SERVER.SAR
- - Linux HANA Client patch, latest version for HANA2, named IMDB_CLIENT.SAR
+    - Linux SAPCAR executable (not SAR archive), named sapcar_linux
+    - Linux SWPM SAR file, latest version, named SWPM.SAR
+    - Linux SAP ABAP Kernel SAR file, latest version for Netweaver 7.50 (e.g. SAPEXE_753), named SAPEXE.SAR
+    - Linux SAP ABAP Kernel disp+work SAR file, matching the above kernel, named DW.SAR
+    - Linux SAP ABAP HANA Kernel SAR file, same version as above kernel, named SAPEXEDB.SAR
+    - Linux SAP Host Agent in latest version as SAR file, named SAPHOSTAGENT.SAR
+    - Linux HANA DB Server patch, for latest version HANA2, named IMDB_SERVER.SAR
+    - Linux HANA Client patch, latest version for HANA2, named IMDB_CLIENT.SAR
 
 
 

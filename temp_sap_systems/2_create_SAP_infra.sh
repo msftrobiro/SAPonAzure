@@ -29,32 +29,37 @@ echo "###-------------------------------------###"
 
 az account set --subscription $AZSUB
 RGNAME=RG-${AZLOCTLA}-${RESOURCEGROUP}
-wget "https://saeunsapsoft.blob.core.windows.net/sapsoft/linux_tools/sockperf?sv=2018-03-28&ss=bfqt&srt=sco&sp=r&se=2023-10-04T19:12:30Z&st=2019-10-04T11:12:30Z&spr=https&sig=l1kQEWAWMYlqm08BHzHOIBykTdrL6DlpzRBYhMkPSXw%3D" -O ~/sockperf && sudo chmod ugo+x ~/sockperf
-wget "https://saeunsapsoft.blob.core.windows.net/sapsoft/linux_tools/DLManager.jar?sv=2018-03-28&ss=bfqt&srt=sco&sp=r&se=2023-10-04T19:12:30Z&st=2019-10-04T11:12:30Z&spr=https&sig=l1kQEWAWMYlqm08BHzHOIBykTdrL6DlpzRBYhMkPSXw%3D" -O ~/DLManager.jar 
+wget "https://saeunsapsoft.blob.core.windows.net/sapsoft/linux_tools/sockperf?sv=2018-03-28&ss=bfqt&srt=sco&sp=r&se=2023-10-04T19:12:30Z&st=2019-10-04T11:12:30Z&spr=https&sig=l1kQEWAWMYlqm08BHzHOIBykTdrL6DlpzRBYhMkPSXw%3D" -O ~/sockperf && sudo chmod ugo+x ~/sockperf >>$LOGFILE 2>&1
+wget "https://saeunsapsoft.blob.core.windows.net/sapsoft/linux_tools/DLManager.jar?sv=2018-03-28&ss=bfqt&srt=sco&sp=r&se=2023-10-04T19:12:30Z&st=2019-10-04T11:12:30Z&spr=https&sig=l1kQEWAWMYlqm08BHzHOIBykTdrL6DlpzRBYhMkPSXw%3D" -O ~/DLManager.jar  >>$LOGFILE 2>&1
 
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 VMTYPE=Standard_D4s_v3
 VNETNAME=VNET-${AZLOCTLA}-${RESOURCEGROUP}-sap
 VMIMAGE=SUSE:SLES-SAP:12-sp4:latest
-VMNAME=VM-${AZLOCTLA}-ascs${SIDLOWER}01
+VMNAME=VM-${AZLOCTLA}-${SIDLOWER}ascs01
 
 printf '%s\n'
-echo Creating ASCS and App Server VMs $RGNAME in $AZLOC
+echo Creating ASCS and App Server VMs in RG $RGNAME
 # ideally, you'd choose two zones (logical zones, logical to physical mapping changes PER subscription)
 APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`
-az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.10 --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --nsg NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl --zone 1 >$LOGFILE 2>&1   
+az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.11 --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --nsg NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl --zone 1 >$LOGFILE 2>&1   
 az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
+echo VM ${VMNAME} deployed, moving onto next
 
-VMNAME=VM-${AZLOCTLA}-ascs${SIDLOWER}02
-az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.11 --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --nsg NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl --zone 2 >>$LOGFILE 2>&1   
+VMNAME=VM-${AZLOCTLA}-${SIDLOWER}ascs02
+az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.12 --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --nsg NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl --zone 2 >>$LOGFILE 2>&1   
 az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
+echo VM ${VMNAME} deployed, moving onto next
 
-VMNAME=VM-${AZLOCTLA}-app${SIDLOWER}01
+VMNAME=VM-${AZLOCTLA}-${SIDLOWER}app01
 az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.21 --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --nsg NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl --zone 1 >>$LOGFILE 2>&1   
 az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
-VMNAME=VM-${AZLOCTLA}-app${SIDLOWER}02
+echo VM ${VMNAME} deployed, moving onto next
+
+VMNAME=VM-${AZLOCTLA}-${SIDLOWER}app02
 az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.22 --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --nsg NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl --zone 2 >>$LOGFILE 2>&1   
 az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
+
 
 echo "###-------------------------------------###"
 echo Creating DB VMs 
@@ -63,7 +68,7 @@ VMTYPE=Standard_E16s_v3
 DBSUBNET=`echo $SAPIP|sed 's/.\{5\}$//'`
 for i in 1 2
 do
-VMNAME=VM-${AZLOCTLA}-db${SIDLOWER}0${i}
+VMNAME=VM-${AZLOCTLA}-${SIDLOWER}db0${i}
 az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${DBSUBNET}.14${i} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-db --nsg NSG-${AZLOCTLA}-sap-${SIDLOWER}-db --zone $i >>$LOGFILE 2>&1   
 az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
 az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk2 --new --sku Premium_LRS --size 255 >>$LOGFILE 2>&1
@@ -133,19 +138,19 @@ EOF
 for i in 1 2
 do
 echo "###-------------------------------------###"
-echo Creating SAP filesystems and doing basic post-install on ASCS VMs
+echo Creating SAP filesystems and doing basic post-install on ${VMNAME}
 printf '%s\n'
-VMNAME=ascs${SIDLOWER}0${i}
+VMNAME=${SIDLOWER}ascs0${i}
 fs_create_on_all_sap_servers
 echo "###-------------------------------------###"
-echo Creating SAP filesystems and doing basic post-install on AppServer VMs
+echo Creating SAP filesystems and doing basic post-install on ${VMNAME}
 printf '%s\n'
-VMNAME=app${SIDLOWER}0${i}
-fs_create_on_all_sap_server
+VMNAME=${SIDLOWER}app0${i}
+fs_create_on_all_sap_servers
 echo "###-------------------------------------###"
-echo Creating SAP and HANA filesystems and doing basic post-install on DB VMs
+echo Creating SAP and HANA filesystems and doing basic post-install on ${VMNAME}
 printf '%s\n'
-VMNAME=db${SIDLOWER}0${i}
+VMNAME=${SIDLOWER}db0${i}
 fs_create_on_all_sap_servers
 fs_create_on_db_servers
 done
@@ -153,9 +158,9 @@ done
 # install ascs
 expiry=$(date '+%Y-%m-%dT%H:%MZ' --date "+30 minutes")
 storageAccountKey=$(az storage account keys list --account-name ${STORACC} --resource-group ${STORACCRG} --query [0].value --output tsv)
-sasToken=$(az storage blob generate-sas --account-name ${STORACC} --account-key $storageAccountKey --container-name templates --name azuredeploy.json --permissions r --expiry $expiry --output tsv)
 
 download_url () {
+sasToken=$(az storage blob generate-sas --account-name ${STORACC} --account-key $storageAccountKey --container-name ${STORCONTAINER} --name $1 --permissions r --expiry $expiry --output tsv)
 shortURL=$(az storage blob url --account-name ${STORACC} --container-name ${STORCONTAINER} --name $1 --output tsv)
 fullURL=$shortURL?$sasToken
 echo $fullURL
@@ -169,26 +174,28 @@ echo 'wget '`download_url SWPM10SP26_1-20009701.SAR`' -O /usr/sap/download/SWPM.
 echo 'wget '`download_url kernel753_SAPEXE_300-80002573.SAR`' -O /usr/sap/download/installation/SAPEXE.SAR'  >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'wget '`download_url kernel753_dw_422-80002573.sar`' -O /usr/sap/download/installation/DW.SAR'  >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'wget '`download_url SAPHOSTAGENT42_42-20009394.SAR`' -O /usr/sap/download/installation/SAPHOSTAGENT.SAR'  >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'wget '`download_url ascs_install_ini.params`' -O /usr/sap/download/${SIDLOWER}_ascs_install_ini.params'  >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'wget '`download_url s01_ascs_instkey.pkey`' -O /usr/sap/download/instkey.pkey'  >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'sed -i  "/NW_GetMasterPassword.masterPwd/ c\NW_GetMasterPassword.masterPwd = ${MASTERPW}" /usr/sap/download/${SIDLOWER}_ascs_install_ini.params' >> >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'sed -i  "/NW_GetSidNoProfiles.sid/ c\NW_GetSidNoProfiles.sid = ${SAPSID}" /usr/sap/download/${SIDLOWER}_ascs_install_ini.params' >> >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'sed -i  "/NW_SCS_Instance.instanceNumber/ c\NW_SCS_Instance.instanceNumber = ${ASCSNO}" /usr/sap/download/${SIDLOWER}_ascs_install_ini.params' >> >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'sed -i  "/NW_SCS_Instance.scsVirtualHostname / c\NW_SCS_Instance.scsVirtualHostname = ascs${SIDLOWER}01" /usr/sap/download/${SIDLOWER}_ascs_install_ini.params' >> >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'sed -i  "/NW_webdispatcher_Instance.scenarioSize/ c\NW_webdispatcher_Instance.scenarioSize = 500" /usr/sap/download/${SIDLOWER}_ascs_install_ini.params' >> >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'sed -i  "/NW_webdispatcher_Instance.wdHTTPPort/ c\NW_webdispatcher_Instance.wdHTTPPort = 80${ASCSNO}" /usr/sap/download/${SIDLOWER}_ascs_install_ini.params' >> >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'sed -i  "/NW_webdispatcher_Instance.wdHTTPSPort/ c\NW_webdispatcher_Instance.wdHTTPSPort = 443${ASCSNO}" /usr/sap/download/${SIDLOWER}_ascs_install_ini.params' >> >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'sed -i  "/hostAgent.sapAdmPassword/ c\hostAgent.sapAdmPassword = ${MASTERPW}" /usr/sap/download/${SIDLOWER}_ascs_install_ini.params' >> >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'sed -i  "/nwUsers.sapadmUID/ c\nwUsers.sapadmUID = 1001" /usr/sap/download/${SIDLOWER}_ascs_install_ini.params' >> >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'sed -i  "/nwUsers.sapsysGID/ c\nwUsers.sapsysGID = 200" /usr/sap/download/${SIDLOWER}_ascs_install_ini.params' >> >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'sed -i  "/nwUsers.sidAdmUID/ c\nwUsers.sidAdmUID = 1010 /usr/sap/download/${SIDLOWER}_ascs_install_ini.params' >> >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'sed -i  "/nwUsers.sidadmPassword/ c\nwUsers.sidadmPassword = ${MASTERPW}" /usr/sap/download/${SIDLOWER}_ascs_install_ini.params' >> >> /tmp/${SIDLOWER}_install_ascs.sh
+
+# ascs ini file modifications
+wget `download_url ascs_install_ini.params` -O /tmp/${SIDLOWER}_ascs_install_ini.params
+sed -i  "/NW_GetMasterPassword.masterPwd/ c\NW_GetMasterPassword.masterPwd = ${MASTERPW}" /tmp/${SIDLOWER}_ascs_install_ini.params 
+sed -i  "/NW_GetSidNoProfiles.sid/ c\NW_GetSidNoProfiles.sid = ${SAPSID}" /tmp/${SIDLOWER}_ascs_install_ini.params
+sed -i  "/NW_SCS_Instance.instanceNumber/ c\NW_SCS_Instance.instanceNumber = ${ASCSNO}" /tmp/${SIDLOWER}_ascs_install_ini.params
+sed -i  "/NW_SCS_Instance.scsVirtualHostname / c\NW_SCS_Instance.scsVirtualHostname = ${SIDLOWER}ascs01" /tmp/${SIDLOWER}_ascs_install_ini.params
+sed -i  "/NW_webdispatcher_Instance.scenarioSize/ c\NW_webdispatcher_Instance.scenarioSize = 500" /tmp/${SIDLOWER}_ascs_install_ini.params
+sed -i  "/NW_webdispatcher_Instance.wdHTTPPort/ c\NW_webdispatcher_Instance.wdHTTPPort = 80${ASCSNO}" /tmp/${SIDLOWER}_ascs_install_ini.params
+sed -i  "/NW_webdispatcher_Instance.wdHTTPSPort/ c\NW_webdispatcher_Instance.wdHTTPSPort = 443${ASCSNO}" /tmp/${SIDLOWER}_ascs_install_ini.params
+sed -i  "/hostAgent.sapAdmPassword/ c\hostAgent.sapAdmPassword = ${MASTERPW}" /tmp/${SIDLOWER}_ascs_install_ini.params
+sed -i  "/nwUsers.sapadmUID/ c\nwUsers.sapadmUID = 1001" /tmp/${SIDLOWER}_ascs_install_ini.params
+sed -i  "/nwUsers.sapsysGID/ c\nwUsers.sapsysGID = 200" /tmp/${SIDLOWER}_ascs_install_ini.params
+sed -i  "/nwUsers.sidAdmUID/ c\nwUsers.sidAdmUID = 1010" /tmp/${SIDLOWER}_ascs_install_ini.params
+sed -i  "/nwUsers.sidadmPassword/ c\nwUsers.sidadmPassword = ${MASTERPW}" /tmp/${SIDLOWER}_ascs_install_ini.params
 echo 'cd /usr/sap/download && mkdir SWPM && mv SWPM.sar SWPM && cd SWPM && ../sapcar -xf SWPM.sar'  >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'sudo bash -c "export SAPINST_INPUT_PARAMETERS_URL=/usr/sap/download/${SIDLOWER}_ascs_install_ini.params && export SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_ASCS:NW752.HDB.HA && export SAPINST_SKIP_DIALOGS=true && export SAPINST_START_GUISERVER=false && cd /usr/sap/download/SWPM && ./sapinst"' >> /tmp/${SIDLOWER}_install_ascs.sh
 }
 
 execute_install_ascs () {
-scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/${SIDLOWER}_install_ascs.sh ${ADMINUSR}@${VMNAME}:/tmp
+scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/${SIDLOWER}_install_ascs.sh /tmp/${SIDLOWER}_ascs_install_ini.params ${ADMINUSR}@${VMNAME}:/tmp
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
 chmod uo+x /tmp/${SIDLOWER}_install_ascs.sh
 /tmp/${SIDLOWER}_install_ascs.sh
@@ -214,8 +221,10 @@ exit
 EOF
 }
 
-VMNAME=ascs${SIDLOWER}01
-echo 
+VMNAME=${SIDLOWER}ascs01
+echo "###-------------------------------------###"
+echo Creating SAP filesystems and doing basic post-install on ${VMNAME}
+printf '%s\n'
 create_installfile_ascs
 execute_install_ascs
 
@@ -248,4 +257,11 @@ cd /usr/sap/download/SWPM && ./sapinst
 exit
 EOF
 }
-# ERS needs some love
+# ERS still needs some love
+
+
+endtime=`date +%s`
+runtime=$( echo "$endtime - $starttime" | bc -l )
+printf '%s\n'
+echo "###-------------------------------------###"
+echo SAP deployment and installation complete, took $runtime seconds

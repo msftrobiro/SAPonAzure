@@ -1,6 +1,6 @@
-## This project can be used to deploy SAP systems in Azure, from scratch including deployment, OS actions and SAP ABAP & HANA install.
+## Deploy SAP systems in Azure, from scratch including deployment, OS actions and SAP ABAP & HANA install.
 
-### Aim of this was to
+### Aim of this project
 - a demonstration that beyond the typical ARM templates and 3rd party tools such as Ansible/Terraform and others, Azure CLI and simple Linux bash scripts can easily be utilized to automatically deploy and install everything from scratch - networks, VMs, storage, OS config and SAP/HANA installation
 - ARM templates are complicated beasts which - in this authors opinion - are overused and hard to troubleshoot, AZ CLI on other hand can quickly become second nature for a Linux person
 - learning exercise coupled with need for quick-to-spinup demo SAP systems with full high availability desing (sans the cluster setup)
@@ -35,3 +35,7 @@ Basic naming convention utilized for resources, resource type (VM, VNET, LB, VPN
 - Backup integration (optional script)
 - ASR somewhere, as option
 - ... more things I forget right now
+
+
+### closing note
+ARM templates are terrible

@@ -72,6 +72,8 @@ echo "###-------------------------------------###"
 echo "Doing some actions inside the deployed jumpbox VM (install az cli, update packages etc)"
 
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${JUMPBOXFQDN} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
+wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/2_create_SAP_infra.sh
+chmod uo+x 2_create_SAP_infra.sh 
 sudo yum update -y
 sudo yum install -y jre xclock xauth screen
 sudo su -
@@ -87,6 +89,7 @@ echo "###-------------------------------------###"
 echo "Waiting 45seconds for reboot of jumpbox VM"
 sleep 45
 scp -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p `echo $ADMINUSRSSH|sed 's/.\{4\}$//'`* ${ADMINUSR}@${JUMPBOXFQDN}:~/.ssh
+scp -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p parameters.txt ${ADMINUSR}@${JUMPBOXFQDN}:~
 
 endtime=`date +%s`
 runtime=$( echo "$endtime - $starttime" | bc -l )

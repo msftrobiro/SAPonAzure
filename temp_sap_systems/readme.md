@@ -8,6 +8,7 @@
 # What this is project IS NOT
 - In any way directly affiliated with Microsoft or endorsed by Microsoft. All opinions and statements contained herein are private and not necessarility the opinion of my employer, Microsoft.
 - Not to be used in production. 
+- Scripts don't have any error handling, troubleshooting is on you in case things don't work as expected.
 
 ## What this project does
 If configured correctly it would deploy virtual networks - central hub and SAP spoke - with subnets, NSGs, load balancers.
@@ -19,7 +20,8 @@ No clustering or active failover mechanism in use, however this can be extended 
  - software version
  
 # Prerequisites for use
-- Software download and storage account
+- Software download and storage account - software needed, naming requirements
+
 - availability zones active
 - vcore limit check
 - parameters
@@ -34,6 +36,7 @@ Basic naming convention utilized for resources, resource type (VM, VNET, LB, VPN
 - LB and FQDN for external access
 - Backup integration (optional script)
 - ASR somewhere, as option
+- add boot diagnostics on for VMs
 - ... more things I forget right now
 
 

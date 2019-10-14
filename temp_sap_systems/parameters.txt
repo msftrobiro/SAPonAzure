@@ -40,6 +40,17 @@ export HUBIP=
 # last octet must be 0
 export SAPIP=
 
+# specify storage account holding your SAP software and tools
+# just the name of your storage account, not URL
+# in lowercase
+export STORACC=
+
+# specify storage account resource group - likely a different one than the holding your SAP system
+export STORACCRG=
+
+# specify the container name (blob container) where your SAP files are stored under
+export STORCONTAINER=
+
 # --- specify SAP specific parameters now ---
 # SAP SID of the system you want to install
 # uppercase

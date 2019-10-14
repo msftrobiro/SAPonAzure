@@ -5,6 +5,7 @@
 # 3) az cli installed in your linux shell (https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-yum?view=azure-cli-latest)       
 #    you can also use Azure CloudShell for this step (https://azure.microsoft.com/en-us/features/cloud-shell)
 # 4) you should have filled parameters.txt file as well, correctly and in correct lower/upper case for all parameters
+# version 0.8 (aka it actually might work :O)
 
 source $(dirname $0)/parameters.txt
 LOGFILE=$(dirname $0)/1_create_jumpbox.log
@@ -69,6 +70,7 @@ JUMPBOXFQDN=`az network public-ip list --resource-group $RGNAME|grep fqdn | awk 
 printf '%s\n'
 echo "###-------------------------------------###"
 echo "Doing some actions inside the deployed jumpbox VM (install az cli, update packages etc)"
+
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${JUMPBOXFQDN} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
 sudo yum update -y
 sudo yum install -y jre xclock xauth screen
@@ -76,10 +78,6 @@ sudo su -
 rpm --import https://packages.microsoft.com/keys/microsoft.asc
 echo -e "[azure-cli]\nname=Azure CLI\nbaseurl=https://packages.microsoft.com/yumrepos/azure-cli\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/azure-cli.repo
 yum install azure-cli -y
-wget "https://saeunsapsoft.blob.core.windows.net/sapsoft/linux_tools/sockperf?sv=2018-03-28&ss=bfqt&srt=sco&sp=r&se=2023-10-04T19:12:30Z&st=2019-10-04T11:12:30Z&spr=https&sig=l1kQEWAWMYlqm08BHzHOIBykTdrL6DlpzRBYhMkPSXw%3D" -O ~/sockperf && sudo chmod ugo+x ~/sockperf
-wget "https://saeunsapsoft.blob.core.windows.net/sapsoft/linux_tools/DLManager.jar?sv=2018-03-28&ss=bfqt&srt=sco&sp=r&se=2023-10-04T19:12:30Z&st=2019-10-04T11:12:30Z&spr=https&sig=l1kQEWAWMYlqm08BHzHOIBykTdrL6DlpzRBYhMkPSXw%3D" -O ~/DLManager.jar 
-
-
 reboot
 EOF
 
@@ -88,14 +86,13 @@ printf '%s\n'
 echo "###-------------------------------------###"
 echo "Waiting 45seconds for reboot of jumpbox VM"
 sleep 45
-scp -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p  $ADMINUSRSSH ${ADMINUSR}@${JUMPBOXFQDN}:~/.ssh
-scp -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p  `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` ${ADMINUSR}@${JUMPBOXFQDN}:~/.ssh
+scp -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p `echo $ADMINUSRSSH|sed 's/.\{4\}$//'`* ${ADMINUSR}@${JUMPBOXFQDN}:~/.ssh
 
 endtime=`date +%s`
 runtime=$( echo "$endtime - $starttime" | bc -l )
 printf '%s\n'
 echo "###-------------------------------------###"
-echo Jumpbox deployement complete (hopefully successfully), took $runtime seconds
+echo Jumpbox deployement complete, took $runtime seconds
 echo Check $LOGFILE for any errors running az cli, also check in Portal
 echo To logon, ssh ${ADMINUSR}@${JUMPBOXFQDN} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'`
 echo "###-------------------------------------###"

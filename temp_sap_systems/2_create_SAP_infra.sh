@@ -2,7 +2,8 @@
 # continue on your jumpbox, NOT in your shell/cloud shell
 # ideally, 1_create_jumpbox.sh should have finished without problems
 # this script assumes everything is executed on the newly created jumpbox
-
+# version 0.5  
+# last changes: just minor corrections
 
 screen -dm -S sapsetup
 
@@ -23,14 +24,14 @@ fi
 echo "###-------------------------------------###"
 echo "Azure cli logged on successfully"
 echo "Have started screen, you can detach with Control-a d. This means press the Ctrl key and the 'a' key together and release, and then press the 'd' key."
-echo "Script continues to run in backgroup, you can re-attach with screen -r sapsetup"
+echo "Script continues to run in background, you can re-attach with screen -r sapsetup"
 echo "###-------------------------------------###"
 
 
 az account set --subscription $AZSUB >>$LOGFILE 2>&1
 RGNAME=RG-${AZLOCTLA}-${RESOURCEGROUP}
-wget "https://saeunsapsoft.blob.core.windows.net/sapsoft/linux_tools/sockperf?sv=2018-03-28&ss=bfqt&srt=sco&sp=r&se=2023-10-04T19:12:30Z&st=2019-10-04T11:12:30Z&spr=https&sig=l1kQEWAWMYlqm08BHzHOIBykTdrL6DlpzRBYhMkPSXw%3D" -O ~/sockperf >>$LOGFILE 2>&1 && sudo chmod ugo+x ~/sockperf 
-wget "https://saeunsapsoft.blob.core.windows.net/sapsoft/linux_tools/DLManager.jar?sv=2018-03-28&ss=bfqt&srt=sco&sp=r&se=2023-10-04T19:12:30Z&st=2019-10-04T11:12:30Z&spr=https&sig=l1kQEWAWMYlqm08BHzHOIBykTdrL6DlpzRBYhMkPSXw%3D" -O ~/DLManager.jar  >>$LOGFILE 2>&1
+wget "https://saeunsapsoft.blob.core.windows.net/sapsoft/linux_tools/sockperf?sv=2018-03-28&ss=bfqt&srt=sco&sp=r&se=2023-10-04T19:12:30Z&st=2019-10-04T11:12:30Z&spr=https&sig=l1kQEWAWMYlqm08BHzHOIBykTdrL6DlpzRBYhMkPSXw%3D" -O ~/sockperf --quiet >>$LOGFILE 2>&1 && sudo chmod ugo+x ~/sockperf 
+wget "https://saeunsapsoft.blob.core.windows.net/sapsoft/linux_tools/DLManager.jar?sv=2018-03-28&ss=bfqt&srt=sco&sp=r&se=2023-10-04T19:12:30Z&st=2019-10-04T11:12:30Z&spr=https&sig=l1kQEWAWMYlqm08BHzHOIBykTdrL6DlpzRBYhMkPSXw%3D" -O ~/DLManager.jar --quiet >>$LOGFILE 2>&1
 
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 VMTYPE=Standard_D4s_v3
@@ -83,7 +84,7 @@ az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-da
 az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk6 --new --sku StandardSSD_LRS --size 255 >>$LOGFILE 2>&1
 done
 echo "###-------------------------------------###"
-echo DB VMs deployed
+echo DB VMs are now deployed
 echo "###-------------------------------------###"
 echo List of IPs for all servers 
 printf '%s\n'
@@ -132,7 +133,7 @@ sudo lvcreate -n lv_HANA_backup -l 90%VG vg_HANA_backup
 sudo bash -c "echo '/dev/mapper/vg_HANA-lv_HANA_log  /hana/log   xfs      defaults      0 0' >> /etc/fstab"
 sudo bash -c "echo '/dev/mapper/vg_HANA-lv_HANA_data  /hana/data   xfs      defaults      0 0' >> /etc/fstab"
 sudo bash -c "echo '/dev/mapper/vg_HANA_shared-lv_HANA_shared  /hana/shared   xfs      defaults      0 0' >> /etc/fstab"
-sudo bash -c "echo '/dev/mapper/vg_HANA_backup-lv_HANA_shared  /hana/backup   xfs      defaults      0 0' >> /etc/fstab"
+sudo bash -c "echo '/dev/mapper/vg_HANA_backup-lv_HANA_backup  /hana/backup   xfs      defaults      0 0' >> /etc/fstab"
 sudo mkfs.xfs /dev/mapper/vg_HANA-lv_HANA_log
 sudo mkfs.xfs /dev/mapper/vg_HANA-lv_HANA_data
 sudo mkfs.xfs /dev/mapper/vg_HANA_shared-lv_HANA_shared
@@ -144,20 +145,20 @@ EOF
 
 for i in 1 2
 do
-echo "###-------------------------------------###"
-echo Creating SAP filesystems and doing basic post-install on ${VMNAME}
-printf '%s\n'
 VMNAME=${SIDLOWER}ascs0${i}
-fs_create_on_all_sap_servers
 echo "###-------------------------------------###"
 echo Creating SAP filesystems and doing basic post-install on ${VMNAME}
 printf '%s\n'
-VMNAME=${SIDLOWER}app0${i}
 fs_create_on_all_sap_servers
+VMNAME=${SIDLOWER}app0${i}
+echo "###-------------------------------------###"
+echo Creating SAP filesystems and doing basic post-install on ${VMNAME}
+printf '%s\n'
+fs_create_on_all_sap_servers
+VMNAME=${SIDLOWER}db0${i}
 echo "###-------------------------------------###"
 echo Creating SAP and HANA filesystems and doing basic post-install on ${VMNAME}
 printf '%s\n'
-VMNAME=${SIDLOWER}db0${i}
 fs_create_on_all_sap_servers
 fs_create_on_db_servers
 done
@@ -176,19 +177,19 @@ echo $fullURL
 create_installfile_ascs () {
 echo "sudo mkdir /usr/sap/download && sudo chmod 777 /usr/sap/download && cd /usr/sap/download" > /tmp/${SIDLOWER}_install_ascs.sh
 echo "mkdir installation" >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'wget "'`download_url sapcar_linux`'" -O /usr/sap/download/sapcar && sudo chmod ugo+x /usr/sap/download/sapcar'  >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'wget "'`download_url SWPM10SP26_1-20009701.SAR`'" -O /usr/sap/download/SWPM.sar'  >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'wget "'`download_url kernel753_SAPEXE_300-80002573.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR'  >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'wget "'`download_url kernel753_dw_422-80002573.sar`'" -O /usr/sap/download/installation/DW.SAR'  >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'wget "'`download_url SAPHOSTAGENT42_42-20009394.SAR`'" -O /usr/sap/download/installation/SAPHOSTAGENT.SAR'  >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'wget "'`download_url s01_ascs_instkey.pkey`'" -O /usr/sap/download/instkey.pkey'  >> /tmp/${SIDLOWER}_install_ascs.sh
+echo 'wget "'`download_url sapcar_linux`'" -O /usr/sap/download/sapcar --quiet && sudo chmod ugo+x /usr/sap/download/sapcar'  >> /tmp/${SIDLOWER}_install_ascs.sh
+echo 'wget "'`download_url SWPM10SP26_1-20009701.SAR`'" -O /usr/sap/download/SWPM.sar --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
+echo 'wget "'`download_url kernel753_SAPEXE_300-80002573.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
+echo 'wget "'`download_url kernel753_dw_422-80002573.sar`'" -O /usr/sap/download/installation/DW.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
+echo 'wget "'`download_url SAPHOSTAGENT42_42-20009394.SAR`'" -O /usr/sap/download/installation/SAPHOSTAGENT.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
+echo 'wget "'`download_url s01_ascs_instkey.pkey`'" -O /usr/sap/download/instkey.pkey --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
 
 # ascs ini file modifications
 wget `download_url ascs_install_ini.params` -O /tmp/${SIDLOWER}_ascs_install_ini.params
 sed -i  "/NW_GetMasterPassword.masterPwd/ c\NW_GetMasterPassword.masterPwd = ${MASTERPW}" /tmp/${SIDLOWER}_ascs_install_ini.params 
 sed -i  "/NW_GetSidNoProfiles.sid/ c\NW_GetSidNoProfiles.sid = ${SAPSID}" /tmp/${SIDLOWER}_ascs_install_ini.params
 sed -i  "/NW_SCS_Instance.instanceNumber/ c\NW_SCS_Instance.instanceNumber = ${ASCSNO}" /tmp/${SIDLOWER}_ascs_install_ini.params
-sed -i  "/NW_SCS_Instance.scsVirtualHostname / c\NW_SCS_Instance.scsVirtualHostname = ${SIDLOWER}ascs01" /tmp/${SIDLOWER}_ascs_install_ini.params
+sed -i  "/NW_SCS_Instance.scsVirtualHostname / c\NW_SCS_Instance.scsVirtualHostname = ${VMNAME}" /tmp/${SIDLOWER}_ascs_install_ini.params
 sed -i  "/NW_webdispatcher_Instance.scenarioSize/ c\NW_webdispatcher_Instance.scenarioSize = 500" /tmp/${SIDLOWER}_ascs_install_ini.params
 sed -i  "/NW_webdispatcher_Instance.wdHTTPPort/ c\NW_webdispatcher_Instance.wdHTTPPort = 80${ASCSNO}" /tmp/${SIDLOWER}_ascs_install_ini.params
 sed -i  "/NW_webdispatcher_Instance.wdHTTPSPort/ c\NW_webdispatcher_Instance.wdHTTPSPort = 443${ASCSNO}" /tmp/${SIDLOWER}_ascs_install_ini.params
@@ -198,18 +199,20 @@ sed -i  "/nwUsers.sapsysGID/ c\nwUsers.sapsysGID = 200" /tmp/${SIDLOWER}_ascs_in
 sed -i  "/nwUsers.sidAdmUID/ c\nwUsers.sidAdmUID = 1010" /tmp/${SIDLOWER}_ascs_install_ini.params
 sed -i  "/nwUsers.sidadmPassword/ c\nwUsers.sidadmPassword = ${MASTERPW}" /tmp/${SIDLOWER}_ascs_install_ini.params
 echo 'cd /usr/sap/download && mkdir SWPM && mv SWPM.sar SWPM && cd SWPM && ../sapcar -xf SWPM.sar'  >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'sudo bash -c "export SAPINST_INPUT_PARAMETERS_URL=/tmp/"${SIDLOWER}"_ascs_install_ini.params && export SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_ASCS:NW752.HDB.HA && export SAPINST_SKIP_DIALOGS=true && export SAPINST_START_GUISERVER=false && cd /usr/sap/download/SWPM && ./sapinst"' >> /tmp/${SIDLOWER}_install_ascs.sh
 }
 
 execute_install_ascs () {
 scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/${SIDLOWER}_install_ascs.sh /tmp/${SIDLOWER}_ascs_install_ini.params ${ADMINUSR}@${VMNAME}:/tmp
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
+set -x
 chmod uo+x /tmp/${SIDLOWER}_install_ascs.sh
 /tmp/${SIDLOWER}_install_ascs.sh
+sudo -c "export SAPINST_INPUT_PARAMETERS_URL=/tmp/"${SIDLOWER}"_ascs_install_ini.params && export SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_ASCS:NW752.HDB.HA && export SAPINST_SKIP_DIALOGS=true && export SAPINST_START_GUISERVER=false && cd /usr/sap/download/SWPM && ./sapinst"'
 exit
-sed -i -e 's/${MASTERPW}/pwwashere/g' /tmp/${SIDLOWER}_install_ascs.sh
+sed -i -e 's/${MASTERPW}/YourMasterPW/g' /tmp/${SIDLOWER}_ascs_install_ini.params
 EOF
 }
+
 
 setup_nfs_server () { 
 APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`

@@ -43,7 +43,7 @@ echo Creating NSGs for SAP subnets
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 az network nsg create --resource-group $RGNAME --name NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl >>$LOGFILE 2>&1   
 az network nsg create --resource-group $RGNAME --name NSG-${AZLOCTLA}-sap-${SIDLOWER}-db >>$LOGFILE 2>&1   
-az network nsg list --resource-group $RGNAME 
+az network nsg list --resource-group $RGNAME --output table
 
 # peer the hub and sap networks
 printf '%s\n'
@@ -93,7 +93,9 @@ runtime=$( echo "$endtime - $starttime" | bc -l )
 printf '%s\n'
 echo "###-------------------------------------###"
 echo Jumpbox deployement complete, took $runtime seconds
-echo Check $LOGFILE for any errors running az cli, also check in Portal
-echo To logon, ssh ${ADMINUSR}@${JUMPBOXFQDN} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'`
+echo Check $LOGFILE for any errors running az cli, also check in Portal for any errors/failures
+echo "### ------------ IMPORTANT -------------###"
+echo "To logon on jumpserver to continue with next script deploying infrastructure"
+echo ssh ${ADMINUSR}@${JUMPBOXFQDN} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'`
 echo "###-------------------------------------###"
 printf '%s\n'

@@ -43,9 +43,13 @@ Storage design leans on cost-concious setup with Standard_SSDs mostly, yet still
 
 # How to deploy
 Pull all files off this project to separate folder - e.g. git pull https://github.com/msftrobiro/SAPonAzure/edit/master/temp_sap_systems
+
 Alternatively, just download the 1_create_jumpbox.sh with parameters.txt to your Linux system (Azure cloudshell or Windows Linux Host both work).
+
 Edit parameters.txt and provide the required values, observe the upper/lowercase information (which means ALL characters should be upper/lowercase).
+
 Execute 1_create_jumpbox.txt and typically in 10 minutes you have your Linux jumphost ready to go and continue.
+
 On jumpbox - follow output of the first script - execute the predownloaded 2_... script and your parameters.txt is copied from your previous shell, keeping your values.
 
 ### Steps in code

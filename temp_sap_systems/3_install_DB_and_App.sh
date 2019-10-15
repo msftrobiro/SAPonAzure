@@ -45,10 +45,10 @@ echo $fullURL
 db_install () {
     echo "sudo mkdir /hana/shared/download && sudo chmod -R 777 /hana/shared/download" > /tmp/${HANALOWER}_install_hana.sh
     echo 'wget "'`download_url sapcar_linux`'" -O /hana/shared/download/sapcar --quiet && sudo chmod ugo+x /hana/shared/download/sapcar'  >> /tmp/${HANALOWER}_install_hana.sh
-    echo 'wget "'`download_url IMDB_CLIENT20_004_139-80002082.SAR`'" -O /hana/shared/download/IMDB_CLIENT.SAR --quiet'  >> /tmp/${HANALOWER}_install_hana.sh
-    echo 'wget "'`download_url IMDB_SERVER20_037_1-80002031.SAR`'" -O /hana/shared/download/IMDB_SERVER.SAR --quiet'  >> /tmp/${HANALOWER}_install_hana.sh
+    echo 'wget "'`download_url IMDB_CLIENT.SAR`'" -O /hana/shared/download/IMDB_CLIENT.SAR --quiet'  >> /tmp/${HANALOWER}_install_hana.sh
+    echo 'wget "'`download_url IMDB_SERVER.SAR`'" -O /hana/shared/download/IMDB_SERVER.SAR --quiet'  >> /tmp/${HANALOWER}_install_hana.sh
     # doctor up the inifile
-    wget `download_url hdb_install.rsp` -O /tmp/${HANALOWER}_install_hana.params
+    wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/install_files/hdb_install.rsp -O /tmp/${HANALOWER}_install_hana.params
     sed -i  "/hostname=s01db1/ c\hostname= ${VMNAME}" /tmp/${HANALOWER}_install_hana.params
     sed -i  "/sid=H01/ c\sid=${HANASID}" /tmp/${HANALOWER}_install_hana.params
     sed -i  "/number=40/ c\number=${HDBNO}" /tmp/${HANALOWER}_install_hana.params
@@ -75,3 +75,61 @@ VMNAME=${SIDLOWER}db01
 db_install
 VMNAME=${SIDLOWER}db02
 db_install
+
+# now to move to the PAS install
+db_load () {
+    echo 'sudo mkdir /usr/sap/download && sudo chmod 777 /usr/sap/download && cd /usr/sap/download' > /tmp/${SIDLOWER}_db_load.sh
+    echo 'mkdir installation'
+    echo 'wget "'`download_url sapcar_linux`'" -O /hana/shared/download/sapcar --quiet && sudo chmod ugo+x /hana/shared/download/sapcar' >> /tmp/${SIDLOWER}_db_load.sh
+    echo 'wget "'`download_url SWPM.SAR`'" -O /usr/sap/download/SWPM.sar --quiet' >> /tmp/${SIDLOWER}_db_load.sh
+    echo 'wget "'`download_url SAPEXE.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR --quiet' >> /tmp/${SIDLOWER}_db_load.sh
+    echo 'wget "'`download_url DW.SAR`'" -O /usr/sap/download/installation/DW.SAR --quiet' >> /tmp/${SIDLOWER}_db_load.sh
+    echo 'wget "'`download_url SAPHOSTAGENT.SAR`'" -O /usr/sap/download/installation/SAPHOSTAGENT.SAR --quiet' >> /tmp/${SIDLOWER}_db_load.sh
+    echo 'wget "'`download_url SAPEXEDB.SAR`'" -O /usr/sap/download/installation/SAPEXEDB.SAR --quiet' >> /tmp/${SIDLOWER}_db_load.sh
+    echo 'wget "'`download_url nw752_exp.zip`'" -O /usr/sap/download/nw752_export.zip --quiet' >> /tmp/${SIDLOWER}_db_load.sh
+    echo 'wget "'`download_url IMDB_CLIENT.SAR`'" -O /usr/sap/download/IMDB_CLIENT.SAR --quiet' >> /tmp/${SIDLOWER}_db_load.sh
+    echo 'cd /usr/sap/download && ./sapcar -xf IMDB_CLIENT.SAR && rm IMDB_CLIENT.SAR' >> /tmp/${SIDLOWER}_db_load.sh
+    echo 'cd /usr/sap/download && unzip nw752_export.zip && rm nw752_export.zip' >> /tmp/${SIDLOWER}_db_load.sh
+    echo 'wget "'`download_url nw752_lang.zip`'" -O /usr/sap/download/nw752_lang.zip --quiet' >> /tmp/${SIDLOWER}_db_load.sh
+    echo 'cd /usr/sap/download && unzip nw752_lang.zip && rm nw752_lang.zip' >> /tmp/${SIDLOWER}_db_load.sh
+    # doctor up the inifile
+    wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/install_files/db_load_ini.params -O /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_HDB_DB.abapSchemaName/ c\NW_HDB_DB.abapSchemaName = SAPSR3" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_HDB_DB.abapSchemaPassword/ c\NW_HDB_DB.abapSchemaPassword = ${MASTERPW}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/HDB_Schema_Check_Dialogs.schemaPassword/ c\HDB_Schema_Check_Dialogs.schemaPassword = ${MASTERPW}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/HDB_Userstore.doNotResolveHostnames/ c\HDB_Userstore.doNotResolveHostnames = ${SIDLOWER}db01" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_ABAP_Import_Dialog.dbCodepage/ c\NW_ABAP_Import_Dialog.dbCodepage = 4103" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_ABAP_Import_Dialog.migmonJobNum/ c\NW_ABAP_Import_Dialog.migmonJobNum = 6" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_GetMasterPassword.masterPwd/ c\NW_GetMasterPassword.masterPwd = ${MASTERPW}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_GetSidNoProfiles.sid/ c\NW_GetSidNoProfiles.sid = ${SAPSID}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_HDB_getDBInfo.dbhost/ c\NW_HDB_getDBInfo.dbhost = ${SIDLOWER}db01" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_HDB_getDBInfo.instanceNumber/ c\NW_HDB_getDBInfo.instanceNumber = ${HDBNO}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
+
+}
+ssh -oStrictHostKeyChecking=no bob@vm-eun-sap-s01app1 << EOF
+EOF
+
+wget https://saeunsapsoft.blob.core.windows.net/sapsoft/s01_db_inifile.params
+wget https://saeunsapsoft.blob.core.windows.net/sapsoft/s01_db_instkey.pkey -O /usr/sap/download/instkey.pkey
+cd /usr/sap/download && mkdir SWPM && mv SWPM.sar SWPM && cd SWPM && ../sapcar -xf SWPM.sar
+sudo su -
+export SAPINST_INPUT_PARAMETERS_URL=/usr/sap/download/s01_db_inifile.params
+export SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_DB:NW752.HDB.HA
+export SAPINST_SKIP_DIALOGS=true
+export SAPINST_START_GUISERVER=false
+cd /usr/sap/download/SWPM && ./sapinst
+EOF
+
+aas_install () {
+
+}
+
+# DB should be loaded after this

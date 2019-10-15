@@ -232,3 +232,5 @@ storageBasedCopy.hdb.systemPassword =
 
 # Sets the SAP<SAPSID>DB schema password using a  parameter file.
 # storageBasedCopy.javaSchemaPassword =
+SAPINST.CD.PACKAGE.EXP1=/usr/sap/download/export_cd
+SAPINST.CD.PACKAGE.HDBCLIENT=/usr/sap/download/SAP_HANA_CLIENT

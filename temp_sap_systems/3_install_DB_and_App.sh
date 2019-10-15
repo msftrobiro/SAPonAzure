@@ -77,7 +77,7 @@ VMNAME=${SIDLOWER}db02
 db_install
 
 # now to move to the PAS install
-db_load () {
+create_installfile_db_load () {
     echo 'sudo mkdir /usr/sap/download && sudo chmod 777 /usr/sap/download && cd /usr/sap/download' > /tmp/${SIDLOWER}_db_load.sh
     echo 'mkdir installation'
     echo 'wget "'`download_url sapcar_linux`'" -O /hana/shared/download/sapcar --quiet && sudo chmod ugo+x /hana/shared/download/sapcar' >> /tmp/${SIDLOWER}_db_load.sh
@@ -105,31 +105,48 @@ db_load () {
     sed -i  "/NW_HDB_getDBInfo.dbhost/ c\NW_HDB_getDBInfo.dbhost = ${SIDLOWER}db01" /tmp/${SIDLOWER}_db_load_ini.params
     sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
     sed -i  "/NW_HDB_getDBInfo.instanceNumber/ c\NW_HDB_getDBInfo.instanceNumber = ${HDBNO}" /tmp/${SIDLOWER}_db_load_ini.params
-    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
-    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
-    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
-    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
-    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
-    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
-    sed -i  "/NW_HDB_getDBInfo.dbsid/ c\NW_HDB_getDBInfo.dbsid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
-
+    sed -i  "/NW_HDB_getDBInfo.systemDbPassword/ c\NW_HDB_getDBInfo.systemDbPassword = ${MASTERPW}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_HDB_getDBInfo.systemPassword/ c\NW_HDB_getDBInfo.systemPassword = ${MASTERPW}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_HDB_getDBInfo.systemid/ c\NW_HDB_getDBInfo.systemid = ${HANASID}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_getFQDN.FQDN/ c\NW_getFQDN.FQDN = contoso.local" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_getFQDN.setFQDN/ c\NW_getFQDN.setFQDN = false" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/NW_readProfileDir.profilesAvailable/ c\NW_readProfileDir.profilesAvailable = false" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/hostAgent.sapAdmPassword/ c\hostAgent.sapAdmPassword = ${MASTERPW}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/nwUsers.sapadmUID/ c\nwUsers.sapadmUID = 1001" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/nwUsers.sapsysGID/ c\nwUsers.sapsysGID = 200" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/nwUsers.sidAdmUID/ c\nwUsers.sidAdmUID = 1010" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/nwUsers.sidadmPassword/ c\nwUsers.sidadmPassword = ${MASTERPW}" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/SAPINST.CD.PACKAGE.EXP1/ c\SAPINST.CD.PACKAGE.EXP1=/usr/sap/download/export_cd" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/SAPINST.CD.PACKAGE.LANG/ c\SAPINST.CD.PACKAGE.LANG=/usr/sap/download/lang_cd" /tmp/${SIDLOWER}_db_load_ini.params
+    sed -i  "/SAPINST.CD.PACKAGE.HDBCLIENT/ c\SAPINST.CD.PACKAGE.HDBCLIENT=/usr/sap/download/SAP_HANA_CLIENT" /tmp/${SIDLOWER}_db_load_ini.params
+echo 'cd /usr/sap/download && mkdir SWPM && mv SWPM.sar SWPM && cd SWPM && ../sapcar -xf SWPM.sar' >> /tmp/${SIDLOWER}_db_load.sh
+echo 'sudo su -' >> /tmp/${SIDLOWER}_db_load.sh
+echo 'export SAPINST_INPUT_PARAMETERS_URL=/tmp/'${SIDLOWER}'_db_load_ini.params' >> /tmp/${SIDLOWER}_db_load.sh
+echo 'export SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_DB:NW752.HDB.HA' >> /tmp/${SIDLOWER}_db_load.sh
+echo 'export SAPINST_SKIP_DIALOGS=true' >> /tmp/${SIDLOWER}_db_load.sh
+echo 'export SAPINST_START_GUISERVER=false' >> /tmp/${SIDLOWER}_db_load.sh
+echo 'cd /usr/sap/download/SWPM && ./sapinst' >> /tmp/${SIDLOWER}_db_load.sh
 }
 ssh -oStrictHostKeyChecking=no bob@vm-eun-sap-s01app1 << EOF
 EOF
 
-wget https://saeunsapsoft.blob.core.windows.net/sapsoft/s01_db_inifile.params
-wget https://saeunsapsoft.blob.core.windows.net/sapsoft/s01_db_instkey.pkey -O /usr/sap/download/instkey.pkey
-cd /usr/sap/download && mkdir SWPM && mv SWPM.sar SWPM && cd SWPM && ../sapcar -xf SWPM.sar
-sudo su -
-export SAPINST_INPUT_PARAMETERS_URL=/usr/sap/download/s01_db_inifile.params
-export SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_DB:NW752.HDB.HA
-export SAPINST_SKIP_DIALOGS=true
-export SAPINST_START_GUISERVER=false
-cd /usr/sap/download/SWPM && ./sapinst
+execute_db_load () {
+scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/${SIDLOWER}_db_load.sh.sh /tmp/${SIDLOWER}_db_load_ini.params ${ADMINUSR}@${VMNAME}:/tmp
+ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
+chmod uo+x /tmp/${SIDLOWER}_db_load.sh.sh
+/tmp/${SIDLOWER}_db_load.sh.sh
+exit
+sed -i -e 's/${MASTERPW}/YourMasterPW/g' /tmp/${SIDLOWER}_db_load_ini.params
 EOF
+}
+
+VMNAME=${SIDLOWER}app01
+create_installfile_db_load
+execute_db_load
+# DB should be loaded after this
+
 
 aas_install () {
 
 }
 
-# DB should be loaded after this

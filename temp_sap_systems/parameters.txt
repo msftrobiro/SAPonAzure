@@ -40,15 +40,35 @@ export HUBIP=
 # last octet must be 0
 export SAPIP=
 
+# ---- IMPORTANT ----
+# SAP software needs to be pre-downloaded and made available in specific naming convention for the script to pick it uppercase
+# if you are using your own storage account in same subscription, specify values for STORACC, STORACCRG, STORCONTAINER
+# if you are using a storage account from someone else's subscription, specify values for STORACCURL, STORSAS
+# DO NOT specify both sets of variables, only one pair or the other!
+
+# specify storage account URL holding the SAP software
+# this would be e.g. https://<account_name>.blob.core.windows.net/<container>/
+# do specify the trailing slash, DO NOT specify the actual files, those are set as per requirements section
+export STORACCURL=
+
+# specify storage account SAS token for STORACCURL container
+
+
+
 # specify storage account holding your SAP software and tools
 # just the name of your storage account, not URL
+# LEAVE UNCHANGED EMPTY IF NOT USING YOUR OWN STORAGE ACCOUNT BUT SPECIFIED STORACCURL AND STORSAS PARAMETERS!
 # in lowercase
 export STORACC=
 
 # specify storage account resource group - likely a different one than the holding your SAP system
+# LEAVE UNCHANGED EMPTY IF NOT USING YOUR OWN STORAGE ACCOUNT BUT SPECIFIED STORACCURL AND STORSAS PARAMETERS!
+# lower/uppercase exactly as per resource group's name
 export STORACCRG=
 
 # specify the container name (blob container) where your SAP files are stored under
+# LEAVE UNCHANGED EMPTY IF NOT USING YOUR OWN STORAGE ACCOUNT BUT SPECIFIED STORACCURL AND STORSAS PARAMETERS!
+# lower/uppercase exactly as per container's name
 export STORCONTAINER=
 
 # --- specify SAP specific parameters now ---

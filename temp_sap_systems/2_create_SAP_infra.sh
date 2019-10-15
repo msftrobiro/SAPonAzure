@@ -182,7 +182,7 @@ echo 'wget "'`download_url SWPM.SAR`'" -O /usr/sap/download/SWPM.sar --quiet'  >
 echo 'wget "'`download_url SAPEXE.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'wget "'`download_url DW.SAR`'" -O /usr/sap/download/installation/DW.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'wget "'`download_url SAPHOSTAGENT.SAR`'" -O /usr/sap/download/installation/SAPHOSTAGENT.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
-echo 'wget "'`download_url ascs_instkey.pkey`'" -O /usr/sap/download/instkey.pkey --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
+# echo 'wget "'`download_url ascs_instkey.pkey`'" -O /usr/sap/download/instkey.pkey --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
 
 # ascs ini file modifications
 wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/install_files/ascs_install_ini.params --quiet -O /tmp/${SIDLOWER}_ascs_install_ini.params
@@ -198,21 +198,19 @@ sed -i  "/nwUsers.sapadmUID/ c\nwUsers.sapadmUID = 1001" /tmp/${SIDLOWER}_ascs_i
 sed -i  "/nwUsers.sapsysGID/ c\nwUsers.sapsysGID = 200" /tmp/${SIDLOWER}_ascs_install_ini.params
 sed -i  "/nwUsers.sidAdmUID/ c\nwUsers.sidAdmUID = 1010" /tmp/${SIDLOWER}_ascs_install_ini.params
 sed -i  "/nwUsers.sidadmPassword/ c\nwUsers.sidadmPassword = ${MASTERPW}" /tmp/${SIDLOWER}_ascs_install_ini.params
-echo 'cd /usr/sap/download && mkdir SWPM && mv SWPM.sar SWPM && cd SWPM && ../sapcar -xf SWPM.sar'  >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'sudo su -' >> /tmp/${SIDLOWER}_install_ascs.sh
+echo 'cd /usr/sap/download && mkdir SWPM && mv SWPM.sar SWPM && cd SWPM && ../sapcar -xf SWPM.sar'  >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'export SAPINST_INPUT_PARAMETERS_URL=/tmp/'${SIDLOWER}'_ascs_install_ini.params' >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'export SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_ASCS:NW752.HDB.HA' >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'export SAPINST_SKIP_DIALOGS=true' >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'export SAPINST_START_GUISERVER=false' >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'cd /usr/sap/download/SWPM && ./sapinst' >> /tmp/${SIDLOWER}_install_ascs.sh
-
 }
 
 execute_install_ascs () {
-scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/${SIDLOWER}_install_ascs.sh /tmp/${SIDLOWER}_ascs_install_ini.params ${ADMINUSR}@${VMNAME}:/tmp
+scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/${SIDLOWER}_ascs_install_ini.params ${ADMINUSR}@${VMNAME}:/tmp
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
-chmod uo+x /tmp/${SIDLOWER}_install_ascs.sh
-/tmp/${SIDLOWER}_install_ascs.sh
+`cat /tmp/${SIDLOWER}_install_ascs.sh`
 exit
 sed -i -e 's/${MASTERPW}/YourMasterPW/g' /tmp/${SIDLOWER}_ascs_install_ini.params
 EOF
@@ -222,27 +220,27 @@ EOF
 
 setup_nfs_server () { 
 APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`
-echo 'sudo chown '${SIDLOWER}'adm:sapsys /usr/sap' > /tmp/setup_nfs_server.sh
-echo 'sudo su - '${SIDLOWER}'adm -c "mkdir /usr/sap/trans"' >> /tmp/setup_nfs_server.sh
-echo 'sudo sh -c "echo  /sapmnt    '${APPLSUBNET}'.0/24\(rw,no_root_squash\) >> /etc/exports"' >> /tmp/setup_nfs_server.sh
-echo 'sudo sh -c "echo  /usr/sap/trans    '${APPLSUBNET}'.0/24\(rw,no_root_squash\) >> /etc/exports"' >> /tmp/setup_nfs_server.sh
-echo 'sudo systemctl enable nfsserver' >> /tmp/setup_nfs_server.sh
-echo 'sudo systemctl start nfsserver' >> /tmp/setup_nfs_server.sh
-echo 'sudo su - '${SIDLOWER}'adm sh -c "echo dbs/hdb/schema = SAPSR3 >> /sapmnt/'${SAPSID}'/profile/DEFAULT.PFL"' >> /tmp/setup_nfs_server.sh
+echo 'sudo chown '${SIDLOWER}'adm:sapsys /usr/sap' > /tmp/setup_nfs_server
+echo 'sudo su - '${SIDLOWER}'adm -c "mkdir /usr/sap/trans"' >> /tmp/setup_nfs_server
+echo 'sudo sh -c "echo  /sapmnt    '${APPLSUBNET}'.0/24\(rw,no_root_squash\) >> /etc/exports"' >> /tmp/setup_nfs_server
+echo 'sudo sh -c "echo  /usr/sap/trans    '${APPLSUBNET}'.0/24\(rw,no_root_squash\) >> /etc/exports"' >> /tmp/setup_nfs_server
+echo 'sudo systemctl enable nfsserver' >> /tmp/setup_nfs_server
+echo 'sudo systemctl start nfsserver' >> /tmp/setup_nfs_server
+echo 'sudo su - '${SIDLOWER}'adm sh -c "echo dbs/hdb/schema = SAPSR3 >> /sapmnt/'${SAPSID}'/profile/DEFAULT.PFL"' >> /tmp/setup_nfs_server
 
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
-`cat /tmp/setup_nfs_server.sh`
+`cat /tmp/setup_nfs_server`
 exit
 EOF
 }
 
 mount_nfs_export () {
-    echo 'sudo sh -c "echo '${VMASCS}':/sapmnt    /sapmnt  nfs  defaults 0 0 >> /etc/fstab"' >> /tmp/mount_nfs_export
+    echo 'sudo sh -c "echo '${VMASCS}':/sapmnt    /sapmnt  nfs  defaults 0 0 >> /etc/fstab"' > /tmp/mount_nfs_export
     echo 'sudo sh -c "echo '${VMASCS}':/usr/sap/trans    /usr/sap/trans  nfs  defaults 0 0 >> /etc/fstab"' >> /tmp/mount_nfs_export
     ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
-mkdir /usr/sap/trans /sapmnt
+sudo mkdir /usr/sap/trans /sapmnt
 `cat /tmp/mount_nfs_export`
-mount -a -t nfs
+sudo mount -a -t nfs
 EOF
 
 }
@@ -274,7 +272,7 @@ echo 'wget "'`download_url SWPM.SAR`'" -O /usr/sap/download/SWPM.sar'  >> /tmp/$
 echo 'wget "'`download_url SAPEXE.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR'  >> /tmp/${SIDLOWER}_install_ers.sh
 echo 'wget "'`download_url DW.SAR`'" -O /usr/sap/download/installation/DW.SAR'  >> /tmp/${SIDLOWER}_install_ers.sh
 echo 'wget "'`download_url SAPHOSTAGENT.SAR`'" -O /usr/sap/download/installation/SAPHOSTAGENT.SAR'  >> /tmp/${SIDLOWER}_install_ers.sh
-echo 'wget "'`download_url ascs_instkey.pkey`'" -O /usr/sap/download/instkey.pkey'  >> /tmp/${SIDLOWER}_install_ers.sh
+# shouldn't need this - echo 'wget "'`download_url ascs_instkey.pkey`'" -O /usr/sap/download/instkey.pkey'  >> /tmp/${SIDLOWER}_install_ers.sh
 
 # ers ini file modifications
 wget `download_url ers_install_ini.params` -O /tmp/${SIDLOWER}_ers_install_ini.params
@@ -302,7 +300,7 @@ wget -nv https://saeunsapsoft.blob.core.windows.net/sapsoft/SAPEXE.SAR -O /usr/s
 wget -nv https://saeunsapsoft.blob.core.windows.net/sapsoft/DW.SAR -O /usr/sap/download/installation/DW.SAR
 wget -nv https://saeunsapsoft.blob.core.windows.net/sapsoft/SAPHOSTAGENT.SAR -O /usr/sap/download/installation/SAPHOSTAGENT.SAR
 wget -nv https://saeunsapsoft.blob.core.windows.net/sapsoft/s01_ers_inifile.params
-wget -nv https://saeunsapsoft.blob.core.windows.net/sapsoft/s01_ers_instkey.pkey -O /usr/sap/download/instkey.pkey
+# wget -nv https://saeunsapsoft.blob.core.windows.net/sapsoft/s01_ers_instkey.pkey -O /usr/sap/download/instkey.pkey
 cd /usr/sap/download && mkdir SWPM && mv SWPM.sar SWPM && cd SWPM && ../sapcar -xf SWPM.sar
 
 sudo su -

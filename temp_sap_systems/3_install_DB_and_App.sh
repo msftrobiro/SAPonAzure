@@ -233,18 +233,18 @@ echo PAS install of ${SAPSID} Netweaver 7.52 on ${VMNAME} completed in ${runtime
 printf '%s\n'
 
 create_installfile_aas () {
-    echo 'sudo mkdir /usr/sap/download && sudo chmod 777 /usr/sap/download' > /tmp/${SIDLOWER}_db_load.sh
-    echo 'cd /usr/sap/download && mkdir installation' >> /tmp/${SIDLOWER}_db_load.sh
-    echo 'wget "'`download_url sapcar_linux`'" -O /usr/sap/download/sapcar --quiet && sudo chmod ugo+x /usr/sap/download/sapcar' >> /tmp/${SIDLOWER}_db_load.sh
-    echo 'wget "'`download_url SWPM.SAR`'" -O /usr/sap/download/SWPM.sar --quiet' >> /tmp/${SIDLOWER}_db_load.sh
-    echo 'wget "'`download_url SAPEXE.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR --quiet' >> /tmp/${SIDLOWER}_db_load.sh
-    echo 'wget "'`download_url DW.SAR`'" -O /usr/sap/download/installation/DW.SAR --quiet' >> /tmp/${SIDLOWER}_db_load.sh
-    echo 'wget "'`download_url SAPHOSTAGENT.SAR`'" -O /usr/sap/download/installation/SAPHOSTAGENT.SAR --quiet' >> /tmp/${SIDLOWER}_db_load.sh
-    echo 'wget "'`download_url SAPEXEDB.SAR`'" -O /usr/sap/download/installation/SAPEXEDB.SAR --quiet' >> /tmp/${SIDLOWER}_db_load.sh
-    echo 'wget "'`download_url nw752_exp.zip`'" -O /usr/sap/download/nw752_export.zip --quiet' >> /tmp/${SIDLOWER}_db_load.sh
-    echo 'wget "'`download_url IMDB_CLIENT.SAR`'" -O /usr/sap/download/IMDB_CLIENT.SAR --quiet' >> /tmp/${SIDLOWER}_db_load.sh
-    echo 'cd /usr/sap/download && ./sapcar -xf IMDB_CLIENT.SAR && rm IMDB_CLIENT.SAR' >> /tmp/${SIDLOWER}_db_load.sh
-    echo 'cd /usr/sap/download && unzip nw752_export.zip && rm nw752_export.zip' >> /tmp/${SIDLOWER}_db_load.sh
+    echo 'sudo mkdir /usr/sap/download && sudo chmod 777 /usr/sap/download' > /tmp/${SIDLOWER}_aas_install.sh
+    echo 'cd /usr/sap/download && mkdir installation' >> /tmp/${SIDLOWER}_aas_install.sh
+    echo 'wget "'`download_url sapcar_linux`'" -O /usr/sap/download/sapcar --quiet && sudo chmod ugo+x /usr/sap/download/sapcar' >> /tmp/${SIDLOWER}_aas_install.sh
+    echo 'wget "'`download_url SWPM.SAR`'" -O /usr/sap/download/SWPM.sar --quiet' >> /tmp/${SIDLOWER}_aas_install.sh
+    echo 'wget "'`download_url SAPEXE.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR --quiet' >> /tmp/${SIDLOWER}_aas_install.sh
+    echo 'wget "'`download_url DW.SAR`'" -O /usr/sap/download/installation/DW.SAR --quiet' >> /tmp/${SIDLOWER}_aas_install.sh
+    echo 'wget "'`download_url SAPHOSTAGENT.SAR`'" -O /usr/sap/download/installation/SAPHOSTAGENT.SAR --quiet' >> /tmp/${SIDLOWER}_aas_install.sh
+    echo 'wget "'`download_url SAPEXEDB.SAR`'" -O /usr/sap/download/installation/SAPEXEDB.SAR --quiet' >> /tmp/${SIDLOWER}_aas_install.sh
+    echo 'wget "'`download_url nw752_exp.zip`'" -O /usr/sap/download/nw752_export.zip --quiet' >> /tmp/${SIDLOWER}_aas_install.sh
+    echo 'wget "'`download_url IMDB_CLIENT.SAR`'" -O /usr/sap/download/IMDB_CLIENT.SAR --quiet' >> /tmp/${SIDLOWER}_aas_install.sh
+    echo 'cd /usr/sap/download && ./sapcar -xf IMDB_CLIENT.SAR && rm IMDB_CLIENT.SAR' >> /tmp/${SIDLOWER}_aas_install.sh
+    echo 'cd /usr/sap/download && unzip nw752_export.zip && rm nw752_export.zip' >> /tmp/${SIDLOWER}_aas_install.sh
     echo 'wget "'`download_url IGSEXE.SAR`'" -O /usr/sap/download/installation/IGSEXE.SAR --quiet' >> /tmp/${SIDLOWER}_aas_install.sh
     echo 'wget "'`download_url IGSHELPER.SAR`'" -O /usr/sap/download/installation/IGSHELPER.SAR --quiet' >> /tmp/${SIDLOWER}_aas_install.sh
     # doctor up the inifile
@@ -278,7 +278,7 @@ create_installfile_aas () {
 echo 'sudo su -' >> /tmp/${SIDLOWER}_aas_install.sh
 echo 'cd /usr/sap/download && mkdir SWPM && mv SWPM.sar SWPM && cd SWPM && ../sapcar -xf SWPM.sar' >> /tmp/${SIDLOWER}_aas_install.sh
 echo 'export SAPINST_INPUT_PARAMETERS_URL=/tmp/'${SIDLOWER}'_aas_install_ini.params' >> /tmp/${SIDLOWER}_aas_install.sh
-echo 'export SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_DI:NW752.HDB.HA' >> /tmp/${SIDLOWER}_aas_install.sh
+echo 'export SAPINST_EXECUTE_PRODUCT_ID=NW_DI:NW752.HDB.HA' >> /tmp/${SIDLOWER}_aas_install.sh
 echo 'export SAPINST_SKIP_DIALOGS=true' >> /tmp/${SIDLOWER}_aas_install.sh
 echo 'export SAPINST_START_GUISERVER=false' >> /tmp/${SIDLOWER}_aas_install.sh
 echo 'cd /usr/sap/download/SWPM && ./sapinst' >> /tmp/${SIDLOWER}_aas_install.sh

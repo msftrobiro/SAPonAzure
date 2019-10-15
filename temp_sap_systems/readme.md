@@ -66,6 +66,7 @@ Basic naming convention utilized for resources, resource type (VM, VNET, LB, VPN
 
 
 ### Missing features, aka endless ToDo list
+- add ERS on ascs02
 - LB and possibly FQDN for external access
 - Backup integration (optional script)
 - ASR somewhere, as option

@@ -34,7 +34,7 @@ Storage design leans on cost-concious setup with Standard_SSDs mostly, yet still
     - Linux SAP Host Agent in latest version as SAR file, named SAPHOSTAGENT.SAR
     - Linux HANA DB Server patch, for latest version HANA2, named IMDB_SERVER.SAR
     - Linux HANA Client patch, latest version for HANA2, named IMDB_CLIENT.SAR
-... more, export cds ,igs etc
+    - ... more, export cds ,igs etc
 
 
 - Availability zones must be enabled for deployment on your Azure subscription, in chosen region. Alternatively edit script 2_create_SAP_infra to remove zonal deployment for VMs.
@@ -67,6 +67,7 @@ Basic naming convention utilized for resources, resource type (VM, VNET, LB, VPN
 
 ### Missing features, aka endless ToDo list
 - add ERS on ascs02
+- use PPGs 
 - LB and possibly FQDN for external access
 - Backup integration (optional script)
 - ASR somewhere, as option
@@ -75,8 +76,8 @@ Basic naming convention utilized for resources, resource type (VM, VNET, LB, VPN
 - some basic error checking - did you provide values correctly, do ssh keys exist etc
 - NSGs on subnet, not VMnic
 - make sapinst less spammy, redirect
-- SSO for SapGui all scripted, incl sap rfc triggered actions in script 
-- stop/start script, interactively
+- SSO SAML2 for Web-SAPGui all scripted, incl sap rfc triggered actions in script 
+- stop/start script (VM+SAP), interactively
 - simple backup script for db and logs with version control
 - ... more things I forget right now
 

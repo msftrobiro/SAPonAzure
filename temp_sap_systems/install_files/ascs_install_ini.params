@@ -1,0 +1,17 @@
+NW_GetMasterPassword.masterPwd =
+NW_GetSidNoProfiles.sid = 
+NW_SCS_Instance.ascsInstallGateway = true
+NW_SCS_Instance.ascsInstallWebDispatcher = true
+NW_SCS_Instance.instanceNumber =
+NW_SCS_Instance.scsVirtualHostname =
+NW_getFQDN.FQDN = contoso.local
+NW_getFQDN.setFQDN = false
+NW_webdispatcher_Instance.scenarioSize =
+NW_webdispatcher_Instance.wdHTTPPort =
+NW_webdispatcher_Instance.wdHTTPSPort =
+archives.downloadBasket = /usr/sap/download/installation
+hostAgent.sapAdmPassword =
+nwUsers.sapadmUID = 
+nwUsers.sapsysGID = 
+nwUsers.sidAdmUID =
+nwUsers.sidadmPassword =

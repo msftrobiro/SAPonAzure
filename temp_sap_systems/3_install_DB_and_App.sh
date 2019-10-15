@@ -254,8 +254,8 @@ create_installfile_aas () {
     sed -i  "/NW_HDB_DB.abapSchemaPassword/ c\NW_HDB_DB.abapSchemaPassword = ${MASTERPW}" /tmp/${SIDLOWER}_aas_install_ini.params
     sed -i  "/HDB_Schema_Check_Dialogs.schemaPassword/ c\HDB_Schema_Check_Dialogs.schemaPassword = ${MASTERPW}" /tmp/${SIDLOWER}_aas_install_ini.params
     sed -i  "/HDB_Userstore.doNotResolveHostnames/ c\HDB_Userstore.doNotResolveHostnames = ${SIDLOWER}db01" /tmp/${SIDLOWER}_aas_install_ini.params
-    sed -i  "/NW_CI_Instance.ascsVirtualHostname/ c\NW_CI_Instance.ascsVirtualHostname = ${SIDLOWER}ascs01" /tmp/${SIDLOWER}_aas_install_ini.params
-    sed -i  "/NW_CI_Instance.ciInstanceNumber/ c\NW_CI_Instance.ciInstanceNumber = ${PASNO}" /tmp/${SIDLOWER}_aas_install_ini.params
+    sed -i  "/NW_AS.instanceNumber/ c\NW_AS.instanceNumber = $((PASNO + 1))" /tmp/${SIDLOWER}_aas_install_ini.params
+    sed -i  "/NW_DI_Instance.virtualHostname/ c\NW_DI_Instance.virtualHostname = ${SIDLOWER}app02" /tmp/${SIDLOWER}_aas_install_ini.params
     sed -i  "/NW_CI_Instance.ciVirtualHostname/ c\NW_CI_Instance.ciVirtualHostname = ${SIDLOWER}app01" /tmp/${SIDLOWER}_aas_install_ini.params
     sed -i  "/NW_CI_Instance.scsVirtualHostname/ c\NW_CI_Instance.scsVirtualHostname = ${SIDLOWER}ascs01" /tmp/${SIDLOWER}_aas_install_ini.params
     sed -i  "/NW_GetMasterPassword.masterPwd/ c\NW_GetMasterPassword.masterPwd = ${MASTERPW}" /tmp/${SIDLOWER}_aas_install_ini.params
@@ -268,9 +268,11 @@ create_installfile_aas () {
     sed -i  "/NW_checkMsgServer.abapMSPort/ c\NW_checkMsgServer.abapMSPort = 36${ASCSNO}" /tmp/${SIDLOWER}_aas_install_ini.params
     sed -i  "/NW_getFQDN.FQDN/ c\NW_getFQDN.FQDN = contoso.local" /tmp/${SIDLOWER}_aas_install_ini.params
     sed -i  "/NW_getFQDN.setFQDN/ c\NW_getFQDN.setFQDN = false" /tmp/${SIDLOWER}_aas_install_ini.params
-    sed -i  "/NW_readProfileDir.profileDir/ c\NW_readProfileDir.profileDir = /usr/sap/${SAPSID}/SYS/profile" /tmp/${SIDLOWER}_aas_install_ini.params
+    sed -i  "/NW_readProfileDir.profileDir/ c\NW_readProfileDir.profileDir = /sapmnt/${SAPSID}/profile" /tmp/${SIDLOWER}_aas_install_ini.params
     sed -i  "/nwUsers.sapsysGID/ c\nwUsers.sapsysGID = 200" /tmp/${SIDLOWER}_aas_install_ini.params
     sed -i  "/nwUsers.sidAdmUID/ c\nwUsers.sidAdmUID = 1010" /tmp/${SIDLOWER}_aas_install_ini.params
+    sed -i  "/nwUsers.sapadmUID/ c\nwUsers.sapadmUID = 1001" /tmp/${SIDLOWER}_aas_install_ini.params
+    sed -i  "/hostAgent.sapAdmPassword/ c\hostAgent.sapAdmPassword = ${MASTERPW}" /tmp/${SIDLOWER}_aas_install_ini.params
     sed -i  "/storageBasedCopy.hdb.instanceNumber/ c\storageBasedCopy.hdb.instanceNumber = ${HDBNO}" /tmp/${SIDLOWER}_aas_install_ini.params
     sed -i  "/storageBasedCopy.hdb.systemPassword/ c\storageBasedCopy.hdb.systemPassword = ${MASTERPW}" /tmp/${SIDLOWER}_aas_install_ini.params
     sed -i  "/SAPINST.CD.PACKAGE.EXP1/ c\SAPINST.CD.PACKAGE.EXP1=/usr/sap/download/export_cd" /tmp/${SIDLOWER}_aas_install_ini.params

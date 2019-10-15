@@ -8,7 +8,10 @@
 # What this is project IS NOT
 - In any way directly affiliated with Microsoft or endorsed by Microsoft. All opinions and statements contained herein are private and not necessarility the opinion of my employer, Microsoft.
 - Not to be used in production. 
-- Scripts don't have any error handling, troubleshooting is on you in case things don't work as expected.
+- Scripts have hardly any error handling, troubleshooting is on you in case things don't work as expected.
+- While resources in this project are deployed in Availablity Zones, that doesn't mean it's the be-all-end-all for SAP systems in Azure. Far from it, very often going without AvZones is the better choice as they can introduce many other issues you'd not consider before.
+- Not a showcase of coding skills. I'm not a coder/scripter so a lot is not optimal and likely to be improved. Any non-condescending advise with example much appreciated :)
+
 
 ## What this project does
 If configured correctly it would deploy virtual networks - central hub and SAP spoke - with subnets, NSGs, load balancers.
@@ -31,7 +34,7 @@ Storage design leans on cost-concious setup with Standard_SSDs mostly, yet still
     - Linux SAP Host Agent in latest version as SAR file, named SAPHOSTAGENT.SAR
     - Linux HANA DB Server patch, for latest version HANA2, named IMDB_SERVER.SAR
     - Linux HANA Client patch, latest version for HANA2, named IMDB_CLIENT.SAR
-
+... more, export cds ,igs etc
 
 
 - Availability zones must be enabled for deployment on your Azure subscription, in chosen region. Alternatively edit script 2_create_SAP_infra to remove zonal deployment for VMs.
@@ -59,12 +62,17 @@ Basic naming convention utilized for resources, resource type (VM, VNET, LB, VPN
 
 
 ### Missing features, aka endless ToDo list
-- LB and FQDN for external access
+- LB and possibly FQDN for external access
 - Backup integration (optional script)
 - ASR somewhere, as option
 - add boot diagnostics on for VMs
 - clean-up this page and put more options in scripts, e.g ultra-disks or full prod-sizing with M-series and write accel
 - some basic error checking - did you provide values correctly, do ssh keys exist etc
+- NSGs on subnet, not VMnic
+- make sapinst less spammy, redirect
+- SSO for SapGui all scripted, incl sap rfc triggered actions in script 
+- stop/start script, interactively
+- simple backup script for db and logs with version control
 - ... more things I forget right now
 
 

@@ -84,4 +84,4 @@ Basic naming convention utilized for resources, resource type (VM, VNET, LB, VPN
 
 
 ### closing note
-
+Unattended sapinst is terrible, fact.

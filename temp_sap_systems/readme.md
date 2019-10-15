@@ -2,8 +2,9 @@
 
 ### Aim of this project
 - a demonstration that beyond the typical ARM templates and 3rd party tools such as Ansible/Terraform and others, Azure CLI and simple Linux bash scripts can easily be utilized to automatically deploy and install everything from scratch - networks, VMs, storage, OS config and SAP/HANA installation
-- ARM templates can be complicated beasts which - in this authors opinion - are overused and hard to troubleshoot, AZ CLI on other hand can quickly become second nature particularly for IaaS deployments
-- learning exercise coupled with need for quick-to-spinup demo SAP system with full high availability desing (sans the cluster setup)
+- Azure ARM templates can be complicated beasts which - in this authors opinion - are overused and hard to troubleshoot, AZ CLI on other hand can quickly become second nature particularly for IaaS deployments
+- Learning exercise coupled with need for quick-to-spinup demo SAP system with full high availability desing (sans the cluster setup)
+- A starting point for own additions and tests
 
 # What this is project IS NOT
 - In any way directly affiliated with Microsoft or endorsed by Microsoft. All opinions and statements contained herein are private and not necessarility the opinion of my employer, Microsoft.
@@ -73,7 +74,7 @@ Basic naming convention utilized for resources, resource type (VM, VNET, LB, VPN
 - ASR somewhere, as option
 - add boot diagnostics on for VMs
 - clean-up this page and put more options in scripts, e.g ultra-disks or full prod-sizing with M-series and write accel
-- some basic error checking - did you provide values correctly, do ssh keys exist etc
+- some basic error checking - did you provide values correctly, do ssh keys exist, error code checking
 - NSGs on subnet, not VMnic
 - make sapinst less spammy, redirect
 - SSO SAML2 for Web-SAPGui all scripted, incl sap rfc triggered actions in script 

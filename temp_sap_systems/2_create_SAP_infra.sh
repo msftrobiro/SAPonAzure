@@ -165,12 +165,18 @@ done
 
 # install ascs
 expiry=$(date '+%Y-%m-%dT%H:%MZ' --date "+30 minutes")
-storageAccountKey=$(az storage account keys list --account-name ${STORACC} --resource-group ${STORACCRG} --query [0].value --output tsv)
+if [ -z "$STORURL" ]; then
+    storageAccountKey=$(az storage account keys list --account-name ${STORACC} --resource-group ${STORACCRG} --query [0].value --output tsv)
+fi
 
 download_url () {
-sasToken=$(az storage blob generate-sas --account-name ${STORACC} --account-key $storageAccountKey --container-name ${STORCONTAINER} --name $1 --permissions r --expiry $expiry --output tsv)
-shortURL=$(az storage blob url --account-name ${STORACC} --container-name ${STORCONTAINER} --name $1 --output tsv)
-fullURL=$shortURL?$sasToken
+if [ -z "$STORURL" ]; then
+    sasToken=$(az storage blob generate-sas --account-name ${STORACC} --account-key $storageAccountKey --container-name ${STORCONTAINER} --name $1 --permissions r --expiry $expiry --output tsv)
+    shortURL=$(az storage blob url --account-name ${STORACC} --container-name ${STORCONTAINER} --name $1 --output tsv)
+    fullURL=$shortURL?$sasToken
+else
+    fullURL=${STORACCURL}${1}${STORSAS}
+fi
 echo $fullURL
 }
 
@@ -211,8 +217,7 @@ execute_install_ascs () {
 scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/${SIDLOWER}_ascs_install_ini.params ${ADMINUSR}@${VMNAME}:/tmp
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
 `cat /tmp/${SIDLOWER}_install_ascs.sh`
-exit
-sed -i -e 's/${MASTERPW}/YourMasterPW/g' /tmp/${SIDLOWER}_ascs_install_ini.params
+sudo su - ${SIDLOWER}adm  -c "sapcontrol -nr ${ASCSNO} -function GetProcessList"
 EOF
 }
 
@@ -247,16 +252,25 @@ EOF
 
 VMNAME=${SIDLOWER}ascs01
 echo "###-------------------------------------###"
-echo Creating SAP filesystems and doing basic post-install on ${VMNAME}
+echo Creating SAP ASCS installation file and doing basic post-install on ${VMNAME}
 printf '%s\n'
 create_installfile_ascs
+echo "###-------------------------------------###"
+echo Executing SAP ASCS installation on ${VMNAME}
+printf '%s\n'
 execute_install_ascs
+echo "###-------------------------------------###"
+echo "Creating NFS server for sapmnt and trans on "${VMNAME}
+printf '%s\n'
 setup_nfs_server
 # ASCS instance should be up and running after this
 # next mount NFS volume on other app VMs
 VMASCS=${SIDLOWER}ascs01
 for VMNAME in ${SIDLOWER}ascs02 ${SIDLOWER}app01 ${SIDLOWER}app02
     do
+    echo "###-------------------------------------###"
+    echo "Mounting NFS volumes /sapmnt and /usr/sap/trans on "${VMNAME}
+    printf '%s\n'
     mount_nfs_export
 done
 

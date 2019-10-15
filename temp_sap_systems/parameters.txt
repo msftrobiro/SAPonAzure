@@ -48,12 +48,14 @@ export SAPIP=
 
 # specify storage account URL holding the SAP software
 # this would be e.g. https://<account_name>.blob.core.windows.net/<container>/
-# do specify the trailing slash, DO NOT specify the actual files, those are set as per requirements section
+# do include the trailing slash, DO NOT specify the actual blobs/files, those are set as per requirements section
 export STORACCURL=
 
 # specify storage account SAS token for STORACCURL container
-
-
+# Generate a SAS token e.g. through portal or az storage blob generate-sas
+# use single quotes as SAS tokens contain special characters, e.g. STORSAS='?sv=2018-02-02&ss=bf&srt=co&sp=rl&se=2018-12-31T17:40:37Z&st=2019-10-15T08:40:37Z&spr=https&sig=PQ4MRxedxKZWF3ygKh6j83Ql8WCcZxsYIDakxpTTfkQ%3D'
+# parameter starts with single quote and question mark
+export STORSAS=
 
 # specify storage account holding your SAP software and tools
 # just the name of your storage account, not URL

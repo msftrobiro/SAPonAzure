@@ -72,8 +72,15 @@ EOF
 
 # install HANA on DB VMs
 VMNAME=${SIDLOWER}db01
+echo "###-------------------------------------###"
+echo Installing HANA Database ${HANASID} on ${VMNAME}
+printf '%s\n'
 db_install
+
 VMNAME=${SIDLOWER}db02
+echo "###-------------------------------------###"
+echo Installing HANA Database ${HANASID} on ${VMNAME}
+printf '%s\n'
 db_install
 
 # now to move to the PAS install
@@ -131,17 +138,23 @@ ssh -oStrictHostKeyChecking=no bob@vm-eun-sap-s01app1 << EOF
 EOF
 
 execute_db_load () {
-scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/${SIDLOWER}_db_load.sh.sh /tmp/${SIDLOWER}_db_load_ini.params ${ADMINUSR}@${VMNAME}:/tmp
+scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/${SIDLOWER}_db_load.sh /tmp/${SIDLOWER}_db_load_ini.params ${ADMINUSR}@${VMNAME}:/tmp
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
-chmod uo+x /tmp/${SIDLOWER}_db_load.sh.sh
-/tmp/${SIDLOWER}_db_load.sh.sh
+chmod uo+x /tmp/${SIDLOWER}_db_load.sh
+/tmp/${SIDLOWER}_db_load.sh
 exit
 sed -i -e 's/${MASTERPW}/YourMasterPW/g' /tmp/${SIDLOWER}_db_load_ini.params
 EOF
 }
 
 VMNAME=${SIDLOWER}app01
+echo "###-------------------------------------###"
+echo Prepare DB load configuration of ${SAPSID} Netweaver 7.52 on ${VMNAME}
+printf '%s\n'
 create_installfile_db_load
+echo "###-------------------------------------###"
+echo Starting DB load of ${SAPSID} Netweaver 7.52 on ${VMNAME}
+printf '%s\n'
 execute_db_load
 # DB should be loaded after this
 

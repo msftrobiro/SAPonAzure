@@ -98,8 +98,8 @@ ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed '
 sudo bash -c "cat /tmp/vm_ips.txt >> /etc/hosts"
 sudo pvcreate /dev/disk/azure/scsi1/lun0
 sudo vgcreate vg_SAP /dev/disk/azure/scsi1/lun0
-sudo lvcreate -n lv_SAP_usrsap -l 30%VG vg_SAP
-sudo lvcreate -n lv_SAP_sapmnt -l 30%VG vg_SAP
+sudo lvcreate -n lv_SAP_usrsap -l 90%VG vg_SAP
+sudo lvcreate -n lv_SAP_sapmnt -l 5%VG vg_SAP
 sudo bash -c "echo '/dev/mapper/vg_SAP-lv_SAP_sapmnt  /sapmnt   xfs      defaults      0 0' >> /etc/fstab"
 sudo bash -c "echo '/dev/mapper/vg_SAP-lv_SAP_usrsap  /usr/sap   xfs      defaults      0 0' >> /etc/fstab"
 sudo mkfs.xfs /dev/mapper/vg_SAP-lv_SAP_usrsap
@@ -165,12 +165,12 @@ done
 
 # install ascs
 expiry=$(date '+%Y-%m-%dT%H:%MZ' --date "+30 minutes")
-if [ -z "$STORURL" ]; then
+if [ -z "$STORACCURL" ]; then
     storageAccountKey=$(az storage account keys list --account-name ${STORACC} --resource-group ${STORACCRG} --query [0].value --output tsv)
 fi
 
 download_url () {
-if [ -z "$STORURL" ]; then
+if [ -z "$STORACCURL" ]; then
     sasToken=$(az storage blob generate-sas --account-name ${STORACC} --account-key $storageAccountKey --container-name ${STORCONTAINER} --name $1 --permissions r --expiry $expiry --output tsv)
     shortURL=$(az storage blob url --account-name ${STORACC} --container-name ${STORCONTAINER} --name $1 --output tsv)
     fullURL=$shortURL?$sasToken
@@ -227,7 +227,7 @@ setup_nfs_server () {
 APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`
 echo 'sudo chown '${SIDLOWER}'adm:sapsys /usr/sap' > /tmp/setup_nfs_server
 echo 'sudo su - '${SIDLOWER}'adm -c "mkdir /usr/sap/trans"' >> /tmp/setup_nfs_server
-echo 'sudo sh -c "echo  /sapmnt    '${APPLSUBNET}'.0/24\(rw,no_root_squash\) >> /etc/exports"' >> /tmp/setup_nfs_server
+echo 'sudo sh -c "echo  /sapmnt/'${SAPSID}'    '${APPLSUBNET}'.0/24\(rw,no_root_squash\) >> /etc/exports"' >> /tmp/setup_nfs_server
 echo 'sudo sh -c "echo  /usr/sap/trans    '${APPLSUBNET}'.0/24\(rw,no_root_squash\) >> /etc/exports"' >> /tmp/setup_nfs_server
 echo 'sudo systemctl enable nfsserver' >> /tmp/setup_nfs_server
 echo 'sudo systemctl start nfsserver' >> /tmp/setup_nfs_server

@@ -1,1 +1,6 @@
+#!/bin/bash
+# this script adds HANA replication between first and second DB node
+# adds a standard internal load balancer and changes SAP config to utilize the new virtual IP address
+# should be called after third script created DBs, loaded them and installed PAS/ASS instances
 
+# work in progress

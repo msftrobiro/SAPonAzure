@@ -73,7 +73,8 @@ echo "Doing some actions inside the deployed jumpbox VM (install az cli, update 
 
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${JUMPBOXFQDN} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
 wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/2_create_SAP_infra.sh
-chmod uo+x 2_create_SAP_infra.sh 
+wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/3_install_DB_and_App.sh
+chmod uo+x 2_create_SAP_infra.sh  3_install_DB_and_App.sh
 sudo yum update -y
 sudo yum install -y jre xclock xauth screen
 sudo su -

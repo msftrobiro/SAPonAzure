@@ -240,7 +240,7 @@ EOF
 }
 
 mount_nfs_export () {
-    echo 'sudo sh -c "echo '${VMASCS}':/sapmnt    /sapmnt  nfs  defaults 0 0 >> /etc/fstab"' > /tmp/mount_nfs_export
+    echo 'sudo sh -c "echo '${VMASCS}':/sapmnt/'${SAPSID}'    /sapmnt  nfs  defaults 0 0 >> /etc/fstab"' > /tmp/mount_nfs_export
     echo 'sudo sh -c "echo '${VMASCS}':/usr/sap/trans    /usr/sap/trans  nfs  defaults 0 0 >> /etc/fstab"' >> /tmp/mount_nfs_export
     ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
 sudo mkdir /usr/sap/trans /sapmnt

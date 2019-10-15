@@ -24,7 +24,7 @@ export RESOURCEGROUP=
 export ADMINUSR=
 
 # specify ssh public key file (.pub typically) which can be used for deployment
-# provide with FULL absolute path for the file, within doublequotes (e.g. "~/.ssh/bob_azure.pub")
+# provide with FULL absolute path for the file, within doublequotes (e.g. "/home/bob/.ssh/id_rsa.pub")
 export ADMINUSRSSH=
 
 # specify subdomain name to be used for your jumpserver - e.g. bobsjumphost or susanjumpbox
@@ -93,5 +93,6 @@ export HDBNO=
 
 # specify master password - will be used for all OS users (sidadm, sapadm etc) as well as SAP and DB logons
 # Must contains one upper and lowercase character each and one number, lenght 8 alphanumeric chars minimum
+# Example values: Welcome1  or Azureisbest1
 export MASTERPW=
 

@@ -1,5 +1,8 @@
 ## Deploy SAP systems in Azure - deployment, OS actions and SAP ABAP & HANA install.
 
+# Still work-in-progress
+Self imposed deadline (those work best!) end of Oct
+
 ### Aim of this project
 - a demonstration that beyond the typical ARM templates and 3rd party tools such as Ansible/Terraform and others, Azure CLI and simple Linux bash scripts can easily be utilized to automatically deploy and install everything from scratch - networks, VMs, storage, OS config and SAP/HANA installation
 - Azure ARM templates can be complicated beasts which - in this authors opinion - are overused and hard to troubleshoot, AZ CLI on other hand can quickly become second nature particularly for IaaS deployments

@@ -55,8 +55,8 @@ printf '%s\n'
 echo "###-------------------------------------###"
 echo Peering SAP and Hub vnets
 VNETPEER=VNET-${AZLOCTLA}-${RESOURCEGROUP}
-az network vnet peering create --resource-group $RGNAME --remote-vnet ${VNETPEER}-hub --vnet-name ${VNETPEER}-sap --name VNETPEER-${AZLOCTLA}-hub-to-sap --allow-vnet-access  >>$LOGFILE 2>&1   
-az network vnet peering create --resource-group $RGNAME --remote-vnet ${VNETPEER}-sap --vnet-name ${VNETPEER}-hub --name VNETPEER-${AZLOCTLA}-sap-to-hub --allow-vnet-access  >>$LOGFILE 2>&1   
+az network vnet peering create --resource-group $RGNAME --remote-vnet ${VNETPEER}-hub --vnet-name ${VNETPEER}-sap --vnet-name VNETPEER-${AZLOCTLA}-hub-to-sap --allow-vnet-access  >>$LOGFILE 2>&1   
+az network vnet peering create --resource-group $RGNAME --remote-vnet ${VNETPEER}-sap --vnet-name ${VNETPEER}-hub --vnet-name VNETPEER-${AZLOCTLA}-sap-to-hub --allow-vnet-access  >>$LOGFILE 2>&1   
 
 
 # create jumpbox VM
@@ -65,7 +65,7 @@ echo "###-------------------------------------###"
 echo Creating linux jumpbox VM
 VNETNAME=VNET-${AZLOCTLA}-${RESOURCEGROUP}-hub
 VMNAME=VM-${AZLOCTLA}-sap-jumpbox-lin
-VMTYPE=Standard_B2s_v3
+VMTYPE=Standard_B2s
 VMIMAGE=OpenLogic:CentOS:7.7:latest
 az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 127 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking false --public-ip-address-dns-name $JUMPFQDN --public-ip-address-allocation dynamic --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-ssh >>$LOGFILE 2>&1   
 

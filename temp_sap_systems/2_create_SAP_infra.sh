@@ -2,8 +2,8 @@
 # continue on your jumpbox, NOT in your shell/cloud shell
 # ideally, 1_create_jumpbox.sh should have finished without problems
 # this script assumes everything is executed on the newly created jumpbox
-# version 0.5  
-# last changes: just minor corrections
+# version 0.3  
+# last major changes: added ERS install
 
 screen -dm -S sapsetup
 
@@ -287,9 +287,6 @@ do
     mount_nfs_export
 done
 
-
-
-# WIP below
 # install ERS
 create_installfile_ers () {
 echo "sudo mkdir /usr/sap/download && sudo chmod 777 /usr/sap/download && cd /usr/sap/download" > /tmp/${SIDLOWER}_install_ers.sh
@@ -299,49 +296,39 @@ echo 'wget "'`download_url SWPM.SAR`'" -O /usr/sap/download/SWPM.sar'  >> /tmp/$
 echo 'wget "'`download_url SAPEXE.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR'  >> /tmp/${SIDLOWER}_install_ers.sh
 echo 'wget "'`download_url DW.SAR`'" -O /usr/sap/download/installation/DW.SAR'  >> /tmp/${SIDLOWER}_install_ers.sh
 echo 'wget "'`download_url SAPHOSTAGENT.SAR`'" -O /usr/sap/download/installation/SAPHOSTAGENT.SAR'  >> /tmp/${SIDLOWER}_install_ers.sh
-# shouldn't need this - echo 'wget "'`download_url ascs_instkey.pkey`'" -O /usr/sap/download/instkey.pkey'  >> /tmp/${SIDLOWER}_install_ers.sh
-
 # ers ini file modifications
-wget `download_url ers_install_ini.params` -O /tmp/${SIDLOWER}_ers_install_ini.params
-sed -i  "/NW_GetMasterPassword.masterPwd/ c\NW_GetMasterPassword.masterPwd = ${MASTERPW}" /tmp/${SIDLOWER}_ers_install_ini.params 
-sed -i  "/NW_GetSidNoProfiles.sid/ c\NW_GetSidNoProfiles.sid = ${SAPSID}" /tmp/${SIDLOWER}_ers_install_ini.params
-sed -i  "/NW_SCS_Instance.instanceNumber/ c\NW_SCS_Instance.instanceNumber = ${ersNO}" /tmp/${SIDLOWER}_ers_install_ini.params
-sed -i  "/NW_SCS_Instance.scsVirtualHostname / c\NW_SCS_Instance.scsVirtualHostname = ${SIDLOWER}ascs02" /tmp/${SIDLOWER}_ers_install_ini.params
-sed -i  "/NW_webdispatcher_Instance.scenarioSize/ c\NW_webdispatcher_Instance.scenarioSize = 500" /tmp/${SIDLOWER}_ers_install_ini.params
-sed -i  "/NW_webdispatcher_Instance.wdHTTPPort/ c\NW_webdispatcher_Instance.wdHTTPPort = 80${ersNO}" /tmp/${SIDLOWER}_ers_install_ini.params
-sed -i  "/NW_webdispatcher_Instance.wdHTTPSPort/ c\NW_webdispatcher_Instance.wdHTTPSPort = 443${ersNO}" /tmp/${SIDLOWER}_ers_install_ini.params
-sed -i  "/hostAgent.sapAdmPassword/ c\hostAgent.sapAdmPassword = ${MASTERPW}" /tmp/${SIDLOWER}_ers_install_ini.params
+wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/install_files/ers_install_ini.params --quiet -O /tmp/${SIDLOWER}_ers_install_ini.params
+sed -i  "/NW_readProfileDir.profileDir/ c\NW_readProfileDir.profileDir = /sapmnt/${SAPSID}/profile" /tmp/${SIDLOWER}_ers_install_ini.params
+sed -i  "/nwUsers.sidadmPassword/ c\nwUsers.sidadmPassword = ${MASTERPW}" /tmp/${SIDLOWER}_ers_install_ini.params
 sed -i  "/nwUsers.sapadmUID/ c\nwUsers.sapadmUID = 1001" /tmp/${SIDLOWER}_ers_install_ini.params
 sed -i  "/nwUsers.sapsysGID/ c\nwUsers.sapsysGID = 200" /tmp/${SIDLOWER}_ers_install_ini.params
 sed -i  "/nwUsers.sidAdmUID/ c\nwUsers.sidAdmUID = 1010" /tmp/${SIDLOWER}_ers_install_ini.params
-sed -i  "/nwUsers.sidadmPassword/ c\nwUsers.sidadmPassword = ${MASTERPW}" /tmp/${SIDLOWER}_ers_install_ini.params
+sed -i  "/hostAgent.sapAdmPassword/ c\hostAgent.sapAdmPassword = ${MASTERPW}" /tmp/${SIDLOWER}_ers_install_ini.params
+sed -i  "/nw_instance_ers.ersInstanceNumber/ c\nw_instance_ers.ersInstanceNumber = $((ASCSNO + 1))" /tmp/${SIDLOWER}_ers_install_ini.params
+sed -i  "/nw_instance_ers.ersVirtualHostname / c\nw_instance_ers.ersVirtualHostname = ${SIDLOWER}ascs02" /tmp/${SIDLOWER}_ers_install_ini.params
+sed -i  "/NW_GetMasterPassword.masterPwd/ c\NW_GetMasterPassword.masterPwd = ${MASTERPW}" /tmp/${SIDLOWER}_ers_install_ini.params 
 echo 'cd /usr/sap/download && mkdir SWPM && mv SWPM.sar SWPM && cd SWPM && ../sapcar -xf SWPM.sar'  >> /tmp/${SIDLOWER}_install_ers.sh
-echo 'sudo bash -c "export SAPINST_INPUT_PARAMETERS_URL=/tmp/"${SIDLOWER}"_ers_install_ini.params && export SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_ers:NW752.HDB.HA && export SAPINST_SKIP_DIALOGS=true && export SAPINST_START_GUISERVER=false && cd /usr/sap/download/SWPM && ./sapinst"' >> /tmp/${SIDLOWER}_install_ers.sh
+# workaround for sapinst bug?
+echo 'sudo mkdir -p /usr/sap/SHX/SYS/exe' >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'sudo ln -s /sapmnt/SHX/exe/uc /usr/sap/SHX/SYS/exe/uc' >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'sudo bash -c "export SAPINST_INPUT_PARAMETERS_URL=/tmp/"${SIDLOWER}"_ers_install_ini.params && export SAPINST_EXECUTE_PRODUCT_ID=NW_ERS:NW752.HDB.HA && export SAPINST_SKIP_DIALOGS=true && export SAPINST_START_GUISERVER=false && cd /usr/sap/download/SWPM && ./sapinst"' >> /tmp/${SIDLOWER}_install_ers.sh
+}
 
-ssh -oStrictHostKeyChecking=no bob@vm-eun-sap-s01ers2 << EOF
-sudo mkdir /usr/sap/download && sudo chmod 777 /usr/sap/download && cd /usr/sap/download
-mkdir installation
-wget -nv https://saeunsapsoft.blob.core.windows.net/sapsoft/sapcar_linux -O /usr/sap/download/sapcar && sudo chmod ugo+x /usr/sap/download/sapcar
-wget -nv https://saeunsapsoft.blob.core.windows.net/sapsoft/SWPM10SP26_1-20009701.SAR -O /usr/sap/download/SWPM.sar
-wget -nv https://saeunsapsoft.blob.core.windows.net/sapsoft/SAPEXE.SAR -O /usr/sap/download/installation/SAPEXE.SAR
-wget -nv https://saeunsapsoft.blob.core.windows.net/sapsoft/DW.SAR -O /usr/sap/download/installation/DW.SAR
-wget -nv https://saeunsapsoft.blob.core.windows.net/sapsoft/SAPHOSTAGENT.SAR -O /usr/sap/download/installation/SAPHOSTAGENT.SAR
-wget -nv https://saeunsapsoft.blob.core.windows.net/sapsoft/s01_ers_inifile.params
-# wget -nv https://saeunsapsoft.blob.core.windows.net/sapsoft/s01_ers_instkey.pkey -O /usr/sap/download/instkey.pkey
-cd /usr/sap/download && mkdir SWPM && mv SWPM.sar SWPM && cd SWPM && ../sapcar -xf SWPM.sar
-
-sudo su -
-echo `/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{print$1}'` vm-eun-sap-s01ascs2 s01ascs2 >> /etc/hosts
-export SAPINST_INPUT_PARAMETERS_URL=/usr/sap/download/s01_ers_inifile.params
-export SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_ERS:NW752.HDB.HA
-export SAPINST_SKIP_DIALOGS=true
-export SAPINST_START_GUISERVER=false
-cd /usr/sap/download/SWPM && ./sapinst
-exit
+execute_install_ers () {
+scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/${SIDLOWER}_ers_install_ini.params ${ADMINUSR}@${VMNAME}:/tmp
+ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
+`cat /tmp/${SIDLOWER}_install_ers.sh`
+sudo su - ${SIDLOWER}adm  -c "sapcontrol -nr $((ASCSNO +1))-function GetProcessList"
 EOF
 }
-# ERS still needs some love
 
+# ERS install, if setup to use 2nd ascs node
+if [ $INSTALLERS == 'true' ] ; then
+    VMNAME=VM-${AZLOCTLA}-${SIDLOWER}ascs02
+    create_installfile_ers
+    execute_install_ers
+fi
+# ERS instance should be up and running after this
 
 endtime=`date +%s`
 runtime=$( echo "$endtime - $starttime" | bc -l )

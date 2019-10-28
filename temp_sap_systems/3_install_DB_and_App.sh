@@ -2,6 +2,7 @@
 # continue on your jumpbox, NOT in your shell/cloud shell
 # ideally, 1_create_jumpbox.sh should have finished without problems
 # this script assumes everything is executed on the newly created jumpbox
+# version 0.2
 
 
 screen -dm -S sapsetup
@@ -77,20 +78,23 @@ EOF
 }
 
 # install HANA on DB VMs
-VMNAME=${SIDLOWER}db01
-echo "###-------------------------------------###"
-echo Installing HANA Database ${HANASID} on ${VMNAME}
-printf '%s\n'
-db_install
-
-VMNAME=${SIDLOWER}db02
-echo "###-------------------------------------###"
-echo Installing HANA Database ${HANASID} on ${VMNAME}
-printf '%s\n'
-db_install
-echo "###-------------------------------------###"
-echo HANA software installed on both DB VMs
-printf '%s\n'
+if [ $INSTALLDB2 == 'true' ]; then
+    for i in 1 2 
+    do
+    VMNAME=${SIDLOWER}db0${i}
+    echo "###-------------------------------------###"
+    echo Installing HANA Database ${HANASID} on ${VMNAME}
+    printf '%s\n'
+    db_install
+    done
+else
+    i=1
+    VMNAME=${SIDLOWER}db0${i}
+    echo "###-------------------------------------###"
+    echo Installing HANA Database ${HANASID} on ${VMNAME}
+    printf '%s\n'
+    db_install
+fi
 
 # now to move to the PAS install
 create_installfile_db_load () {
@@ -168,7 +172,6 @@ echo "###-------------------------------------###"
 echo DB load of ${SAPSID} Netweaver 7.52 on ${VMNAME} completed in ${runtimedbload} seconds
 printf '%s\n'
 
-
 create_installfile_pas () {
     echo 'wget "'`download_url IGSEXE.SAR`'" -O /usr/sap/download/installation/IGSEXE.SAR --quiet' >> /tmp/${SIDLOWER}_pas_install.sh
     echo 'wget "'`download_url IGSHELPER.SAR`'" -O /usr/sap/download/installation/IGSHELPER.SAR --quiet' >> /tmp/${SIDLOWER}_pas_install.sh
@@ -193,7 +196,7 @@ create_installfile_pas () {
     sed -i  "/NW_checkMsgServer.abapMSPort/ c\NW_checkMsgServer.abapMSPort = 36${ASCSNO}" /tmp/${SIDLOWER}_pas_install_ini.params
     sed -i  "/NW_getFQDN.FQDN/ c\NW_getFQDN.FQDN = contoso.local" /tmp/${SIDLOWER}_pas_install_ini.params
     sed -i  "/NW_getFQDN.setFQDN/ c\NW_getFQDN.setFQDN = false" /tmp/${SIDLOWER}_pas_install_ini.params
-    sed -i  "/NW_readProfileDir.profileDir/ c\NW_readProfileDir.profileDir = /usr/sap/${SAPSID}/SYS/profile" /tmp/${SIDLOWER}_pas_install_ini.params
+    sed -i  "/NW_readProfileDir.profileDir/ c\NW_readProfileDir.profileDir = /sapmnt/${SAPSID}/profile" /tmp/${SIDLOWER}_pas_install_ini.params
     sed -i  "/nwUsers.sapsysGID/ c\nwUsers.sapsysGID = 200" /tmp/${SIDLOWER}_pas_install_ini.params
     sed -i  "/nwUsers.sidAdmUID/ c\nwUsers.sidAdmUID = 1010" /tmp/${SIDLOWER}_pas_install_ini.params
     sed -i  "/storageBasedCopy.hdb.instanceNumber/ c\storageBasedCopy.hdb.instanceNumber = ${HDBNO}" /tmp/${SIDLOWER}_pas_install_ini.params
@@ -212,6 +215,7 @@ execute_pas_install () {
 scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/${SIDLOWER}_pas_install_ini.params ${ADMINUSR}@${VMNAME}:/tmp
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
 `cat /tmp/${SIDLOWER}_pas_install.sh`
+sudo su - ${SIDLOWER}adm  -c "sapcontrol -nr ${PASNO} -function GetProcessList"
 EOF
 }
 
@@ -290,23 +294,27 @@ execute_aas_install () {
 scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/${SIDLOWER}_aas_install_ini.params ${ADMINUSR}@${VMNAME}:/tmp
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
 `cat /tmp/${SIDLOWER}_aas_install.sh`
+sudo su - ${SIDLOWER}adm  -c "sapcontrol -nr $((PASNO + 1)) -function GetProcessList"
 EOF
 }
 
-starttimeaasinstall=`date +%s`
-VMNAME=${SIDLOWER}app02
-echo "###-------------------------------------###"
-echo Prepare AAS insstallation of ${SAPSID} Netweaver 7.52 on ${VMNAME}
-printf '%s\n'
-create_installfile_aas
-echo "###-------------------------------------###"
-echo Starting AAS install of ${SAPSID} Netweaver 7.52 on ${VMNAME}
-printf '%s\n'
-execute_aas_install
-# DB should be loaded after this
-endtimeaasinstall=`date +%s`
-runtimeaasinstall=$( echo "$endtimeaasinstall - $starttimeaasinstall" | bc -l )
-echo "###-------------------------------------###"
-echo AAS install of ${SAPSID} Netweaver 7.52 on ${VMNAME} completed in ${runtimepasinstall} seconds
-printf '%s\n'
+if [ $INSTALLAAS == 'true' ]; then
+    starttimeaasinstall=`date +%s`
+    VMNAME=${SIDLOWER}app02
+    echo "###-------------------------------------###"
+    echo Prepare AAS insstallation of ${SAPSID} Netweaver 7.52 on ${VMNAME}
+    printf '%s\n'
+    create_installfile_aas
+    echo "###-------------------------------------###"
+    echo Starting AAS install of ${SAPSID} Netweaver 7.52 on ${VMNAME}
+    printf '%s\n'
+    execute_aas_install
+    # AAS installed
+    endtimeaasinstall=`date +%s`
+    runtimeaasinstall=$( echo "$endtimeaasinstall - $starttimeaasinstall" | bc -l )
+    echo "###-------------------------------------###"
+    echo AAS install of ${SAPSID} Netweaver 7.52 on ${VMNAME} completed in ${runtimepasinstall} seconds
+    printf '%s\n'
+fi
+
 

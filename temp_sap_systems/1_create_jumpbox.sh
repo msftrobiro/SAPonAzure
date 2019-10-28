@@ -43,6 +43,10 @@ echo Creating NSGs for SAP subnets
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 az network nsg create --resource-group $RGNAME --name NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl >>$LOGFILE 2>&1   
 az network nsg create --resource-group $RGNAME --name NSG-${AZLOCTLA}-sap-${SIDLOWER}-db >>$LOGFILE 2>&1   
+printf '%s\n'
+echo "###-------------------------------------###"
+echo Assigning NSGs for SAP subnets
+az network vnet subnet update --resource-group $RGNAME --name ${VNETNAME}-appl --network-security-group NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl >>$LOGFILE 2>&1 az network vnet subnet update --resource-group $RGNAME --name ${VNETNAME}-db --network-security-group NSG-${AZLOCTLA}-sap-${SIDLOWER}-db >>$LOGFILE 2>&1   
 az network nsg list --resource-group $RGNAME --output table
 
 # peer the hub and sap networks
@@ -60,9 +64,9 @@ echo "###-------------------------------------###"
 echo Creating linux jumpbox VM
 VNETNAME=VNET-${AZLOCTLA}-${RESOURCEGROUP}-hub
 VMNAME=VM-${AZLOCTLA}-sap-jumpbox-lin
-VMTYPE=Standard_D4s_v3
+VMTYPE=Standard_B2s_v3
 VMIMAGE=OpenLogic:CentOS:7.7:latest
-az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 127 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address-dns-name $JUMPFQDN --public-ip-address-allocation dynamic --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-ssh >>$LOGFILE 2>&1   
+az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 127 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking false --public-ip-address-dns-name $JUMPFQDN --public-ip-address-allocation dynamic --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-ssh >>$LOGFILE 2>&1   
 
 JUMPBOXFQDN=`az network public-ip list --resource-group $RGNAME|grep fqdn | awk '{print $2}'|sed 's/.\{2\}$//'|cut -c2-`
 

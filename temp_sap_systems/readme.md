@@ -60,29 +60,37 @@ On jumpbox - follow output of the first script - execute the predownloaded 2_...
 - download all files (linux environment)
 - vim parameters.txt
 - ./1_create_jumpbox.sh
-- ssh <username>@<jumpbox> as displayed by executed previous script
+- 'ssh <username>@<jumpbox>' as displayed by executed previous script
 - ./2_create_SAP_infra.sh
 - ./3_install_DB_and_App.sh
-- <further scripts, coming down the line/own>
+- '<further scripts, coming down the line/own>'
 
 ### Naming convention
 Basic naming convention utilized for resources, resource type (VM, VNET, LB, VPN etc) as first character name and location shortname (EUN for EuropeNorth, EUW for EuropeWest etc) are typically used, followed by resource name.
 
+### Changelog
+v0.2, Oct 28 2019
+- added new parameters to control if db02/app02/ascs02 should be installed at all. If all set to false, only 3 VMs for normal 3tier setup will be deployed
+- using PPGs for SAP systems, one PPG per zone
+- changed NSGs to subnets and not VM NICs directly
+
+v0.3, Oct 29 2019 (coming!)
+- added ERS installation
+- added load balancers for DB and ASCS, if setup to use distributed architecture
+- cleaned up readme.md (this file)
 
 ### Missing features, aka endless ToDo list
-- add ERS on ascs02
-- use PPGs 
+- add ERS on ascs02 - 
 - LB and possibly FQDN for external access
 - Backup integration (optional script)
-- ASR somewhere, as option
-- add boot diagnostics on for VMs
+- ASR setup, as option (low prio, too many variables and rather complex)
 - clean-up this page and put more options in scripts, e.g ultra-disks or full prod-sizing with M-series and write accel
 - some basic error checking - did you provide values correctly, do ssh keys exist, error code checking
-- NSGs on subnet, not VMnic
 - make sapinst less spammy, redirect
 - SSO SAML2 for Web-SAPGui all scripted, incl sap rfc triggered actions in script 
 - stop/start script (VM+SAP), interactively
 - simple backup script for db and logs with version control
+- use azure private dns instead of ugly host file
 - ... more things I forget right now
 
 

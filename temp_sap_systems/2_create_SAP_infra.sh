@@ -33,58 +33,74 @@ RGNAME=RG-${AZLOCTLA}-${RESOURCEGROUP}
 wget "https://saeunsapsoft.blob.core.windows.net/sapsoft/linux_tools/sockperf?sv=2018-03-28&ss=bfqt&srt=sco&sp=r&se=2023-10-04T19:12:30Z&st=2019-10-04T11:12:30Z&spr=https&sig=l1kQEWAWMYlqm08BHzHOIBykTdrL6DlpzRBYhMkPSXw%3D" -O ~/sockperf --quiet >>$LOGFILE 2>&1 && sudo chmod ugo+x ~/sockperf 
 wget "https://saeunsapsoft.blob.core.windows.net/sapsoft/linux_tools/DLManager.jar?sv=2018-03-28&ss=bfqt&srt=sco&sp=r&se=2023-10-04T19:12:30Z&st=2019-10-04T11:12:30Z&spr=https&sig=l1kQEWAWMYlqm08BHzHOIBykTdrL6DlpzRBYhMkPSXw%3D" -O ~/DLManager.jar --quiet >>$LOGFILE 2>&1
 
+
+create_app_vm () {
+    printf '%s\n'
+    echo "###-------------------------------------###"
+    echo Creating VM $VMNAME in RG $RGNAME
+    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --zone $i --ppg PPG-${AZLOCTLA}-${SIDLOWER}-zone${i} >>$LOGFILE 2>&1   
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
+}
+
+create_hana_vm () {
+    printf '%s\n'
+    echo "###-------------------------------------###"
+    echo Creating VM $VMNAME in RG $RGNAME
+    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${DBSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-db --zone $i --pgg PPG-${AZLOCTLA}-${SIDLOWER}-zone${i} >>$LOGFILE 2>&1   
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk2 --new --sku Premium_LRS --size 255 >>$LOGFILE 2>&1
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk3 --new --sku Premium_LRS --size 255 >>$LOGFILE 2>&1
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk4 --new --sku Premium_LRS --size 255 >>$LOGFILE 2>&1  
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk5 --new --sku StandardSSD_LRS --size 127 >>$LOGFILE 2>&1
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk6 --new --sku StandardSSD_LRS --size 255 >>$LOGFILE 2>&1
+}
+
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
-VMTYPE=Standard_D4s_v3
 VNETNAME=VNET-${AZLOCTLA}-${RESOURCEGROUP}-sap
 VMIMAGE=SUSE:SLES-SAP:12-sp4:latest
-VMNAME=VM-${AZLOCTLA}-${SIDLOWER}ascs01
-
-printf '%s\n'
-echo "###-------------------------------------###"
-echo Creating ASCS and App Server VMs in RG $RGNAME
-# ideally, you'd choose two zones (logical zones, logical to physical mapping changes PER subscription)
-APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`
-az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.11 --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --nsg NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl --zone 1 >$LOGFILE 2>&1   
-az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
-echo "###-------------------------------------###"
-echo VM ${VMNAME} deployed, moving onto next
-
-VMNAME=VM-${AZLOCTLA}-${SIDLOWER}ascs02
-az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.12 --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --nsg NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl --zone 2 >>$LOGFILE 2>&1   
-az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
-echo "###-------------------------------------###"
-echo VM ${VMNAME} deployed, moving onto next
-
-VMNAME=VM-${AZLOCTLA}-${SIDLOWER}app01
-az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.21 --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --nsg NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl --zone 1 >>$LOGFILE 2>&1   
-az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
-echo "###-------------------------------------###"
-echo VM ${VMNAME} deployed, moving onto next
-
-VMNAME=VM-${AZLOCTLA}-${SIDLOWER}app02
-az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.22 --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --nsg NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl --zone 2 >>$LOGFILE 2>&1   
-az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
-echo "###-------------------------------------###"
-echo VM ${VMNAME} deployed
-
-echo "###-------------------------------------###"
-echo Creating DB VMs 
-printf '%s\n'
 VMTYPE=Standard_E16s_v3
 DBSUBNET=`echo $SAPIP|sed 's/.\{5\}$//'`
-for i in 1 2
-do
-VMNAME=VM-${AZLOCTLA}-${SIDLOWER}db0${i}
-az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${DBSUBNET}.14${i} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-db --nsg NSG-${AZLOCTLA}-sap-${SIDLOWER}-db --zone $i >>$LOGFILE 2>&1   
-az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
-az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk2 --new --sku Premium_LRS --size 255 >>$LOGFILE 2>&1
-az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk3 --new --sku Premium_LRS --size 255 >>$LOGFILE 2>&1
-az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk4 --new --sku Premium_LRS --size 255 >>$LOGFILE 2>&1
-az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk5 --new --sku StandardSSD_LRS --size 127 >>$LOGFILE 2>&1
-az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk6 --new --sku StandardSSD_LRS --size 255 >>$LOGFILE 2>&1
-done
+if [ $INSTALLDB2 == 'true' ]; then
+    for i in 1 2 
+    do
+    ip=14${i}; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}db0${i}
+    az ppg create --name PPG-${AZLOCTLA}-${SIDLOWER}-zone${i} --location $AZLOC --type Standard
+    create_hana_vm
+    done
+else
+    i=1; ip=141; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}db0${i}
+    az ppg create --name PPG-${AZLOCTLA}-${SIDLOWER}-zone${i} --location $AZLOC --type Standard
+    create_hana_vm
+fi
+
+VMTYPE=Standard_D4s_v3
+APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`
+if [ $INSTALLERS == 'true' ] ; then
+    for i in 1 2 
+    do
+    ip=1${i}; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}ascs0${i}
+    create_app_vm
+    done
+else
+    i=1; ip=11; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}ascs0${i}
+    create_app_vm
+fi
+
+if [ $INSTALLAAS == 'true' ]; then
+    for i in 1 2 
+    do
+    ip=2${i}; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}app0${i}
+    create_app_vm
+    done
+else
+    i=1; ip=21; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}app0${i}
+    create_app_vm
+fi
+
+
+
 echo "###-------------------------------------###"
-echo DB VMs are now deployed
+echo All VMs are now deployed
 echo "###-------------------------------------###"
 echo List of IPs for all servers 
 printf '%s\n'
@@ -143,23 +159,21 @@ sudo mount -a
 EOF
 }
 
-for i in 1 2
+for i in $(cat /etc/hosts |grep VM-${AZLOCTLA}-${SIDLOWER} |awk '{print $3}') 
 do
-VMNAME=${SIDLOWER}ascs0${i}
+VMNAME=$i
 echo "###-------------------------------------###"
 echo Creating SAP filesystems and doing basic post-install on ${VMNAME}
 printf '%s\n'
 fs_create_on_all_sap_servers
-VMNAME=${SIDLOWER}app0${i}
+done
+
+for i in $(cat /etc/hosts |grep VM-${AZLOCTLA}-${SIDLOWER} |grep db0 | awk '{print $3}') 
+do
+VMNAME=$i
 echo "###-------------------------------------###"
-echo Creating SAP filesystems and doing basic post-install on ${VMNAME}
+echo Creating HANA filesystems on ${VMNAME}
 printf '%s\n'
-fs_create_on_all_sap_servers
-VMNAME=${SIDLOWER}db0${i}
-echo "###-------------------------------------###"
-echo Creating SAP and HANA filesystems and doing basic post-install on ${VMNAME}
-printf '%s\n'
-fs_create_on_all_sap_servers
 fs_create_on_db_servers
 done
 
@@ -220,8 +234,6 @@ ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed '
 sudo su - ${SIDLOWER}adm  -c "sapcontrol -nr ${ASCSNO} -function GetProcessList"
 EOF
 }
-
-
 
 setup_nfs_server () { 
 APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`

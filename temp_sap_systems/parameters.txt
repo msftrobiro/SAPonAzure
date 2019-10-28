@@ -96,3 +96,14 @@ export HDBNO=
 # Example values: Welcome1  or Azureisbest1
 export MASTERPW=
 
+# Install ERS instances? If not, VM <sapsid>ascs02 will not be created, same for ASCS load balancer
+# valid values: true|false (lowercase)
+export INSTALLERS=true
+
+# Install additional AAS? If not, VM <sapsid>app02 will not be created
+# valid values: true|false (lowercase)
+export INSTALLAAS=true
+
+# Install second DB and setup HANA replication? If not, VM <sapsid>db02 will not be created, same for DB load balancer
+# valid values: true|false (lowercase)
+export INSTALLDB2=true

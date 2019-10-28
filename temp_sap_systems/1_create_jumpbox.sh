@@ -46,8 +46,8 @@ az network nsg create --resource-group $RGNAME --name NSG-${AZLOCTLA}-sap-${SIDL
 printf '%s\n'
 echo "###-------------------------------------###"
 echo Assigning NSGs for SAP subnets
-az network vnet subnet update --resource-group $RGNAME --name ${VNETNAME}-appl --network-security-group NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl >>$LOGFILE 2>&1
-az network vnet subnet update --resource-group $RGNAME --name ${VNETNAME}-db --network-security-group NSG-${AZLOCTLA}-sap-${SIDLOWER}-db >>$LOGFILE 2>&1   
+az network vnet subnet update --resource-group $RGNAME --vnet-name ${VNETNAME}-appl --network-security-group NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl >>$LOGFILE 2>&1
+az network vnet subnet update --resource-group $RGNAME --vnet-name ${VNETNAME}-db --network-security-group NSG-${AZLOCTLA}-sap-${SIDLOWER}-db >>$LOGFILE 2>&1   
 az network nsg list --resource-group $RGNAME --output table
 
 # peer the hub and sap networks
@@ -55,8 +55,8 @@ printf '%s\n'
 echo "###-------------------------------------###"
 echo Peering SAP and Hub vnets
 VNETPEER=VNET-${AZLOCTLA}-${RESOURCEGROUP}
-az network vnet peering create --resource-group $RGNAME --remote-vnet ${VNETPEER}-hub --vnet-name ${VNETPEER}-sap --vnet-name VNETPEER-${AZLOCTLA}-hub-to-sap --allow-vnet-access  >>$LOGFILE 2>&1   
-az network vnet peering create --resource-group $RGNAME --remote-vnet ${VNETPEER}-sap --vnet-name ${VNETPEER}-hub --vnet-name VNETPEER-${AZLOCTLA}-sap-to-hub --allow-vnet-access  >>$LOGFILE 2>&1   
+az network vnet peering create --resource-group $RGNAME --remote-vnet ${VNETPEER}-hub --vnet-name ${VNETPEER}-sap --name VNETPEER-${AZLOCTLA}-hub-to-sap --allow-vnet-access  >>$LOGFILE 2>&1   
+az network vnet peering create --resource-group $RGNAME --remote-vnet ${VNETPEER}-sap --vnet-name ${VNETPEER}-hub --name VNETPEER-${AZLOCTLA}-sap-to-hub --allow-vnet-access  >>$LOGFILE 2>&1   
 
 
 # create jumpbox VM

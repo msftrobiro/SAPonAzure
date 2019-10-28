@@ -64,12 +64,12 @@ if [ $INSTALLDB2 == 'true' ]; then
     for i in 1 2 
     do
     ip=14${i}; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}db0${i}
-    az ppg create --name PPG-${AZLOCTLA}-${SIDLOWER}-zone${i} --location $AZLOC --type Standard
+    az ppg create --resource-group $RGNAME --name PPG-${AZLOCTLA}-${SIDLOWER}-zone${i} --location $AZLOC --type Standard
     create_hana_vm
     done
 else
     i=1; ip=141; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}db0${i}
-    az ppg create --name PPG-${AZLOCTLA}-${SIDLOWER}-zone${i} --location $AZLOC --type Standard
+    az ppg create --resource-group $RGNAME --name PPG-${AZLOCTLA}-${SIDLOWER}-zone${i} --location $AZLOC --type Standard
     create_hana_vm
 fi
 

@@ -278,8 +278,9 @@ setup_nfs_server
 # ASCS instance should be up and running after this
 # next mount NFS volume on other app VMs
 VMASCS=${SIDLOWER}ascs01
-for VMNAME in ${SIDLOWER}ascs02 ${SIDLOWER}app01 ${SIDLOWER}app02
-    do
+for i in $(cat /etc/hosts |grep VM-${AZLOCTLA}-${SIDLOWER} | grep -v ascs01 | awk '{print $3}') 
+do
+    VMNAME=$i
     echo "###-------------------------------------###"
     echo "Mounting NFS volumes /sapmnt and /usr/sap/trans on "${VMNAME}
     printf '%s\n'

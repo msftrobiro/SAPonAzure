@@ -46,7 +46,8 @@ az network nsg create --resource-group $RGNAME --name NSG-${AZLOCTLA}-sap-${SIDL
 printf '%s\n'
 echo "###-------------------------------------###"
 echo Assigning NSGs for SAP subnets
-az network vnet subnet update --resource-group $RGNAME --name ${VNETNAME}-appl --network-security-group NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl >>$LOGFILE 2>&1 az network vnet subnet update --resource-group $RGNAME --name ${VNETNAME}-db --network-security-group NSG-${AZLOCTLA}-sap-${SIDLOWER}-db >>$LOGFILE 2>&1   
+az network vnet subnet update --resource-group $RGNAME --name ${VNETNAME}-appl --network-security-group NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl >>$LOGFILE 2>&1
+az network vnet subnet update --resource-group $RGNAME --name ${VNETNAME}-db --network-security-group NSG-${AZLOCTLA}-sap-${SIDLOWER}-db >>$LOGFILE 2>&1   
 az network nsg list --resource-group $RGNAME --output table
 
 # peer the hub and sap networks

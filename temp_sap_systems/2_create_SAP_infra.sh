@@ -348,3 +348,5 @@ runtime=$( echo "$endtime - $starttime" | bc -l )
 printf '%s\n'
 echo "###-------------------------------------###"
 echo SAP VM deployment and ASCS installation complete, took $runtime seconds
+echo "Logfile of commands stored in " ${LOGFILE}
+echo "You can continue with script 3_install_DB_and_App.sh immediately"

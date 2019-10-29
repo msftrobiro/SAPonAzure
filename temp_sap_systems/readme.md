@@ -77,16 +77,14 @@ v0.2, Oct 28 2019
 v0.3, Oct 29 2019 (coming!)
 - added ERS installation
 - added load balancers for DB and ASCS, if setup to use distributed architecture
-- cleaned up readme.md (this file)
+- cleaned up this page
 
 ### Missing features, aka endless ToDo list
-- add ERS on ascs02 - 
-- LB and possibly FQDN for external access
 - Backup integration (optional script)
 - ASR setup, as option (low prio, too many variables and rather complex)
-- clean-up this page and put more options in scripts, e.g ultra-disks or full prod-sizing with M-series and write accel
+- put more options in scripts, e.g ultra-disks or full prod-sizing with M-series and write accelerator
 - some basic error checking - did you provide values correctly, do ssh keys exist, error code checking
-- make sapinst less spammy, redirect
+- make sapinst less spammy, redirect 
 - SSO SAML2 for Web-SAPGui all scripted, incl sap rfc triggered actions in script 
 - stop/start script (VM+SAP), interactively
 - simple backup script for db and logs with version control

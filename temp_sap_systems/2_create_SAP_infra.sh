@@ -55,22 +55,28 @@ create_hana_vm () {
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk6 --new --sku StandardSSD_LRS --size 255 >>$LOGFILE 2>&1
 }
 
+create_ppg () {
+    az ppg create --resource-group $RGNAME --name PPG-${AZLOCTLA}-${SIDLOWER}-zone 1 --location $AZLOC --type Standard >>$LOGFILE 2>&1 
+    az ppg create --resource-group $RGNAME --name PPG-${AZLOCTLA}-${SIDLOWER}-zone 2 --location $AZLOC --type Standard >>$LOGFILE 2>&1  
+}
+
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 VNETNAME=VNET-${AZLOCTLA}-${RESOURCEGROUP}-sap
 VMIMAGE=SUSE:SLES-SAP:12-sp4:latest
 VMTYPE=Standard_E16s_v3
 DBSUBNET=`echo $SAPIP|sed 's/.\{5\}$//'`
+
+create_ppg
+
 if [ $INSTALLDB2 == 'true' ]; then
     for i in 1 2 
     do
-    ip=14${i}; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}db0${i}
-    az ppg create --resource-group $RGNAME --name PPG-${AZLOCTLA}-${SIDLOWER}-zone${i} --location $AZLOC --type Standard
+    ip=14${i}; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}db0${i} 
     create_hana_vm
     done
 else
     i=1; ip=141; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}db0${i}
-    az ppg create --resource-group $RGNAME --name PPG-${AZLOCTLA}-${SIDLOWER}-zone${i} --location $AZLOC --type Standard
-    create_hana_vm
+   create_hana_vm
 fi
 
 VMTYPE=Standard_D4s_v3
@@ -252,8 +258,8 @@ EOF
 }
 
 mount_nfs_export () {
-    echo 'sudo sh -c "echo '${VMASCS}':/sapmnt/'${SAPSID}'    /sapmnt/'${SAPSID}'  nfs  defaults 0 0 >> /etc/fstab"' > /tmp/mount_nfs_export
-    echo 'sudo sh -c "echo '${VMASCS}':/usr/sap/trans    /usr/sap/trans  nfs  defaults 0 0 >> /etc/fstab"' >> /tmp/mount_nfs_export
+    echo 'sudo sh -c "echo '${SIDLOWER}ascs01':/sapmnt/'${SAPSID}'    /sapmnt/'${SAPSID}'  nfs  defaults 0 0 >> /etc/fstab"' > /tmp/mount_nfs_export
+    echo 'sudo sh -c "echo '${SIDLOWER}ascs01':/usr/sap/trans    /usr/sap/trans  nfs  defaults 0 0 >> /etc/fstab"' >> /tmp/mount_nfs_export
     ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
 sudo mkdir /usr/sap/trans /sapmnt/${SAPSID}
 `cat /tmp/mount_nfs_export`
@@ -277,7 +283,6 @@ printf '%s\n'
 setup_nfs_server
 # ASCS instance should be up and running after this
 # next mount NFS volume on other app VMs
-VMASCS=${SIDLOWER}ascs01
 for i in $(cat /etc/hosts |grep VM-${AZLOCTLA}-${SIDLOWER} | grep -v ascs01 | awk '{print $3}') 
 do
     VMNAME=$i
@@ -324,7 +329,7 @@ EOF
 
 # ERS install, if setup to use 2nd ascs node
 if [ $INSTALLERS == 'true' ] ; then
-    VMNAME=VM-${AZLOCTLA}-${SIDLOWER}ascs02
+    VMNAME=${SIDLOWER}ascs02
     create_installfile_ers
     execute_install_ers
 fi

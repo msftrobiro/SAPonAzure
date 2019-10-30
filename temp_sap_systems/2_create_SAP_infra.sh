@@ -5,7 +5,7 @@
 # version 0.3  
 # last major changes: added ERS install
 
-screen -dm -S sapsetup
+screen -m -S sapsetup
 
 source parameters.txt
 LOGFILE=/tmp/2_create_SAP_infra.log

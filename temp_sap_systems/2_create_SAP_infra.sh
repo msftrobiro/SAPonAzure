@@ -56,8 +56,8 @@ create_hana_vm () {
 }
 
 create_ppg () {
-    az ppg create --resource-group $RGNAME --name PPG-${AZLOCTLA}-${SIDLOWER}-zone-1 --location $AZLOC --type Standard >>$LOGFILE 2>&1 
-    az ppg create --resource-group $RGNAME --name PPG-${AZLOCTLA}-${SIDLOWER}-zone-2 --location $AZLOC --type Standard >>$LOGFILE 2>&1  
+    az ppg create --resource-group $RGNAME --name PPG-${AZLOCTLA}-${SIDLOWER}-zone1 --location $AZLOC --type Standard >>$LOGFILE 2>&1 
+    az ppg create --resource-group $RGNAME --name PPG-${AZLOCTLA}-${SIDLOWER}-zone2 --location $AZLOC --type Standard >>$LOGFILE 2>&1  
 }
 
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`

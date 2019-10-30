@@ -316,7 +316,11 @@ echo 'cd /usr/sap/download && mkdir SWPM && mv SWPM.sar SWPM && cd SWPM && ../sa
 # workaround for sapinst bug?
 echo 'sudo mkdir -p /usr/sap/SHX/SYS/exe' >> /tmp/${SIDLOWER}_install_ers.sh
 echo 'sudo ln -s /sapmnt/SHX/exe/uc /usr/sap/SHX/SYS/exe/uc' >> /tmp/${SIDLOWER}_install_ers.sh
-echo 'sudo bash -c "export SAPINST_INPUT_PARAMETERS_URL=/tmp/"${SIDLOWER}"_ers_install_ini.params && export SAPINST_EXECUTE_PRODUCT_ID=NW_ERS:NW752.HDB.HA && export SAPINST_SKIP_DIALOGS=true && export SAPINST_START_GUISERVER=false && cd /usr/sap/download/SWPM && ./sapinst"' >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'export SAPINST_INPUT_PARAMETERS_URL=/tmp/'${SIDLOWER}'_ers_install_ini.params' >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'export SAPINST_EXECUTE_PRODUCT_ID=NW_ERS:NW752.HDB.HA' >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'export SAPINST_SKIP_DIALOGS=true' >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'export SAPINST_START_GUISERVER=false' >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'cd /usr/sap/download/SWPM && ./sapinst' >> /tmp/${SIDLOWER}_install_ers.sh
 }
 
 execute_install_ers () {

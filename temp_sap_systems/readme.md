@@ -61,8 +61,8 @@ On jumpbox - follow output of the first script - execute the predownloaded 2_...
 - vim parameters.txt
 - ./1_create_jumpbox.sh
 - ssh <username>@<jumpbox> #as displayed by first script, all subsequent scripts should be ran on jump server
-- ./2_create_SAP_infra.sh
-- ./3_install_DB_and_App.sh
+- screen -m -S sap1 ./2_create_SAP_infra.sh
+- screen -m -S SAP1 ./3_install_DB_and_App.sh
 - '<further scripts, coming down the line/own>'
 
 ### Naming convention
@@ -91,7 +91,6 @@ v0.3, Nov 3 2019
 - use azure private dns instead of ugly host file
 - change nfs server to Azure Files NFS once released (or just use SMB until then?)
 - add some sample NSG rules
-- need to fix screen, doesn't work as intended
 - ... more things I forget right now
 
 

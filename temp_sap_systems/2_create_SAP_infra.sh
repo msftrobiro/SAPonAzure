@@ -5,8 +5,6 @@
 # version 0.3  
 # last major changes: added ERS install but not yet working
 
-screen -dm -S sapsetup1
-
 source parameters.txt
 LOGFILE=/tmp/2_create_SAP_infra.log
 RGNAME=RG-${AZLOCTLA}-${RESOURCEGROUP}
@@ -24,8 +22,6 @@ fi
 
 echo "###-------------------------------------###"
 echo "Azure cli logged on successfully"
-echo "Have started screen, you can detach with Control-a d. This means press the Ctrl key and the 'a' key together and release, and then press the 'd' key."
-echo "Script continues to run in background, you can re-attach with screen -r sapsetup"
 echo "###-------------------------------------###"
 
 

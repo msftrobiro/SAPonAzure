@@ -4,9 +4,6 @@
 # this script assumes everything is executed on the newly created jumpbox
 # version 0.2
 
-
-screen -dm -S sapsetup2
-
 source parameters.txt
 LOGFILE=/tmp/3_install_DB_and_App.log
 RGNAME=RG-${AZLOCTLA}-${RESOURCEGROUP}
@@ -29,8 +26,6 @@ if [ $? -ne 0 ];
     else
     echo "###-------------------------------------###"
     echo "Azure cli logged on successfully"
-    echo "Have started screen, you can detach with Control-a d. This means press the Ctrl key and the 'a' key together and release, and then press the 'd' key."
-    echo "Script continues to run in background, you can re-attach with screen -r sapsetup"
     echo "###-------------------------------------###"
 fi
 

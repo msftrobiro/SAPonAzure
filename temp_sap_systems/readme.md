@@ -1,8 +1,5 @@
 ## Deploy SAP systems in Azure - deployment, OS actions and SAP ABAP & HANA install.
 
-# Still work-in-progress
-Self imposed deadline (those work best!) end of Oct
-
 ### Aim of this project
 - a demonstration how Azure CLI and simple Linux bash scripts can easily be utilized to automatically deploy Azure infrastructure for SAP and install all software from scratch - networks, VMs, storage, OS config and SAP/HANA installation in one go
 - Azure ARM templates can be complicated beasts which - in this authors opinion - are overused and hard to troubleshoot, AZ CLI on other hand can quickly become second nature particularly for IaaS deployments, without requiring another layer such as Terraform/Ansible (which do have their benefits!)
@@ -24,7 +21,7 @@ Storage design leans on cost-concious setup with Standard_SSDs mostly, yet still
 ![Overview Visio](images/overview_visio.png)
  - VMs deployed: <sapsid>ascs01/02, <sapsid>app01/02, <sapsid>db01/02
  - VM size - D4s_v3 for SAP application servers, E16s_v3 for the HANA VMs
- - OS + 64GB data disk for SAP app servers, 64 + 5x127GB disks for HANA VMs following [this](https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/hana-vm-operations-storage#cost-conscious-azure-storage-configuration) architecture 
+ - OS + 64GB data disk for SAP app servers, 64 + 5x127GB disks for HANA VMs [following this architecture](https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/hana-vm-operations-storage#cost-conscious-azure-storage-configuration)  
  - SuSE Enterprise Linux 12 SP4 for SAP in latest version
  - Netweaver 7.52
  - SAP HANA 2.0, SPS3 or higher recomended

@@ -3,15 +3,16 @@
 # ideally, 1_create_jumpbox.sh should have finished without problems
 # this script assumes everything is executed on the newly created jumpbox
 # version 0.3  
-# last major changes: added ERS install
+# last major changes: added ERS install but not yet working
 
-screen -dm -S sapsetup
+screen -dm -S sapsetup1
 
 source parameters.txt
 LOGFILE=/tmp/2_create_SAP_infra.log
+RGNAME=RG-${AZLOCTLA}-${RESOURCEGROUP}
 starttime=`date +%s`
 echo "###-------------------------------------###"
-echo "Need to authenticate you with az cli"
+echo "Need to authenticate you with az cli on this jumpbox"
 echo "Follow prompt to authenticate in browser window with device code displayed"
 az login
 
@@ -29,7 +30,6 @@ echo "###-------------------------------------###"
 
 
 az account set --subscription $AZSUB >>$LOGFILE 2>&1
-RGNAME=RG-${AZLOCTLA}-${RESOURCEGROUP}
 wget "https://saeunsapsoft.blob.core.windows.net/sapsoft/linux_tools/sockperf?sv=2018-03-28&ss=bfqt&srt=sco&sp=r&se=2023-10-04T19:12:30Z&st=2019-10-04T11:12:30Z&spr=https&sig=l1kQEWAWMYlqm08BHzHOIBykTdrL6DlpzRBYhMkPSXw%3D" -O ~/sockperf --quiet >>$LOGFILE 2>&1 && sudo chmod ugo+x ~/sockperf 
 wget "https://saeunsapsoft.blob.core.windows.net/sapsoft/linux_tools/DLManager.jar?sv=2018-03-28&ss=bfqt&srt=sco&sp=r&se=2023-10-04T19:12:30Z&st=2019-10-04T11:12:30Z&spr=https&sig=l1kQEWAWMYlqm08BHzHOIBykTdrL6DlpzRBYhMkPSXw%3D" -O ~/DLManager.jar --quiet >>$LOGFILE 2>&1
 
@@ -59,60 +59,6 @@ create_ppg () {
     az ppg create --resource-group $RGNAME --name PPG-${AZLOCTLA}-${SIDLOWER}-zone1 --location $AZLOC --type Standard >>$LOGFILE 2>&1 
     az ppg create --resource-group $RGNAME --name PPG-${AZLOCTLA}-${SIDLOWER}-zone2 --location $AZLOC --type Standard >>$LOGFILE 2>&1  
 }
-
-SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
-VNETNAME=VNET-${AZLOCTLA}-${RESOURCEGROUP}-sap
-VMIMAGE=SUSE:SLES-SAP:12-sp4:latest
-VMTYPE=Standard_E16s_v3
-DBSUBNET=`echo $SAPIP|sed 's/.\{5\}$//'`
-
-create_ppg
-
-if [ $INSTALLDB2 == 'true' ]; then
-    for i in 1 2 
-    do
-    ip=14${i}; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}db0${i} 
-    create_hana_vm
-    done
-else
-    i=1; ip=141; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}db0${i}
-   create_hana_vm
-fi
-
-VMTYPE=Standard_D4s_v3
-APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`
-if [ $INSTALLERS == 'true' ] ; then
-    for i in 1 2 
-    do
-    ip=1${i}; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}ascs0${i}
-    create_app_vm
-    done
-else
-    i=1; ip=11; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}ascs0${i}
-    create_app_vm
-fi
-
-if [ $INSTALLAAS == 'true' ]; then
-    for i in 1 2 
-    do
-    ip=2${i}; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}app0${i}
-    create_app_vm
-    done
-else
-    i=1; ip=21; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}app0${i}
-    create_app_vm
-fi
-
-
-
-echo "###-------------------------------------###"
-echo All VMs are now deployed
-echo "###-------------------------------------###"
-echo List of IPs for all servers 
-printf '%s\n'
-az vm list-ip-addresses --resource-group $RGNAME --output table |grep $SIDLOWER| awk '{print $2,$1, substr($1,8)}' > /tmp/vm_ips.txt
-cat /tmp/vm_ips.txt
-sudo bash -c 'cat /tmp/vm_ips.txt >> /etc/hosts'
 
 fs_create_on_all_sap_servers () {
 scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/vm_ips.txt ${ADMINUSR}@${VMNAME}:/tmp
@@ -164,30 +110,6 @@ sudo mkdir -p /hana/data /hana/log /hana/shared /hana/backup
 sudo mount -a
 EOF
 }
-
-for i in $(cat /etc/hosts |grep VM-${AZLOCTLA}-${SIDLOWER} |awk '{print $3}') 
-do
-VMNAME=$i
-echo "###-------------------------------------###"
-echo Creating SAP filesystems and doing basic post-install on ${VMNAME}
-printf '%s\n'
-fs_create_on_all_sap_servers
-done
-
-for i in $(cat /etc/hosts |grep VM-${AZLOCTLA}-${SIDLOWER} |grep db0 | awk '{print $3}') 
-do
-VMNAME=$i
-echo "###-------------------------------------###"
-echo Creating HANA filesystems on ${VMNAME}
-printf '%s\n'
-fs_create_on_db_servers
-done
-
-# install ascs
-expiry=$(date '+%Y-%m-%dT%H:%MZ' --date "+30 minutes")
-if [ -z "$STORACCURL" ]; then
-    storageAccountKey=$(az storage account keys list --account-name ${STORACC} --resource-group ${STORACCRG} --query [0].value --output tsv)
-fi
 
 download_url () {
 if [ -z "$STORACCURL" ]; then
@@ -265,34 +187,8 @@ sudo mkdir /usr/sap/trans /sapmnt/${SAPSID}
 `cat /tmp/mount_nfs_export`
 sudo mount -a -t nfs
 EOF
-
 }
 
-VMNAME=${SIDLOWER}ascs01
-echo "###-------------------------------------###"
-echo Creating SAP ASCS installation file and doing basic post-install on ${VMNAME}
-printf '%s\n'
-create_installfile_ascs
-echo "###-------------------------------------###"
-echo Executing SAP ASCS installation on ${VMNAME}
-printf '%s\n'
-execute_install_ascs
-echo "###-------------------------------------###"
-echo "Creating NFS server for sapmnt and trans on "${VMNAME}
-printf '%s\n'
-setup_nfs_server
-# ASCS instance should be up and running after this
-# next mount NFS volume on other app VMs
-for i in $(cat /etc/hosts |grep VM-${AZLOCTLA}-${SIDLOWER} | grep -v ascs01 | awk '{print $3}') 
-do
-    VMNAME=$i
-    echo "###-------------------------------------###"
-    echo "Mounting NFS volumes /sapmnt and /usr/sap/trans on "${VMNAME}
-    printf '%s\n'
-    mount_nfs_export
-done
-
-# install ERS
 create_installfile_ers () {
 echo "sudo mkdir /usr/sap/download && sudo chmod 777 /usr/sap/download && cd /usr/sap/download" > /tmp/${SIDLOWER}_install_ers.sh
 echo "mkdir installation" >> /tmp/${SIDLOWER}_install_ers.sh
@@ -330,6 +226,106 @@ ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed '
 sudo su - ${SIDLOWER}adm  -c "sapcontrol -nr $((ASCSNO +1))-function GetProcessList"
 EOF
 }
+
+SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
+VNETNAME=VNET-${AZLOCTLA}-${RESOURCEGROUP}-sap
+VMIMAGE=SUSE:SLES-SAP:12-sp4:latest
+VMTYPE=Standard_E16s_v3
+DBSUBNET=`echo $SAPIP|sed 's/.\{5\}$//'`
+
+create_ppg
+
+if [ $INSTALLDB2 == 'true' ]; then
+    for i in 1 2 
+    do
+    ip=14${i}; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}db0${i} 
+    create_hana_vm
+    done
+else
+    i=1; ip=141; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}db0${i}
+   create_hana_vm
+fi
+
+VMTYPE=Standard_D4s_v3
+APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`
+if [ $INSTALLERS == 'true' ] ; then
+    for i in 1 2 
+    do
+    ip=1${i}; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}ascs0${i}
+    create_app_vm
+    done
+else
+    i=1; ip=11; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}ascs0${i}
+    create_app_vm
+fi
+
+if [ $INSTALLAAS == 'true' ]; then
+    for i in 1 2 
+    do
+    ip=2${i}; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}app0${i}
+    create_app_vm
+    done
+else
+    i=1; ip=21; VMNAME=VM-${AZLOCTLA}-${SIDLOWER}app0${i}
+    create_app_vm
+fi
+
+echo "###-------------------------------------###"
+echo All VMs are now deployed
+echo "###-------------------------------------###"
+echo List of IPs for all servers 
+printf '%s\n'
+az vm list-ip-addresses --resource-group $RGNAME --output table |grep $SIDLOWER| awk '{print $2,$1, substr($1,8)}' > /tmp/vm_ips.txt
+cat /tmp/vm_ips.txt
+sudo bash -c 'cat /tmp/vm_ips.txt >> /etc/hosts'
+
+for i in $(cat /etc/hosts |grep VM-${AZLOCTLA}-${SIDLOWER} |awk '{print $3}') 
+do
+VMNAME=$i
+echo "###-------------------------------------###"
+echo Creating SAP filesystems and doing basic post-install on ${VMNAME}
+printf '%s\n'
+fs_create_on_all_sap_servers
+done
+
+for i in $(cat /etc/hosts |grep VM-${AZLOCTLA}-${SIDLOWER} |grep db0 | awk '{print $3}') 
+do
+VMNAME=$i
+echo "###-------------------------------------###"
+echo Creating HANA filesystems on ${VMNAME}
+printf '%s\n'
+fs_create_on_db_servers
+done
+
+# install ascs
+expiry=$(date '+%Y-%m-%dT%H:%MZ' --date "+30 minutes")
+if [ -z "$STORACCURL" ]; then
+    storageAccountKey=$(az storage account keys list --account-name ${STORACC} --resource-group ${STORACCRG} --query [0].value --output tsv)
+fi
+
+VMNAME=${SIDLOWER}ascs01
+echo "###-------------------------------------###"
+echo Creating SAP ASCS installation file and doing basic post-install on ${VMNAME}
+printf '%s\n'
+create_installfile_ascs
+echo "###-------------------------------------###"
+echo Executing SAP ASCS installation on ${VMNAME}
+printf '%s\n'
+execute_install_ascs
+echo "###-------------------------------------###"
+echo "Creating NFS server for sapmnt and trans on "${VMNAME}
+printf '%s\n'
+setup_nfs_server
+# ASCS instance should be up and running after this
+# next mount NFS volume on other app VMs
+for i in $(cat /etc/hosts |grep VM-${AZLOCTLA}-${SIDLOWER} | grep -v ascs01 | awk '{print $3}') 
+do
+    VMNAME=$i
+    echo "###-------------------------------------###"
+    echo "Mounting NFS volumes /sapmnt and /usr/sap/trans on "${VMNAME}
+    printf '%s\n'
+    mount_nfs_export
+done
 
 # ERS install, if setup to use 2nd ascs node
 if [ $INSTALLERS == 'true' ] ; then

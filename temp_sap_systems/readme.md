@@ -57,10 +57,10 @@ Execute 1_create_jumpbox.txt and typically in 10 minutes you have your Linux jum
 On jumpbox - follow output of the first script - execute the predownloaded 2_... script and your parameters.txt is copied from your previous shell, keeping your values.
 
 ### Steps in code
-- download all files (linux environment)
+- download all files (to own linux environment or Azure bash shell)
 - vim parameters.txt
 - ./1_create_jumpbox.sh
-- 'ssh <username>@<jumpbox>' as displayed by executed previous script
+- ssh <username>@<jumpbox> #as displayed by first script, all subsequent scripts should be ran on jump server
 - ./2_create_SAP_infra.sh
 - ./3_install_DB_and_App.sh
 - '<further scripts, coming down the line/own>'
@@ -74,9 +74,9 @@ v0.2, Oct 28 2019
 - using PPGs for SAP systems, one PPG per zone
 - changed NSGs to subnets and not VM NICs directly
 
-v0.3, Oct 29 2019 (coming!)
-- added ERS installation
-- added load balancers for DB and ASCS, if setup to use distributed architecture
+v0.3, Nov 3 2019
+- added ERS installation but not working yet
+- added load balancers for DB and ASCS, if configured to deploy 2 of either/distritubed architecture
 - cleaned up this page
 
 ### Missing features, aka endless ToDo list
@@ -89,6 +89,7 @@ v0.3, Oct 29 2019 (coming!)
 - stop/start script (VM+SAP), interactively
 - simple backup script for db and logs with version control
 - use azure private dns instead of ugly host file
+- change nfs server to Azure Files NFS once released (or just use SMB until then?)
 - ... more things I forget right now
 
 

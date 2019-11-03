@@ -5,33 +5,42 @@
 # version 0.2
 
 
-screen -dm -S sapsetup
+screen -dm -S sapsetup2
 
 source parameters.txt
 LOGFILE=/tmp/3_install_DB_and_App.log
+RGNAME=RG-${AZLOCTLA}-${RESOURCEGROUP}
+SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
+HANALOWER=`echo $HANASID|awk '{print tolower($0)}'`
 starttime=`date +%s`
-echo "###-------------------------------------###"
-echo "Need to authenticate you with az cli"
-echo "Follow prompt to authenticate in browser window with device code displayed"
-az login
+
+# make sure azure cli is logged in
+if az account show | grep -m 1 "login"; then
+    echo "###-------------------------------------###"
+    echo "Need to authenticate you with az cli"
+    echo "Follow prompt to authenticate in browser window with device code displayed"
+    az login
+fi
 
 if [ $? -ne 0 ];
     then
         echo "Some error occured with az login, check display"
         exit 1
+    else
+    echo "###-------------------------------------###"
+    echo "Azure cli logged on successfully"
+    echo "Have started screen, you can detach with Control-a d. This means press the Ctrl key and the 'a' key together and release, and then press the 'd' key."
+    echo "Script continues to run in background, you can re-attach with screen -r sapsetup"
+    echo "###-------------------------------------###"
 fi
 
-echo "###-------------------------------------###"
-echo "Azure cli logged on successfully"
-echo "Have started screen, you can detach with Control-a d. This means press the Ctrl key and the 'a' key together and release, and then press the 'd' key."
-echo "Script continues to run in background, you can re-attach with screen -r sapsetup"
-echo "###-------------------------------------###"
-
+# make sure azure cli is installed
+if ! [ -x "$(command -v az)" ]; then
+  echo 'Error: Azure CLI is not installed.  See: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli' >&2
+  exit 1
+fi
 
 az account set --subscription $AZSUB >>$LOGFILE 2>&1
-RGNAME=RG-${AZLOCTLA}-${RESOURCEGROUP}
-SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
-HANALOWER=`echo $HANASID|awk '{print tolower($0)}'`
 
 expiry=$(date '+%Y-%m-%dT%H:%MZ' --date "+30 minutes")
 if [ -z "$STORACCURL" ]; then
@@ -68,7 +77,6 @@ db_install () {
     echo 'sudo su -' >> /tmp/${HANALOWER}_install_hana.sh
     echo 'cd /hana/shared/download && ./sapcar -xf "*.SAR"'  >> /tmp/${HANALOWER}_install_hana.sh
     echo 'cd /hana/shared/download/SAP_HANA_DATABASE && ./hdblcm --sid='${HANASID}' --configfile=/tmp/'${HANALOWER}'_install_hana.params -b --ignore=check_signature_file' >> /tmp/${HANALOWER}_install_hana.sh
-
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
 `cat /tmp/${HANALOWER}_install_hana.sh`
 sudo su - ${HANALOWER}adm -c "hdbsql -i "${HDBNO}" -n localhost -u system -p "${MASTERPW}" -d systemdb -Ajm \"alter system alter configuration ('global.ini','SYSTEM') SET ('persistence','log_mode')='overwrite' with reconfigure;\""

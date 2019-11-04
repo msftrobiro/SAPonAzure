@@ -314,7 +314,7 @@ printf '%s\n'
 setup_nfs_server
 # ASCS instance should be up and running after this
 # next mount NFS volume on other app VMs
-for i in $(cat /etc/hosts |grep VM-${AZLOCTLA}-${SIDLOWER} | grep -v ascs01 | awk '{print $3}') 
+for i in $(cat /etc/hosts |grep VM-${AZLOCTLA}-${SIDLOWER} | grep -v ascs01 |  grep -v db0 | awk '{print $3}') 
 do
     VMNAME=$i
     echo "###-------------------------------------###"

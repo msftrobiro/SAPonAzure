@@ -62,7 +62,7 @@ On jumpbox - follow output of the first script - execute the predownloaded 2_...
 - ./1_create_jumpbox.sh
 - ssh <username>@<jumpbox> #as displayed by first script, all subsequent scripts should be ran on jump server
 - screen -m -S sap1 ./2_create_SAP_infra.sh
-- screen -m -S SAP1 ./3_install_DB_and_App.sh
+- screen -m -S sap1 ./3_install_DB_and_App.sh
 - '<further scripts, coming down the line/own>'
 
 ### Naming convention

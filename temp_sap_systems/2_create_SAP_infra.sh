@@ -35,7 +35,7 @@ create_app_vm () {
     echo "###-------------------------------------###"
     echo Creating VM $VMNAME in RG $RGNAME
     az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --zone $i --ppg PPG-${AZLOCTLA}-${SIDLOWER}-zone${i} >>$LOGFILE 2>&1   
-    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new  --lun 0 --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
 }
 
 create_hana_vm () {
@@ -43,12 +43,12 @@ create_hana_vm () {
     echo "###-------------------------------------###"
     echo Creating VM $VMNAME in RG $RGNAME
     az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${DBSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-db --zone $i --ppg PPG-${AZLOCTLA}-${SIDLOWER}-zone${i} >>$LOGFILE 2>&1   
-    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
-    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk2 --new --sku Premium_LRS --size 127 >>$LOGFILE 2>&1
-    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk3 --new --sku Premium_LRS --size 127 >>$LOGFILE 2>&1
-    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk4 --new --sku Premium_LRS --size 127 >>$LOGFILE 2>&1  
-    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk5 --new --sku StandardSSD_LRS --size 127 >>$LOGFILE 2>&1
-    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk6 --new --sku StandardSSD_LRS --size 127 >>$LOGFILE 2>&1
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --lun 1 --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk2 --new --lun 2 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk3 --new --lun 3 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk4 --new --lun 4 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1  
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk5 --new --lun 5 --sku StandardSSD_LRS --size 127 >>$LOGFILE 2>&1
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk6 --new --lun 6 --sku StandardSSD_LRS --size 127 >>$LOGFILE 2>&1
 }
 
 create_ppg () {
@@ -64,17 +64,18 @@ sudo pvcreate /dev/disk/azure/scsi1/lun0
 sudo vgcreate vg_SAP /dev/disk/azure/scsi1/lun0
 sudo lvcreate -n lv_SAP_usrsap -l 90%VG vg_SAP
 sudo lvcreate -n lv_SAP_sapmnt -l 5%VG vg_SAP
-sudo bash -c "echo '/dev/mapper/vg_SAP-lv_SAP_sapmnt  /sapmnt   xfs      defaults      0 0' >> /etc/fstab"
-sudo bash -c "echo '/dev/mapper/vg_SAP-lv_SAP_usrsap  /usr/sap   xfs      defaults      0 0' >> /etc/fstab"
-sudo mkfs.xfs /dev/mapper/vg_SAP-lv_SAP_usrsap
-sudo mkfs.xfs /dev/mapper/vg_SAP-lv_SAP_sapmnt
-sudo mkdir /usr/sap /sapmnt
-sudo mount -a
-sudo sed -i 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
-sudo sed -i 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' /etc/waagent.conf
-sudo sed -i 's/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=20480/g' /etc/waagent.conf
-sudo systemctl restart waagent
-sudo swapon -s
+sudo su -
+echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_SAP-lv_SAP_sapmnt\`' /sapmnt   xfs      defaults      0 0' >> /etc/fstab
+echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_SAP-lv_SAP_usrsap\`' /usr/sap   xfs      defaults      0 0' >> /etc/fstab
+mkfs.xfs /dev/mapper/vg_SAP-lv_SAP_usrsap
+mkfs.xfs /dev/mapper/vg_SAP-lv_SAP_sapmnt
+mkdir /usr/sap /sapmnt
+mount -a
+sed -i 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
+sed -i 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' /etc/waagent.conf
+sed -i 's/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=20480/g' /etc/waagent.conf
+systemctl restart waagent
+swapon -s
 exit
 EOF
 }
@@ -88,22 +89,27 @@ sudo pvcreate /dev/disk/azure/scsi1/lun3
 sudo pvcreate /dev/disk/azure/scsi1/lun4
 sudo pvcreate /dev/disk/azure/scsi1/lun5
 sudo vgcreate vg_HANA /dev/disk/azure/scsi1/lun[123]
-sudo lvcreate -n lv_HANA_log -l 30%VG --stripes 3 vg_HANA
-sudo lvcreate -n lv_HANA_data -l +60%VG --stripes 3 vg_HANA
+sudo lvcreate -n lv_HANA_log -l 30%VG --stripesize 128 --stripes 3 vg_HANA
+sudo lvcreate -n lv_HANA_data -l +60%VG --stripesize 128 --stripes 3 vg_HANA
 sudo vgcreate vg_HANA_shared /dev/disk/azure/scsi1/lun4
 sudo vgcreate vg_HANA_backup /dev/disk/azure/scsi1/lun5
 sudo lvcreate -n lv_HANA_shared -l 90%VG vg_HANA_shared
 sudo lvcreate -n lv_HANA_backup -l 90%VG vg_HANA_backup
-sudo bash -c "echo '/dev/mapper/vg_HANA-lv_HANA_log  /hana/log   xfs      defaults      0 0' >> /etc/fstab"
-sudo bash -c "echo '/dev/mapper/vg_HANA-lv_HANA_data  /hana/data   xfs      defaults      0 0' >> /etc/fstab"
-sudo bash -c "echo '/dev/mapper/vg_HANA_shared-lv_HANA_shared  /hana/shared   xfs      defaults      0 0' >> /etc/fstab"
-sudo bash -c "echo '/dev/mapper/vg_HANA_backup-lv_HANA_backup  /hana/backup   xfs      defaults      0 0' >> /etc/fstab"
-sudo mkfs.xfs /dev/mapper/vg_HANA-lv_HANA_log
-sudo mkfs.xfs /dev/mapper/vg_HANA-lv_HANA_data
-sudo mkfs.xfs /dev/mapper/vg_HANA_shared-lv_HANA_shared
-sudo mkfs.xfs /dev/mapper/vg_HANA_backup-lv_HANA_backup
-sudo mkdir -p /hana/data /hana/log /hana/shared /hana/backup
-sudo mount -a
+sudo su -
+echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_log\`' /hana/log   xfs      defaults      0 0' >> /etc/fstab
+echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_data\`' /hana/data   xfs      defaults      0 0' >> /etc/fstab
+echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA_shared-lv_HANA_shared\`' /hana/shared   xfs      defaults      0 0' >> /etc/fstab
+echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA_backup-lv_HANA_backup\`' /hana/backup   xfs      defaults      0 0' >> /etc/fstab
+mkfs.xfs /dev/mapper/vg_HANA-lv_HANA_log
+mkfs.xfs /dev/mapper/vg_HANA-lv_HANA_data
+mkfs.xfs /dev/mapper/vg_HANA_shared-lv_HANA_shared
+mkfs.xfs /dev/mapper/vg_HANA_backup-lv_HANA_backup
+mkdir -p /hana/data /hana/log /hana/shared /hana/backup
+mount -a
+zypper install -y saptune sapconf unrar
+zypper in -t pattern -y sap-hana
+saptune solution apply HANA
+saptune daemon start
 EOF
 }
 

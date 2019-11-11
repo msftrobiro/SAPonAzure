@@ -45,7 +45,7 @@ az network nsg create --resource-group $RGNAME --name NSG-${AZLOCTLA}-sap-${SIDL
 az network nsg create --resource-group $RGNAME --name NSG-${AZLOCTLA}-sap-${SIDLOWER}-db >>$LOGFILE 2>&1   
 printf '%s\n'
 echo "###-------------------------------------###"
-echo Assigning NSGs for SAP subnets
+echo Assigning NSGs to SAP subnets
 az network vnet subnet update --resource-group $RGNAME --name ${VNETNAME}-appl --vnet-name ${VNETNAME} --network-security-group NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl >>$LOGFILE 2>&1
 az network vnet subnet update --resource-group $RGNAME --name ${VNETNAME}-db --vnet-name ${VNETNAME} --network-security-group NSG-${AZLOCTLA}-sap-${SIDLOWER}-db >>$LOGFILE 2>&1   
 az network nsg list --resource-group $RGNAME --output table

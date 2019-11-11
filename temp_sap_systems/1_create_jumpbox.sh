@@ -12,18 +12,21 @@ LOGFILE=$(dirname $0)/1_create_jumpbox.log
 starttime=`date +%s`
 
 az account set --subscription $AZSUB
-RGNAME=RG-${AZLOCTLA}-${RESOURCEGROUP}
+if [[ -z $AZLOCTLA ]]; 
+    then RGNAME=rg-${RESOURCEGROUP}
+    else AZLOCTLA=${AZLOCTLA}-; RGNAME=rg-${AZLOCTLA}-${RESOURCEGROUP}
+fi
 printf '%s\n'
 echo Creating resource group $RGNAME in $AZLOC
 az group create --location $AZLOC --name $RGNAME --tags Deployment=SAP Importance=Sandbox >$LOGFILE 2>&1
 
 # create VNET and subnets
-VNETNAME=VNET-${AZLOCTLA}-${RESOURCEGROUP}-hub
+VNETNAME=vnet-${AZLOCTLA}${RESOURCEGROUP}-hub
 printf '%s\n'
 echo "###-------------------------------------###"
 echo Creating Vnet $VNETNAME
 az network vnet create --name $VNETNAME --address-prefixes $HUBIP --subnet-name ${VNETNAME}-ssh --subnet-prefixes ${HUBIP} --location $AZLOC --resource-group $RGNAME >>$LOGFILE 2>&1       
-VNETNAME=VNET-${AZLOCTLA}-${RESOURCEGROUP}-sap
+VNETNAME=vnet-${AZLOCTLA}${RESOURCEGROUP}-sap
 APPLSUBNET=`echo ${SAPIP}| awk -F / '{print $1}'`
 echo "###-------------------------------------###"
 echo Creating Vnet $VNETNAME
@@ -41,30 +44,30 @@ printf '%s\n'
 echo "###-------------------------------------###"
 echo Creating NSGs for SAP subnets
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
-az network nsg create --resource-group $RGNAME --name NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl >>$LOGFILE 2>&1   
-az network nsg create --resource-group $RGNAME --name NSG-${AZLOCTLA}-sap-${SIDLOWER}-db >>$LOGFILE 2>&1   
+az network nsg create --resource-group $RGNAME --name nsg-${AZLOCTLA}sap-${SIDLOWER}-appl >>$LOGFILE 2>&1   
+az network nsg create --resource-group $RGNAME --name nsg-${AZLOCTLA}sap-${SIDLOWER}-db >>$LOGFILE 2>&1   
 printf '%s\n'
 echo "###-------------------------------------###"
 echo Assigning NSGs to SAP subnets
-az network vnet subnet update --resource-group $RGNAME --name ${VNETNAME}-appl --vnet-name ${VNETNAME} --network-security-group NSG-${AZLOCTLA}-sap-${SIDLOWER}-appl >>$LOGFILE 2>&1
-az network vnet subnet update --resource-group $RGNAME --name ${VNETNAME}-db --vnet-name ${VNETNAME} --network-security-group NSG-${AZLOCTLA}-sap-${SIDLOWER}-db >>$LOGFILE 2>&1   
+az network vnet subnet update --resource-group $RGNAME --name ${VNETNAME}-appl --vnet-name ${VNETNAME} --network-security-group nsg-${AZLOCTLA}sap-${SIDLOWER}-appl >>$LOGFILE 2>&1
+az network vnet subnet update --resource-group $RGNAME --name ${VNETNAME}-db --vnet-name ${VNETNAME} --network-security-group nsg-${AZLOCTLA}sap-${SIDLOWER}-db >>$LOGFILE 2>&1   
 az network nsg list --resource-group $RGNAME --output table
 
 # peer the hub and sap networks
 printf '%s\n'
 echo "###-------------------------------------###"
 echo Peering SAP and Hub vnets
-VNETPEER=VNET-${AZLOCTLA}-${RESOURCEGROUP}
-az network vnet peering create --resource-group $RGNAME --remote-vnet ${VNETPEER}-hub --vnet-name ${VNETPEER}-sap --name VNETPEER-${AZLOCTLA}-hub-to-sap --allow-vnet-access  >>$LOGFILE 2>&1   
-az network vnet peering create --resource-group $RGNAME --remote-vnet ${VNETPEER}-sap --vnet-name ${VNETPEER}-hub --name VNETPEER-${AZLOCTLA}-sap-to-hub --allow-vnet-access  >>$LOGFILE 2>&1   
+VNETPEER=vnet-${AZLOCTLA}${RESOURCEGROUP}
+az network vnet peering create --resource-group $RGNAME --remote-vnet ${VNETPEER}-hub --vnet-name ${VNETPEER}-sap --name vpeer-${AZLOCTLA}hub-to-sap --allow-vnet-access  >>$LOGFILE 2>&1   
+az network vnet peering create --resource-group $RGNAME --remote-vnet ${VNETPEER}-sap --vnet-name ${VNETPEER}-hub --name vpeer-${AZLOCTLA}sap-to-hub --allow-vnet-access  >>$LOGFILE 2>&1   
 
 
 # create jumpbox VM
 printf '%s\n'
 echo "###-------------------------------------###"
 echo Creating linux jumpbox VM
-VNETNAME=VNET-${AZLOCTLA}-${RESOURCEGROUP}-hub
-VMNAME=VM-${AZLOCTLA}-sap-jumpbox-lin
+VNETNAME=vnet-${AZLOCTLA}${RESOURCEGROUP}-hub
+VMNAME=vm-${AZLOCTLA}sap-jumpbox-lin
 VMTYPE=Standard_B2s
 VMIMAGE=OpenLogic:CentOS:7.7:latest
 az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 127 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking false --public-ip-address-dns-name $JUMPFQDN --public-ip-address-allocation dynamic --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-ssh >>$LOGFILE 2>&1   

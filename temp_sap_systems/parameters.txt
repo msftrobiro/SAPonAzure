@@ -10,8 +10,9 @@ export AZSUB=
 # lowercase
 export AZLOC=
 
-# specify azure deployment region in short 3 letter format, e.g WEU for westeurope, UE2 for USeast2, FRN for France North etc
-# in uppercase
+# specify azure deployment region in short 3 letter format, e.g weu for westeurope, ue2 for USeast2, frn for France North etc
+# or leave blank if you don't like it
+# lowercase
 export AZLOCTLA=
 
 # specify the resource group name - this should be empty

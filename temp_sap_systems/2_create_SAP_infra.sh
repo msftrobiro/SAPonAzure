@@ -229,6 +229,7 @@ sudo su - ${SIDLOWER}adm  -c "sapcontrol -nr $((ASCSNO +1))-function GetProcessL
 EOF
 }
 
+# aaaaaand action
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 VNETNAME=VNET-${AZLOCTLA}-${RESOURCEGROUP}-sap
 VMIMAGE=SUSE:SLES-SAP:12-sp4:latest

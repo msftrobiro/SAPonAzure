@@ -89,7 +89,7 @@ if [ $INSTALLDB2 == 'true' ]; then
     echo Installing HANA Database ${HANASID} on ${VMNAME}
     printf '%s\n'
     db_install
-    done
+    done 
 else
     i=1
     VMNAME=${SIDLOWER}db0${i}

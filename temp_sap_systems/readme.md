@@ -74,25 +74,29 @@ v0.2, Oct 28 2019
 - using PPGs for SAP systems, one PPG per zone
 - changed NSGs to subnets and not VM NICs directly
 
-v0.3, Nov 3 2019
-- added ERS installation but not working yet
-- added load balancers for DB and ASCS, if configured to deploy 2 of either/distritubed architecture
+v0.3, Nov 11 2019
+- added ERS installation but needs to be called interactively!
+- added load balancers for DB and ASCS, if configured to deploy 2 of either
 - cleaned up this page
 
-### Missing features, aka endless ToDo list
+upcoming v0.4, planning end of Nov 2019
+- add DRBD if 2 ASCS VMs configured
+- simple NFS and ASCS failover scripts
+- start/stop of VM+app, through simple web interface
+- simple backup script for db and logs with version control
+- add some sample NSG rules
+
+### Missing features down the line, aka endless ToDo list
 - Backup integration (optional script)
 - ASR setup, as option (low prio, too many variables and rather complex)
-- put more options in scripts, e.g ultra-disks or full prod-sizing with M-series and write accelerator
+- put more options in scripts, e.g ultraDisk or full prod-sizing with M-series and write accelerator
 - some basic error checking - did you provide values correctly, do ssh keys exist, error code checking
 - make sapinst less spammy, redirect 
 - SSO SAML2 for Web-SAPGui all scripted, incl sap rfc triggered actions in script 
-- stop/start script (VM+SAP), interactively
-- simple backup script for db and logs with version control
 - use azure private dns instead of ugly host file
-- change nfs server to Azure Files NFS once released (or just use SMB until then?)
-- add some sample NSG rules
-- ... more things I forget right now
+- change nfs server to Azure Files NFS once released
+- ... 
 
 
 ### closing note
-Unattended sapinst is terrible, fact.
+Unattended sapinst is terrible, fact

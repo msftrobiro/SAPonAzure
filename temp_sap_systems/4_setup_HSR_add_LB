@@ -64,4 +64,4 @@ az network nic update --resource-group $RGNAME --name VM-${AZLOCTLA}-${SIDLOWER}
 
 #az network public-ip show --resource-group $RGNAME --name ${LBNAME}-publicIP --query [ipAddress] --output table
 
-# curl -H Metadata:true "http://169.254.169.254/metadata/instance/compute/vmSize?api-version=2017-08-01&format=text"
+# curl -H Metadata:true "http://169.254.169.254/metadata/instance/compute/vmSize?api-version=2017-08-01&format=text"fgv

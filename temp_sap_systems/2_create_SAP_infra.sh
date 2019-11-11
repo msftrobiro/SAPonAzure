@@ -229,6 +229,22 @@ sudo su - ${SIDLOWER}adm  -c "sapcontrol -nr $((ASCSNO +1))-function GetProcessL
 EOF
 }
 
+execute_install_ers_interactive () {
+sed -i "/SAPINST_SKIP_DIALOGS/d" /tmp/${SIDLOWER}_install_ers.sh
+sed -i "/SAPINST_START_GUISERVER/d" /tmp/${SIDLOWER}_install_ers.sh
+echo '### ----------------------- ###' >> /tmp/${SIDLOWER}_install_ers.sh
+sed -i "/sapinst/d" /tmp/${SIDLOWER}_install_ers.sh
+echo 'This will prepare everything and start sapinst with the ERS installation' >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'You MUST logon in the browser as indicated by sapinst - just use ssh x-forward through the jumpbox' >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'ERS installation I just did not find a way to do fully non-interactive, blame SAP' >> /tmp/${SIDLOWER}_install_ers.sh
+echo '### ----------------------- ###' >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'cd /usr/sap/download/SWPM && ./sapinst' >> /tmp/${SIDLOWER}_install_ers.sh
+scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/${SIDLOWER}_ers_install_ini.params ${ADMINUSR}@${VMNAME}:/tmp
+ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
+`cat /tmp/${SIDLOWER}_install_ers.sh`
+EOF
+}
+
 # aaaaaand action
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 VNETNAME=VNET-${AZLOCTLA}-${RESOURCEGROUP}-sap
@@ -334,7 +350,8 @@ done
 if [ $INSTALLERS == 'true' ] ; then
     VMNAME=${SIDLOWER}ascs02
     create_installfile_ers
-    execute_install_ers
+#    execute_install_ers  # doesn't work non-interactive
+    execute_install_ers_interactive
 fi
 # ERS instance should be up and running after this
 

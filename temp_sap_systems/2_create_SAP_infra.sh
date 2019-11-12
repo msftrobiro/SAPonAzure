@@ -117,6 +117,8 @@ echo ' /hana/shared   xfs      defaults      0 0'  >> /etc/fstab
 echo -n 'UUID=' >> /etc/fstab
 blkid -s UUID -o value /dev/mapper/vg_HANA_backup-lv_HANA_backup | tr -d '\n'  >> /etc/fstab
 echo ' /hana/backup   xfs      defaults      0 0'  >> /etc/fstab
+echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_log\`' /hana/log2   xfs      defaults      0 0' >> /etc/fstab
+echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_data\`' /hana/data2   xfs      defaults      0 0' >> /etc/fstab
 mkfs.xfs /dev/mapper/vg_HANA-lv_HANA_log
 mkfs.xfs /dev/mapper/vg_HANA-lv_HANA_data
 mkfs.xfs /dev/mapper/vg_HANA_shared-lv_HANA_shared

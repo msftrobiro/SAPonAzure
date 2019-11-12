@@ -68,8 +68,12 @@ sudo vgcreate vg_SAP /dev/disk/azure/scsi1/lun0
 sudo lvcreate -n lv_SAP_usrsap -l 90%VG vg_SAP
 sudo lvcreate -n lv_SAP_sapmnt -l 5%VG vg_SAP
 sudo su -
-echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_SAP-lv_SAP_sapmnt\`' /sapmnt   xfs      defaults      0 0' >> /etc/fstab
-echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_SAP-lv_SAP_usrsap\`' /usr/sap   xfs      defaults      0 0' >> /etc/fstab
+echo -n 'UUID=' >> /etc/fstab
+blkid -s UUID -o value /dev/mapper/vg_SAP-lv_SAP_sapmnt | tr -d '\n'  >> /etc/fstab
+echo ' /sapmnt   xfs      defaults      0 0'  >> /etc/fstab
+echo -n 'UUID=' >> /etc/fstab
+blkid -s UUID -o value /dev/mapper/vg_SAP-lv_SAP_usrsap | tr -d '\n'  >> /etc/fstab
+echo ' /usr/sap   xfs      defaults      0 0'  >> /etc/fstab
 mkfs.xfs /dev/mapper/vg_SAP-lv_SAP_usrsap
 mkfs.xfs /dev/mapper/vg_SAP-lv_SAP_sapmnt
 mkdir /usr/sap /sapmnt
@@ -99,10 +103,18 @@ sudo vgcreate vg_HANA_backup /dev/disk/azure/scsi1/lun5
 sudo lvcreate -n lv_HANA_shared -l 90%VG vg_HANA_shared
 sudo lvcreate -n lv_HANA_backup -l 90%VG vg_HANA_backup
 sudo su -
-echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_log\`' /hana/log   xfs      defaults      0 0' >> /etc/fstab
-echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_data\`' /hana/data   xfs      defaults      0 0' >> /etc/fstab
-echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA_shared-lv_HANA_shared\`' /hana/shared   xfs      defaults      0 0' >> /etc/fstab
-echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA_backup-lv_HANA_backup\`' /hana/backup   xfs      defaults      0 0' >> /etc/fstab
+echo -n 'UUID=' >> /etc/fstab
+blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_log | tr -d '\n'  >> /etc/fstab
+echo ' /hana/log   xfs      defaults      0 0'  >> /etc/fstab
+echo -n 'UUID=' >> /etc/fstab
+blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_data | tr -d '\n'  >> /etc/fstab
+echo ' /hana/data   xfs      defaults      0 0'  >> /etc/fstab
+echo -n 'UUID=' >> /etc/fstab
+blkid -s UUID -o value /dev/mapper/vg_HANA_shared-lv_HANA_shared | tr -d '\n'  >> /etc/fstab
+echo ' /hana/shared   xfs      defaults      0 0'  >> /etc/fstab
+echo -n 'UUID=' >> /etc/fstab
+blkid -s UUID -o value /dev/mapper/vg_HANA_backup-lv_HANA_backup | tr -d '\n'  >> /etc/fstab
+echo ' /hana/backup   xfs      defaults      0 0'  >> /etc/fstab
 mkfs.xfs /dev/mapper/vg_HANA-lv_HANA_log
 mkfs.xfs /dev/mapper/vg_HANA-lv_HANA_data
 mkfs.xfs /dev/mapper/vg_HANA_shared-lv_HANA_shared

@@ -67,6 +67,7 @@ sudo pvcreate /dev/disk/azure/scsi1/lun0
 sudo vgcreate vg_SAP /dev/disk/azure/scsi1/lun0
 sudo lvcreate -n lv_SAP_usrsap -l 90%VG vg_SAP
 sudo lvcreate -n lv_SAP_sapmnt -l 5%VG vg_SAP
+sleep 5 #needed timeout for uuid propagation?
 sudo su -
 echo -n 'UUID=' >> /etc/fstab
 blkid -s UUID -o value /dev/mapper/vg_SAP-lv_SAP_sapmnt | tr -d '\n'  >> /etc/fstab
@@ -102,6 +103,7 @@ sudo vgcreate vg_HANA_shared /dev/disk/azure/scsi1/lun4
 sudo vgcreate vg_HANA_backup /dev/disk/azure/scsi1/lun5
 sudo lvcreate -n lv_HANA_shared -l 90%VG vg_HANA_shared
 sudo lvcreate -n lv_HANA_backup -l 90%VG vg_HANA_backup
+sleep 3 #needed timeout for uuid propagation?
 sudo su -
 echo -n 'UUID=' >> /etc/fstab
 blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_log | tr -d '\n'  >> /etc/fstab

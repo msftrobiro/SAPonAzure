@@ -8,7 +8,7 @@ LOGFILE=/tmp/4_setup_HSR_add_LB.log
 starttime=`date +%s`
 if [[ -z $AZLOCTLA ]]; 
     then RGNAME=rg-${RESOURCEGROUP}
-    else AZLOCTLA=${AZLOCTLA}-; RGNAME=rg-${AZLOCTLA}-${RESOURCEGROUP}
+    else AZLOCTLA=${AZLOCTLA}-; RGNAME=rg-${AZLOCTLA}${RESOURCEGROUP}
 fi
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 HANALOWER=`echo $HANASID|awk '{print tolower($0)}'`

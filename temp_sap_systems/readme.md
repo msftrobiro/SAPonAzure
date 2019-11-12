@@ -95,6 +95,7 @@ upcoming v0.4, planning end of Nov 2019
 - SSO SAML2 for Web-SAPGui all scripted, incl sap rfc triggered actions in script 
 - use azure private dns instead of ugly host file
 - change nfs server to Azure Files NFS once released
+- db copy support
 - ... 
 
 

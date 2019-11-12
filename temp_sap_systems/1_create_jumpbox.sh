@@ -14,7 +14,7 @@ starttime=`date +%s`
 az account set --subscription $AZSUB
 if [[ -z $AZLOCTLA ]]; 
     then RGNAME=rg-${RESOURCEGROUP}
-    else AZLOCTLA=${AZLOCTLA}-; RGNAME=rg-${AZLOCTLA}-${RESOURCEGROUP}
+    else AZLOCTLA=${AZLOCTLA}-; RGNAME=rg-${AZLOCTLA}${RESOURCEGROUP}
 fi
 printf '%s\n'
 echo Creating resource group $RGNAME in $AZLOC

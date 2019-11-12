@@ -8,7 +8,7 @@ source parameters.txt
 LOGFILE=/tmp/3_install_DB_and_App.log
 if [[ -z $AZLOCTLA ]]; 
     then RGNAME=rg-${RESOURCEGROUP}
-    else AZLOCTLA=${AZLOCTLA}-; RGNAME=rg-${AZLOCTLA}-${RESOURCEGROUP}
+    else AZLOCTLA=${AZLOCTLA}-; RGNAME=rg-${AZLOCTLA}${RESOURCEGROUP}
 fi
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 HANALOWER=`echo $HANASID|awk '{print tolower($0)}'`

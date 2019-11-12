@@ -9,7 +9,7 @@ source parameters.txt
 LOGFILE=/tmp/2_create_SAP_infra.log
 if [[ -z $AZLOCTLA ]]; 
     then RGNAME=rg-${RESOURCEGROUP}
-    else AZLOCTLA=${AZLOCTLA}-; RGNAME=rg-${AZLOCTLA}-${RESOURCEGROUP}
+    else AZLOCTLA=${AZLOCTLA}-; RGNAME=rg-${AZLOCTLA}${RESOURCEGROUP}
 fi
 starttime=`date +%s`
 echo "###-------------------------------------###"
@@ -37,7 +37,7 @@ create_app_vm () {
     printf '%s\n'
     echo "###-------------------------------------###"
     echo Creating VM $VMNAME in RG $RGNAME
-    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --zone $i --ppg ppg-${AZLOCTLA}-${SIDLOWER}-zone${i} >>$LOGFILE 2>&1   
+    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} >>$LOGFILE 2>&1   
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new  --lun 0 --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
 }
 
@@ -45,7 +45,7 @@ create_hana_vm () {
     printf '%s\n'
     echo "###-------------------------------------###"
     echo Creating VM $VMNAME in RG $RGNAME
-    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${DBSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-db --zone $i --ppg ppg-${AZLOCTLA}-${SIDLOWER}-zone${i} >>$LOGFILE 2>&1   
+    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${DBSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-db --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} >>$LOGFILE 2>&1   
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --lun 1 --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk2 --new --lun 2 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk3 --new --lun 3 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1
@@ -55,8 +55,8 @@ create_hana_vm () {
 }
 
 create_ppg () {
-    az ppg create --resource-group $RGNAME --name ppg-${AZLOCTLA}-${SIDLOWER}-zone1 --location $AZLOC --type Standard >>$LOGFILE 2>&1 
-    az ppg create --resource-group $RGNAME --name ppg-${AZLOCTLA}-${SIDLOWER}-zone2 --location $AZLOC --type Standard >>$LOGFILE 2>&1  
+    az ppg create --resource-group $RGNAME --name ppg-${AZLOCTLA}${SIDLOWER}-zone1 --location $AZLOC --type Standard >>$LOGFILE 2>&1 
+    az ppg create --resource-group $RGNAME --name ppg-${AZLOCTLA}${SIDLOWER}-zone2 --location $AZLOC --type Standard >>$LOGFILE 2>&1  
 }
 
 fs_create_on_all_sap_servers () {
@@ -250,7 +250,7 @@ EOF
 
 # aaaaaand action
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
-VNETNAME=vnet-${AZLOCTLA}-${RESOURCEGROUP}-sap
+VNETNAME=vnet-${AZLOCTLA}${RESOURCEGROUP}-sap
 VMIMAGE=SUSE:SLES-SAP:12-sp4:latest
 VMTYPE=Standard_E16s_v3
 DBSUBNET=`echo $SAPIP|sed 's/.\{5\}$//'`
@@ -260,11 +260,11 @@ create_ppg
 if [ $INSTALLDB2 == 'true' ]; then
     for i in 1 2 
     do
-    ip=14${i}; VMNAME=vm-${AZLOCTLA}-${SIDLOWER}db0${i} 
+    ip=14${i}; VMNAME=vm-${AZLOCTLA}${SIDLOWER}db0${i} 
     create_hana_vm
     done
 else
-    i=1; ip=141; VMNAME=vm-${AZLOCTLA}-${SIDLOWER}db0${i}
+    i=1; ip=141; VMNAME=vm-${AZLOCTLA}${SIDLOWER}db0${i}
    create_hana_vm
 fi
 
@@ -273,22 +273,22 @@ APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`
 if [ $INSTALLERS == 'true' ] ; then
     for i in 1 2 
     do
-    ip=1${i}; VMNAME=vm-${AZLOCTLA}-${SIDLOWER}ascs0${i}
+    ip=1${i}; VMNAME=vm-${AZLOCTLA}${SIDLOWER}ascs0${i}
     create_app_vm
     done
 else
-    i=1; ip=11; VMNAME=vm-${AZLOCTLA}-${SIDLOWER}ascs0${i}
+    i=1; ip=11; VMNAME=vm-${AZLOCTLA}${SIDLOWER}ascs0${i}
     create_app_vm
 fi
 
 if [ $INSTALLAAS == 'true' ]; then
     for i in 1 2 
     do
-    ip=2${i}; VMNAME=vm-${AZLOCTLA}-${SIDLOWER}app0${i}
+    ip=2${i}; VMNAME=vm-${AZLOCTLA}${SIDLOWER}app0${i}
     create_app_vm
     done
 else
-    i=1; ip=21; VMNAME=vm-${AZLOCTLA}-${SIDLOWER}app0${i}
+    i=1; ip=21; VMNAME=vm-${AZLOCTLA}${SIDLOWER}app0${i}
     create_app_vm
 fi
 
@@ -301,7 +301,7 @@ az vm list-ip-addresses --resource-group $RGNAME --output table |grep $SIDLOWER|
 cat /tmp/vm_ips.txt
 sudo bash -c 'cat /tmp/vm_ips.txt >> /etc/hosts'
 
-for i in $(cat /etc/hosts |grep vm-${AZLOCTLA}-${SIDLOWER} |awk '{print $3}') 
+for i in $(cat /etc/hosts |grep vm-${AZLOCTLA}${SIDLOWER} |awk '{print $3}') 
 do
 VMNAME=$i
 echo "###-------------------------------------###"
@@ -310,7 +310,7 @@ printf '%s\n'
 fs_create_on_all_sap_servers
 done
 
-for i in $(cat /etc/hosts |grep vm-${AZLOCTLA}-${SIDLOWER} |grep db0 | awk '{print $3}') 
+for i in $(cat /etc/hosts |grep vm-${AZLOCTLA}${SIDLOWER} |grep db0 | awk '{print $3}') 
 do
 VMNAME=$i
 echo "###-------------------------------------###"
@@ -340,7 +340,7 @@ printf '%s\n'
 setup_nfs_server
 # ASCS instance should be up and running after this
 # next mount NFS volume on other app VMs
-for i in $(cat /etc/hosts |grep vm-${AZLOCTLA}-${SIDLOWER} | grep -v ascs01 |  grep -v db0 | awk '{print $3}') 
+for i in $(cat /etc/hosts |grep vm-${AZLOCTLA}${SIDLOWER} | grep -v ascs01 |  grep -v db0 | awk '{print $3}') 
 do
     VMNAME=$i
     echo "###-------------------------------------###"

@@ -67,17 +67,12 @@ sudo pvcreate /dev/disk/azure/scsi1/lun0
 sudo vgcreate vg_SAP /dev/disk/azure/scsi1/lun0
 sudo lvcreate -n lv_SAP_usrsap -l 90%VG vg_SAP
 sudo lvcreate -n lv_SAP_sapmnt -l 5%VG vg_SAP
-sleep 5 #needed timeout for uuid propagation?
+sudo mkfs.xfs /dev/mapper/vg_SAP-lv_SAP_usrsap
+sudo mkfs.xfs /dev/mapper/vg_SAP-lv_SAP_sapmnt
+sudo mkdir /usr/sap /sapmnt
 sudo su -
-echo -n 'UUID=' >> /etc/fstab
-blkid -s UUID -o value /dev/mapper/vg_SAP-lv_SAP_sapmnt | tr -d '\n'  >> /etc/fstab
-echo ' /sapmnt   xfs      defaults      0 0'  >> /etc/fstab
-echo -n 'UUID=' >> /etc/fstab
-blkid -s UUID -o value /dev/mapper/vg_SAP-lv_SAP_usrsap | tr -d '\n'  >> /etc/fstab
-echo ' /usr/sap   xfs      defaults      0 0'  >> /etc/fstab
-mkfs.xfs /dev/mapper/vg_SAP-lv_SAP_usrsap
-mkfs.xfs /dev/mapper/vg_SAP-lv_SAP_sapmnt
-mkdir /usr/sap /sapmnt
+echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_SAP-lv_SAP_sapmnt\`' /sapmnt   xfs      defaults      0 0' >> /etc/fstab
+echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_SAP-lv_SAP_usrsap\`' /usr/sap   xfs      defaults      0 0' >> /etc/fstab
 mount -a
 sed -i 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
 sed -i 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' /etc/waagent.conf
@@ -89,7 +84,6 @@ EOF
 }
 
 fs_create_on_db_servers () {
-scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/vm_ips.txt ${ADMINUSR}@${VMNAME}:/tmp
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
 sudo pvcreate /dev/disk/azure/scsi1/lun1
 sudo pvcreate /dev/disk/azure/scsi1/lun2
@@ -103,27 +97,16 @@ sudo vgcreate vg_HANA_shared /dev/disk/azure/scsi1/lun4
 sudo vgcreate vg_HANA_backup /dev/disk/azure/scsi1/lun5
 sudo lvcreate -n lv_HANA_shared -l 90%VG vg_HANA_shared
 sudo lvcreate -n lv_HANA_backup -l 90%VG vg_HANA_backup
-sleep 3 #needed timeout for uuid propagation?
+sudo mkfs.xfs /dev/mapper/vg_HANA-lv_HANA_log
+sudo mkfs.xfs /dev/mapper/vg_HANA-lv_HANA_data
+sudo mkfs.xfs /dev/mapper/vg_HANA_shared-lv_HANA_shared
+sudo mkfs.xfs /dev/mapper/vg_HANA_backup-lv_HANA_backup
+sudo mkdir -p /hana/data /hana/log /hana/shared /hana/backup
 sudo su -
-echo -n 'UUID=' >> /etc/fstab
-blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_log | tr -d '\n'  >> /etc/fstab
-echo ' /hana/log   xfs      defaults      0 0'  >> /etc/fstab
-echo -n 'UUID=' >> /etc/fstab
-blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_data | tr -d '\n'  >> /etc/fstab
-echo ' /hana/data   xfs      defaults      0 0'  >> /etc/fstab
-echo -n 'UUID=' >> /etc/fstab
-blkid -s UUID -o value /dev/mapper/vg_HANA_shared-lv_HANA_shared | tr -d '\n'  >> /etc/fstab
-echo ' /hana/shared   xfs      defaults      0 0'  >> /etc/fstab
-echo -n 'UUID=' >> /etc/fstab
-blkid -s UUID -o value /dev/mapper/vg_HANA_backup-lv_HANA_backup | tr -d '\n'  >> /etc/fstab
-echo ' /hana/backup   xfs      defaults      0 0'  >> /etc/fstab
-echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_log\`' /hana/log2   xfs      defaults      0 0' >> /etc/fstab
-echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_data\`' /hana/data2   xfs      defaults      0 0' >> /etc/fstab
-mkfs.xfs /dev/mapper/vg_HANA-lv_HANA_log
-mkfs.xfs /dev/mapper/vg_HANA-lv_HANA_data
-mkfs.xfs /dev/mapper/vg_HANA_shared-lv_HANA_shared
-mkfs.xfs /dev/mapper/vg_HANA_backup-lv_HANA_backup
-mkdir -p /hana/data /hana/log /hana/shared /hana/backup
+echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_log\`' /hana/log   xfs      defaults      0 0' >> /etc/fstab
+echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA-lv_HANA_data\`' /hana/data   xfs      defaults      0 0' >> /etc/fstab
+echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA_shared-lv_HANA_shared\`' /hana/shared   xfs      defaults      0 0' >> /etc/fstab
+echo 'UUID='\`blkid -s UUID -o value /dev/mapper/vg_HANA_backup-lv_HANA_backup\`' /hana/backup   xfs      defaults      0 0' >> /etc/fstab
 mount -a
 zypper install -y saptune sapconf unrar
 zypper in -t pattern -y sap-hana

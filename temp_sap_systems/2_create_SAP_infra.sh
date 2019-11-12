@@ -237,14 +237,15 @@ sed -i "/SAPINST_SKIP_DIALOGS/d" /tmp/${SIDLOWER}_install_ers.sh
 sed -i "/SAPINST_START_GUISERVER/d" /tmp/${SIDLOWER}_install_ers.sh
 echo '### ----------------------- ###' >> /tmp/${SIDLOWER}_install_ers.sh
 sed -i "/sapinst/d" /tmp/${SIDLOWER}_install_ers.sh
-echo "echo 'This will prepare everything and start sapinst with the ERS installation'" >> /tmp/${SIDLOWER}_install_ers.sh
-echo "echo 'You MUST logon in the browser as indicated by sapinst - just use ssh x-forward through the jumpbox'" >> /tmp/${SIDLOWER}_install_ers.sh
-echo "echo 'ERS installation I just did not find a way to do fully non-interactive, blame SAP'" >> /tmp/${SIDLOWER}_install_ers.sh
-echo "echo '### --------EXECUTE--------------- ###'" >> /tmp/${SIDLOWER}_install_ers.sh
-echo "echo 'cd /usr/sap/download/SWPM && ./sapinst'" >> /tmp/${SIDLOWER}_install_ers.sh
 scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /tmp/${SIDLOWER}_ers_install_ini.params ${ADMINUSR}@${VMNAME}:/tmp
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
 `cat /tmp/${SIDLOWER}_install_ers.sh`
+echo '### ----------------------- ###' 
+echo 'This will prepare everything and start sapinst with the ERS installation'
+echo 'You MUST logon in the browser as indicated by sapinst - just use ssh x-forward through the jumpbox'
+echo 'ERS installation I just did not find a way to do fully non-interactive, blame SAP'
+echo '### --------EXECUTE--------------- ###'
+echo 'cd /usr/sap/download/SWPM && ./sapinst'
 EOF
 }
 

@@ -2,7 +2,7 @@
 # continue on your jumpbox, NOT in your shell/cloud shell
 # ideally, 1_create_jumpbox.sh should have finished without problems
 # this script assumes everything is executed on the newly created jumpbox
-# version 0.2
+# version 0.3
 
 source parameters.txt
 LOGFILE=/tmp/3_install_DB_and_App.log

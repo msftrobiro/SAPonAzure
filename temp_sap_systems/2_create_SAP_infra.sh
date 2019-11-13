@@ -3,7 +3,7 @@
 # ideally, 1_create_jumpbox.sh should have finished without problems
 # this script assumes everything is executed on the newly created jumpbox
 # version 0.3  
-# last major changes: added ERS install but not yet working
+# last major change: added ERS install but only non-interactive
 
 source parameters.txt
 LOGFILE=/tmp/2_create_SAP_infra.log

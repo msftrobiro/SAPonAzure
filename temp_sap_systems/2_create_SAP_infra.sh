@@ -134,7 +134,6 @@ echo 'wget "'`download_url SWPM.SAR`'" -O /usr/sap/download/SWPM.sar --quiet'  >
 echo 'wget "'`download_url SAPEXE.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'wget "'`download_url DW.SAR`'" -O /usr/sap/download/installation/DW.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'wget "'`download_url SAPHOSTAGENT.SAR`'" -O /usr/sap/download/installation/SAPHOSTAGENT.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
-# echo 'wget "'`download_url ascs_instkey.pkey`'" -O /usr/sap/download/instkey.pkey --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
 
 # ascs ini file modifications
 wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/install_files/ascs_install_ini.params --quiet -O /tmp/${SIDLOWER}_ascs_install_ini.params
@@ -196,7 +195,7 @@ EOF
 create_installfile_ers () {
 echo "sudo mkdir /usr/sap/download && sudo chmod 777 /usr/sap/download && cd /usr/sap/download" > /tmp/${SIDLOWER}_install_ers.sh
 echo "mkdir installation" >> /tmp/${SIDLOWER}_install_ers.sh
-echo 'wget "'`download_url sapcar_linux`'" -O /usr/sap/download/sapcar && sudo chmod ugo+x /usr/sap/download/sapcar --quiet'  >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'wget "'`download_url sapcar_linux`'" -O /usr/sap/download/sapcar --quiet && sudo chmod ugo+x /usr/sap/download/sapcar'  >> /tmp/${SIDLOWER}_install_ers.sh
 echo 'wget "'`download_url SWPM.SAR`'" -O /usr/sap/download/SWPM.sar --quiet'   >> /tmp/${SIDLOWER}_install_ers.sh
 echo 'wget "'`download_url SAPEXE.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ers.sh
 echo 'wget "'`download_url DW.SAR`'" -O /usr/sap/download/installation/DW.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ers.sh

@@ -13,27 +13,31 @@ function display_usage(){
 
 function start_hana(){
     echo "start_hana function"
+    su - ${SAPSIDLOWER}adm -c "HDB start"
 }
 
 function stop_hana(){
     echo "stop_hana function"
-}
-
-function start_abap(){
-    if [[ ! -z $3 ]]; then missing_instno; fi
-    su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function StopService"
-}
-
-function stop_abap(){
-    if [[ ! -z $3 ]]; then missing_instno; fi
-}
-
-function status_abap(){
-    if [[ ! -z $3 ]]; then missing_instno; fi
+    su - ${SAPSIDLOWER}adm -c "HDB stop"
 }
 
 function status_hana(){
     echo "status_hana function"
+}
+
+
+function start_abap(){
+    if [[ ! -z $3 ]]; then missing_instno; fi
+    su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function Start"
+}
+
+function stop_abap(){
+    if [[ ! -z $3 ]]; then missing_instno; fi
+    su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function Start"
+}
+
+function status_abap(){
+    if [[ ! -z $3 ]]; then missing_instno; fi
 }
 
 function missing_instno(){

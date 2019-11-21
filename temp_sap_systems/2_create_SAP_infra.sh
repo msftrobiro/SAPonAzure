@@ -252,7 +252,7 @@ EOF
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 VNETNAME=vnet-${AZLOCTLA}${RESOURCEGROUP}-sap
 VMIMAGE=SUSE:SLES-SAP:12-sp4:latest
-VMTYPE=Standard_E16s_v3
+VMTYPE=Standard_E8s_v3
 DBSUBNET=`echo $SAPIP|sed 's/.\{5\}$//'`
 
 create_ppg

@@ -66,7 +66,7 @@ if [ "$app" == "ascs" ]; then port=36${ASCSNO}; fi
 if [ "$app" == "db" ]; then port=3${HDBNO}15; fi
 
 az network lb probe create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-HealthProbe --protocol tcp --port ${port}  >>$LOGFILE 2>&1
-az network lb rule create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-ms${SAPSID} --protocol tcp --frontend-port ${port} --backend-port ${port} --frontend-ip-name ipconfig-${LBNAME} --backend-pool-name ${LBNAME}-bepool --probe-name ${LBNAME}-HealthProbe   >>$LOGFILE 2>&1
+az network lb rule create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-rule1 --protocol tcp --frontend-port ${port} --backend-port ${port} --frontend-ip-name ipconfig-${LBNAME} --backend-pool-name ${LBNAME}-bepool --probe-name ${LBNAME}-HealthProbe   >>$LOGFILE 2>&1
 
 for vm in $(cat /etc/hosts |grep  vm-${AZLOCTLA}${SIDLOWER}${app}0 |awk '{print $2}') 
 do
@@ -99,6 +99,8 @@ ip=150
     echo "###-------------------------------------###"
     echo "Creating Internal Load Balancer for database servers"
 create_lb
+    echo "###-------------------------------------###"
+    echo ${LBNAME}" created and listening on IP "${APPLSUBNET}.${ip}" listening on connections on port 3"${HDBNO}"15"
 fi
 
 if [ $INSTALLERS == 'true' ]; then
@@ -109,8 +111,24 @@ ip=100
     echo "###-------------------------------------###"
     echo "Creating Internal Load Balancer for ASCS servers"
 create_lb
+    echo "###-------------------------------------###"
+    echo ${LBNAME}" created and listening on IP "${APPLSUBNET}.${ip}" listening on connections on port 36"${ASCSNO}
 fi
 
-#az network public-ip show --resource-group $RGNAME --name ${LBNAME}-publicIP --query [ipAddress] --output table
+
+if [ $INSTALLDB2 == 'true' ]; then 
+    echo "###-------------------------------------###"
+    echo "You can change the application server(s) to utilize the HANA load balancer"
+    echo "By executing following as "${SIDLOWER}" on all deployed app servers (1 or 2)"
+    echo "hdbuserstore set DEFAULT "${APPLSUBNET}".150@"${HANASID}" SAPSR3 "${MASTERPW}
+    echo "You can then play around with HANA failover in a cluster-like setup"
+fi
+if [ $INSTALLERS == 'true' ]; then
+    echo "###-------------------------------------###"
+    echo "You can specify the ASCS load balancer in SAP profiles"
+    echo "Host file/DNS entry first needed for IP "${APPLSUBNET}".100"
+    echo "Change entries pointing towards the load balanced IP in SAP default and instance profiles"
+    echo "Also rename the ASCS profile to use the load balancer hostname of your choosing"
+    echo "###-------------------------------------###"
 
 # curl -H Metadata:true "http://169.254.169.254/metadata/instance/compute/vmSize?api-version=2017-08-01&format=text"fgv

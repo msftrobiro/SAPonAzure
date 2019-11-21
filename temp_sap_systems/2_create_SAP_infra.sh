@@ -239,11 +239,12 @@ scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /t
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
 `cat /tmp/${SIDLOWER}_install_ers.sh`
 echo '### ----------------------- ###' 
-echo 'This will prepare everything and start sapinst with the ERS installation'
-echo 'You MUST logon in the browser as indicated by sapinst - just use ssh x-forward through the jumpbox'
-echo 'ERS installation I just did not find a way to do fully non-interactive, blame SAP'
-echo '### --------EXECUTE--------------- ###'
+echo 'ERS Installation - everything is prepared but needs to be started interactively'
+echo 'ERS installation I did not find a way to do fully non-interactive, blame SAP'
+echo '### -------EXECUTE AS ROOT-------- ###'
 echo 'cd /usr/sap/download/SWPM && ./sapinst'
+echo 'Sapinst once started will show the usual browser URL to logon to'
+printf '%s\n'
 EOF
 }
 
@@ -364,3 +365,5 @@ echo "###-------------------------------------###"
 echo SAP VM deployment and ASCS installation complete, took $runtime seconds
 echo "Logfile of commands stored in " ${LOGFILE}
 echo "You can continue with script 3_install_DB_and_App.sh immediately"
+echo "For example:     screen -m -S sap1 ./3_install_DB_and_App.sh"
+printf '%s\n'

@@ -38,7 +38,7 @@ setup_hsr () {
     echo "hdbsql -i "${HDBNO}" -n localhost -u system -p "${MASTERPW}" -d "${HANASID}" -Ajm \"backup data using file ('"`date +backup%Y%m%d-%H%M`" ')\"" >> /tmp/setup_hsr_primary.sh
     echo "hdbnsutil -sr_enable --name="${HANASID}"1" >> /tmp/setup_hsr_primary.sh
 # this is very ugly but don't want to alter ssh communication between nodes to exchange keys for replication and setup ssh keys for hanasidadm
-    echo "tar -czPf /tmp/repl_keys.tgz /usr/sap/HHX/SYS/global/security/rsecssfs/"  >> /tmp/setup_hsr_primary.sh
+    echo "tar -czPf /tmp/repl_keys.tgz /usr/sap/"${HANASID}"/SYS/global/security/rsecssfs/"  >> /tmp/setup_hsr_primary.sh
     echo "chmod o+r /tmp/repl_keys.tgz"  >> /tmp/setup_hsr_primary.sh
     echo "tar -xzPf /tmp/repl_keys.tgz" > /tmp/setup_hsr_secondary.sh
     echo "HDB stop" >> /tmp/setup_hsr_secondary.sh
@@ -54,7 +54,7 @@ LBNAME=lb-${AZLOCTLA}${SIDLOWER}-${app}-${intext}
 VNETNAME=vnet-${AZLOCTLA}${RESOURCEGROUP}-sap
 
 if [ "$intext" == "int" ]; then 
-az network lb create --resource-group $RGNAME --name $LBNAME --private-ip-address ${APPLSUBNET}.${ip} --frontend-ip-name ipconfig-${LBNAME} --backend-pool-name ${LBNAME}-bepool --sku standard  >>$LOGFILE 2>&1
+az network lb create --resource-group $RGNAME --name $LBNAME --private-ip-address ${APPLSUBNET}.${ip} --frontend-ip-name ipconfig-${LBNAME} --backend-pool-name ${LBNAME}-bepool --vnet-name $VNETNAME --subnet ${VNETNAME}-${app} --sku standard  >>$LOGFILE 2>&1
 fi
 
 if [ "$intext" == "ext" ]; then 
@@ -68,18 +68,18 @@ if [ "$app" == "db" ]; then port=3${HDBNO}15; fi
 az network lb probe create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-HealthProbe --protocol tcp --port ${port}  >>$LOGFILE 2>&1
 az network lb rule create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-ms${SAPSID} --protocol tcp --frontend-port ${port} --backend-port ${port} --frontend-ip-name ipconfig-${LBNAME} --backend-pool-name ${LBNAME}-bepool --probe-name ${LBNAME}-HealthProbe   >>$LOGFILE 2>&1
 
-for vm in $(cat /etc/hosts |grep  vm-${AZLOCTLA}${SAPSIDLOWER}-${app}0 |awk '{print $2}') 
+for vm in $(cat /etc/hosts |grep  vm-${AZLOCTLA}${SIDLOWER}${app}0 |awk '{print $2}') 
 do
-az network nic ip-config update --resource-group $RGNAME --name ipconfig${vm} --nic-name ${vm}VMNIC --lb-name $LBNAME --lb-address-pool ${LBNAME}-bepool >>$LOGFILE 2>&1
+az network nic ip-config update --resource-group $RGNAME --name ipconfig${vm} --nic-name ${vm}VMNic --lb-name $LBNAME --lb-address-pool ${LBNAME}-bepool >>$LOGFILE 2>&1
 done
 }
 
 # let's go
 if [ $INSTALLDB2 == 'true' ]; then
-set -x
     setup_hsr
     ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${SIDLOWER}db01 -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
     `cat /tmp/setup_hsr.sh`
+    echo "Starting backup of database to enable replication, this will run a few minutes"
     `cat /tmp/setup_hsr_primary.sh`
 EOF
     scp -oStrictHostKeyChecking=no ${ADMINUSR}@${SIDLOWER}db01:/tmp/repl_keys.tgz /tmp/repl_keys.tgz
@@ -95,7 +95,7 @@ EOF
 app=db
 intext=int
 APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`
-ip=110
+ip=150
     echo "###-------------------------------------###"
     echo "Creating Internal Load Balancer for database servers"
 create_lb

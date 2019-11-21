@@ -196,11 +196,11 @@ EOF
 create_installfile_ers () {
 echo "sudo mkdir /usr/sap/download && sudo chmod 777 /usr/sap/download && cd /usr/sap/download" > /tmp/${SIDLOWER}_install_ers.sh
 echo "mkdir installation" >> /tmp/${SIDLOWER}_install_ers.sh
-echo 'wget "'`download_url sapcar_linux`'" -O /usr/sap/download/sapcar && sudo chmod ugo+x /usr/sap/download/sapcar'  >> /tmp/${SIDLOWER}_install_ers.sh
-echo 'wget "'`download_url SWPM.SAR`'" -O /usr/sap/download/SWPM.sar'  >> /tmp/${SIDLOWER}_install_ers.sh
-echo 'wget "'`download_url SAPEXE.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR'  >> /tmp/${SIDLOWER}_install_ers.sh
-echo 'wget "'`download_url DW.SAR`'" -O /usr/sap/download/installation/DW.SAR'  >> /tmp/${SIDLOWER}_install_ers.sh
-echo 'wget "'`download_url SAPHOSTAGENT.SAR`'" -O /usr/sap/download/installation/SAPHOSTAGENT.SAR'  >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'wget "'`download_url sapcar_linux`'" -O /usr/sap/download/sapcar && sudo chmod ugo+x /usr/sap/download/sapcar --quiet'  >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'wget "'`download_url SWPM.SAR`'" -O /usr/sap/download/SWPM.sar --quiet'   >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'wget "'`download_url SAPEXE.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'wget "'`download_url DW.SAR`'" -O /usr/sap/download/installation/DW.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'wget "'`download_url SAPHOSTAGENT.SAR`'" -O /usr/sap/download/installation/SAPHOSTAGENT.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ers.sh
 # ers ini file modifications
 wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/install_files/ers_install_ini.params --quiet -O /tmp/${SIDLOWER}_ers_install_ini.params
 sed -i  "/NW_readProfileDir.profileDir/ c\NW_readProfileDir.profileDir = /sapmnt/${SAPSID}/profile" /tmp/${SIDLOWER}_ers_install_ini.params

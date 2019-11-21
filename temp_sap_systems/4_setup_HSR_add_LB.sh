@@ -11,6 +11,12 @@ if [[ -z $AZLOCTLA ]];
     then RGNAME=rg-${RESOURCEGROUP}
     else AZLOCTLA=${AZLOCTLA}-; RGNAME=rg-${AZLOCTLA}${RESOURCEGROUP}
 fi
+if az account show | grep -m 1 "login"; then
+    echo "###-------------------------------------###"
+    echo "Need to authenticate you with az cli"
+    echo "Follow prompt to authenticate in browser window with device code displayed"
+    az login
+fi
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 HANALOWER=`echo $HANASID|awk '{print tolower($0)}'`
 az account set --subscription $AZSUB >>$LOGFILE 2>&1
@@ -31,40 +37,79 @@ setup_hsr () {
     echo "hdbsql -i "${HDBNO}" -n localhost -u system -p "${MASTERPW}" -d systemdb -Ajm \"backup data using file (' "`date +backup%Y%m%d-%H%M`" ')\"" > /tmp/setup_hsr_primary.sh
     echo "hdbsql -i "${HDBNO}" -n localhost -u system -p "${MASTERPW}" -d "${HANASID}" -Ajm \"backup data using file ('"`date +backup%Y%m%d-%H%M`" ')\"" >> /tmp/setup_hsr_primary.sh
     echo "hdbnsutil -sr_enable --name="${HANASID}"1" >> /tmp/setup_hsr_primary.sh
-    echo "HDB stop" > /tmp/setup_hsr_secondary.sh
-    echo "rm /usr/sap/"${HANASID}"/SYS/global/security/rsecssfs/data/SSFS*" 
+# this is very ugly but don't want to alter ssh communication between nodes to exchange keys for replication and setup ssh keys for hanasidadm
+    echo "tar -czPf /tmp/repl_keys.tgz /usr/sap/HHX/SYS/global/security/rsecssfs/"  >> /tmp/setup_hsr_primary.sh
+    echo "chmod o+r /tmp/repl_keys.tgz"  >> /tmp/setup_hsr_primary.sh
+    echo "tar -xzPf /tmp/repl_keys.tgz" > /tmp/setup_hsr_secondary.sh
+    echo "HDB stop" >> /tmp/setup_hsr_secondary.sh
+    echo "rm /usr/sap/"${HANASID}"/SYS/global/security/rsecssfs/data/SSFS*" >> /tmp/setup_hsr_secondary.sh
     echo "hdbnsutil -sr_register --name="${HANASID}"2 --remoteHost="${SIDLOWER}"db01 --remoteInstance="${HDBNO}" --replicationMode=sync --remoteName="${HANASID}"1 --operationMode=logreplay" >> /tmp/setup_hsr_secondary.sh
     echo "HDB start" >> /tmp/setup_hsr_secondary.sh
 }
+
+# setup load balancer
+# this is likely best split into an ILB and external portion but for now, only deploying ILBs
+create_lb () {
+LBNAME=lb-${AZLOCTLA}${SIDLOWER}-${app}-${intext}
+VNETNAME=vnet-${AZLOCTLA}${RESOURCEGROUP}-sap
+
+if [ "$intext" == "int" ]; then 
+az network lb create --resource-group $RGNAME --name $LBNAME --private-ip-address ${APPLSUBNET}.${ip} --frontend-ip-name ipconfig-${LBNAME} --backend-pool-name ${LBNAME}-bepool --sku standard  >>$LOGFILE 2>&1
+fi
+
+if [ "$intext" == "ext" ]; then 
+az network public-ip create --resource-group $RGNAME --name ${LBNAME}-pip --sku standard  >>$LOGFILE 2>&1
+az network lb create --resource-group $RGNAME --name $LBNAME --public-ip-address ${LBNAME}-pip --public-ip-address-allocation dynamic --frontend-ip-name ipconfig-${LBNAME} --backend-pool-name ${LBNAME}-bepool --sku standard  >>$LOGFILE 2>&1
+fi
+
+if [ "$app" == "ascs" ]; then port=36${ASCSNO}; fi
+if [ "$app" == "db" ]; then port=3${HDBNO}15; fi
+
+az network lb probe create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-HealthProbe --protocol tcp --port ${port}  >>$LOGFILE 2>&1
+az network lb rule create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-ms${SAPSID} --protocol tcp --frontend-port ${port} --backend-port ${port} --frontend-ip-name ipconfig-${LBNAME} --backend-pool-name ${LBNAME}-bepool --probe-name ${LBNAME}-HealthProbe   >>$LOGFILE 2>&1
+
+for vm in $(cat /etc/hosts |grep  vm-${AZLOCTLA}${SAPSIDLOWER}-${app}0 |awk '{print $2}') 
+do
+az network nic ip-config update --resource-group $RGNAME --name ipconfig${vm} --nic-name ${vm}VMNIC --lb-name $LBNAME --lb-address-pool ${LBNAME}-bepool >>$LOGFILE 2>&1
+done
+}
+
+# let's go
 if [ $INSTALLDB2 == 'true' ]; then
+set -x
     setup_hsr
     ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${SIDLOWER}db01 -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
     `cat /tmp/setup_hsr.sh`
     `cat /tmp/setup_hsr_primary.sh`
 EOF
+    scp -oStrictHostKeyChecking=no ${ADMINUSR}@${SIDLOWER}db01:/tmp/repl_keys.tgz /tmp/repl_keys.tgz
+    scp -oStrictHostKeyChecking=no /tmp/repl_keys.tgz ${ADMINUSR}@${SIDLOWER}db02:/tmp/repl_keys.tgz
+    rm /tmp/repl_keys.tgz
     ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${SIDLOWER}db02 -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
     `cat /tmp/setup_hsr.sh`
     `cat /tmp/setup_hsr_secondary.sh`
 EOF
+    echo "###-------------------------------------###"
+    echo "HANA replication enabled on "${SIDLOWER}"db01 and "${SIDLOWER}"db02"
+# DB LB only internal
+app=db
+intext=int
+APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`
+ip=110
+    echo "###-------------------------------------###"
+    echo "Creating Internal Load Balancer for database servers"
+create_lb
 fi
 
-# setup load balancer
-LBNAME=LB-${AZLOCTLA}-${SIDLOWER}-ascs-ext
-VNETNAME=VNET-${AZLOCTLA}-${RESOURCEGROUP}-sap
-az network public-ip create --resource-group $RGNAME --name ${LBNAME}-pip --sku standard
-az network lb create --resource-group $RGNAME --name $LBNAME --public-ip-address ${LBNAME}-publicIP --frontend-ip-name ${LBNAME}-fepool --backend-pool-name ${LBNAME}-bepool --sku standard
-az network lb probe create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-HealthProbe --protocol tcp --port 36${ASCSNO}   
-az network lb rule create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-HTTPRule --protocol tcp --frontend-port 36${ASCSNO} --backend-port 36${ASCSNO} --frontend-ip-name ${LBNAME}-fepool --backend-pool-name ${LBNAME}-bepool --probe-name ${LBNAME}-HealthProbe  
-az network nic update --resource-group $RGNAME --name VM-${AZLOCTLA}-${SIDLOWER}ascs01VMNIC --lb-name $LBNAME --lb-address-pool ${LBNAME}-bepool
-az network nic update --resource-group $RGNAME --name VM-${AZLOCTLA}-${SIDLOWER}ascs02VMNIC --lb-name $LBNAME --lb-address-pool ${LBNAME}-bepool
-
-LBNAME=LB-${AZLOCTLA}-${SIDLOWER}-ascs-int
-az network ip create --resource-group $RGNAME --name ${LBNAME}-ip --sku standard
-az network lb create --resource-group $RGNAME --name $LBNAME --public-ip-address ${LBNAME}-publicIP --frontend-ip-name ${LBNAME}-fepool --backend-pool-name ${LBNAME}-bepool --sku standard
-az network lb probe create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-HealthProbe --protocol tcp --port 36${ASCSNO}   
-az network lb rule create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-HTTPRule --protocol tcp --frontend-port 36${ASCSNO} --backend-port 36${ASCSNO} --frontend-ip-name ${LBNAME}-fepool --backend-pool-name ${LBNAME}-bepool --probe-name ${LBNAME}-HealthProbe  
-az network nic update --resource-group $RGNAME --name VM-${AZLOCTLA}-${SIDLOWER}ascs01VMNIC --lb-name $LBNAME --lb-address-pool ${LBNAME}-bepool
-az network nic update --resource-group $RGNAME --name VM-${AZLOCTLA}-${SIDLOWER}ascs02VMNIC --lb-name $LBNAME --lb-address-pool ${LBNAME}-bepool
+if [ $INSTALLERS == 'true' ]; then
+app=ascs
+intext=int
+APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`
+ip=100
+    echo "###-------------------------------------###"
+    echo "Creating Internal Load Balancer for ASCS servers"
+create_lb
+fi
 
 #az network public-ip show --resource-group $RGNAME --name ${LBNAME}-publicIP --query [ipAddress] --output table
 

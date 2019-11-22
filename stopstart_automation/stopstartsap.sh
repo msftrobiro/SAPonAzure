@@ -3,41 +3,64 @@
 
 function display_usage(){
     echo "Usage:"
-    echo "Execute script as root only! Upto four parameters, three are required."
+    echo "Script needs to be run by root"
+    echo "First three parameters are required, fourth for SAP operations"
+    echo "----------------------------------------------------------------------"
     echo "First parameter: SAP SID (in case of HANA, SID of HANA instance, not the SAP SID)"
     echo "Second parameter: the chosen operation - stop|start|status"
     echo "Third parameter: SAP system type - ascs|appserver|hana|ase"
     echo "Fourth parameter: SAP/HANA instance number"
+    echo "---------------------------------------------"
     echo "Example: stopstartsap.sh SHQ stop ascs 00"
 }
 
 function start_hana(){
     echo "start_hana function"
     su - ${SAPSIDLOWER}adm -c "HDB start"
+    exit $?
 }
 
 function stop_hana(){
     echo "stop_hana function"
     su - ${SAPSIDLOWER}adm -c "HDB stop"
+    exit $?
 }
 
 function status_hana(){
     echo "status_hana function"
+    exit $?
 }
 
-
 function start_abap(){
+    echo "start_abap function"
     if [[ ! -z $3 ]]; then missing_instno; fi
     su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function Start"
+    exit $?
 }
 
 function stop_abap(){
+    echo "stop_abap_function"
     if [[ ! -z $3 ]]; then missing_instno; fi
     su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function Start"
+    exit $?
 }
 
 function status_abap(){
     if [[ ! -z $3 ]]; then missing_instno; fi
+    if [[ $SAPTYPE == "appserver" ]]; 
+        then su - ${SAPSIDLOWER}adm -c "R3trans -d"  > /dev/null 2&>1
+            SAPRUNNING=$?
+    fi
+    if [[ $SAPTYPE == "ascs" ]];
+        then su - ${SAPSIDLOWER}adm -c "test"
+    fi
+
+    if [[ $SAPRUNNING != 0 ]];
+        then echo "SAP System "${SAPSID}" with system type "${SAPTYPE}" NOT running"
+        exit 1
+    fi
+    echo echo "SAP System "${SAPSID}" with system type "${SAPTYPE}" active"
+    exit 0
 }
 
 function missing_instno(){

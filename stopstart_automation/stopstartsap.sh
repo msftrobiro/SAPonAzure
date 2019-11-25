@@ -16,13 +16,15 @@ function display_usage(){
 
 function start_hana(){
     echo "start_hana function"
-    su - ${SAPSIDLOWER}adm -c "HDB start"
+    timeout=1200
+    su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function StartWait $timeout 10"
     exit $?
 }
 
 function stop_hana(){
     echo "stop_hana function"
-    su - ${SAPSIDLOWER}adm -c "HDB stop"
+    timeout=1200
+    su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function StoptWait $timeout 10"
     exit $?
 }
 
@@ -34,14 +36,16 @@ function status_hana(){
 function start_abap(){
     echo "start_abap function"
     if [[ ! -z $3 ]]; then missing_instno; fi
-    su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function Start"
+    timeout=180
+    su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function StartWait $timeout 10"
     exit $?
 }
 
 function stop_abap(){
     echo "stop_abap_function"
     if [[ ! -z $3 ]]; then missing_instno; fi
-    su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function Start"
+    timeout=180
+    su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function StopWait $timeout 10"
     exit $?
 }
 
@@ -118,7 +122,7 @@ fi
 
 if [[ ! -z $4 ]] && [[ `echo ${#4}` -ne 2 ]]
 then
-    echo "Invalid SAP/HANA number specified, must be 2 digit integer"
+    echo "Invalid SAP/HANA instance number specified, must be 2 digit integer"
     exit 1
 else
     INSTNO=$4
@@ -128,8 +132,6 @@ SAPSIDLOWER=`echo "$SAPSID" | awk '{print tolower($0)}'`
 if [[ $OP == "stop" && ( $SAPTYPE == "ascs" || $SAPTYPE == "appserver" ) ]]; then stop_abap; fi
 if [[ $OP == "start" && ( $SAPTYPE == "ascs" || $SAPTYPE == "appserver" ) ]]; then  start_abap; fi
 if [[ $OP == "status" && ( $SAPTYPE == "ascs" || $SAPTYPE == "appserver") ]]; then  status_abap; fi
-#if [[ $SAPTYPE == "appserver" && $OP == "stop" ]]; then   stop_abap; fi
-#if [[ $SAPTYPE == "appserver" && $OP == "start" ]]; then  status_abap; fi
 if [[ $OP == "stop" && $SAPTYPE == "hana" ]]; then  stop_hana; fi
 if [[ $OP == "start" && $SAPTYPE == "hana" ]]; then  start_hana; fi
 if [[ $OP == "status" && $SAPTYPE == "hana" ]]; then  status_hana; fi

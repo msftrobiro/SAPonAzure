@@ -79,12 +79,12 @@ v0.3, Nov 11 2019
 - added load balancers for DB and ASCS, if configured to deploy 2 of either
 - cleaned up this page
 
-upcoming v0.4, planning end of Nov 2019
+upcoming v0.4, planning mid Dec 2019
 - add DRBD if 2 ASCS VMs configured
 - simple NFS and ASCS failover scripts
-- start/stop of VM+app, through simple web interface
+- start/stop of VM+app, through simple web interface - broken off to separate sub-project [here](https://github.com/msftrobiro/stopstart_automation/tree/master/)
 - simple backup script for db and logs with version control
-- add some sample NSG rules
+- add some example NSG rules
 
 ### Missing features down the line, aka endless ToDo list
 - Backup integration (optional script)

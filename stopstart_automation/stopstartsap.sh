@@ -15,56 +15,84 @@ function display_usage(){
 }
 
 function start_hana(){
-    echo "start_hana function"
+    if [[ $DEBUG -eq "1" ]]; then echo "Executing start_hana function"; fi
+    if [[ -z $INSTNO ]]; then missing_instno; fi
     timeout=1200
     su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function StartWait $timeout 10"
     exit $?
 }
 
 function stop_hana(){
-    echo "stop_hana function"
+    if [[ $DEBUG -eq "1" ]]; then echo "Executing stop_hana function"; fi
+    if [[ -z $INSTNO ]]; then missing_instno; fi
     timeout=1200
     su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function StoptWait $timeout 10"
     exit $?
 }
 
 function status_hana(){
-    echo "status_hana function"
+    if [[ $DEBUG -eq "1" ]]; then echo "Executing status_hana function"; fi
+    if [[ -z $INSTNO ]]; then missing_instno; fi
+
     exit $?
 }
 
 function start_abap(){
-    echo "start_abap function"
+    if [[ $DEBUG -eq "1" ]]; then echo "Executing start_abap function"; fi
     if [[ ! -z $3 ]]; then missing_instno; fi
     timeout=180
-    su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function StartWait $timeout 10"
+    su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function Start $timeout 2"
     exit $?
 }
 
 function stop_abap(){
-    echo "stop_abap_function"
-    if [[ ! -z $3 ]]; then missing_instno; fi
+    if [[ $DEBUG -eq "1" ]]; then echo "Executing stop_abap function"; fi
+    if [[ -z $INSTNO ]]; then missing_instno; fi
     timeout=180
-    su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function StopWait $timeout 10"
+    su - ${SAPSIDLOWER}adm -c "sapcontrol -nr $INSTNO -prot NI_HTTP -function StopWait $timeout 2"
     exit $?
 }
 
 function status_abap(){
-    if [[ ! -z $3 ]]; then missing_instno; fi
+    if [[ $DEBUG -eq "1" ]]; then echo "Executing status_abap function"; fi
+    if [[ -z $INSTNO ]]; then missing_instno; fi
+    case $SAPTYPE in 
+        appserver)
+            INST=D
+            ;;
+        ascs)
+            INST=ASCS
+            ;;
+    esac
+
     if [[ $SAPTYPE == "appserver" ]]; 
-        then su - ${SAPSIDLOWER}adm -c "R3trans -d"  > /dev/null 2&>1
-            SAPRUNNING=$?
+        then 
+            su - ${SAPSIDLOWER}adm -c "R3trans -d"  > /dev/null 2&>1
+            DB_RUNNING=$?
+            if [[ $DB_RUNNING != 0 ]]; then echo "Database for system "${SAPSID}" NOT running"; exit 1; 
+            else echo "Database for system "${SAPSID}" is running"; fi
     fi
-    if [[ $SAPTYPE == "ascs" ]];
-        then su - ${SAPSIDLOWER}adm -c "test"
+    
+    if [[ -f /usr/sap/${SAPSID}/${INST}${INSTNO}/work/sapstart.sem ]];
+        then
+        TEST_APP=$(su - ${SAPSIDLOWER}adm -c "ps ax | awk '{print $1}' | grep `cat /usr/sap/${SAPSID}/${INST}${INSTNO}/work/sapstart.sem | awk '{print $1}'` | grep -v grep")
+            if [[ -z $TEST_APP ]]; 
+            then APP_RUNNING=0
+            else APP_RUNNING=1
+            fi
+        else
+        APP_RUNNING=0
     fi
 
-    if [[ $SAPRUNNING != 0 ]];
-        then echo "SAP System "${SAPSID}" with system type "${SAPTYPE}" NOT running"
+if [[ $APP_RUNNING == '0' ]]; 
+    then 
+        echo "SAP system "${SAPSID}" app server instance "${INSTNO}" is NOT runnning"
         exit 1
-    fi
-    echo echo "SAP System "${SAPSID}" with system type "${SAPTYPE}" active"
-    exit 0
+    else   
+        echo "SAP system "${SAPSID}" app server instance "${INSTNO}" is runnning"
+        exit 0
+fi
+   
 }
 
 function missing_instno(){
@@ -90,7 +118,7 @@ then
     exit 1
 fi
 
-# check for coirect arguments
+# check for correct arguments
 if [[ $# -le 2 ]]
 then
     display_usage
@@ -128,6 +156,7 @@ else
     INSTNO=$4
 fi
 
+SAPSID=`echo $SAPSID | awk '{print toupper($0)}'`
 SAPSIDLOWER=`echo "$SAPSID" | awk '{print tolower($0)}'`
 if [[ $OP == "stop" && ( $SAPTYPE == "ascs" || $SAPTYPE == "appserver" ) ]]; then stop_abap; fi
 if [[ $OP == "start" && ( $SAPTYPE == "ascs" || $SAPTYPE == "appserver" ) ]]; then  start_abap; fi

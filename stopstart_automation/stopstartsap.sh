@@ -86,10 +86,10 @@ function status_abap(){
 
 if [[ $APP_RUNNING == '0' ]]; 
     then 
-        echo "SAP system "${SAPSID}" app server instance "${INSTNO}" is NOT runnning"
+        echo "SAP system "${SAPSID}" "${SAPTYPE}" instance "${INSTNO}" is NOT runnning"
         exit 1
     else   
-        echo "SAP system "${SAPSID}" app server instance "${INSTNO}" is runnning"
+        echo "SAP system "${SAPSID}" "${SAPTYPE}" instance "${INSTNO}" is runnning"
         exit 0
 fi
    

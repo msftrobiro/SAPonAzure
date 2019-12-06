@@ -14,3 +14,7 @@ variable "software" {
 variable "options" {
   description = "Configuration options"
 }
+
+variable "databases" {
+  description = "Details of the databases"
+}

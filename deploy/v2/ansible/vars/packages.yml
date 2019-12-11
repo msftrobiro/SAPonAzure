@@ -37,6 +37,7 @@ packages:
       - tuned-profiles-sap-hana
       - numad
       - cifs-utils
+      - compat-sap-c++-5
 
     Suse: 
       - libyui-qt-pkg7

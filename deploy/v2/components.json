@@ -57,13 +57,13 @@
     "variants": [
       {
         "os": "LINUX",
-        "media_loc": "HCO_HANA_SHINE",
+        "media_loc": "XSA_CONTENT_10",
         "installer": "xs"
       }
     ],
     "depends_on": [ 
-      "hana_database",
-      "xs"
+      "hana_database", "xs"
     ]
   }
 ]
+

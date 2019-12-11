@@ -152,7 +152,7 @@
         "shine": []
       },
       "xsa": {
-        "routing": "port"
+        "routing": "ports"
       },
       "shine": {
         "email": "shinedemo@microsoft.com"

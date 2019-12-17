@@ -61,8 +61,8 @@ On jumpbox - follow output of the first script - execute the predownloaded 2_...
 - vim parameters.txt
 - ./1_create_jumpbox.sh
 - ssh <username>@<jumpbox> #as displayed by first script, all subsequent scripts should be ran on jump server
-- screen -m -S sap1 ./2_create_SAP_infra.sh
-- screen -m -S sap1 ./3_install_DB_and_App.sh
+- screen -m -S sap2 sh -c '~/2_create_SAP_infra.sh; bash'
+- screen -m -S sap3 sh -c '~/3_install_DB_and_App.sh; bash'
 - '<further scripts, coming down the line/own>'
 
 ### Naming convention

@@ -69,7 +69,7 @@ echo Creating linux jumpbox VM
 VNETNAME=vnet-${AZLOCTLA}${RESOURCEGROUP}-hub
 VMNAME=vm-${AZLOCTLA}sap-jumpbox-lin
 VMTYPE=Standard_B2s
-VMIMAGE=OpenLogic:CentOS:7.7:latest
+VMIMAGE=OpenLogic:CentOS:8.0:latest
 az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 127 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking false --public-ip-address-dns-name $JUMPFQDN --public-ip-address-allocation dynamic --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-ssh >>$LOGFILE 2>&1   
 
 JUMPBOXFQDN=`az network public-ip list --resource-group $RGNAME|grep fqdn | awk '{print $2}'|sed 's/.\{2\}$//'|cut -c2-`
@@ -111,3 +111,9 @@ echo "To logon on jumpserver to continue with next script deploying infrastructu
 echo ssh ${ADMINUSR}@${JUMPBOXFQDN} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'`
 echo "###-------------------------------------###"
 printf '%s\n'
+
+
+
+https://docs.microsoft.com/en-us/azure/virtual-machines/linux/spot-cli
+    --priority Spot \
+    --max-price -1

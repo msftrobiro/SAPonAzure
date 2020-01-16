@@ -78,7 +78,7 @@ STORCONTAINER=
 # keep in mind spot instances can be turned off anytime if capacity need arises
 # allowed values true|false in lowercase
 # for instance price user -1 (default, capacity eviction, lowest) or set your price (use at own risk)
-SPOTINSTANCES=
+USESPOTINSTANCES=
 SPOTINSTANCEPRICE=-1
 
 # --- specify SAP specific parameters now ---

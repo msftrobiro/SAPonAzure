@@ -37,7 +37,7 @@ create_app_vm () {
     printf '%s\n'
     echo "###-------------------------------------###"
     echo Creating VM $VMNAME in RG $RGNAME
-    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} >>$LOGFILE 2>&1   
+    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} $SPOTINSTANCEPARAM  --tags SAPSID=${SAPSID} SAPHOSTTYPE=${SAPHOSTTYPE} IMPORTANCE=Sandbox >>$LOGFILE 2>&1   
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new  --lun 0 --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
 }
 
@@ -45,7 +45,7 @@ create_hana_vm () {
     printf '%s\n'
     echo "###-------------------------------------###"
     echo Creating VM $VMNAME in RG $RGNAME
-    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${DBSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-db --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} >>$LOGFILE 2>&1   
+    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${DBSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-db --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} $SPOTINSTANCEPARAM  --tags SAPSID=${SAPSID} SAPHOSTTYPE=HANA HANASID=${HANASID} IMPORTANCE=Sandbox >>$LOGFILE 2>&1   
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --lun 0 --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk2 --new --lun 1 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk3 --new --lun 2 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1
@@ -248,12 +248,14 @@ echo 'cd /usr/sap/download/SWPM && ./sapinst'
 EOF
 }
 
-# aaaaaand action
+# end of function definition
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 VNETNAME=vnet-${AZLOCTLA}${RESOURCEGROUP}-sap
 VMIMAGE=SUSE:SLES-SAP:12-sp4:latest
 VMTYPE=Standard_E16s_v3
 DBSUBNET=`echo $SAPIP|sed 's/.\{5\}$//'`
+USESPOTINSTANCES=`echo "$USESPOTINSTANCES" | awk '{print tolower($0)}'`
+if [[ $USESPOTINSTANCES -eq "true" ]]; then SPOTINSTANCEPARAM="--priority Spot --max-price ${SPOTINSTANCEPRICE}" ; fi
 
 create_ppg
 
@@ -270,6 +272,7 @@ fi
 
 VMTYPE=Standard_D4s_v3
 APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`
+SAPHOSTTYPE=ASCS
 if [ $INSTALLERS == 'true' ] ; then
     for i in 1 2 
     do
@@ -281,6 +284,7 @@ else
     create_app_vm
 fi
 
+SAPHOSTTYPE=AppServer
 if [ $INSTALLAAS == 'true' ]; then
     for i in 1 2 
     do

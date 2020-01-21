@@ -2,7 +2,7 @@
 # continue on your jumpbox, NOT in your shell/cloud shell
 # ideally, 1_create_jumpbox.sh should have finished without problems
 # this script assumes everything is executed on the newly created jumpbox
-# version 0.3  
+# version 0.4pre  
 # last major change: added ERS install but only non-interactive
 
 source parameters.txt

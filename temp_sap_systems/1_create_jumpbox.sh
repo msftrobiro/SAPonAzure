@@ -14,6 +14,10 @@ USESPOTINSTANCES=`echo "$USESPOTINSTANCES" | awk '{print tolower($0)}'`
 if [[ $USESPOTINSTANCES -eq "true" ]]; then SPOTINSTANCEPARAM="--priority Spot --max-price ${SPOTINSTANCEPRICE}" ; fi
 
 az account set --subscription $AZSUB
+if [[ $? -ne 0 ]];
+    then echo "Is AZ CLI installed and authenticated? See prerequisites in script header"
+    exit 1
+fi
 if [[ -z $AZLOCTLA ]]; 
     then RGNAME=rg-${RESOURCEGROUP}
     else AZLOCTLA=${AZLOCTLA}-; RGNAME=rg-${AZLOCTLA}${RESOURCEGROUP}
@@ -113,5 +117,7 @@ echo Check $LOGFILE for any errors running az cli, also check in Portal for any 
 echo "### ------------ IMPORTANT -------------###"
 echo "To logon on jumpserver to continue with next script deploying infrastructure"
 echo ssh ${ADMINUSR}@${JUMPBOXFQDN} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'`
+echo "Your local parameters.txt and scripts 2 and 3 are pulled from master branch in github already on this VM"
+echo Continue on VM with "screen -m -S sap2 ./2_create_SAP_infra.sh -L -Logfile screen_log_2.log"
 echo "###-------------------------------------###"
 printf '%s\n'

@@ -2,7 +2,7 @@
 # this script adds HANA replication between first and second DB node
 # adds a standard internal load balancer and changes SAP config to utilize the new virtual IP address
 # script should be called after right third script created DBs, loaded them and installed PAS/ASS instances
-# v0.3
+# v0.4pre
 
 source parameters.txt
 LOGFILE=/tmp/4_setup_HSR_add_LB.log

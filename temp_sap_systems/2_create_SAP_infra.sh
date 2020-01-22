@@ -126,6 +126,23 @@ fi
 echo $fullURL
 }
 
+check_download_url () {
+echo "###-------------------------------------###"
+echo "Checking your provided SAS token/URL for blob download"
+echo "###-------------------------------------###"
+wget "`download_url sapcar_linux`" -O /tmp/delete_sapcar --quiet
+if [[ $? -ne 0 ]];
+    then 
+    echo "ERROR - problem downloading file"
+    echo "URL used: "`download_url sapcar_linux`
+    exit 1
+else
+    rm /tmp/delete_sapcar
+    echo "Test of SAS token/URL successfull"
+    echo "This however does not check if all files are present with expected blob names"
+fi
+}
+
 create_installfile_ascs () {
 echo "sudo mkdir /usr/sap/download && sudo chmod 777 /usr/sap/download && cd /usr/sap/download" > /tmp/${SIDLOWER}_install_ascs.sh
 echo "mkdir installation" >> /tmp/${SIDLOWER}_install_ascs.sh
@@ -134,7 +151,6 @@ echo 'wget "'`download_url SWPM.SAR`'" -O /usr/sap/download/SWPM.sar --quiet'  >
 echo 'wget "'`download_url SAPEXE.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'wget "'`download_url DW.SAR`'" -O /usr/sap/download/installation/DW.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
 echo 'wget "'`download_url SAPHOSTAGENT.SAR`'" -O /usr/sap/download/installation/SAPHOSTAGENT.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
-# echo 'wget "'`download_url ascs_instkey.pkey`'" -O /usr/sap/download/instkey.pkey --quiet'  >> /tmp/${SIDLOWER}_install_ascs.sh
 
 # ascs ini file modifications
 wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/install_files/ascs_install_ini.params --quiet -O /tmp/${SIDLOWER}_ascs_install_ini.params
@@ -249,6 +265,9 @@ EOF
 }
 
 # end of function definition
+# check section should be extended
+check_download_url
+
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 VNETNAME=vnet-${AZLOCTLA}${RESOURCEGROUP}-sap
 VMIMAGE=SUSE:SLES-SAP:12-sp4:latest
@@ -257,17 +276,21 @@ DBSUBNET=`echo $SAPIP|sed 's/.\{5\}$//'`
 USESPOTINSTANCES=`echo "$USESPOTINSTANCES" | awk '{print tolower($0)}'`
 if [[ $USESPOTINSTANCES -eq "true" ]]; then SPOTINSTANCEPARAM="--priority Spot --max-price ${SPOTINSTANCEPRICE}" ; fi
 
+
 create_ppg
 
 if [ $INSTALLDB2 == 'true' ]; then
     for i in 1 2 
     do
-    ip=14${i}; VMNAME=vm-${AZLOCTLA}${SIDLOWER}db0${i} 
+    ip=14${i}
+    VMNAME=vm-${AZLOCTLA}${SIDLOWER}db0${i} 
     create_hana_vm
     done
 else
-    i=1; ip=141; VMNAME=vm-${AZLOCTLA}${SIDLOWER}db0${i}
-   create_hana_vm
+    i=1
+    ip=141
+    VMNAME=vm-${AZLOCTLA}${SIDLOWER}db0${i}
+    create_hana_vm
 fi
 
 VMTYPE=Standard_D4s_v3
@@ -276,11 +299,13 @@ SAPHOSTTYPE=ASCS
 if [ $INSTALLERS == 'true' ] ; then
     for i in 1 2 
     do
-    ip=1${i}; VMNAME=vm-${AZLOCTLA}${SIDLOWER}ascs0${i}
+    ip=1${i}
+    VMNAME=vm-${AZLOCTLA}${SIDLOWER}ascs0${i}
     create_app_vm
     done
 else
-    i=1; ip=11; VMNAME=vm-${AZLOCTLA}${SIDLOWER}ascs0${i}
+    i=1; ip=11
+    VMNAME=vm-${AZLOCTLA}${SIDLOWER}ascs0${i}
     create_app_vm
 fi
 
@@ -369,3 +394,4 @@ echo "###-------------------------------------###"
 echo SAP VM deployment and ASCS installation complete, took $runtime seconds
 echo "Logfile of commands stored in " ${LOGFILE}
 echo "You can continue with script 3_install_DB_and_App.sh immediately"
+sleep 99999

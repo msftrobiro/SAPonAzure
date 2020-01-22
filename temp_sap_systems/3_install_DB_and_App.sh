@@ -322,5 +322,8 @@ if [ $INSTALLAAS == 'true' ]; then
     echo AAS install of ${SAPSID} Netweaver 7.52 on ${VMNAME} completed in ${runtimepasinstall} seconds
     printf '%s\n'
 fi
+echo "End of script reached"
+echo "Logfile of commands stored in " ${LOGFILE}
+echo "Press ctrl+c to stop the running sleep loop"
 sleep 99999
 

@@ -53,6 +53,14 @@
   roles:
     - ssh-key-distribute
 
+- hosts: hdb0,hdb1
+  tasks:
+    - name: update crmsh
+      zypper:
+        name: crmsh
+        state: latest
+      become: true
+
 - hosts: hdb0
   become: true
   roles:

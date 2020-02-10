@@ -285,9 +285,9 @@ resource "null_resource" "prepare-rti" {
       # Install pip3
       "sudo apt -y install python3-pip",
       # Installs Ansible
-      "sudo apt install software-properties-common",
-      "sudo apt-add-repository --yes --update ppa:ansible/ansible-2.8",
-      "sudo apt -y install ansible=2.8*",
+      "sudo -H pip3 install \"ansible>=2.8,<2.9\"",
+      # Install pywinrm
+      "sudo -H pip3 install \"pywinrm>=0.3.0\"",
       # Clones project repository
       "git clone https://github.com/Azure/sap-hana.git"
     ]

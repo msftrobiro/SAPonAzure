@@ -229,12 +229,21 @@ resource "azurerm_virtual_machine" "vm-windows" {
   os_profile_windows_config {
     provision_vm_agent = true
 
+    winrm {
+      protocol = "Http"
+    }
+
+    winrm {
+      protocol        = "Https"
+      certificate_url = azurerm_key_vault_certificate.key-vault-cert[count.index].secret_id
+    }
+
     # Auto-Login's required to configure WinRM
     additional_unattend_config {
       pass         = "oobeSystem"
       component    = "Microsoft-Windows-Shell-Setup"
       setting_name = "AutoLogon"
-      content      = "<AutoLogon><Password><Value>${var.jumpboxes.windows[count.index].authentication.password}</Value></Password><Enabled>true</Enabled><LogonCount>1</LogonCount><Username>${var.jumpboxes.windows[count.index].authentication.username}</Username></AutoLogon>"
+      content      = "<AutoLogon><Password><Value>${var.jumpboxes.windows[count.index].authentication.password}</Value></Password><Enabled>true</Enabled><LogonCount>2</LogonCount><Username>${var.jumpboxes.windows[count.index].authentication.username}</Username></AutoLogon>"
     }
 
     # Unattend config is to enable basic auth in WinRM, required for the provisioner stage.

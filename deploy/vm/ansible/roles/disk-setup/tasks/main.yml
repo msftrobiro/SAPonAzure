@@ -8,9 +8,6 @@
     - gptfdisk
     - sg3_utils
     - lvm2
-  register: pvcreate_resultretries: 10
-  until: result.rc == 0
-  delay: 10
   tags:
   - disk_setup
 

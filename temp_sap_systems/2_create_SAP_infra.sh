@@ -212,11 +212,11 @@ EOF
 create_installfile_ers () {
 echo "sudo mkdir /usr/sap/download && sudo chmod 777 /usr/sap/download && cd /usr/sap/download" > /tmp/${SIDLOWER}_install_ers.sh
 echo "mkdir installation" >> /tmp/${SIDLOWER}_install_ers.sh
-echo 'wget "'`download_url sapcar_linux`'" -O /usr/sap/download/sapcar && sudo chmod ugo+x /usr/sap/download/sapcar'  >> /tmp/${SIDLOWER}_install_ers.sh
-echo 'wget "'`download_url SWPM.SAR`'" -O /usr/sap/download/SWPM.sar'  >> /tmp/${SIDLOWER}_install_ers.sh
-echo 'wget "'`download_url SAPEXE.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR'  >> /tmp/${SIDLOWER}_install_ers.sh
-echo 'wget "'`download_url DW.SAR`'" -O /usr/sap/download/installation/DW.SAR'  >> /tmp/${SIDLOWER}_install_ers.sh
-echo 'wget "'`download_url SAPHOSTAGENT.SAR`'" -O /usr/sap/download/installation/SAPHOSTAGENT.SAR'  >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'wget "'`download_url sapcar_linux`'" -O /usr/sap/download/sapcar --quiet && sudo chmod ugo+x /usr/sap/download/sapcar'  >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'wget "'`download_url SWPM.SAR`'" -O /usr/sap/download/SWPM.sar --quiet'   >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'wget "'`download_url SAPEXE.SAR`'" -O /usr/sap/download/installation/SAPEXE.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'wget "'`download_url DW.SAR`'" -O /usr/sap/download/installation/DW.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ers.sh
+echo 'wget "'`download_url SAPHOSTAGENT.SAR`'" -O /usr/sap/download/installation/SAPHOSTAGENT.SAR --quiet'  >> /tmp/${SIDLOWER}_install_ers.sh
 # ers ini file modifications
 wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/install_files/ers_install_ini.params --quiet -O /tmp/${SIDLOWER}_ers_install_ini.params
 sed -i  "/NW_readProfileDir.profileDir/ c\NW_readProfileDir.profileDir = /sapmnt/${SAPSID}/profile" /tmp/${SIDLOWER}_ers_install_ini.params
@@ -256,11 +256,12 @@ scp -p -oStrictHostKeyChecking=no -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` -p /t
 ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${VMNAME} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
 `cat /tmp/${SIDLOWER}_install_ers.sh`
 echo '### ----------------------- ###' 
-echo 'This will prepare everything and start sapinst with the ERS installation'
-echo 'You MUST logon in the browser as indicated by sapinst - just use ssh x-forward through the jumpbox'
-echo 'ERS installation I just did not find a way to do fully non-interactive, blame SAP'
-echo '### --------EXECUTE--------------- ###'
+echo 'ERS Installation - everything is prepared but needs to be started interactively'
+echo 'ERS installation I did not find a way to do fully non-interactive, blame SAP'
+echo '### -------EXECUTE AS ROOT-------- ###'
 echo 'cd /usr/sap/download/SWPM && ./sapinst'
+echo 'Sapinst once started will show the usual browser URL to logon to'
+printf '%s\n'
 EOF
 }
 
@@ -271,7 +272,7 @@ check_download_url
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 VNETNAME=vnet-${AZLOCTLA}${RESOURCEGROUP}-sap
 VMIMAGE=SUSE:SLES-SAP:12-sp4:latest
-VMTYPE=Standard_E16s_v3
+VMTYPE=Standard_E8s_v3
 DBSUBNET=`echo $SAPIP|sed 's/.\{5\}$//'`
 USESPOTINSTANCES=`echo "$USESPOTINSTANCES" | awk '{print tolower($0)}'`
 if [[ $USESPOTINSTANCES -eq "true" ]]; then SPOTINSTANCEPARAM="--priority Spot --max-price ${SPOTINSTANCEPRICE}" ; fi

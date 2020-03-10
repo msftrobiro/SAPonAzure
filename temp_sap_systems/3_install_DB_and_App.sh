@@ -236,10 +236,11 @@ echo Starting PAS install of ${SAPSID} Netweaver 7.52 on ${VMNAME}
 printf '%s\n'
 execute_pas_install
 # DB should be loaded after this
-endtimepasinstall=`date +%s`
+
+endtimepasinstall=$( date +%s )
 runtimepasinstall=$( echo "$endtimepasinstall - $starttimepasinstall" | bc -l )
 echo "###-------------------------------------###"
-echo PAS install of ${SAPSID} Netweaver 7.52 on ${VMNAME} completed in ${runtimepasinstall} seconds
+echo "PAS install of "${SAPSID}" Netweaver 7.52 on "${VMNAME}" completed in "${runtimepasinstall}" seconds"
 printf '%s\n'
 
 create_installfile_aas () {

@@ -37,16 +37,16 @@ create_app_vm () {
     printf '%s\n'
     echo "###-------------------------------------###"
     echo Creating VM $VMNAME in RG $RGNAME
-    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} $SPOTINSTANCEPARAM  --tags SAPSID=${SAPSID} SAPHOSTTYPE=${SAPHOSTTYPE} IMPORTANCE=Sandbox >>$LOGFILE 2>&1   
-    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new  --lun 0 --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
+    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --nsg nsg-${AZLOCTLA}sap-${SIDLOWER}-app --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} $SPOTINSTANCEPARAM  --tags SAPSID=${SAPSID} SAPHOSTTYPE=${SAPHOSTTYPE} IMPORTANCE=Sandbox >>$LOGFILE 2>&1   
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new  --lun 0 --sku StandardSSD_LRS --size 63 >>$LOGFILE 2>&1
 }
 
 create_hana_vm () {
     printf '%s\n'
     echo "###-------------------------------------###"
     echo Creating VM $VMNAME in RG $RGNAME
-    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${DBSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-db --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} $SPOTINSTANCEPARAM  --tags SAPSID=${SAPSID} SAPHOSTTYPE=HANA HANASID=${HANASID} IMPORTANCE=Sandbox >>$LOGFILE 2>&1   
-    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --lun 0 --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
+    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${DBSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-db --nsg nsg-${AZLOCTLA}sap-${SIDLOWER}-db --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} $SPOTINSTANCEPARAM  --tags SAPSID=${SAPSID} SAPHOSTTYPE=HANA HANASID=${HANASID} IMPORTANCE=Sandbox >>$LOGFILE 2>&1   
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --lun 0 --sku StandardSSD_LRS --size 63 >>$LOGFILE 2>&1
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk2 --new --lun 1 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk3 --new --lun 2 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk4 --new --lun 3 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1  
@@ -394,5 +394,5 @@ echo "###-------------------------------------###"
 echo SAP VM deployment and ASCS installation complete, took $runtime seconds
 echo "Logfile of commands stored in " ${LOGFILE}
 echo "You can continue with script 3_install_DB_and_App.sh immediately"
-echo "Press ctrl+c to stop the running sleep loop"
+echo "Press ctrl+c to stop the running sleep loop and end script"
 sleep 99999

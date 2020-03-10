@@ -324,6 +324,6 @@ if [ $INSTALLAAS == 'true' ]; then
 fi
 echo "End of script reached"
 echo "Logfile of commands stored in " ${LOGFILE}
-echo "Press ctrl+c to stop the running sleep loop"
+echo "Press ctrl+c to stop the running sleep loop and end script"
 sleep 99999
 

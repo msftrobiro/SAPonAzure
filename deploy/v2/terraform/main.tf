@@ -1,6 +1,6 @@
 # Initalizes Azure rm provider
 provider "azurerm" {
-  version = "=2.0.0"
+  version = "~> 2.0"
   features {}
 }
 

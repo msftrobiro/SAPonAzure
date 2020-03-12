@@ -1,7 +1,6 @@
 # Initalizes Azure rm provider
 provider "azurerm" {
-  version = "~> 2.0"
-  features {}
+  version = "~> 1.36.1"
 }
 
 # Setup common infrastructure
@@ -74,7 +73,7 @@ module "output_files" {
 }
 
 resource "null_resource" "ansible_playbook" {
-  depends_on = [module.hdb_node.dbnode-data-disk-att, module.jumpbox.prepare-rti, module.jumpbox.vm-windows]
+  depends_on = [module.hdb_node.dbnodes, module.jumpbox.prepare-rti, module.jumpbox.vm-windows]
   connection {
     type        = "ssh"
     host        = module.jumpbox.rti-info.public_ip_address

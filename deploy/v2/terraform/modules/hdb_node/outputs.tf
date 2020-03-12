@@ -7,8 +7,8 @@ output "nics-dbnodes-db" {
 }
 
 # Workaround to create dependency betweeen ../main.tf ansible_execution and module hdb_node
-output "dbnode-data-disk-att" {
-  value = azurerm_virtual_machine_data_disk_attachment.vm-dbnode-data-disk
+output "dbnodes" {
+  value = azurerm_virtual_machine.vm-dbnode
 }
 
 output "loadbalancers" {

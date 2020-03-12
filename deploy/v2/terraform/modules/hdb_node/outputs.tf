@@ -10,3 +10,7 @@ output "nics-dbnodes-db" {
 output "dbnode-data-disk-att" {
   value = azurerm_virtual_machine_data_disk_attachment.vm-dbnode-data-disk
 }
+
+output "loadbalancers" {
+  value = azurerm_lb.hana-lb
+}

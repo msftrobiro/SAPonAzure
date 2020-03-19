@@ -2,7 +2,7 @@
 # continue on your jumpbox, NOT in your shell/cloud shell
 # ideally, 1_create_jumpbox.sh should have finished without problems
 # this script assumes everything is executed on the newly created jumpbox
-# version 0.3
+# version 0.4pre
 
 source parameters.txt
 LOGFILE=/tmp/3_install_DB_and_App.log
@@ -13,6 +13,12 @@ fi
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 HANALOWER=`echo $HANASID|awk '{print tolower($0)}'`
 starttime=`date +%s`
+
+# make sure azure cli is installed
+if ! [ -x "$(command -v az)" ]; then
+  echo 'Error: Azure CLI is not installed.  See: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli' >&2
+  exit 1
+fi
 
 # make sure azure cli is logged in
 if az account show | grep -m 1 "login"; then
@@ -30,12 +36,6 @@ if [ $? -ne 0 ];
     echo "###-------------------------------------###"
     echo "Azure cli logged on successfully"
     echo "###-------------------------------------###"
-fi
-
-# make sure azure cli is installed
-if ! [ -x "$(command -v az)" ]; then
-  echo 'Error: Azure CLI is not installed.  See: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli' >&2
-  exit 1
 fi
 
 az account set --subscription $AZSUB >>$LOGFILE 2>&1
@@ -62,7 +62,7 @@ db_install () {
     echo 'wget "'`download_url IMDB_CLIENT.SAR`'" -O /hana/shared/download/IMDB_CLIENT.SAR --quiet'  >> /tmp/${HANALOWER}_install_hana.sh
     echo 'wget "'`download_url IMDB_SERVER.SAR`'" -O /hana/shared/download/IMDB_SERVER.SAR --quiet'  >> /tmp/${HANALOWER}_install_hana.sh
     # doctor up the inifile
-    wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/install_files/hdb_install.rsp -O /tmp/${HANALOWER}_install_hana.params
+    wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/install_files/hdb_install.rsp --quiet -O /tmp/${HANALOWER}_install_hana.params
     sed -i  "/hostname=s01db1/ c\hostname= ${VMNAME}" /tmp/${HANALOWER}_install_hana.params
     sed -i  "/sid=H01/ c\sid=${HANASID}" /tmp/${HANALOWER}_install_hana.params
     sed -i  "/number=40/ c\number=${HDBNO}" /tmp/${HANALOWER}_install_hana.params
@@ -323,5 +323,8 @@ if [ $INSTALLAAS == 'true' ]; then
     echo AAS install of ${SAPSID} Netweaver 7.52 on ${VMNAME} completed in ${runtimepasinstall} seconds
     printf '%s\n'
 fi
-
+echo "End of script reached"
+echo "Logfile of commands stored in " ${LOGFILE}
+echo "Press ctrl+c to stop the running sleep loop and end script"
+sleep 99999
 

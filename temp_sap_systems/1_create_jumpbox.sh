@@ -10,8 +10,14 @@
 source $(dirname $0)/parameters.txt
 LOGFILE=$(dirname $0)/1_create_jumpbox.log
 starttime=`date +%s`
+USESPOTINSTANCES=`echo "$USESPOTINSTANCES" | awk '{print tolower($0)}'`
+if [[ $USESPOTINSTANCES -eq "true" ]]; then SPOTINSTANCEPARAM="--priority Spot --max-price ${SPOTINSTANCEPRICE}" ; fi
 
 az account set --subscription $AZSUB
+if [[ $? -ne 0 ]];
+    then echo "Is AZ CLI installed and authenticated? See prerequisites in script header"
+    exit 1
+fi
 if [[ -z $AZLOCTLA ]]; 
     then RGNAME=rg-${RESOURCEGROUP}
     else AZLOCTLA=${AZLOCTLA}-; RGNAME=rg-${AZLOCTLA}${RESOURCEGROUP}
@@ -69,8 +75,9 @@ echo Creating linux jumpbox VM
 VNETNAME=vnet-${AZLOCTLA}${RESOURCEGROUP}-hub
 VMNAME=vm-${AZLOCTLA}sap-jumpbox-lin
 VMTYPE=Standard_B2s
-VMIMAGE=OpenLogic:CentOS:7.7:latest
+VMIMAGE=OpenLogic:CentOS:8.0:latest
 az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 127 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking false --public-ip-address-dns-name $JUMPFQDN --public-ip-address-allocation dynamic --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-ssh >>$LOGFILE 2>&1   
+if [[ @? -ne 0 ]]; then echo "Some error during VM deployment occured"; echo "Check logfile "${LOGFILE}; exit 1; fi
 
 JUMPBOXFQDN=`az network public-ip list --resource-group $RGNAME|grep fqdn | awk '{print $2}'|sed 's/.\{2\}$//'|cut -c2-`
 
@@ -83,8 +90,9 @@ ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${JUMPBOXFQDN} -i `echo $ADMINUSRSSH|
 wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/2_create_SAP_infra.sh
 wget https://github.com/msftrobiro/SAPonAzure/raw/master/temp_sap_systems/3_install_DB_and_App.sh
 chmod uo+x 2_create_SAP_infra.sh  3_install_DB_and_App.sh
+sudo yum install epel-release -y
 sudo yum update -y
-sudo yum install -y jre xclock xauth screen
+sudo yum install -y jre xauth screen
 sudo su -
 rpm --import https://packages.microsoft.com/keys/microsoft.asc
 echo -e "[azure-cli]\nname=Azure CLI\nbaseurl=https://packages.microsoft.com/yumrepos/azure-cli\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/azure-cli.repo
@@ -109,5 +117,7 @@ echo Check $LOGFILE for any errors running az cli, also check in Portal for any 
 echo "### ------------ IMPORTANT -------------###"
 echo "To logon on jumpserver to continue with next script deploying infrastructure"
 echo ssh ${ADMINUSR}@${JUMPBOXFQDN} -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'`
+echo "Your local parameters.txt and scripts 2 and 3 are pulled from master branch in github already on this VM"
+echo Continue on VM with "screen -m -S sap2 ./2_create_SAP_infra.sh -L -Logfile screen_log_2.log"
 echo "###-------------------------------------###"
 printf '%s\n'

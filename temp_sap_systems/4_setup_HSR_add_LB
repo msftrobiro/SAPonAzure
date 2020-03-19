@@ -1,0 +1,71 @@
+#!/bin/bash
+# this script adds HANA replication between first and second DB node
+# adds a standard internal load balancer and changes SAP config to utilize the new virtual IP address
+# script should be called after right third script created DBs, loaded them and installed PAS/ASS instances
+# v0.4pre
+
+source parameters.txt
+LOGFILE=/tmp/4_setup_HSR_add_LB.log
+starttime=`date +%s`
+if [[ -z $AZLOCTLA ]]; 
+    then RGNAME=rg-${RESOURCEGROUP}
+    else AZLOCTLA=${AZLOCTLA}-; RGNAME=rg-${AZLOCTLA}${RESOURCEGROUP}
+fi
+SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
+HANALOWER=`echo $HANASID|awk '{print tolower($0)}'`
+az account set --subscription $AZSUB >>$LOGFILE 2>&1
+
+setup_hsr () {
+    echo "###-------------------------------------###"
+    echo "Enabling HANA System Replication"
+    echo sudo mkdir /hana/backup/db /hana/backup/logs > /tmp/setup_hsr.sh
+    echo sudo chown -R ${HANALOWER}adm:sapsys /hana/backup  >> /tmp/setup_hsr.sh
+    echo "sudo su - "${HANALOWER}"adm" >> /tmp/setup_hsr.sh
+    echo "hdbsql -i "${HDBNO}" -n localhost -u system -p "${MASTERPW}" -d systemdb -Ajm \"alter system alter configuration ('global.ini','SYSTEM') SET ('persistence','log_mode')='normal' with reconfigure;\"" >> /tmp/setup_hsr.sh
+    echo "hdbsql -i "${HDBNO}" -n localhost -u system -p "${MASTERPW}" -d "${HANASID}" -Ajm \"alter system alter configuration ('global.ini','SYSTEM') SET ('persistence','log_mode')='normal' with reconfigure;\"" >> /tmp/setup_hsr.sh
+    echo "hdbsql -i "${HDBNO}" -n localhost -u system -p "${MASTERPW}" -d systemdb -Ajm \"alter system alter configuration ('global.ini','SYSTEM') SET ('persistence','basepath_logbackup')='/hana/backup/logs' with reconfigure;\"" >> /tmp/setup_hsr.sh
+    echo "hdbsql -i "${HDBNO}" -n localhost -u system -p "${MASTERPW}" -d "${HANASID}" -Ajm \"alter system alter configuration ('global.ini','SYSTEM') SET ('persistence','basepath_logbackup')='/hana/backup/logs' with reconfigure;\"" >> /tmp/setup_hsr.sh
+    echo "hdbsql -i "${HDBNO}" -n localhost -u system -p "${MASTERPW}" -d systemdb -Ajm \"alter system alter configuration ('global.ini','SYSTEM') SET ('persistence','basepath_databackup')='/hana/backup/db' with reconfigure;\"" >> /tmp/setup_hsr.sh
+    echo "hdbsql -i "${HDBNO}" -n localhost -u system -p "${MASTERPW}" -d "${HANASID}" -Ajm \"alter system alter configuration ('global.ini','SYSTEM') SET ('persistence','basepath_databackup')='/hana/backup/db' with reconfigure;\"" >> /tmp/setup_hsr.sh
+    echo "hdbsql -i "${HDBNO}" -n localhost -u system -p "${MASTERPW}" -d "${HANASID}" -Ajm \"alter system alter configuration ('global.ini','SYSTEM') SET ('persistence','basepath_databackup')='/hana/backup/db' with reconfigure;\"" >> /tmp/setup_hsr.sh
+    echo "hdbsql -i "${HDBNO}" -n localhost -u system -p "${MASTERPW}" -d systemdb -Ajm \"backup data using file (' "`date +backup%Y%m%d-%H%M`" ')\"" > /tmp/setup_hsr_primary.sh
+    echo "hdbsql -i "${HDBNO}" -n localhost -u system -p "${MASTERPW}" -d "${HANASID}" -Ajm \"backup data using file ('"`date +backup%Y%m%d-%H%M`" ')\"" >> /tmp/setup_hsr_primary.sh
+    echo "hdbnsutil -sr_enable --name="${HANASID}"1" >> /tmp/setup_hsr_primary.sh
+    echo "HDB stop" > /tmp/setup_hsr_secondary.sh
+    echo "rm /usr/sap/"${HANASID}"/SYS/global/security/rsecssfs/data/SSFS*" 
+    echo "hdbnsutil -sr_register --name="${HANASID}"2 --remoteHost="${SIDLOWER}"db01 --remoteInstance="${HDBNO}" --replicationMode=sync --remoteName="${HANASID}"1 --operationMode=logreplay" >> /tmp/setup_hsr_secondary.sh
+    echo "HDB start" >> /tmp/setup_hsr_secondary.sh
+}
+if [ $INSTALLDB2 == 'true' ]; then
+    setup_hsr
+    ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${SIDLOWER}db01 -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
+    `cat /tmp/setup_hsr.sh`
+    `cat /tmp/setup_hsr_primary.sh`
+EOF
+    ssh -oStrictHostKeyChecking=no ${ADMINUSR}@${SIDLOWER}db02 -i `echo $ADMINUSRSSH|sed 's/.\{4\}$//'` << EOF
+    `cat /tmp/setup_hsr.sh`
+    `cat /tmp/setup_hsr_secondary.sh`
+EOF
+fi
+
+# setup load balancer
+LBNAME=LB-${AZLOCTLA}-${SIDLOWER}-ascs-ext
+VNETNAME=VNET-${AZLOCTLA}-${RESOURCEGROUP}-sap
+az network public-ip create --resource-group $RGNAME --name ${LBNAME}-pip --sku standard
+az network lb create --resource-group $RGNAME --name $LBNAME --public-ip-address ${LBNAME}-publicIP --frontend-ip-name ${LBNAME}-fepool --backend-pool-name ${LBNAME}-bepool --sku standard
+az network lb probe create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-HealthProbe --protocol tcp --port 36${ASCSNO}   
+az network lb rule create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-HTTPRule --protocol tcp --frontend-port 36${ASCSNO} --backend-port 36${ASCSNO} --frontend-ip-name ${LBNAME}-fepool --backend-pool-name ${LBNAME}-bepool --probe-name ${LBNAME}-HealthProbe  
+az network nic update --resource-group $RGNAME --name VM-${AZLOCTLA}-${SIDLOWER}ascs01VMNIC --lb-name $LBNAME --lb-address-pool ${LBNAME}-bepool
+az network nic update --resource-group $RGNAME --name VM-${AZLOCTLA}-${SIDLOWER}ascs02VMNIC --lb-name $LBNAME --lb-address-pool ${LBNAME}-bepool
+
+LBNAME=LB-${AZLOCTLA}-${SIDLOWER}-ascs-int
+az network ip create --resource-group $RGNAME --name ${LBNAME}-ip --sku standard
+az network lb create --resource-group $RGNAME --name $LBNAME --public-ip-address ${LBNAME}-publicIP --frontend-ip-name ${LBNAME}-fepool --backend-pool-name ${LBNAME}-bepool --sku standard
+az network lb probe create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-HealthProbe --protocol tcp --port 36${ASCSNO}   
+az network lb rule create --resource-group $RGNAME --lb-name $LBNAME --name ${LBNAME}-HTTPRule --protocol tcp --frontend-port 36${ASCSNO} --backend-port 36${ASCSNO} --frontend-ip-name ${LBNAME}-fepool --backend-pool-name ${LBNAME}-bepool --probe-name ${LBNAME}-HealthProbe  
+az network nic update --resource-group $RGNAME --name VM-${AZLOCTLA}-${SIDLOWER}ascs01VMNIC --lb-name $LBNAME --lb-address-pool ${LBNAME}-bepool
+az network nic update --resource-group $RGNAME --name VM-${AZLOCTLA}-${SIDLOWER}ascs02VMNIC --lb-name $LBNAME --lb-address-pool ${LBNAME}-bepool
+
+#az network public-ip show --resource-group $RGNAME --name ${LBNAME}-publicIP --query [ipAddress] --output table
+
+# curl -H Metadata:true "http://169.254.169.254/metadata/instance/compute/vmSize?api-version=2017-08-01&format=text"fgv

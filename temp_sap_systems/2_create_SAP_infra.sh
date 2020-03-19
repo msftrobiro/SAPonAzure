@@ -2,9 +2,11 @@
 # continue on your jumpbox, NOT in your shell/cloud shell
 # ideally, 1_create_jumpbox.sh should have finished without problems
 # this script assumes everything is executed on the newly created jumpbox
-# version 0.3  
+# version 0.4pre  
 # last major change: added ERS install but only non-interactive
 
+source parameters.txt
+sed -i "/ADMINUSRSSH/ c\ADMINUSRSSH=/home/"${ADMINUSR}"/.ssh/id_rsa.pub" parameters.txt
 source parameters.txt
 LOGFILE=/tmp/2_create_SAP_infra.log
 if [[ -z $AZLOCTLA ]]; 
@@ -37,16 +39,22 @@ create_app_vm () {
     printf '%s\n'
     echo "###-------------------------------------###"
     echo Creating VM $VMNAME in RG $RGNAME
-    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} >>$LOGFILE 2>&1   
-    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new  --lun 0 --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
+    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --nsg nsg-${AZLOCTLA}sap-${SIDLOWER}-app --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} $SPOTINSTANCEPARAM  --tags SAPSID=${SAPSID} SAPHOSTTYPE=${SAPHOSTTYPE} IMPORTANCE=Sandbox >>$LOGFILE 2>&1   
+    if [ $? -ne 0 ]; then
+        echo "Some error occured VM creation for "${VMNAME}", exiting"; exit 1
+    fi
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new  --lun 0 --sku StandardSSD_LRS --size 63 >>$LOGFILE 2>&1
 }
 
 create_hana_vm () {
     printf '%s\n'
     echo "###-------------------------------------###"
     echo Creating VM $VMNAME in RG $RGNAME
-    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${DBSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-db --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} >>$LOGFILE 2>&1   
-    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --lun 0 --sku StandardSSD_LRS --size 65 >>$LOGFILE 2>&1
+    az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${DBSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-db --nsg nsg-${AZLOCTLA}sap-${SIDLOWER}-db --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} $SPOTINSTANCEPARAM  --tags SAPSID=${SAPSID} SAPHOSTTYPE=HANA HANASID=${HANASID} IMPORTANCE=Sandbox >>$LOGFILE 2>&1   
+    if [ $? -ne 0 ]; then
+        echo "Some error occured VM creation for "${VMNAME}", exiting"; exit 1
+    fi
+    az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --lun 0 --sku StandardSSD_LRS --size 63 >>$LOGFILE 2>&1
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk2 --new --lun 1 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk3 --new --lun 2 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk4 --new --lun 3 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1  
@@ -124,6 +132,23 @@ else
     fullURL=${STORACCURL}${1}${STORSAS}
 fi
 echo $fullURL
+}
+
+check_download_url () {
+echo "###-------------------------------------###"
+echo "Checking your provided SAS token/URL for blob download"
+echo "###-------------------------------------###"
+wget "`download_url sapcar_linux`" -O /tmp/delete_sapcar --quiet
+if [[ $? -ne 0 ]];
+    then 
+    echo "ERROR - problem downloading file"
+    echo "URL used: "`download_url sapcar_linux`
+    exit 1
+else
+    rm /tmp/delete_sapcar
+    echo "Test of SAS token/URL successfull"
+    echo "This however does not check if all files are present with expected blob names"
+fi
 }
 
 create_installfile_ascs () {
@@ -248,39 +273,51 @@ printf '%s\n'
 EOF
 }
 
-# aaaaaand action
+# end of function definition
+# check section should be extended
+check_download_url
+
 SIDLOWER=`echo $SAPSID|awk '{print tolower($0)}'`
 VNETNAME=vnet-${AZLOCTLA}${RESOURCEGROUP}-sap
 VMIMAGE=SUSE:SLES-SAP:12-sp4:latest
 VMTYPE=Standard_E8s_v3
 DBSUBNET=`echo $SAPIP|sed 's/.\{5\}$//'`
+USESPOTINSTANCES=`echo "$USESPOTINSTANCES" | awk '{print tolower($0)}'`
+if [[ $USESPOTINSTANCES -eq "true" ]]; then SPOTINSTANCEPARAM="--priority Spot --max-price ${SPOTINSTANCEPRICE}" ; fi
 
 create_ppg
 
 if [ $INSTALLDB2 == 'true' ]; then
     for i in 1 2 
     do
-    ip=14${i}; VMNAME=vm-${AZLOCTLA}${SIDLOWER}db0${i} 
+    ip=14${i}
+    VMNAME=vm-${AZLOCTLA}${SIDLOWER}db0${i} 
     create_hana_vm
     done
 else
-    i=1; ip=141; VMNAME=vm-${AZLOCTLA}${SIDLOWER}db0${i}
-   create_hana_vm
+    i=1
+    ip=141
+    VMNAME=vm-${AZLOCTLA}${SIDLOWER}db0${i}
+    create_hana_vm
 fi
 
 VMTYPE=Standard_D4s_v3
 APPLSUBNET=`echo ${SAPIP}|sed 's/.\{5\}$//'`
+SAPHOSTTYPE=ASCS
 if [ $INSTALLERS == 'true' ] ; then
     for i in 1 2 
     do
-    ip=1${i}; VMNAME=vm-${AZLOCTLA}${SIDLOWER}ascs0${i}
+    ip=1${i}
+    VMNAME=vm-${AZLOCTLA}${SIDLOWER}ascs0${i}
     create_app_vm
     done
 else
-    i=1; ip=11; VMNAME=vm-${AZLOCTLA}${SIDLOWER}ascs0${i}
+    i=1; ip=11
+    VMNAME=vm-${AZLOCTLA}${SIDLOWER}ascs0${i}
     create_app_vm
 fi
 
+SAPHOSTTYPE=AppServer
 if [ $INSTALLAAS == 'true' ]; then
     for i in 1 2 
     do
@@ -365,5 +402,5 @@ echo "###-------------------------------------###"
 echo SAP VM deployment and ASCS installation complete, took $runtime seconds
 echo "Logfile of commands stored in " ${LOGFILE}
 echo "You can continue with script 3_install_DB_and_App.sh immediately"
-echo "For example:     screen -m -S sap1 ./3_install_DB_and_App.sh"
-printf '%s\n'
+echo "Press ctrl+c to stop the running sleep loop and end script"
+sleep 99999

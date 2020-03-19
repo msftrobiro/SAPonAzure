@@ -6,6 +6,8 @@
 # last major change: added ERS install but only non-interactive
 
 source parameters.txt
+sed -i "/ADMINUSRSSH/ c\ADMINUSRSSH=/home/"${ADMINUSR}"/.ssh/id_rsa.pub" parameters.txt
+source parameters.txt
 LOGFILE=/tmp/2_create_SAP_infra.log
 if [[ -z $AZLOCTLA ]]; 
     then RGNAME=rg-${RESOURCEGROUP}
@@ -38,6 +40,9 @@ create_app_vm () {
     echo "###-------------------------------------###"
     echo Creating VM $VMNAME in RG $RGNAME
     az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${APPLSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-appl --nsg nsg-${AZLOCTLA}sap-${SIDLOWER}-app --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} $SPOTINSTANCEPARAM  --tags SAPSID=${SAPSID} SAPHOSTTYPE=${SAPHOSTTYPE} IMPORTANCE=Sandbox >>$LOGFILE 2>&1   
+    if [ $? -ne 0 ]; then
+        echo "Some error occured VM creation for "${VMNAME}", exiting"; exit 1
+    fi
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new  --lun 0 --sku StandardSSD_LRS --size 63 >>$LOGFILE 2>&1
 }
 
@@ -46,6 +51,9 @@ create_hana_vm () {
     echo "###-------------------------------------###"
     echo Creating VM $VMNAME in RG $RGNAME
     az vm create --name $VMNAME --resource-group $RGNAME  --os-disk-name ${VMNAME}-osdisk --os-disk-size-gb 63 --storage-sku StandardSSD_LRS --size $VMTYPE --vnet-name $VNETNAME  --location $AZLOC --accelerated-networking true --public-ip-address '' --private-ip-address ${DBSUBNET}.${ip} --image $VMIMAGE --admin-username=$ADMINUSR --ssh-key-value=$ADMINUSRSSH --subnet=${VNETNAME}-db --nsg nsg-${AZLOCTLA}sap-${SIDLOWER}-db --zone $i --ppg ppg-${AZLOCTLA}${SIDLOWER}-zone${i} $SPOTINSTANCEPARAM  --tags SAPSID=${SAPSID} SAPHOSTTYPE=HANA HANASID=${HANASID} IMPORTANCE=Sandbox >>$LOGFILE 2>&1   
+    if [ $? -ne 0 ]; then
+        echo "Some error occured VM creation for "${VMNAME}", exiting"; exit 1
+    fi
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk1 --new --lun 0 --sku StandardSSD_LRS --size 63 >>$LOGFILE 2>&1
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk2 --new --lun 1 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1
     az vm disk attach --resource-group $RGNAME --vm-name $VMNAME --name ${VMNAME}-datadisk3 --new --lun 2 --sku Premium_LRS --size 127 >>$LOGFILE 2>&1
@@ -276,7 +284,6 @@ VMTYPE=Standard_E8s_v3
 DBSUBNET=`echo $SAPIP|sed 's/.\{5\}$//'`
 USESPOTINSTANCES=`echo "$USESPOTINSTANCES" | awk '{print tolower($0)}'`
 if [[ $USESPOTINSTANCES -eq "true" ]]; then SPOTINSTANCEPARAM="--priority Spot --max-price ${SPOTINSTANCEPRICE}" ; fi
-
 
 create_ppg
 

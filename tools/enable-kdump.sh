@@ -82,6 +82,13 @@ ReplaceLowHighInGrubFile()
     # load /etc/default/grub value in env variables to append crashkernel high, low value
     source /etc/default/grub
 
+    #check if the GRUB_CMDLINE_LINUX_DEFAULT parameter exist in /etc/default/grub file
+    egrep "^GRUB_CMDLINE_LINUX_DEFAULT" /etc/default/grub
+    if [[ "$?" == "1" ]]; then # in this case append the parameter to the file
+        echo "GRUB_CMDLINE_LINUX_DEFAULT=\"\"" >> /etc/default/grub
+        ExitIfFailed $? "Enable to add GRUB_CMDLINE_LINUX_DEFAULT parameter in /etc/default/grub"
+    fi
+
     # append crashkernel high,low value to GRUB_CMDLINE_LINUX_DEFAULT
     GRUB_CMDLINE_LINUX_DEFAULT="\"$GRUB_CMDLINE_LINUX_DEFAULT crashkernel=$high_to_use\M,high crashkernel=$Low\M,low\""
 

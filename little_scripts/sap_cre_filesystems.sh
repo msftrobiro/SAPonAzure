@@ -36,7 +36,7 @@ display_usage () {
     echo "Script needs to be executed by an user which can non-interactively sudo restricted commands"
     echo "-------------------------------------------------------------------------------------------"
     echo "Parameters required:"
-    echo "Firts parmeter specifies the VM size, using Azure's VM SKU names. Allow values are all Mv1/Mv2 and certified E series VMs"
+    echo "First parmeter specifies the VM size, using Azure's VM SKU names. Allow values are all Mv1/Mv2 and certified E series VMs"
     echo "Second parameter specifies type of storage used. Allowed values prod|costoptimized|ultra|demo|appserver"
     echo "prod - uses PremiumSSD for all disks, production ready sizing"
     echo "costoptimized - uses joint HANA data+log volume group, not production ready and no single-VM SLA"
@@ -213,7 +213,7 @@ create_vglv_format_appserver () {
 
 
 # end of function declaration, actual script execution
-if [[ $1 == "-usage" ||  $1 == "-h"  ||  $1 == "-help" ||  $1 == "-?"  || $1 == "--help" ]]
+if [[ $1 == "-usage" || $1 == "--usage" ||  $1 == "-h"  ||  $1 == "-help" ||  $1 == "-?"  || $1 == "--help" ]]
     then
         display_usage
         exit 0

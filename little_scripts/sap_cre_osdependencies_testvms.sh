@@ -1,5 +1,5 @@
 #!/bin/bash
-azSub=$mySubID
+azSub=$myAzSubId
 azLoc=westeurope
 azLocShort=euw
 workload=saposdep
@@ -31,10 +31,9 @@ vmName=vm-${azLocShort}-${workload}-rhel-payg
 deploy_vm
 
 # RHEL BYOS
-vmImage=RedHat:rhel-byos:rhel-lvm76:latest
-vmName=vm-${azLocShort}-${workload}-rhel-byos
-deploy_vm
-
+# vmImage=RedHat:rhel-byos:rhel-lvm76:latest
+# vmName=vm-${azLocShort}-${workload}-rhel-byos
+# deploy_vm
 
 # SLES BYOS
 vmImage=SUSE:sles-15-sp1-byos:gen1:latest

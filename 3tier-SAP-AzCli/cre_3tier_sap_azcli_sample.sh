@@ -49,7 +49,7 @@ az vm disk attach -g $rgName --vm-name $vmName --name ${vmName}-datadisk0 --sku 
 
 # deploy Appserver
 deploy_vm $vmSapAppName $vmSapAppSize ${vnetName}-appl
-az vm disk attach -ge $rgName --vm-name $vmName --name ${vmName}-datadisk0 --sku Premium_LRS --size 64 --lun 0 --new --caching None
+az vm disk attach -g $rgName --vm-name $vmName --name ${vmName}-datadisk0 --sku Premium_LRS --size 64 --lun 0 --new --caching None
 
 # deploy DB
 deploy_vm $vmSapDbName $vmSapDbSize ${vnetName}-db

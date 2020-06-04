@@ -41,13 +41,11 @@ locals {
   ]
 
   # RTI information with default count 1
-  rti = length([
-    for jumpbox in var.jumpboxes.linux : jumpbox
+  rti_updated = [
+    for jumpbox in var.jumpboxes.linux : merge({ "private_ip_address" = "" }, jumpbox)
     if jumpbox.destroy_after_deploy == "true"
-    ]) > 0 ? [
-    for jumpbox in var.jumpboxes.linux : jumpbox
-    if jumpbox.destroy_after_deploy == "true"
-    ] : [
+  ]
+  rti = length(local.rti_updated) > 0 ? local.rti_updated : [
     {
       "name"                 = "rti",
       "destroy_after_deploy" = "true",
@@ -64,7 +62,8 @@ locals {
       },
       "components" = [
         "ansible"
-      ]
+      ],
+      "private_ip_address" = ""
     }
   ]
 

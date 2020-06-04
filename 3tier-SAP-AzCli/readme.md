@@ -10,6 +10,14 @@
 
 ## What this is **NOT**:
 - In any way directly affiliated with Microsoft or endorsed by Microsoft. All opinions and statements contained herein are private and not necessarility the opinion of my employer, Microsoft.
+- Script does not contain other crucial elements
+    - NSG rules
+    - tags
+    - static IP handling
+    - VM boot diagnostics
+    - Monitoring/logging
+    - DNS for vnets
+    - many more I forget right now
 - To be used for production deployments, read the disclaimer.
 - No software installation automation example, it is purely IaaS components
 

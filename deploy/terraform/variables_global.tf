@@ -1,3 +1,8 @@
+variable "application" {
+  description = "Details of the Application layer"
+  default     = {}
+}
+
 variable "databases" {
   description = "Details of the HANA database nodes"
   default     = []

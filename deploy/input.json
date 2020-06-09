@@ -6,6 +6,11 @@
       "arm_id": "",
       "name": ""
     },
+    "ppg": {
+      "is_existing": "",
+      "name": "",
+      "arm_id": ""
+    },
     "vnets": {
       "management": {
         "is_existing": "",

@@ -43,5 +43,5 @@ output "nics-iscsi" {
 }
 
 output "ppg" {
-  value =azurerm_proximity_placement_group.ppg
+  value = var.infrastructure.ppg.is_existing ? data.azurerm_proximity_placement_group.ppg : azurerm_proximity_placement_group.ppg
 }

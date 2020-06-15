@@ -60,6 +60,17 @@ if [[ "$?" == "1" ]]; then # in this case append the parameter to the file
     ExitIfFailed $? "Enable to add GRUB_CMDLINE_LINUX_DEFAULT parameter in /etc/default/grub"
 fi
 
+AddNumaSettingInKdumpConfFile()
+{
+    source /etc/sysconfig/kdump
+    # check if the KDUMP_COMMANDLINE_APPEND env contains numa=off setting
+    echo $KDUMP_COMMANDLINE_APPEND | grep "numa=off"
+    if [[ "$?" == "1" ]]; then # numa=off setting does not exist
+        KDUMP_COMMANDLINE_APPEND="\"$KDUMP_COMMANDLINE_APPEND numa=off\""
+        sed -i "s#^KDUMP_COMMANDLINE_APPEND=\".*\"#KDUMP_COMMANDLINE_APPEND=$KDUMP_COMMANDLINE_APPEND#gI" /etc/sysconfig/kdump
+    fi
+}
+
 ReplaceParamsInGrubFile()
 {
     # get low and high value reported by kdumptool calibrate
@@ -133,6 +144,10 @@ if [[ "$?" == "1" ]]; then # can be case 2,3,4
     # case 2,3,4
     ReplaceParamsInGrubFile
 fi
+
+# numa=off setting in kdump configuraiton file if it's
+# not present already
+AddNumaSettingInKdumpConfFile
 
 # set KDUMP_SAVEDIR to file:///var/crash in /etc/sysconfig/kdump
 sed -i "s#^KDUMP_SAVEDIR=\".*\"#KDUMP_SAVEDIR=\"file:\/\/\/var\/crash\"#gI" /etc/sysconfig/kdump

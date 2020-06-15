@@ -141,7 +141,9 @@ sed -i "s#^KDUMP_SAVEDIR=\".*\"#KDUMP_SAVEDIR=\"file:\/\/\/var\/crash\"#gI" /etc
 sed -i "s/^KDUMP_DUMPLEVEL=[0-9]*/KDUMP_DUMPLEVEL=31/gI" /etc/sysconfig/kdump
 
 # set kernel.sysrq to 184(recommended)
-echo 184 > /proc/sys/kernel/sysrq
+# remove kernel.syrq entry if exist in /etc/sysctl.conf
+sed -i "s/^kernel.sysrq=[0-9]*//gI" /etc/sysctl.conf
+echo "kernel.sysrq=184" >> /etc/sysctl.conf
 ExitIfFailed $? "Failed to set kernel.sysrq value to 184"
 
 # update the changes in /boot/grub2/grub.cfg so that after reboot these changes reflect in /proc/cmdline

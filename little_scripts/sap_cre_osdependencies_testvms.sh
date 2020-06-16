@@ -5,7 +5,7 @@ azLocShort=euw
 workload=saposdep
 rgName=rg-${azLocShort}-${workload}
 vmAdminUser=bob
-vmSize=Standard_DS12_v2
+vmSize=Standard_D2_v2
 vnetName=vnet-${azLocShort}-${workload}
 subnetName=${vnetName}_sub1
 subnetAddressPrefix=10.240.0.0/25
@@ -36,7 +36,7 @@ deploy_vm
 # deploy_vm
 
 # SLES BYOS
-vmImage=SUSE:sles-15-sp1-byos:gen1:latest
+vmImage=SUSE:sles-sap-15-sp1-byos:gen1:latest
 vmName=vm-${azLocShort}-${workload}-sles-byos
 deploy_vm
 

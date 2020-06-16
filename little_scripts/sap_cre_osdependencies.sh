@@ -4,23 +4,68 @@
 # OS parameters (SAP notes) are not to be set as they change too much
 # saptune/sapconf/tuned --> done, sapconf
 # check IO scheduler  
-# check and print filesystems, strip size, striping, disks used
-# OS kernel version --> just use uname -r
+# OS kernel version --> done
 # OS type  --> done, version and payg/byos
 # firewalld/selinux --> done
 # transparent huge pages --> done
 # numa balancing --> done
 # create swap --> done
 # check for ADE encryption (no easy swap)  
-# 
-# needs to work 
+#
+# Usage:
+# Script expects to run by either root directly or by a user which can sudo without prompted for password
 
 
-is_curl_installed () {
+is_curl_installed () 
+{
         if ! hash curl 2>/dev/null ; then
                 logfunc.logError "Curl is not installed"
                 logfunc.exit 1 "Please install curl from your OS update repositories and re-run this script again"
         fi
+}
+
+display_usage () 
+{
+        logfunc.logInfo "########################################################################################################"
+        logfunc.logInfo "Correct usage - script needs to run by either root direct or user which can sudo without password prompt"
+        logfunc.logInfo "No parameters are needed or expected for typical usage"
+        logfunc.logInfo "Optional parameters are: "
+        logfunc.logInfo "-o <path+filename> to save output to a file"
+        logfunc.logInfo "--no-swap to only print but not change OS swap file size"
+        logfunc.logInfo "########################################################################################################"
+}
+
+
+check_io_scheduler ()
+{
+        check_io_scheduler.disk_type ()
+        {
+                disk_type_scsi_info=$(lsblk /dev/${1} -nd -o hctl)
+                case $(echo $disk_type_scsi_info | cut -d: -f3,4) in 
+                        "0:0")
+                                disk_type="OS root"
+                                ;;
+                        "1:0")
+                                disk_type="OS resource disk"
+                                ;;
+                        *)
+                                disk_type="Data disk"
+                                ;;
+                esac
+        }
+
+                logfunc.logInfo "Listing IO scheduler info for all disks"
+                scheduler_details=0
+                disk_type=0
+                azure_lun=0
+        for i in $(lsblk -I 8 -nd -o name)
+        do
+                scheduler_details=$(cat /sys/block/${i}/queue/scheduler | grep -Po '\[\K[^]]*')
+                check_io_scheduler.disk_type $i 
+                [[ $disk_type == 'Data disk' ]] && azure_lun=$(lsblk /dev/${i} -nd -o hctl | cut -d: -f4)
+                [[ $disk_type == 'Data disk' ]] && logfunc.logInfo "/dev/"${i} " :" $disk_type ":  Azure LUN="${azure_lun} ":  OS I/O scheduler in use="${scheduler_details}
+                [[ $disk_type == OS* ]] && logfunc.logInfo "/dev/"${i} " :" $disk_type ":  OS I/O scheduler in use="${scheduler_details}
+        done
 }
 
 
@@ -62,6 +107,7 @@ get_os_type_and_version ()
 
         logfunc.logInfo "OS information:" $os_pretty_name
         logfunc.logInfo "OS_NAME VERSION:" $os_azure_image_offer $os_version
+        logfunc.logInfo "OS_KERNEL_VERSION:" $(uname -r)
 }
 
 run_sapconf () 
@@ -104,7 +150,15 @@ check_transparent_hugepages ()
 {
                 logfunc.logInfo "Checking for transparent hugepages setting"
         transp_hugepages=$(cat /sys/kernel/mm/transparent_hugepage/enabled | grep -Po '\[\K[^]]*')
-        [ $transp_hugepages == 'never' ] && logfunc.logPass "Transparent hugepages are correctly set to" $transp_hugepages || logfunc.logError "Transparent hugepages are incorrectly set to " ${transp_hugepages}", correct value is never"
+        if [ $transp_hugepages == 'never' ]; then
+                logfunc.logPass "Transparent hugepages are correctly set to" $transp_hugepages
+        else
+                logfunc.logError "Transparent hugepages are incorrectly set to " ${transp_hugepages}", correct value is never"
+                logfunc.logInfo "Setting value to never for current boot"
+                echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled 1>/dev/null
+                logfunc.logWarn "Setting permanent setting for transparaent hugepages to never"
+                sudo grub2-editenv - set "transparent_hugepage=never"
+        fi
 }
 
 
@@ -160,20 +214,25 @@ set_swap ()
 {
         vm_mem_mb=$(( $(cat /proc/meminfo | grep MemTotal | awk '{printf $2 }') / 1024 ))
         if $(mountpoint /mnt/resource -q); then
-                        logfunc.logInfo "Setting swap"
-                        logfunc.logPass "Resource disk is mounted"
+                logfunc.logInfo "Setting up swap"
+                logfunc.logPass "Resource disk is mounted"
                 resource_disk_mb=$(df -m /mnt/resource | grep resource | awk '{printf $2}')
-                        logfunc.logInfo "Resource disk on this VM has" $resource_disk_mb "MiB size"
+                logfunc.logInfo "Resource disk on this VM has" $resource_disk_mb "MiB size"
                 sudo sed -i '/ResourceDisk.EnableSwap=n/ c\ResourceDisk.EnableSwap=y' /etc/waagent.conf
                 ideal_swap_size=$(( vm_mem_mb / 2 > 20480 ? 20480 : vm_mem_mb /2 ))
                 ideal_swap_size=$(( $ideal_swap_size > $resource_disk_mb ? $resource_disk_mb - 2048 : ideal_swap_size ))
+                if [ $doNotChangeSwap == 'y' ]; then
+                        logfunc.logInfo "Parameter to not touch swap is set, no further swap changes"
+                        logfunc.logInfo "Current swap size" $(( $(cat /proc/meminfo | grep SwapTotal | awk '{printf $2 }') / 1024 )) "MiB"
+                else 
                         logfunc.logInfo "Setting swap size in /etc/waagent.conf to" $ideal_swap_size "MiB"
-                sudo sed -i '/ResourceDisk.SwapSizeMB=/ c\ResourceDisk.SwapSizeMB='$ideal_swap_size /etc/waagent.conf
+                        sudo sed -i '/ResourceDisk.SwapSizeMB=/ c\ResourceDisk.SwapSizeMB='$ideal_swap_size /etc/waagent.conf
                         logfunc.logInfo "Restarting WAagent to activate swap"
-                sudo systemctl restart waagent
-                sleep 1
-                active_swap_size=$(( $(free | awk '/^Swap:/ { printf $2 }') / 1024 ))
+                        sudo systemctl restart waagent
+                        sleep 1
+                        active_swap_size=$(( $(free | awk '/^Swap:/ { printf $2 }') / 1024 ))
                         logfunc.logInfo "Swapsize now active with size " $active_swap_size "MiB"
+                fi
         else   
                 logfunc.logError "Resource disk is not mounted"
                 logfunc.logError "Check /var/log/waagent.log why resource disk is missing"
@@ -181,6 +240,33 @@ set_swap ()
                 logfunc.exit 1 "Resource disk is missing"
         fi
                
+}
+
+
+parse_script_options ()
+{
+        while [ $# -gt 0 ]
+        do
+                case $1 in 
+                        "-h" | "-help" | "--help" | "-?")
+                                shift
+                                display_usage
+                                logfunc.exit 0 "Exiting script"
+                                ;;
+                        "-o")
+                                shift
+                                useLogfile=y
+                                shift
+                                logFileLocation=$1
+                                ;;
+                        "--no-swap")
+                                shift
+                                doNotChangeSwap=y
+                                ;;
+                        *)
+                                logfunc.exit 1 "Unknown parameter supplied. Use -h to display usage."
+                esac
+        done
 }
 
 
@@ -245,8 +331,10 @@ logfunc ()
 main() 
 {
         logfunc # done, can add file logger
+        parse_script_options "$@" # done
         is_curl_installed  # done
         get_os_type_and_version # done
+        check_io_scheduler # done, no lvm info yet
         set_swap # done
         check_firewalld # done
         check_selinux # done
@@ -260,4 +348,4 @@ main()
 }
 
 # end function declarations
-main
+main "$@"

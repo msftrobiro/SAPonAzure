@@ -41,11 +41,11 @@ check_io_scheduler ()
         check_io_scheduler.disk_type ()
         {
                 disk_type_scsi_info=$(lsblk /dev/${1} -nd -o hctl)
-                case $(echo $disk_type_scsi_info | cut -d: -f3,4) in 
-                        "0:0")
+                case $disk_type_scsi_info in 
+                        "2:0:0:0")
                                 disk_type="OS root"
                                 ;;
-                        "1:0")
+                        "3:0:1:0")
                                 disk_type="OS resource disk"
                                 ;;
                         *)
@@ -255,9 +255,9 @@ parse_script_options ()
                                 ;;
                         "-o")
                                 shift
-                                useLogfile=y
-                                shift
+                                useLogFile=y
                                 logFileLocation=$1
+                                shift
                                 ;;
                         "--no-swap")
                                 shift
@@ -272,16 +272,12 @@ parse_script_options ()
 
 logfunc () 
 {
-
-        {
-                if [[ useLogfile == "y" ]];
-                then 
-                        touch /tmp/${logFileLocation}
-                        exec 3> "/tmp/${logFileLocation}"
-                else   
-                        exec 3> "/dev/null"
-                fi
-        }
+        if [[ $useLogFile == "y" ]]; then 
+                touch ${logFileLocation}
+                exec 3> "${logFileLocation}"
+        else   
+                exec 3> "/dev/null"
+        fi
 
         logfunc.logWrite()
         {
@@ -330,17 +326,18 @@ logfunc ()
 
 main() 
 {
-        logfunc # done, can add file logger
-        parse_script_options "$@" # done
-        is_curl_installed  # done
-        get_os_type_and_version # done
+        logfunc 
+        parse_script_options "$@" 
+        logfunc # do again, in case logging is enabled
+        is_curl_installed  
+        get_os_type_and_version 
         check_io_scheduler # done, no lvm info yet
-        set_swap # done
-        check_firewalld # done
-        check_selinux # done
-        run_sapconf # done
-        check_uuidd # done
-        check_transparent_hugepages # done, check only
+        set_swap 
+        check_firewalld 
+        check_selinux 
+        run_sapconf # sles only
+        check_uuidd 
+        check_transparent_hugepages 
         check_numa_balancing # done, check only
         check_for_ade ### unfinished
         

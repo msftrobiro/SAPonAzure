@@ -221,7 +221,7 @@ set_swap ()
                 sudo sed -i '/ResourceDisk.EnableSwap=n/ c\ResourceDisk.EnableSwap=y' /etc/waagent.conf
                 ideal_swap_size=$(( vm_mem_mb / 2 > 20480 ? 20480 : vm_mem_mb /2 ))
                 ideal_swap_size=$(( $ideal_swap_size > $resource_disk_mb ? $resource_disk_mb - 2048 : ideal_swap_size ))
-                if [ $doNotChangeSwap == 'y' ]; then
+                if [[ $doNotChangeSwap == 'y' ]]; then
                         logfunc.logInfo "Parameter to not touch swap is set, no further swap changes"
                         logfunc.logInfo "Current swap size" $(( $(cat /proc/meminfo | grep SwapTotal | awk '{printf $2 }') / 1024 )) "MiB"
                 else 

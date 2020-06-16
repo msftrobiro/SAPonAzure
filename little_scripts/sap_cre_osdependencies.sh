@@ -69,20 +69,25 @@ run_sapconf ()
         run_sapconf.installed ()
         {
                if [ -f /etc/sysconfig/sapconf ]; then
-                        logfunc.logPass "Sapconf is installed on this VM"
+                        logfunc.logPass "Sapconf is installed on this VM, executing"
+                        sapconf_installed=y
                 else
                         logfunc.logWarn "Sapconf is NOT installed on this VM"
-                        [ echo $os_offer | grep -iq "sles-sap" ] || logfunc.logWarn "OS is NOT build on SLES-SAP offer and does not offer sapconf"
+                        echo $os_offer | grep -iq "sles-sap"  || logfunc.logWarn "OS is NOT build on SLES-SAP offer and does not offer sapconf"
+                        sapconf_installed=n
                 fi
         }
 
         if [ $os_vendor == "sles" ]; then
-                run_sapconf.installed && sudo systemctl restart sapconf
+                logfunc.logInfo "Checking for sapconf status and executing if installed"
+                run_sapconf.installed
+                [ $sapconf_installed == 'y' ] && sudo systemctl restart sapconf
         fi
 }
 
 check_uuidd ()
 {
+                logfunc.logInfo "Checking for UUIDD status"
         if [ $(sudo systemctl show -p ActiveState uuidd | cut -d '=' -f2) == 'inactive' ] && [ $(sudo systemctl show -p SubState uuidd | cut -d '=' -f2) == 'dead' ]; then
                 logfunc.logError "UUIDD is not active"
                 uuidd_active=n
@@ -97,6 +102,7 @@ check_uuidd ()
 
 check_transparent_hugepages () 
 {
+                logfunc.logInfo "Checking for transparent hugepages setting"
         transp_hugepages=$(cat /sys/kernel/mm/transparent_hugepage/enabled | grep -Po '\[\K[^]]*')
         [ $transp_hugepages == 'never' ] && logfunc.logPass "Transparent hugepages are correctly set to" $transp_hugepages || logfunc.logError "Transparent hugepages are incorrectly set to " ${transp_hugepages}", correct value is never"
 }
@@ -104,6 +110,7 @@ check_transparent_hugepages ()
 
 check_numa_balancing () 
 {
+                logfunc.logInfo "Checking for NUMA balancing"
         numa_balancing=$(cat /proc/sys/kernel/numa_balancing)
         [ $numa_balancing == '0' ] && logfunc.logPass "NUMA balancing is turned off" || logfunc.logError "NUMA balancing is enabled, must be turned off"
 }
@@ -111,13 +118,14 @@ check_numa_balancing ()
 
 check_for_ade () 
 {
-        logfunc.logInfo "Checking for Azure Disk Encryption usage"
+                logfunc.logInfo "Checking for Azure Disk Encryption usage"
         # dunno how, yet
 }
 
 
 check_firewalld ()
 {
+                logfunc.logInfo "Checking for Firewall status"
         if [ $(sudo systemctl show -p ActiveState firewalld | cut -d '=' -f2) == 'inactive' ] && [ $(sudo systemctl show -p SubState firewalld | cut -d '=' -f2) == 'dead' ]; then
                 logfunc.logPass "OS Firewall daemon is not active"
                 os_firewall_active=n
@@ -155,17 +163,17 @@ set_swap ()
                         logfunc.logInfo "Setting swap"
                         logfunc.logPass "Resource disk is mounted"
                 resource_disk_mb=$(df -m /mnt/resource | grep resource | awk '{printf $2}')
-                        logfunc.logInfo "Resource disk on this VM has" "${resource_disk_mb}" "MiB size"
+                        logfunc.logInfo "Resource disk on this VM has" $resource_disk_mb "MiB size"
                 sudo sed -i '/ResourceDisk.EnableSwap=n/ c\ResourceDisk.EnableSwap=y' /etc/waagent.conf
                 ideal_swap_size=$(( vm_mem_mb / 2 > 20480 ? 20480 : vm_mem_mb /2 ))
                 ideal_swap_size=$(( $ideal_swap_size > $resource_disk_mb ? $resource_disk_mb - 2048 : ideal_swap_size ))
-                        logfunc.logInfo "Setting swap size in /etc/waagent.conf to" ${ideal_swap_size} "MiB"
+                        logfunc.logInfo "Setting swap size in /etc/waagent.conf to" $ideal_swap_size "MiB"
                 sudo sed -i '/ResourceDisk.SwapSizeMB=/ c\ResourceDisk.SwapSizeMB='$ideal_swap_size /etc/waagent.conf
                         logfunc.logInfo "Restarting WAagent to activate swap"
                 sudo systemctl restart waagent
                 sleep 1
                 active_swap_size=$(( $(free | awk '/^Swap:/ { printf $2 }') / 1024 ))
-                        logfunc.logInfo "Swapsize now active with size "${active_swap_size}" MiB"
+                        logfunc.logInfo "Swapsize now active with size " $active_swap_size "MiB"
         else   
                 logfunc.logError "Resource disk is not mounted"
                 logfunc.logError "Check /var/log/waagent.log why resource disk is missing"

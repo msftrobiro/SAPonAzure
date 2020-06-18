@@ -17,8 +17,7 @@ Master Branch's status: [![Build Status](https://dev.azure.com/azuresaphana/Azur
    - Start the ansible playbook<sup>[1](#myfootnote1)</sup>:
 
     ```bash
-    ansible-playbook -i hosts ~/sap-hana/deploy/ansible/sap_playbook.yml 
-    ``` 
+    ansible-playbook -i hosts.yml ~/sap-hana/deploy/ansible/sap_playbook.yml
+    ```
 
 <sup>[1](#myfootnote1): The ansible playbook currently configures the VMs without HANA installation.</sup>
-

@@ -38,6 +38,18 @@ variable "loadbalancers" {
   description = "List of LoadBalancers created for HANA Databases"
 }
 
+variable "hdb-sids" {
+  description = "List of SIDs used when generating Load Balancers"
+}
+
+variable "nics-scs" {
+  description = "List of NICs for the SCS Application VMs"
+}
+
+variable "nics-app" {
+  description = "List of NICs for the Application Instance VMs"
+}
+
 locals {
   ips-iscsi                    = var.nics-iscsi[*].private_ip_address
   ips-jumpboxes-windows        = var.nics-jumpboxes-windows[*].private_ip_address
@@ -55,6 +67,7 @@ locals {
           authentication = database.authentication,
           name           = "${dbnode.name}-0"
         }
+        if database.platform == "HANA"
       ],
       [
         for dbnode in database.dbnodes : {
@@ -63,8 +76,10 @@ locals {
           authentication = database.authentication,
           name           = "${dbnode.name}-1"
         }
-        if database.high_availability
+        if database.platform == "HANA" && database.high_availability
       ]
     ])
   ])
+  ips-scs = [for key, value in var.nics-scs : value.private_ip_address]
+  ips-app = [for key, value in var.nics-app : value.private_ip_address]
 }

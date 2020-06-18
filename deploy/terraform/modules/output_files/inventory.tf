@@ -53,7 +53,7 @@ resource "local_file" "output-json" {
         } if local.dbnodes[index(local.ips-dbnodes-admin, ip-dbnode-admin)].platform == database.platform
       ],
       loadbalancer = {
-        frontend_ip = var.loadbalancers[index(var.databases, database)].private_ip_address
+        frontend_ip = var.loadbalancers[index(var.hdb-sids, database.instance.sid)].private_ip_address
       }
       }
     ],
@@ -83,8 +83,31 @@ resource "local_file" "ansible-inventory" {
     ips-jumpboxes-linux   = local.ips-jumpboxes-linux,
     ips-dbnodes-admin     = local.ips-dbnodes-admin,
     ips-dbnodes-db        = local.ips-dbnodes-db,
-    dbnodes               = local.dbnodes
+    dbnodes               = local.dbnodes,
+    application           = var.application,
+    ips-scs               = local.ips-scs,
+    ips-app               = local.ips-app
     }
   )
   filename = "${terraform.workspace}/ansible_config_files/hosts"
+}
+
+# Generates the Ansible Inventory file
+resource "local_file" "ansible-inventory-yml" {
+  content = templatefile("${path.module}/ansible_inventory.yml.tmpl", {
+    iscsi                 = lookup(var.infrastructure, "iscsi", {}),
+    jumpboxes-windows     = var.jumpboxes.windows,
+    jumpboxes-linux       = var.jumpboxes-linux,
+    ips-iscsi             = local.ips-iscsi,
+    ips-jumpboxes-windows = local.ips-jumpboxes-windows,
+    ips-jumpboxes-linux   = local.ips-jumpboxes-linux,
+    ips-dbnodes-admin     = local.ips-dbnodes-admin,
+    ips-dbnodes-db        = local.ips-dbnodes-db,
+    dbnodes               = local.dbnodes,
+    application           = var.application,
+    ips-scs               = local.ips-scs,
+    ips-app               = local.ips-app
+    }
+  )
+  filename = "${terraform.workspace}/ansible_config_files/hosts.yml"
 }

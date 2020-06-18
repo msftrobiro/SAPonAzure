@@ -7,8 +7,9 @@ resource "null_resource" "prepare_rti_files" {
   depends_on = [module.output_files.ansible-inventory, module.output_files.output-json, module.jumpbox.prepare-rti]
 
   triggers = {
-    hosts  = sha1(local.file_hosts)
-    output = sha1(local.file_output)
+    hosts     = sha1(local.file_hosts)
+    hosts_yml = sha1(local.file_hosts_yml)
+    output    = sha1(local.file_output)
   }
 
   connection {
@@ -56,7 +57,7 @@ resource "null_resource" "ansible_playbook" {
       "export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES",
       "export ANSIBLE_HOST_KEY_CHECKING=False",
       "source ~/export-clustering-sp-details.sh",
-      "ansible-playbook -i hosts ~/sap-hana/deploy/ansible/sap_playbook.yml"
+      "ansible-playbook -i hosts.yml ~/sap-hana/deploy/ansible/sap_playbook.yml"
     ]
   }
 }

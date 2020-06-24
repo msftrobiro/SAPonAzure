@@ -87,8 +87,7 @@ module "output_files" {
   nics-dbnodes-admin           = module.hdb_node.nics-dbnodes-admin
   nics-dbnodes-db              = module.hdb_node.nics-dbnodes-db
   loadbalancers                = module.hdb_node.loadbalancers
-  hdb-sid                      = module.hdb_node.hdb-sid
-  hana-database-info           = module.hdb_node.hana-database-info
+  hdb-sids                     = module.hdb_node.hdb-sids
   nics-scs                     = module.app_tier.nics-scs
   nics-app                     = module.app_tier.nics-app
   nics-web                     = module.app_tier.nics-web

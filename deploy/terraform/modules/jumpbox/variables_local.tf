@@ -67,9 +67,11 @@ locals {
     }
   ]
 
-  hdb_list = [
-    for db in var.databases : db
-    if try(db.platform, "NONE") == "HANA"
-  ]
-  hana-sid = try(local.hdb_list[0].instance.sid, "")
+  hana-sid = length([
+    for database in var.databases : database
+    if database.platform == "HANA"
+    ]) > 0 ? element([
+    for database in var.databases : database.instance.sid
+    if database.platform == "HANA"
+  ], 0) : ""
 }

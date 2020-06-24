@@ -10,12 +10,8 @@ output "loadbalancers" {
   value = azurerm_lb.hana-lb
 }
 
-output "hdb-sid" {
-  value = local.hana_database.instance.sid
-}
-
-output "hana-database-info" {
-  value = try(local.enable_deployment ? local.hana_database : map(false), {})
+output "hdb-sids" {
+  value = local.hdb-sids
 }
 
 # Workaround to create dependency betweeen ../main.tf ansible_execution and module hdb_node

@@ -115,7 +115,7 @@ run_sapconf ()
         run_sapconf.installed ()
         {
                if [ -f /etc/sysconfig/sapconf ]; then
-                        logfunc.logPass "Sapconf is installed on this VM, executing"
+                        logfunc.logPass "Sapconf is installed on this VM, restarting to set all values"
                         sapconf_installed=y
                 else
                         logfunc.logWarn "Sapconf is NOT installed on this VM"
@@ -339,7 +339,7 @@ main()
         check_uuidd 
         check_transparent_hugepages 
         check_numa_balancing # done, check only
-        check_for_ade ### unfinished
+#        check_for_ade ### unfinished
         
         logfunc.exit 0 "Script finished successfully"
 }

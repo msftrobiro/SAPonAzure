@@ -69,7 +69,7 @@
     "enable_deployment": true,
     "scs_instance_number": "01",
     "ers_instance_number": "02",
-    "scs_high_availability": true,
+    "scs_high_availability": false,
     "application_server_count": 1,
     "webdispatcher_count": 1,
     "authentication": {
@@ -77,11 +77,9 @@
       "username": "azureadm"
     },
     "os": {
-      "os_type": "Linux",
-      "publisher": "suse",
-      "offer": "sles-sap-12-sp5",
-      "sku": "gen1",
-      "version": "latest"
+      "source_image_id": "/subscriptions/xxx/resourceGroups/xxx/providers/Microsoft.Compute/images/xxx",
+      "//": "os_type is required if source_image_id is used. Possible value: Linux, Windows",
+      "os_type": "Linux"
     }
   },
   "software": {

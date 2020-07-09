@@ -69,18 +69,19 @@
     "enable_deployment": true,
     "scs_instance_number": "01",
     "ers_instance_number": "02",
-    "scs_high_availability": true,
+    "scs_high_availability": false,
     "application_server_count": 1,
     "webdispatcher_count": 1,
     "authentication": {
-      "type": "key",
-      "username": "azureadm"
+      "type": "password",
+      "username": "azureadm",
+      "password": "Sap@hana2019!"
     },
     "os": {
-      "os_type": "Linux",
-      "publisher": "suse",
-      "offer": "sles-sap-12-sp5",
-      "sku": "gen1",
+      "os_type": "Windows",
+      "publisher": "MicrosoftWindowsServer",
+      "offer": "WindowsServer",
+      "sku": "2016-Datacenter-smalldisk",
       "version": "latest"
     }
   },

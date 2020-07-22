@@ -13,7 +13,6 @@ variable "scenario" {
   default     = "HANA Database"
 }
 
-
 # Set defaults
 locals {
   hdb_list = [

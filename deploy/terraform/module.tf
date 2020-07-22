@@ -1,7 +1,4 @@
-/*
-  Description:
-  Setup common infrastructure
-*/
+# Setup common infrastructure
 module "common_infrastructure" {
   source              = "./modules/common_infrastructure"
   is_single_node_hana = "true"
@@ -16,7 +13,7 @@ module "common_infrastructure" {
   subnet-sap-admin    = module.hdb_node.subnet-sap-admin
 }
 
-// Create Jumpboxes and RTI box
+# Create Jumpboxes and RTI box
 module "jumpbox" {
   source            = "./modules/jumpbox"
   application       = var.application
@@ -36,7 +33,7 @@ module "jumpbox" {
   random-id         = module.common_infrastructure.random-id
 }
 
-// Create HANA database nodes
+# Create HANA database nodes
 module "hdb_node" {
   source           = "./modules/hdb_node"
   application      = var.application
@@ -55,7 +52,7 @@ module "hdb_node" {
   ppg              = module.common_infrastructure.ppg
 }
 
-// Create Application Tier nodes
+# Create Application Tier nodes
 module "app_tier" {
   source           = "./modules/app_tier"
   application      = var.application
@@ -73,7 +70,7 @@ module "app_tier" {
   ppg              = module.common_infrastructure.ppg
 }
 
-// Generate output files
+# Generate output files
 module "output_files" {
   source                       = "./modules/output_files"
   application                  = var.application

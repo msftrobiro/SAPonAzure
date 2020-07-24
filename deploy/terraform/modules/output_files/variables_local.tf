@@ -66,6 +66,19 @@ variable "nics-web" {
   description = "List of NICs for the Web dispatcher VMs"
 }
 
+# Any DB
+variable "nics-anydb" {
+  description = "List of NICs for the Web dispatcher VMs"
+}
+
+variable "anydb-loadbalancers" {
+  description = "List of LoadBalancers created for HANA Databases"
+}
+
+variable "any-database-info" {
+  description = "Updated anydb database json"
+}
+
 locals {
   ips-iscsi                    = var.nics-iscsi[*].private_ip_address
   ips-jumpboxes-windows        = var.nics-jumpboxes-windows[*].private_ip_address
@@ -103,4 +116,32 @@ locals {
   ips-scs = [for key, value in var.nics-scs : value.private_ip_address]
   ips-app = [for key, value in var.nics-app : value.private_ip_address]
   ips-web = [for key, value in var.nics-web : value.private_ip_address]
+
+  ips-anydbnodes = [for key, value in var.nics-anydb : value.private_ip_address]
+  anydatabases = [
+    var.any-database-info
+  ]
+  anydb_vms = flatten([
+    for adatabase in local.anydatabases : flatten([
+      [
+        for dbnode in adatabase.dbnodes : {
+          role           = dbnode.role,
+          platform       = upper(adatabase.platform),
+          authentication = adatabase.authentication,
+          name           = "${dbnode.name}-00"
+        }
+        if contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], upper(try(adatabase.platform, "NONE")))
+      ],
+      [
+        for dbnode in adatabase.dbnodes : {
+          role           = dbnode.role,
+          platform       = upper(adatabase.platform),
+          authentication = adatabase.authentication,
+          name           = "${dbnode.name}-01"
+        }
+        if adatabase.high_availability && contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], upper(try(adatabase.platform, "NONE")))
+      ]
+    ])
+    if adatabase != {}
+  ])
 }

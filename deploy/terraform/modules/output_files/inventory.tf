@@ -32,33 +32,60 @@ resource "local_file" "output-json" {
         }
       ]
     },
-    "databases" = [for database in local.databases : {
-      platform          = database.platform,
-      db_version        = database.db_version,
-      os                = database.os,
-      size              = database.size,
-      filesystem        = database.filesystem,
-      high_availability = database.high_availability,
-      instance          = database.instance,
-      authentication    = database.authentication,
-      credentials       = database.credentials,
-      components        = database.components,
-      xsa               = database.xsa,
-      shine             = database.shine,
-      nodes = [for ip-dbnode-admin in local.ips-dbnodes-admin : {
-        // Hostname is required for Ansible, therefore set dbname from resource name to hostname
-        dbname       = replace(local.hdb_vms[index(local.ips-dbnodes-admin, ip-dbnode-admin)].name, "_", "")
-        ip_admin_nic = ip-dbnode-admin,
-        ip_db_nic    = local.ips-dbnodes-db[index(local.ips-dbnodes-admin, ip-dbnode-admin)]
-        role         = local.hdb_vms[index(local.ips-dbnodes-admin, ip-dbnode-admin)].role
-        } if local.hdb_vms[index(local.ips-dbnodes-admin, ip-dbnode-admin)].platform == database.platform
+    "databases" = flatten([
+      [
+        for database in local.databases : {
+          platform          = database.platform,
+          db_version        = database.db_version,
+          os                = database.os,
+          size              = database.size,
+          filesystem        = database.filesystem,
+          high_availability = database.high_availability,
+          instance          = database.instance,
+          authentication    = database.authentication,
+          credentials       = database.credentials,
+          components        = database.components,
+          xsa               = database.xsa,
+          shine             = database.shine,
+          nodes = [for ip-dbnode-admin in local.ips-dbnodes-admin : {
+            // Hostname is required for Ansible, therefore set dbname from resource name to hostname
+            dbname       = replace(local.hdb_vms[index(local.ips-dbnodes-admin, ip-dbnode-admin)].name, "_", "")
+            ip_admin_nic = ip-dbnode-admin,
+            ip_db_nic    = local.ips-dbnodes-db[index(local.ips-dbnodes-admin, ip-dbnode-admin)]
+            role         = local.hdb_vms[index(local.ips-dbnodes-admin, ip-dbnode-admin)].role
+            } if local.hdb_vms[index(local.ips-dbnodes-admin, ip-dbnode-admin)].platform == database.platform
+          ],
+          loadbalancer = {
+            frontend_ip = var.loadbalancers[0].private_ip_address
+          }
+        }
+        if database != {}
       ],
-      loadbalancer = {
-        frontend_ip = var.loadbalancers[0].private_ip_address
-      }
-      }
-      if database != {}
-    ],
+      [
+        for database in local.anydatabases : {
+          platform          = database.platform,
+          db_version        = database.db_version,
+          os                = database.os,
+          size              = database.size,
+          filesystem        = database.filesystem,
+          high_availability = database.high_availability,
+          authentication    = database.authentication,
+          credentials       = database.credentials,
+          nodes = [for ip-anydbnode in local.ips-anydbnodes : {
+            # Check for maximum length and for "_"
+            dbname    = substr(replace(local.anydb_vms[index(local.ips-anydbnodes, ip-anydbnode)].name, "_", ""), 0, 13)
+            ip_db_nic = local.ips-anydbnodes[index(local.ips-anydbnodes, ip-anydbnode)],
+            role      = local.anydb_vms[index(local.ips-anydbnodes, ip-anydbnode)].role
+            } if upper(local.anydb_vms[index(local.ips-anydbnodes, ip-anydbnode)].platform) == upper(database.platform)
+          ],
+          loadbalancer = {
+            frontend_ip = var.anydb-loadbalancers[0].private_ip_address
+          }
+        }
+        if database != {}
+      ]
+      ]
+    ),
     "software" = merge(var.software_w_defaults, {
       storage_account_sapbits = {
         name                = var.storage-sapbits[0].name,
@@ -91,6 +118,8 @@ resource "local_file" "ansible-inventory" {
     ips-scs               = local.ips-scs,
     ips-app               = local.ips-app,
     ips-web               = local.ips-web
+    anydbnodes            = local.anydb_vms,
+    ips-anydbnodes        = local.ips-anydbnodes
     }
   )
   filename             = "${terraform.workspace}/ansible_config_files/hosts"
@@ -114,6 +143,8 @@ resource "local_file" "ansible-inventory-yml" {
     ips-scs               = local.ips-scs,
     ips-app               = local.ips-app,
     ips-web               = local.ips-web
+    anydbnodes            = local.anydb_vms,
+    ips-anydbnodes        = local.ips-anydbnodes
     }
   )
   filename             = "${terraform.workspace}/ansible_config_files/hosts.yml"

@@ -28,7 +28,6 @@ readonly input_file_term='<JSON template name>'
 
 readonly target_code="${target_path}/terraform/run/sap_landscape"
 
-
 function main()
 {
 	# default to empty string when 0 args supplied

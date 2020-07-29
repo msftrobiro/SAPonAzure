@@ -60,7 +60,10 @@ locals {
       },
       "authentication" = {
         "type"     = "key",
-        "username" = try(deployer.authentication.username, "azureadm")
+        "username" = try(deployer.authentication.username, "azureadm"),
+        "sshkey" = {
+          "path_to_private_key" = "~/.ssh/id_rsa"
+        }
       },
       "components" = [
         "terraform",
@@ -68,6 +71,13 @@ locals {
       ],
       "private_ip_address" = try(deployer.private_ip_address, cidrhost(local.sub_mgmt_deployed.address_prefixes[0], idx + 4))
     }
+  ]
+
+  // Deployer(s) information with updated pip
+  deployers_updated = [
+    for idx, deployer in local.deployers : merge({
+      "public_ip_address" = azurerm_public_ip.deployer[idx].ip_address
+    }, deployer)
   ]
 
 }

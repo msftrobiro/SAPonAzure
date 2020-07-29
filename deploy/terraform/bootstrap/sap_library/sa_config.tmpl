@@ -1,0 +1,14 @@
+{
+  "deployer": {
+    "resource_group_name": "${saplibrary-resource-group}",
+    "storage_account_name": "${tfstate-storage-account-name}",
+    "container_name": "deployer",
+    "key": "deployer.terraform.tfstate"
+  },
+  "saplibrary": {
+    "resource_group_name": "${saplibrary-resource-group}",
+    "storage_account_name": "${tfstate-storage-account-name}",
+    "container_name": "saplibrary",
+    "key": "saplibrary.terraform.tfstate"
+  }
+}

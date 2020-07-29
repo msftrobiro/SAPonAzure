@@ -40,3 +40,35 @@ resource "azurerm_network_security_rule" "nsr-ssh" {
   source_address_prefixes      = local.sub_mgmt_nsg_allowed_ips
   destination_address_prefixes = local.sub_mgmt_deployed.address_prefixes
 }
+
+// Add RDP network security rule
+resource "azurerm_network_security_rule" "nsr-rdp" {
+  count                        = local.enable_deployers && ! local.sub_mgmt_nsg_exists ? 1 : 0
+  name                         = "rdp"
+  resource_group_name          = local.sub_mgmt_nsg_deployed.resource_group_name
+  network_security_group_name  = local.sub_mgmt_nsg_deployed.name
+  priority                     = 102
+  direction                    = "Inbound"
+  access                       = "allow"
+  protocol                     = "Tcp"
+  source_port_range            = "*"
+  destination_port_range       = 3389
+  source_address_prefixes      = local.sub_mgmt_nsg_allowed_ips
+  destination_address_prefixes = local.sub_mgmt_deployed.address_prefixes
+}
+
+// Add WinRM network security rule
+resource "azurerm_network_security_rule" "nsr-winrm" {
+  count                        = local.enable_deployers && ! local.sub_mgmt_nsg_exists ? 1 : 0
+  name                         = "winrm"
+  resource_group_name          = local.sub_mgmt_nsg_deployed.resource_group_name
+  network_security_group_name  = local.sub_mgmt_nsg_deployed.name
+  priority                     = 103
+  direction                    = "Inbound"
+  access                       = "allow"
+  protocol                     = "Tcp"
+  source_port_range            = "*"
+  destination_port_ranges      = [5985, 5986]
+  source_address_prefixes      = local.sub_mgmt_nsg_allowed_ips
+  destination_address_prefixes = local.sub_mgmt_deployed.address_prefixes
+}

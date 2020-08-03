@@ -33,8 +33,6 @@ function deployer_remote_backend_init(){
     -backend-config "key=${deployer_tfstate_name}"
 
     terraform state push "${deployer_tfstate_name}"
-
-    rm "${deployer_tfstate_name}"
 }
 
 main "$@"

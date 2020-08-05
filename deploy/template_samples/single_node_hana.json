@@ -94,17 +94,7 @@
         "ha_cluster_password": ""
       },
       "components": {
-        "hana_database": [],
-        "hana_client_linux": [],
-        "xs": [
-          "xsac_alm_pi_ui",
-          "xsac_portal_serv",
-          "xsac_services",
-          "xsac_ui5_fesv5",
-          "xsac_ui5_sb",
-          "xsac_xsa_cockpit"
-        ],
-        "shine": []
+        "hana_database": []
       },
       "xsa": {
         "routing": "ports"

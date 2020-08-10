@@ -16,19 +16,32 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 local_file_dir="${SCRIPTPATH}/../"
 
 function main(){
+
+    validate_arguments "$@"
+
+    local workspace=$1
+    local sid=$2
     
     check_jq_installed
 
     check_file_exists ${target_json}
 
     local storage_account_name=$(read_json .saplibrary.storage_account_name)
-    local container_name=$(read_json .saplibrary.container_name)
-    local remote_file_name="saplibrary.json"
+    local container_name="sapsystem"
+    local remote_file_name="${workspace}_${sid}.json"
     # The path of remote file can be updated based on actual needs
-    local remote_file_path="saplibrary.json"
+    local remote_file_path="${workspace}/${sid}/${remote_file_name}"
     local local_file_path="${local_file_dir}${remote_file_name}"
 
-    json_download ${local_file_path} ${storage_account_name} ${container_name} ${remote_file_path}    
+    json_download ${local_file_path} ${storage_account_name} ${container_name} ${remote_file_path}
+}
+
+function validate_arguments(){
+
+    if [ "$#" -ne 2 ]; then
+        printf "%s\n" "ERROR: Both workspace and SID should be specified. Usage example: util/download_input.sh PROD HN1" >&2
+        exit 1
+    fi
 }
 
 function read_json(){
@@ -73,19 +86,19 @@ function check_jq_installed(){
 }
 
 function json_download(){
-
+    
     local local_file_path=$1
     local storage_account_name=$2
     local container_name=$3
     local remote_file_path=$4
 
     az login --identity > /dev/null
-
+    
     printf "%s\n" "Check if ${remote_file_path} exists in storage accounts"
 
     remote_state_exists=$(az storage blob exists -c ${container_name} --name ${remote_file_path} --account-name ${storage_account_name} | jq -r .exists)
     if [ $remote_state_exists = true ]; then
-        printf "%s\n" "INFO: remote file ${remote_file_path} exists" 
+        printf "%s\n" "INFO: remote file ${remote_file_path} exists"
     else
         printf "%s\n" "ERROR: remote file ${remote_file_path} does not exist. storage account name = ${storage_account_name}; container name = ${container_name}" >&2
         exit 1

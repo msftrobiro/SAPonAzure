@@ -21,11 +21,11 @@ function main(){
 
     check_file_exists ${target_json}
 
-    local storage_account_name=$(read_json .saplibrary.storage_account_name)
-    local container_name=$(read_json .saplibrary.container_name)
-    local remote_file_name="saplibrary.json"
+    local storage_account_name=$(read_json .deployer.storage_account_name)
+    local container_name=$(read_json .deployer.container_name)
+    local remote_file_name="deployer.json"
     # The path of remote file can be updated based on actual needs
-    local remote_file_path="saplibrary.json"
+    local remote_file_path="deployer.json"
     local local_file_path="${local_file_dir}${remote_file_name}"
 
     json_download ${local_file_path} ${storage_account_name} ${container_name} ${remote_file_path}    
@@ -85,7 +85,7 @@ function json_download(){
 
     remote_state_exists=$(az storage blob exists -c ${container_name} --name ${remote_file_path} --account-name ${storage_account_name} | jq -r .exists)
     if [ $remote_state_exists = true ]; then
-        printf "%s\n" "INFO: remote file ${remote_file_path} exists" 
+        printf "%s\n" "INFO: remote file ${remote_file_path} exists"
     else
         printf "%s\n" "ERROR: remote file ${remote_file_path} does not exist. storage account name = ${storage_account_name}; container name = ${container_name}" >&2
         exit 1

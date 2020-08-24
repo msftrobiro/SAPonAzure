@@ -8,21 +8,6 @@ output "sapbits_storage_account" {
   value     = module.sap_library.sapbits_storage_account
 }
 
-output "storagecontainer_sapsystem" {
-  sensitive = true
-  value     = module.sap_library.storagecontainer_sapsystem
-}
-
-output "storagecontainer_saplandscape" {
-  sensitive = true
-  value     = module.sap_library.storagecontainer_saplandscape
-}
-
-output "storagecontainer_deployer" {
-  sensitive = true
-  value     = module.sap_library.storagecontainer_deployer
-}
-
 output "storagecontainer_saplibrary" {
   sensitive = true
   value     = module.sap_library.storagecontainer_saplibrary

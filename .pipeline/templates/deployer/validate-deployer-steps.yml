@@ -1,0 +1,20 @@
+steps:
+  - script: |
+      repo_path=$(pwd)
+      deployer_rg=${{parameters.deployer_rg_name}}
+      ws_dir=$(Agent.BuildDirectory)/azure_sap_automated_deployment/workspaces/local/${deployer_rg}
+      input=${ws_dir}/${deployer_rg}.json
+
+      git checkout $(sourceBranchName)
+
+      cd ${ws_dir}
+      terraform plan -var-file=${input} ${repo_path}/deploy/terraform/bootstrap/sap_deployer/ > plan_output.log
+      cat plan_output.log
+      
+      if ! grep "No changes" plan_output.log; then exit 1; fi;
+    displayName: "Validate deployer new config"
+    env:
+      ARM_CLIENT_ID: $(hana-pipeline-spn-id)
+      ARM_CLIENT_SECRET: $(hana-pipeline-spn-pw)
+      ARM_TENANT_ID: $(landscape-tenant)
+      ARM_SUBSCRIPTION_ID: $(landscape-subscription)

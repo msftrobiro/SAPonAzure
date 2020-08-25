@@ -1,0 +1,26 @@
+steps:
+  - script: |
+      az login --service-principal --user $(hana-pipeline-spn-id) --password $(hana-pipeline-spn-pw) --tenant $(landscape-tenant) --output none
+
+      git checkout ${{parameters.branch_name}}
+      repo_path=$(pwd)
+
+      deployer_rg=${{parameters.deployer_rg_name}}
+      ws_dir=$(Agent.BuildDirectory)/azure_sap_automated_deployment/workspaces/local/${deployer_rg}
+
+      echo "=== Start to delete deployer with terraform destroy ==="
+      cd ${ws_dir}
+      terraform destroy -auto-approve -var-file=${deployer_rg}.json ${repo_path}/deploy/terraform/bootstrap/sap_deployer/
+      
+      echo "=== Mark and try to delete rg  ==="
+      az group update --resource-group ${{parameters.deployer_rg_name}} --set tags.Delete=True --output none
+      az group delete -n ${{parameters.deployer_rg_name}} --no-wait -y
+
+      exit 0
+    displayName: "Delete new deployer"
+    condition: or(succeededOrFailed(), always())
+    env:
+      ARM_CLIENT_ID: $(hana-pipeline-spn-id)
+      ARM_CLIENT_SECRET: $(hana-pipeline-spn-pw)
+      ARM_TENANT_ID: $(landscape-tenant)
+      ARM_SUBSCRIPTION_ID: $(landscape-subscription)

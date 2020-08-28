@@ -20,7 +20,7 @@ source "${SCRIPTPATH}/common_utils.sh"
 readonly auth_script="export-clustering-sp-details.sh"
 
 # Terraform workspace to save the script into
-readonly terraform_workspace="$( terraform workspace show )"
+readonly terraform_workspace="$(dirname "$BASH_SOURCE")"
 
 # link for service principal help
 readonly sp_link='https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli'

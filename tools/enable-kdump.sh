@@ -9,6 +9,12 @@ ExitIfFailed()
     fi
 }
 
+ExitIfLunNotFound()
+{
+    echo "Failed to identify dedicated lun for kdump"
+    exit 1
+}
+
 # operating system supported by this script
 supported_os=(
     "SLES"
@@ -23,6 +29,63 @@ supported_version=( "12-SP2"
     "15-SP1"
     "15-SP2"
 )
+
+# scan the added lun and mount that to /var/crash
+# A race condition requires that rescan-scsi-bus.sh be run twice
+# if logical units are mapped for the first time. During the first scan,
+# rescan-scsi-bus.sh only adds LUN0; all other logical units are added in the second scan.
+# refer https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/5/html/online_storage_reconfiguration_guide/rescan-scsi-bus
+for i in {0..1}
+do
+    rescan-scsi-bus.sh
+    ExitIfFailed $? "Unable to scan lun"
+done
+
+# sg_scan -i command will give mapping for the devices
+# output look like
+# /dev/sg32: scsi17 channel=0 id=3 lun=3
+#    NETAPP    LUN C-Mode        9600 [rmb=0 cmdq=1 pqual=0 pdev=0x0]
+# where lun=3 is the lun id
+# so in order to fetch the dedicated kdump lun which is attached to lun_id=3
+# we need to parse the SAN id and then map that id to device id in os
+# in above example SAN id is /dev/sg32
+san_disk=$(sg_scan -i | grep lun=3 | awk 'FNR==1'| egrep -o "^[ ]{0,}\/dev\/[a-z0-9]*")
+if [[ "$san_disk" == "" ]]; then
+    ExitIfLunNotFound
+fi
+
+# get the actual device using san_disk id
+# sg_map -sd show mapping to disk
+# output of sg_map -sd is like:
+# /dev/sg1  /dev/sda
+# /dev/sg2  /dev/sdb
+device=$(sg_map -sd | grep $san_disk | egrep -o "[ ]{1,}\/dev\/[a-z0-9]*"| sed -e 's/^[[:space:]]*//')
+if [[ "$device" == "" ]]; then
+    ExitIfLunNotFound
+fi
+
+# now use udevadm info --query=all --name /dev/id
+# to get the mapper id
+
+id=$(udevadm info --query=all --name $device | grep "ID_SERIAL=" | egrep -o "[a-z0-9]{1,}")
+if [[ "$id" == "" ]]; then
+    ExitIfLunNotFound
+fi
+
+lun_dev_mapper="/dev/mapper/$id"
+
+# format a disk
+mkfs.xfs -f $lun_dev_mapper
+ExitIfFailed $? "Unable format kdump dedicated lun"
+
+# add entry in the /etc/fstab to mount the kdump lun
+# on reboot
+echo "$lun_dev_mapper /var/crash xfs defaults 0 0" >> /etc/fstab
+ExitIfFailed $? "Unable to add lun mount entry in /etc/fstab"
+
+# mount the kdump dedicated lun
+mount $lun_dev_mapper /var/crash
+ExitIfFailed $? "Unable to mount kdump dedicated lun"
 
 # get OS name and OS version
 # /etc/os-release file has this information

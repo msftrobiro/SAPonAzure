@@ -46,13 +46,13 @@ locals {
   region         = try(local.var_infra.region, "")
   landscape      = try(var.infrastructure.landscape, "")
   location_short = try(var.region_mapping[local.region], "unkn")
-  prefix         = lower(format("%s-%s", local.landscape, local.location_short))
+  prefix         = upper(format("%s-%s", local.landscape, local.location_short))
 
   // Resource group
   var_rg    = try(local.var_infra.resource_group, {})
   rg_exists = try(local.var_rg.is_existing, false)
   rg_arm_id = local.rg_exists ? try(local.var_rg.arm_id, "") : ""
-  rg_name   = local.rg_exists ? "" : try(local.var_rg.name, format("%s-sap_library", local.prefix))
+  rg_name   = local.rg_exists ? "" : try(local.var_rg.name, format("%s-SAP_LIBRARY", local.prefix))
 
   // Storage account for sapbits
   sa_sapbits_exists                   = try(var.storage_account_sapbits.is_existing, false)

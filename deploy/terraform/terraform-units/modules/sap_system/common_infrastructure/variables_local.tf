@@ -19,17 +19,55 @@ variable "nsg-mgmt" {
   description = "Details about management nsg of deployer(s)"
 }
 
-# Set defaults
+variable "region_mapping" {
+  type        = map(string)
+  description = "Region Mapping: Full = Single CHAR, 4-CHAR"
+
+  //28 Regions 
+
+  default = {
+    westus             = "weus"
+    westus2            = "wus2"
+    centralus          = "ceus"
+    eastus             = "eaus"
+    eastus2            = "eus2"
+    northcentralus     = "ncus"
+    southcentralus     = "scus"
+    westcentralus      = "wcus"
+    northeurope        = "noeu"
+    westeurope         = "weeu"
+    eastasia           = "eaas"
+    southeastasia      = "seas"
+    brazilsouth        = "brso"
+    japaneast          = "jpea"
+    japanwest          = "jpwe"
+    centralindia       = "cein"
+    southindia         = "soin"
+    westindia          = "wein"
+    uksouth2           = "uks2"
+    uknorth            = "ukno"
+    canadacentral      = "cace"
+    canadaeast         = "caea"
+    australiaeast      = "auea"
+    australiasoutheast = "ause"
+    uksouth            = "ukso"
+    ukwest             = "ukwe"
+    koreacentral       = "koce"
+    koreasouth         = "koso"
+  }
+}
+
+//Set defaults
 locals {
 
-  # Filter the list of databases to only HANA platform entries
+  //Filter the list of databases to only HANA platform entries
   hana-databases = [
     for database in var.databases : database
     if try(database.platform, "NONE") == "HANA"
   ]
   hdb    = try(local.hana-databases[0], {})
   hdb_ha = try(local.hdb.high_availability, "false")
-  # If custom image is used, we do not overwrite os reference with default value
+  //If custom image is used, we do not overwrite os reference with default value
   hdb_custom_image = try(local.hdb.os.source_image_id, "") != "" ? true : false
   hdb_os = {
     "source_image_id" = local.hdb_custom_image ? local.hdb.os.source_image_id : ""
@@ -41,29 +79,37 @@ locals {
 
   var_infra = try(var.infrastructure, {})
 
-  # Region
-  region = try(local.var_infra.region, "eastus")
+  //Region and metadata
+  region         = try(local.var_infra.region, "")
+  landscape      = lower(try(local.var_infra.landscape, ""))
+  sid            = upper(try(var.application.sid, ""))
+  codename       = lower(try(local.var_infra.codename, ""))
+  location_short = lower(try(var.region_mapping[local.region], "unkn"))
+  // Using replace "--" with "-" and "_-" with "-" in case of one of the components like codename is empty
+  prefix      = try(local.var_infra.resource_group.name, upper(replace(replace(format("%s-%s-%s_%s-%s", local.landscape, local.location_short, substr(local.vnet_sap_name_prefix, 0, 7), local.codename, local.sid), "_-", "-"), "--", "-")))
+  sa_prefix   = lower(format("%s%s%s%sdiag", substr(local.landscape, 0, 5), local.location_short, substr(local.codename, 0, 7), local.sid))
+  vnet_prefix = try(local.var_infra.resource_group.name, upper(format("%s-%s-%s", local.landscape, local.location_short, local.vnet_sap_name_prefix)))
 
-  # Resource group
+  //Resource group
   var_rg    = try(local.var_infra.resource_group, {})
   rg_exists = try(local.var_rg.is_existing, false)
   rg_arm_id = local.rg_exists ? try(local.var_rg.arm_id, "") : ""
-  rg_name   = local.rg_exists ? "" : try(local.var_rg.name, "azure-test-rg")
+  rg_name   = local.rg_exists ? try(split("/", local.rg_arm_id)[4], "") : try(local.var_rg.name, local.prefix)
 
-  # PPG
+  //PPG
   var_ppg    = try(local.var_infra.ppg, {})
   ppg_exists = try(local.var_ppg.is_existing, false)
   ppg_arm_id = local.ppg_exists ? try(local.var_ppg.arm_id, "") : ""
-  ppg_name   = local.ppg_exists ? "" : try(local.var_ppg.name, "azure-test-ppg")
+  ppg_name   = local.ppg_exists ? try(split("/", local.ppg_arm_id)[8], "") : try(local.var_ppg.name, format("%s_ppg", local.prefix))
 
-  # iSCSI
+  //iSCSI
   var_iscsi = try(local.var_infra.iscsi, {})
 
-  # iSCSI target device(s) is only created when below conditions met:
-  # - iscsi is defined in input JSON
-  # - AND
-  #   - HANA database has high_availability set to true
-  #   - HANA database uses SUSE
+  //iSCSI target device(s) is only created when below conditions met:
+  //- iscsi is defined in input JSON
+  //- AND
+  //  - HANA database has high_availability set to true
+  //  - HANA database uses SUSE
   iscsi_count = (local.hdb_ha && upper(local.hdb_os.publisher) == "SUSE") ? try(local.var_iscsi.iscsi_count, 0) : 0
 
   iscsi_size = try(local.var_iscsi.size, "Standard_D2s_v3")
@@ -89,64 +135,68 @@ locals {
     iscsi_nic_ips = local.iscsi_nic_ips
   })
 
-  # SAP vnet
+  //SAP vnet
   var_vnet_sap    = try(local.var_infra.vnets.sap, {})
   vnet_sap_exists = try(local.var_vnet_sap.is_existing, false)
   vnet_sap_arm_id = local.vnet_sap_exists ? try(local.var_vnet_sap.arm_id, "") : ""
-  vnet_sap_name   = local.vnet_sap_exists ? "" : try(local.var_vnet_sap.name, "vnet-sap")
-  vnet_sap_addr   = local.vnet_sap_exists ? "" : try(local.var_vnet_sap.address_space, "")
+  vnet_sap_name   = local.vnet_sap_exists ? try(split("/", local.vnet_sap_arm_id)[8], "") : try(local.var_vnet_sap.name, format("%s-%s-SAP-vnet", upper(local.landscape), upper(local.location_short)))
+  vnet_nr_parts   = length(split("-", local.vnet_sap_name))
+  // Default naming of vnet has multiple parts. Taking the second-last part as the name 
+  vnet_sap_name_prefix = local.vnet_nr_parts >= 3 ? split("-", upper(local.vnet_sap_name))[local.vnet_nr_parts - 1] == "VNET" ? split("-", local.vnet_sap_name)[local.vnet_nr_parts - 2] : local.vnet_sap_name : local.vnet_sap_name
+  vnet_sap_addr        = local.vnet_sap_exists ? "" : try(local.var_vnet_sap.address_space, "")
 
-  # Admin subnet
+
+  //Admin subnet
   var_sub_admin    = try(local.var_vnet_sap.subnet_admin, {})
   sub_admin_exists = try(local.var_sub_admin.is_existing, false)
   sub_admin_arm_id = local.sub_admin_exists ? try(local.var_sub_admin.arm_id, "") : ""
-  sub_admin_name   = local.sub_admin_exists ? "" : try(local.var_sub_admin.name, "subnet-admin")
+  sub_admin_name   = local.sub_admin_exists ? try(split("/", local.sub_admin_arm_id)[10], "") : try(local.var_sub_admin.name, format("%s-sap-vnet_admin-subnet", local.vnet_prefix))
   sub_admin_prefix = local.sub_admin_exists ? "" : try(local.var_sub_admin.prefix, "")
 
-  # Admin NSG
+  //Admin NSG
   var_sub_admin_nsg    = try(local.var_sub_admin.nsg, {})
   sub_admin_nsg_exists = try(local.var_sub_admin_nsg.is_existing, false)
   sub_admin_nsg_arm_id = local.sub_admin_nsg_exists ? try(local.var_sub_admin_nsg.arm_id, "") : ""
-  sub_admin_nsg_name   = local.sub_admin_nsg_exists ? "" : try(local.var_sub_admin_nsg.name, "nsg-admin")
+  sub_admin_nsg_name   = local.sub_admin_nsg_exists ? try(split("/", local.sub_admin_nsg_arm_id)[8], "") : try(local.var_sub_admin_nsg.name, format("%s_adminSubnet-nsg", local.vnet_prefix))
 
-  # DB subnet
+  //DB subnet
   var_sub_db    = try(local.var_vnet_sap.subnet_db, {})
   sub_db_exists = try(local.var_sub_db.is_existing, false)
   sub_db_arm_id = local.sub_db_exists ? try(local.var_sub_db.arm_id, "") : ""
-  sub_db_name   = local.sub_db_exists ? "" : try(local.var_sub_db.name, "subnet-db")
+  sub_db_name   = local.sub_db_exists ? try(split("/", local.sub_db_arm_id)[10], "") : try(local.var_sub_db.name, format("%s_db-subnet", local.vnet_prefix))
   sub_db_prefix = local.sub_db_exists ? "" : try(local.var_sub_db.prefix, "")
 
-  # DB NSG
+  //DB NSG
   var_sub_db_nsg    = try(local.var_sub_db.nsg, {})
   sub_db_nsg_exists = try(local.var_sub_db_nsg.is_existing, false)
   sub_db_nsg_arm_id = local.sub_db_nsg_exists ? try(local.var_sub_db_nsg.arm_id, "") : ""
-  sub_db_nsg_name   = local.sub_db_nsg_exists ? "" : try(local.var_sub_db_nsg.name, "nsg-db")
+  sub_db_nsg_name   = local.sub_db_nsg_exists ? try(split("/", local.sub_db_nsg_arm_id)[8], "") : try(local.var_sub_db_nsg.name, format("%s_dbSubnet-nsg", local.vnet_prefix))
 
-  # iSCSI subnet
+  //iSCSI subnet
   var_sub_iscsi    = try(local.var_vnet_sap.subnet_iscsi, {})
   sub_iscsi_exists = try(local.var_sub_iscsi.is_existing, false)
   sub_iscsi_arm_id = local.sub_iscsi_exists ? try(local.var_sub_iscsi.arm_id, "") : ""
-  sub_iscsi_name   = local.sub_iscsi_exists ? "" : try(local.var_sub_iscsi.name, "subnet-iscsi")
+  sub_iscsi_name   = local.sub_iscsi_exists ? try(split("/", local.sub_iscsi_arm_id)[10], "") : try(local.var_sub_iscsi.name, format("%s-_iscsi-subnet", local.vnet_prefix))
   sub_iscsi_prefix = local.sub_iscsi_exists ? "" : try(local.var_sub_iscsi.prefix, "")
 
-  # iSCSI NSG
+  //iSCSI NSG
   var_sub_iscsi_nsg    = try(local.var_sub_iscsi.nsg, {})
   sub_iscsi_nsg_exists = try(local.var_sub_iscsi_nsg.is_existing, false)
   sub_iscsi_nsg_arm_id = local.sub_iscsi_nsg_exists ? try(local.var_sub_iscsi_nsg.arm_id, "") : ""
-  sub_iscsi_nsg_name   = local.sub_iscsi_nsg_exists ? "" : try(local.var_sub_iscsi_nsg.name, "nsg-iscsi")
+  sub_iscsi_nsg_name   = local.sub_iscsi_nsg_exists ? try(split("/", local.sub_iscsi_nsg_arm_id)[8], "") : try(local.var_sub_iscsi_nsg.name, format("%s-_iscsiSubnet-nsg", local.vnet_prefix))
 
-  # APP subnet
+  //APP subnet
   var_sub_app    = try(local.var_vnet_sap.subnet_app, {})
   sub_app_exists = try(local.var_sub_app.is_existing, false)
   sub_app_arm_id = local.sub_app_exists ? try(local.var_sub_app.arm_id, "") : ""
-  sub_app_name   = local.sub_app_exists ? "" : try(local.var_sub_app.name, "subnet-app")
+  sub_app_name   = local.sub_app_exists ? "" : try(local.var_sub_app.name, format("%s_app-subnet", local.vnet_prefix))
   sub_app_prefix = local.sub_app_exists ? "" : try(local.var_sub_app.prefix, "")
 
-  # APP NSG
+  //APP NSG
   var_sub_app_nsg    = try(local.var_sub_app.nsg, {})
   sub_app_nsg_exists = try(local.var_sub_app_nsg.is_existing, false)
   sub_app_nsg_arm_id = local.sub_app_nsg_exists ? try(local.var_sub_app_nsg.arm_id, "") : ""
-  sub_app_nsg_name   = local.sub_app_nsg_exists ? "" : try(local.var_sub_app_nsg.name, "nsg-app")
+  sub_app_nsg_name   = local.sub_app_nsg_exists ? try(split("/", local.sub_app_nsg_arm_id)[8], "") : try(local.var_sub_app_nsg.name, format("%s_appSubnet-nsg", local.vnet_prefix))
 
   //---- Update infrastructure with defaults ----//
   infrastructure = {
@@ -222,7 +272,7 @@ locals {
     }
   }
 
-  # Downloader
+  //Downloader
   sap_user     = try(var.software.downloader.credentials.sap_user, "sap_smp_user")
   sap_password = try(var.software.downloader.credentials.sap_password, "sap_smp_password")
   hdb_versions = [

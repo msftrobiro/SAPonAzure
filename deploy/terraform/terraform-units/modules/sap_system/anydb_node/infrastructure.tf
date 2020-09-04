@@ -4,12 +4,13 @@ Load balancer front IP address range: .4 - .9
 
 resource "azurerm_lb" "anydb" {
   count               = local.enable_deployment ? 1 : 0
-  name                = format("%s_xdb-alb", upper(local.anydb_sid))
+  name                = format("%s_db-alb", local.prefix)
+  
   resource_group_name = var.resource-group[0].name
   location            = var.resource-group[0].location
 
   frontend_ip_configuration {
-    name                          = format("%s_xdb-feip", upper(local.anydb_sid))
+    name                          = format("%s_db-feip", local.prefix)
     subnet_id                     = local.sub_db_exists ? data.azurerm_subnet.anydb[0].id : azurerm_subnet.anydb[0].id
     private_ip_address_allocation = "Static"
     private_ip_address            = local.sub_db_exists ? try(local.anydb.loadbalancer.frontend_ip, cidrhost(local.sub_db_prefix, tonumber(count.index) + 4)) : cidrhost(local.sub_db_prefix, tonumber(count.index) + 4)
@@ -20,14 +21,14 @@ resource "azurerm_lb_backend_address_pool" "anydb" {
   count               = local.enable_deployment ? 1 : 0
   resource_group_name = var.resource-group[0].name
   loadbalancer_id     = azurerm_lb.anydb[count.index].id
-  name                = format("%s_xdbAlb-bePool", upper(local.anydb_sid))
+  name                = format("%s_dbalb-bepool", local.prefix)
 }
 
 resource "azurerm_lb_probe" "anydb" {
   count               = local.enable_deployment ? 1 : 0
   resource_group_name = var.resource-group[0].name
   loadbalancer_id     = azurerm_lb.anydb[count.index].id
-  name                = format("%s_xdb-hp", upper(local.anydb_sid))
+  name                = format("%s_xdb-xdbprobe", local.prefix)
   port                = local.loadbalancer_ports[0].port
   protocol            = "Tcp"
   interval_in_seconds = 5
@@ -45,7 +46,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "anydb" {
 
 resource "azurerm_availability_set" "anydb" {
   count                        = local.enable_deployment ? 1 : 0
-  name                         = format("%s_xdb-avset", local.anydb_sid)
+  name                         = format("%s_db-avset", local.prefix)
   location                     = var.resource-group[0].location
   resource_group_name          = var.resource-group[0].name
   platform_update_domain_count = 20

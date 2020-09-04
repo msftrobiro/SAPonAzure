@@ -29,7 +29,7 @@ resource "azurerm_network_interface" "jump-win" {
   resource_group_name = var.resource-group[0].name
 
   ip_configuration {
-    name                          = "${local.vm-jump-win[count.index].name}-nic1-ip"
+    name                          = "ipconfig1"
     subnet_id                     = var.subnet-mgmt.id
     private_ip_address            = local.vm-jump-win[count.index].private_ip_address
     private_ip_address_allocation = "static"

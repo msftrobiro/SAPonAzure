@@ -70,7 +70,7 @@ resource "azurerm_network_interface" "iscsi" {
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.resource-group[0].name : azurerm_resource_group.resource-group[0].name
 
   ip_configuration {
-    name                          = "ipconfig-iscsi"
+    name                          = "ipconfig1"
     subnet_id                     = local.sub_iscsi_exists ? data.azurerm_subnet.iscsi[0].id : azurerm_subnet.iscsi[0].id
     private_ip_address            = local.sub_iscsi_exists ? local.iscsi_nic_ips[count.index] : cidrhost(local.sub_iscsi_prefix, tonumber(count.index) + 4)
     private_ip_address_allocation = "static"

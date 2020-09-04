@@ -1,7 +1,7 @@
 # Create SCS NICs
 resource "azurerm_network_interface" "scs" {
   count                         = local.enable_deployment ? (local.scs_high_availability ? 2 : 1) : 0
-  name                          = "${upper(local.application_sid)}_scs${format("%02d", count.index)}-nic"
+  name                          = format("%s_%s-scs-nic", local.prefix, format("%sscs%02d%s%s", lower(local.sid), count.index, upper(local.app_ostype) == "LINUX" ? "l": "w", substr(var.random-id.hex,0,3)))
   location                      = var.resource-group[0].location
   resource_group_name           = var.resource-group[0].name
   enable_accelerated_networking = local.scs_sizing.compute.accelerated_networking
@@ -9,7 +9,7 @@ resource "azurerm_network_interface" "scs" {
   ip_configuration {
     name                          = "IPConfig1"
     subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet-sap-app[0].id : azurerm_subnet.subnet-sap-app[0].id
-    private_ip_address            = cidrhost(local.sub_app_exists ? data.azurerm_subnet.subnet-sap-app[0].address_prefixes[0] : azurerm_subnet.subnet-sap-app[0].address_prefixes[0], tonumber(count.index) + local.ip_offsets.scs_vm)
+    private_ip_address            = try(local.scs_nic_ips [count.index],cidrhost(local.sub_app_exists ? data.azurerm_subnet.subnet-sap-app[0].address_prefixes[0] : azurerm_subnet.subnet-sap-app[0].address_prefixes[0], tonumber(count.index) + local.ip_offsets.scs_vm))
     private_ip_address_allocation = "static"
   }
 }
@@ -25,8 +25,8 @@ resource "azurerm_network_interface_backend_address_pool_association" "scs" {
 # Create the SCS Linux VM(s)
 resource "azurerm_linux_virtual_machine" "scs" {
   count                        = local.enable_deployment ? (upper(local.app_ostype) == "LINUX" ? (local.scs_high_availability ? 2 : 1) : 0) : 0
-  name                         = "${upper(local.application_sid)}_scs${format("%02d", count.index)}"
-  computer_name                = "${lower(local.application_sid)}scs${format("%02d", count.index)}"
+  name                         = format("%s_%s",  local.prefix, format("%sscs%02dl%s", lower(local.sid), count.index, substr(var.random-id.hex,0,3)))
+  computer_name                = format("%sscs%02dl%s", lower(local.sid), count.index, substr(var.random-id.hex,0,3))
   location                     = var.resource-group[0].location
   resource_group_name          = var.resource-group[0].name
   availability_set_id          = azurerm_availability_set.scs[0].id
@@ -39,7 +39,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
   disable_password_authentication = true
 
   os_disk {
-    name                 = "${upper(local.application_sid)}_scs${format("%02d", count.index)}-osDisk"
+    name                 = format("%s_%sscs%02dl%s-osdisk", local.prefix, lower(local.sid), count.index, substr(var.random-id.hex,0,3))
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -69,8 +69,8 @@ resource "azurerm_linux_virtual_machine" "scs" {
 # Create the SCS Windows VM(s)
 resource "azurerm_windows_virtual_machine" "scs" {
   count                        = local.enable_deployment ? (upper(local.app_ostype) == "WINDOWS" ? (local.scs_high_availability ? 2 : 1) : 0) : 0
-  name                         = "${upper(local.application_sid)}_scs${format("%02d", count.index)}"
-  computer_name                = "${lower(local.application_sid)}scs${format("%02d", count.index)}"
+  name                         = format("%s_%s",  local.prefix, format("%sscs%02dw%s", lower(local.sid), count.index, substr(var.random-id.hex,0,3)))
+  computer_name                = format("%sscs%02dw%s", lower(local.sid), count.index, substr(var.random-id.hex,0,3))
   location                     = var.resource-group[0].location
   resource_group_name          = var.resource-group[0].name
   availability_set_id          = azurerm_availability_set.scs[0].id
@@ -83,7 +83,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
   admin_password = local.authentication.password
 
   os_disk {
-    name                 = "${upper(local.application_sid)}_scs${format("%02d", count.index)}-osDisk"
+    name                 = format("%s_%sscs%02dw%s", local.prefix, lower(local.sid), count.index, substr(var.random-id.hex,0,3))
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -108,7 +108,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
 # Creates managed data disk
 resource "azurerm_managed_disk" "scs" {
   count                = local.enable_deployment ? length(local.scs-data-disks) : 0
-  name                 = local.scs-data-disks[count.index].name
+  name                 = format("%s_%s%s", local.prefix, format("%sscs%02d%s%s", lower(local.sid), count.index, upper(local.app_ostype) == "LINUX" ? "l": "w", substr(var.random-id.hex,0,3)),local.scs-data-disks[count.index].suffix)
   location             = var.resource-group[0].location
   resource_group_name  = var.resource-group[0].name
   create_option        = "Empty"

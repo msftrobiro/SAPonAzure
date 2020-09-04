@@ -1,7 +1,7 @@
 # Create Application NICs
 resource "azurerm_network_interface" "app" {
   count                         = local.enable_deployment ? local.application_server_count : 0
-  name                          = "${upper(local.application_sid)}_app${format("%02d", count.index)}-nic"
+  name                          = format("%s_%s-app-nic", local.prefix, format("%sapp%02d%s%s", lower(local.sid), count.index, upper(local.app_ostype) == "LINUX" ? "l": "w", substr(var.random-id.hex,0,3)))
   location                      = var.resource-group[0].location
   resource_group_name           = var.resource-group[0].name
   enable_accelerated_networking = local.app_sizing.compute.accelerated_networking
@@ -9,7 +9,7 @@ resource "azurerm_network_interface" "app" {
   ip_configuration {
     name                          = "IPConfig1"
     subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet-sap-app[0].id : azurerm_subnet.subnet-sap-app[0].id
-    private_ip_address            = cidrhost(local.sub_app_exists ? data.azurerm_subnet.subnet-sap-app[0].address_prefixes[0] : azurerm_subnet.subnet-sap-app[0].address_prefixes[0], tonumber(count.index) + local.ip_offsets.app_vm)
+    private_ip_address            = try(local.app_nic_ips [count.index],cidrhost(local.sub_web_exists ? data.azurerm_subnet.subnet-sap-app[0].address_prefixes[0] : azurerm_subnet.subnet-sap-app[0].address_prefixes[0], tonumber(count.index) + local.ip_offsets.app_vm))
     private_ip_address_allocation = "static"
   }
 }
@@ -17,8 +17,8 @@ resource "azurerm_network_interface" "app" {
 # Create the Linux Application VM(s)
 resource "azurerm_linux_virtual_machine" "app" {
   count                        = local.enable_deployment ? (upper(local.app_ostype) == "LINUX" ? local.application_server_count : 0) : 0
-  name                         = "${upper(local.application_sid)}_app${format("%02d", count.index)}"
-  computer_name                = "${lower(local.application_sid)}app${format("%02d", count.index)}"
+  name                         = format("%s_%s",  local.prefix, format("%sapp%02dl%s", lower(local.sid), count.index, substr(var.random-id.hex,0,3)))
+  computer_name                = format("%sapp%02dl%s", lower(local.sid), count.index, substr(var.random-id.hex,0,3))
   location                     = var.resource-group[0].location
   resource_group_name          = var.resource-group[0].name
   availability_set_id          = azurerm_availability_set.app[0].id
@@ -31,7 +31,7 @@ resource "azurerm_linux_virtual_machine" "app" {
   disable_password_authentication = true
 
   os_disk {
-    name                 = "${upper(local.application_sid)}_app${format("%02d", count.index)}-osDisk"
+    name                 = format("%s_%sapp%02dl%s-osdisk", local.prefix, lower(local.sid), count.index, substr(var.random-id.hex,0,3))
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -61,8 +61,8 @@ resource "azurerm_linux_virtual_machine" "app" {
 # Create the Windows Application VM(s)
 resource "azurerm_windows_virtual_machine" "app" {
   count                        = local.enable_deployment ? (upper(local.app_ostype) == "WINDOWS" ? local.application_server_count : 0) : 0
-  name                         = "${upper(local.application_sid)}_app${format("%02d", count.index)}"
-  computer_name                = "${lower(local.application_sid)}app${format("%02d", count.index)}"
+  name                         = format("%s_%s",  local.prefix, format("%sapp%02dw%s", lower(local.sid), count.index, substr(var.random-id.hex,0,3)))
+  computer_name                = format("%sapp%02dw%s", lower(local.sid), count.index, substr(var.random-id.hex,0,3))
   location                     = var.resource-group[0].location
   resource_group_name          = var.resource-group[0].name
   availability_set_id          = azurerm_availability_set.app[0].id
@@ -75,7 +75,7 @@ resource "azurerm_windows_virtual_machine" "app" {
   admin_password = local.authentication.password
 
   os_disk {
-    name                 = "${upper(local.application_sid)}_app${format("%02d", count.index)}-osDisk"
+    name                 = format("%s_%sapp%02dw%s-osdisk", local.prefix, lower(local.sid), count.index, substr(var.random-id.hex,0,3))
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -100,7 +100,7 @@ resource "azurerm_windows_virtual_machine" "app" {
 # Creates managed data disk
 resource "azurerm_managed_disk" "app" {
   count                = local.enable_deployment ? length(local.app-data-disks) : 0
-  name                 = local.app-data-disks[count.index].name
+  name                 = format("%s_%s%s", local.prefix,format("%sapp%02d%s%s", lower(local.sid), count.index, upper(local.app_ostype) == "LINUX" ? "l": "w", substr(var.random-id.hex,0,3)),local.app-data-disks[count.index].suffix)
   location             = var.resource-group[0].location
   resource_group_name  = var.resource-group[0].name
   create_option        = "Empty"

@@ -77,6 +77,10 @@
       }
     }
   ],
+  "application": {
+    "enable_deployment": false,
+    "sid": ""
+  },
   "software": {
     "storage_account_sapbits": {
       "is_existing": false,

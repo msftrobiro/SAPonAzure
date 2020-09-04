@@ -82,6 +82,7 @@ module "hdb_node" {
   vnet-sap         = module.common_infrastructure.vnet-sap
   storage-bootdiag = module.common_infrastructure.storage-bootdiag
   ppg              = module.common_infrastructure.ppg
+  random-id        = module.common_infrastructure.random-id
 }
 
 // Create Application Tier nodes
@@ -100,6 +101,7 @@ module "app_tier" {
   vnet-sap         = module.common_infrastructure.vnet-sap
   storage-bootdiag = module.common_infrastructure.storage-bootdiag
   ppg              = module.common_infrastructure.ppg
+  random-id        = module.common_infrastructure.random-id
 }
 
 // Create anydb database nodes
@@ -117,6 +119,7 @@ module "anydb_node" {
   vnet-sap         = module.common_infrastructure.vnet-sap
   storage-bootdiag = module.common_infrastructure.storage-bootdiag
   ppg              = module.common_infrastructure.ppg
+  random-id        = module.common_infrastructure.random-id
 }
 
 // Generate output files
@@ -153,4 +156,5 @@ module "output_files" {
   any-database-info            = module.anydb_node.any-database-info
   anydb-loadbalancers          = module.anydb_node.anydb-loadbalancers
   deployers                    = module.deployer.import_deployer
+  random-id        = module.common_infrastructure.random-id
 }

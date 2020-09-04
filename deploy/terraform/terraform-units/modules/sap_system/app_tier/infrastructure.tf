@@ -40,22 +40,22 @@ data "azurerm_subnet" "subnet-sap-web" {
 # Create the SCS Load Balancer
 resource "azurerm_lb" "scs" {
   count               = local.enable_deployment ? 1 : 0
-  name                = "${upper(local.application_sid)}_scs-alb"
+  name                = format("%s_scs-alb", local.prefix)
   resource_group_name = var.resource-group[0].name
   location            = var.resource-group[0].location
 
   frontend_ip_configuration {
-    name                          = "${upper(local.application_sid)}_scs-feip"
+    name                          = format("%s_scs-feip", local.prefix)
     subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet-sap-app[0].id : azurerm_subnet.subnet-sap-app[0].id
     private_ip_address_allocation = "Static"
-    private_ip_address            = local.sub_app_exists ? local.scs_lb_ips[0] : cidrhost(local.sub_app_prefix, 0 + local.ip_offsets.scs_lb)
+    private_ip_address            = try(local.scs_lb_ips[0] , cidrhost(local.sub_app_prefix, 0 + local.ip_offsets.scs_lb))
   }
 
   frontend_ip_configuration {
-    name                          = "${upper(local.application_sid)}_ers-feip"
+    name                          = format("%s_ers-feip", local.prefix)
     subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet-sap-app[0].id : azurerm_subnet.subnet-sap-app[0].id
     private_ip_address_allocation = "Static"
-    private_ip_address            = local.sub_app_exists ? local.scs_lb_ips[1] : cidrhost(local.sub_app_prefix, 1 + local.ip_offsets.scs_lb)
+    private_ip_address            = try(local.scs_lb_ips[1] , cidrhost(local.sub_app_prefix, 1 + local.ip_offsets.scs_lb))
   }
 }
 
@@ -63,14 +63,14 @@ resource "azurerm_lb_backend_address_pool" "scs" {
   count               = local.enable_deployment ? 1 : 0
   resource_group_name = var.resource-group[0].name
   loadbalancer_id     = azurerm_lb.scs[0].id
-  name                = "${upper(local.application_sid)}_scsAlb-bePool"
+  name                = format("%s_scsAlb-bepool", local.prefix)
 }
 
 resource "azurerm_lb_probe" "scs" {
   count               = local.enable_deployment ? (local.scs_high_availability ? 2 : 1) : 0
   resource_group_name = var.resource-group[0].name
   loadbalancer_id     = azurerm_lb.scs[0].id
-  name                = "${upper(local.application_sid)}_${count.index == 0 ? "scs" : "ers"}Alb-hp"
+  name                = "${local.prefix}_${count.index == 0 ? "scs" : "ers"}Alb-hp"
   port                = local.hp-ports[count.index]
   protocol            = "Tcp"
   interval_in_seconds = 5
@@ -82,11 +82,11 @@ resource "azurerm_lb_rule" "scs" {
   count                          = local.enable_deployment ? length(local.lb-ports.scs) : 0
   resource_group_name            = var.resource-group[0].name
   loadbalancer_id                = azurerm_lb.scs[0].id
-  name                           = "${upper(local.application_sid)}_SCS_${local.lb-ports.scs[count.index]}"
+  name                           = "${local.prefix}_SCS_${local.lb-ports.scs[count.index]}"
   protocol                       = "Tcp"
   frontend_port                  = local.lb-ports.scs[count.index]
   backend_port                   = local.lb-ports.scs[count.index]
-  frontend_ip_configuration_name = "${upper(local.application_sid)}_scs-feip"
+  frontend_ip_configuration_name = format("%s_scs-feip", local.prefix)
   backend_address_pool_id        = azurerm_lb_backend_address_pool.scs[0].id
   probe_id                       = azurerm_lb_probe.scs[0].id
   enable_floating_ip             = true
@@ -97,11 +97,11 @@ resource "azurerm_lb_rule" "ers" {
   count                          = local.enable_deployment ? (local.scs_high_availability ? length(local.lb-ports.ers) : 0) : 0
   resource_group_name            = var.resource-group[0].name
   loadbalancer_id                = azurerm_lb.scs[0].id
-  name                           = "${upper(local.application_sid)}_ERS_${local.lb-ports.ers[count.index]}"
+  name                           = "${local.prefix}_ERS_${local.lb-ports.ers[count.index]}"
   protocol                       = "Tcp"
   frontend_port                  = local.lb-ports.ers[count.index]
   backend_port                   = local.lb-ports.ers[count.index]
-  frontend_ip_configuration_name = "${upper(local.application_sid)}_ers-feip"
+  frontend_ip_configuration_name = format("%s_ers-feip", local.prefix)
   backend_address_pool_id        = azurerm_lb_backend_address_pool.scs[0].id
   probe_id                       = azurerm_lb_probe.scs[1].id
   enable_floating_ip             = true
@@ -110,7 +110,7 @@ resource "azurerm_lb_rule" "ers" {
 # Create the SCS Availability Set
 resource "azurerm_availability_set" "scs" {
   count                        = local.enable_deployment ? 1 : 0
-  name                         = "${upper(local.application_sid)}_scs-avset"
+  name                         = format("%s_scs-avset", local.prefix)
   location                     = var.resource-group[0].location
   resource_group_name          = var.resource-group[0].name
   platform_update_domain_count = 20
@@ -126,7 +126,7 @@ resource "azurerm_availability_set" "scs" {
 # Create the Application Availability Set
 resource "azurerm_availability_set" "app" {
   count                        = local.enable_deployment ? 1 : 0
-  name                         = "${upper(local.application_sid)}_app-avset"
+  name                         = format("%s_app-avset", local.prefix)
   location                     = var.resource-group[0].location
   resource_group_name          = var.resource-group[0].name
   platform_update_domain_count = 20
@@ -143,15 +143,15 @@ resource "azurerm_availability_set" "app" {
 # Create the Web dispatcher Load Balancer
 resource "azurerm_lb" "web" {
   count               = local.enable_deployment ? 1 : 0
-  name                = "${upper(local.application_sid)}_web-alb"
+  name                = format("%s_web-alb", local.prefix)
   resource_group_name = var.resource-group[0].name
   location            = var.resource-group[0].location
 
   frontend_ip_configuration {
-    name                          = "sap${lower(local.application_sid)}web"
+    name                          = "sap${lower(local.prefix)}web"
     subnet_id                     = local.sub_web_deployed.id
+    private_ip_address            = cidrhost(local.sub_web_deployed.address_prefixes[0] , local.ip_offsets.web_lb)
     private_ip_address_allocation = "Static"
-    private_ip_address            = local.sub_web_defined ? cidrhost(local.sub_web_prefix, local.ip_offsets.web_lb) : cidrhost(local.sub_app_prefix, local.ip_offsets.web_lb)
   }
 }
 
@@ -159,7 +159,7 @@ resource "azurerm_lb_backend_address_pool" "web" {
   count               = local.enable_deployment ? 1 : 0
   resource_group_name = var.resource-group[0].name
   loadbalancer_id     = azurerm_lb.web[0].id
-  name                = "${upper(local.application_sid)}_webAlb-bePool"
+  name                = format("%s_webalb-bepool", local.prefix)
 }
 
 //TODO: azurerm_lb_probe
@@ -189,7 +189,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "web" {
 # Create the Web dispatcher Availability Set
 resource "azurerm_availability_set" "web" {
   count                        = local.enable_deployment ? 1 : 0
-  name                         = "${upper(local.application_sid)}_web-avset"
+  name                         = format("%s_web-avset", local.prefix)
   location                     = var.resource-group[0].location
   resource_group_name          = var.resource-group[0].name
   platform_update_domain_count = 20

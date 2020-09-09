@@ -1,7 +1,7 @@
 {
   "infrastructure": {
     "region": "eastus",
-    "landscape": "global",
+    "environment": "global",
     "vnets": {
       "management": {
         "name" : "MGMT",

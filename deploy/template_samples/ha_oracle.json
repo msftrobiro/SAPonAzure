@@ -1,14 +1,13 @@
 {
   "infrastructure": {
-    "region": "eastus",
+    "region": "",
+    "landscape": "",
+    "codename":"",
     "resource_group": {
-      "is_existing": "false",
-      "name": "test-anydb-ha-rg"
+      "is_existing": "false"
     },
     "ppg": {
-      "is_existing": "false",
-      "name": "test-ppg",
-      "arm_id": ""
+      "is_existing": "false"
     },
     "vnets": {
       "management": {
@@ -79,6 +78,10 @@
       }
     }
   ],
+  "application": {
+    "enable_deployment": false,
+    "sid": ""
+  },
   "software": {
     "storage_account_sapbits": {
       "is_existing": false,

@@ -50,6 +50,6 @@ locals {
   // Default value follows naming convention
   saplib_resource_group_name   = try(local.deployer_config.saplib_resource_group_name, "${local.environment}-${local.location_short}-sap_library")
   tfstate_storage_account_name = try(local.deployer_config.tfstate_storage_account_name, "")
-  tfstate_container_name       = "saplibrary"
+  tfstate_container_name       = "tfstate"
   deployer_tfstate_key         = try(local.deployer_config.deployer_tfstate_key, "${local.environment}-${local.location_short}-deployer-infrastructure.terraform.tfstate")
 }

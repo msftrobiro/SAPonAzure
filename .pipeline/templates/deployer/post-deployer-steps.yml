@@ -1,6 +1,18 @@
 steps:
   - script: |
-      deployer_rg=${{parameters.deployer_rg_name}}
+      # Modify environment value so it starts with u and with length of 5
+      deployer_env=${{parameters.deployer_env}}
+      buildId=$(Build.BuildId)
+      isRelease=${deployer_env%%$buildId*}
+      if [ -z "${isRelease}" ]
+      then 
+        deployer_prefix="U$(echo $(Build.BuildId) | rev | cut -c1-4 | rev)"
+      else
+        deployer_prefix=${deployer_env}
+      fi
+
+      deployer_rg="${deployer_prefix}-EAUS-MGMT-INFRASTRUCTURE"
+      
       ws_dir=$(Agent.BuildDirectory)/Azure_SAP_Automated_Deployment/WORKSPACES/LOCAL/${deployer_rg}
 
       cd ${ws_dir}

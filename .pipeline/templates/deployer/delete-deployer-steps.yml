@@ -5,7 +5,18 @@ steps:
       git checkout ${{parameters.branch_name}}
       repo_path=$(pwd)
 
-      deployer_rg=${{parameters.deployer_rg_name}}
+      # Modify environment value so it starts with u and with length of 5
+      deployer_env=${{parameters.deployer_env}}
+      buildId=$(Build.BuildId)
+      isRelease=${deployer_env%%$buildId*}
+      if [ -z "${isRelease}" ]
+      then 
+        deployer_prefix="U$(echo $(Build.BuildId) | rev | cut -c1-4 | rev)"
+      else
+        deployer_prefix=${deployer_env}
+      fi
+
+      deployer_rg="${deployer_prefix}-EAUS-MGMT-INFRASTRUCTURE"
       ws_dir=$(Agent.BuildDirectory)/Azure_SAP_Automated_Deployment/WORKSPACES/LOCAL/${deployer_rg}
 
       echo "=== Start to delete deployer with terraform destroy ==="
@@ -13,8 +24,8 @@ steps:
       terraform destroy -auto-approve -var-file=${deployer_rg}.json ${repo_path}/deploy/terraform/bootstrap/sap_deployer/
       
       echo "=== Mark and try to delete rg  ==="
-      az group update --resource-group ${{parameters.deployer_rg_name}} --set tags.Delete=True --output none
-      az group delete -n ${{parameters.deployer_rg_name}} --no-wait -y
+      az group update --resource-group ${deployer_rg} --set tags.Delete=True --output none
+      az group delete -n ${deployer_rg} --no-wait -y
 
       exit 0
     displayName: "Delete new deployer"

@@ -57,8 +57,8 @@ resource "azurerm_role_assignment" "sub_user_admin" {
 // Linux Virtual Machine for Deployer
 resource "azurerm_linux_virtual_machine" "deployer" {
   count                           = length(local.deployers)
-  name                            = format("%s-%s%02d", local.prefix,local.deployers[count.index].name, count.index)
-  computer_name                   = format("%s%02d", replace(replace(local.deployers[count.index].name,"-",""),"_",""), count.index)
+  name                            = format("%s-%s%02d", local.prefix, local.deployers[count.index].name, count.index)
+  computer_name                   = format("%s%02d", replace(replace(local.deployers[count.index].name, "-", ""), "_", ""), count.index)
   location                        = azurerm_resource_group.deployer[0].location
   resource_group_name             = azurerm_resource_group.deployer[0].name
   network_interface_ids           = [azurerm_network_interface.deployer[count.index].id]
@@ -92,7 +92,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 
   admin_ssh_key {
     username   = local.deployers[count.index].authentication.username
-    public_key = file(var.sshkey.path_to_public_key)
+    public_key = local.deployers[count.index].authentication.sshkey.public_key
   }
 
   boot_diagnostics {
@@ -107,27 +107,9 @@ resource "azurerm_linux_virtual_machine" "deployer" {
     type        = "ssh"
     host        = azurerm_public_ip.deployer[count.index].ip_address
     user        = local.deployers[count.index].authentication.username
-    private_key = local.deployers[count.index].authentication.type == "key" ? file(var.sshkey.path_to_private_key) : null
+    private_key = local.deployers[count.index].authentication.type == "key" ? local.deployers[count.index].authentication.sshkey.private_key : null
     password    = lookup(local.deployers[count.index].authentication, "password", null)
     timeout     = var.ssh-timeout
-  }
-
-  // Copy ssh keypair over to Deployer and sets permission
-  provisioner "file" {
-    source      = lookup(var.sshkey, "path_to_public_key", null)
-    destination = "/home/${local.deployers[count.index].authentication.username}/.ssh/id_rsa.pub"
-  }
-
-  provisioner "file" {
-    source      = lookup(var.sshkey, "path_to_private_key", null)
-    destination = "/home/${local.deployers[count.index].authentication.username}/.ssh/id_rsa"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "chmod 644 /home/${local.deployers[count.index].authentication.username}/.ssh/id_rsa.pub",
-      "chmod 600 /home/${local.deployers[count.index].authentication.username}/.ssh/id_rsa",
-    ]
   }
 }
 
@@ -140,7 +122,7 @@ resource "null_resource" "prepare-deployer" {
     type        = "ssh"
     host        = azurerm_public_ip.deployer[count.index].ip_address
     user        = local.deployers[count.index].authentication.username
-    private_key = local.deployers[count.index].authentication.type == "key" ? file(var.sshkey.path_to_private_key) : null
+    private_key = local.deployers[count.index].authentication.type == "key" ? local.deployers[count.index].authentication.sshkey.private_key : null
     password    = lookup(local.deployers[count.index].authentication, "password", null)
     timeout     = var.ssh-timeout
   }

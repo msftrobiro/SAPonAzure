@@ -44,3 +44,10 @@ output "deployers" {
   value = local.deployers_updated
 }
 
+output "user_vault_name" {
+  value = azurerm_key_vault.kv_user[0].name
+}
+
+output "ppk_name" {
+  value = local.enable_deployers && local.enable_key ? azurerm_key_vault_secret.ppk[0].name : ""
+}

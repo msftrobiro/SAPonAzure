@@ -39,6 +39,9 @@ variable "region_mapping" {
 
 locals {
 
+  // Post fix for all deployed resources
+  postfix = upper(substr(random_id.post_fix.hex, 0, 4))
+
   // Infrastructure
   var_infra = try(var.infrastructure, {})
 
@@ -87,6 +90,24 @@ locals {
 
   sa_tfstate_container_exists = try(var.storage_account_tfstate.saplibrary_blob_container.is_existing, false)
   sa_tfstate_container_name   = "tfstate"
+
+  // deployer
+  deployer = try(var.deployer, "")
+  deployer_rg_name = try(local.deployer.resource_group.name, "")
+  deployer_msi = try(local.deployer.msi, "")
+  deployer_msi_name = try(local.deployer_msi.name, "")
+  deployer_users_id = try(local.deployer.users.object_id, [])
+
+  // key vault for saplibrary
+  kv_prefix                           = upper(format("%s%s", substr(local.environment, 0, 5), local.location_short))
+  kv_private_name                     = format("%sSAPLIBprvt%s", local.kv_prefix, local.postfix)
+  kv_user_name                        = format("%sSAPLIBuser%s", local.kv_prefix, local.postfix)
+  // credential for sap downloader
+  secret_downloader_username_name     = format("%s-downloader-username", local.kv_prefix)
+  secret_downloader_password_name     = format("%s-downloader-password", local.kv_prefix)
+  downloader_username                 = try(var.software.downloader.credentials.sap_user, "sap_smp_user")
+  downloader_password                 = try(var.software.downloader.credentials.sap_password, "sap_smp_password")
+
 }
 
 // Output objects 

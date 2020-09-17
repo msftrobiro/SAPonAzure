@@ -7,4 +7,6 @@ module "sap_library" {
   infrastructure          = var.infrastructure
   storage_account_sapbits = var.storage_account_sapbits
   storage_account_tfstate = var.storage_account_tfstate
+  software                = var.software
+  deployer                = var.deployer
 }

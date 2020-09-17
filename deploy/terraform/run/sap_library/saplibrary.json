@@ -5,26 +5,25 @@
         "resource_group": {
             "is_existing": "false",
             "arm_id": ""
-        }
-    },
-    "storage_account_sapbits": {
-        "is_existing": "false",
-        "arm_id": "",
-        "file_share": {
-            "enable_deployment": true,
-            "name": "sapbits"
         },
-        "sapbits_blob_container": {
-            "enable_deployment": true,
-            "name": "sapbits"
+        "deployer": {
+            "resource_group": {
+                "name": ""
+            },
+            "msi": {
+                "name": ""
+            },
+            "users": {
+                "object_id": []
+            }
         }
     },
-    "storage_account_tfstate": {
-        "is_existing": "false",
-        "arm_id": "",
-        "account_tier": "Standard",
-        "account_replication_type": "LRS",
-        "account_kind": "StorageV2",
-        "saplibrary_blob_container": {}
+    "software": {
+        "downloader": {
+            "credentials": {
+                "sap_user": "",
+                "sap_password": ""
+            }
+        }
     }
 }

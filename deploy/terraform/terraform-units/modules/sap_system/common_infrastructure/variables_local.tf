@@ -19,6 +19,14 @@ variable "nsg-mgmt" {
   description = "Details about management nsg of deployer(s)"
 }
 
+variable "deployer-uai" {
+  description = "Details of the UAI used by deployer(s)"
+}
+
+variable "deployer_user"{
+  description = "Details of the users"
+}
+
 variable "region_mapping" {
   type        = map(string)
   description = "Region Mapping: Full = Single CHAR, 4-CHAR"
@@ -102,15 +110,21 @@ locals {
   ppg_arm_id = local.ppg_exists ? try(local.var_ppg.arm_id, "") : ""
   ppg_name   = local.ppg_exists ? try(split("/", local.ppg_arm_id)[8], "") : try(local.var_ppg.name, format("%s_ppg", local.prefix))
 
+  // Post fix for all deployed resources
+  postfix = random_id.saplandscape.hex
+
+  // kv for sap landscape
+  kv_prefix       = upper(format("%s%s%s", substr(local.environment, 0, 5), local.location_short, substr(local.vnet_sap_name_prefix, 0, 7)))
+  kv_private_name = format("%sprvt%s", local.kv_prefix, upper(substr(local.postfix, 0, 4)))
+  kv_user_name    = format("%suser%s", local.kv_prefix, upper(substr(local.postfix, 0, 4)))
+  kv_users        = [var.deployer_user]
+
   //iSCSI
   var_iscsi = try(local.var_infra.iscsi, {})
 
   //iSCSI target device(s) is only created when below conditions met:
   //- iscsi is defined in input JSON
-  //- AND
-  //  - HANA database has high_availability set to true
-  //  - HANA database uses SUSE
-  iscsi_count = (local.hdb_ha && upper(local.hdb_os.publisher) == "SUSE") ? try(local.var_iscsi.iscsi_count, 0) : 0
+  iscsi_count = try(local.var_iscsi.iscsi_count, 0)
 
   iscsi_size = try(local.var_iscsi.size, "Standard_D2s_v3")
   iscsi_os = try(local.var_iscsi.os,
@@ -123,6 +137,15 @@ locals {
   iscsi_auth_type     = try(local.var_iscsi.authentication.type, "key")
   iscsi_auth_username = try(local.var_iscsi.authentication.username, "azureadm")
   iscsi_nic_ips       = local.sub_iscsi_exists ? try(local.var_iscsi.iscsi_nic_ips, []) : []
+
+  // By default, ssh key for iSCSI uses generated public key. Provide sshkey.path_to_public_key and path_to_private_key overides it
+  enable_iscsi_auth_key   = local.iscsi_count > 0 && local.iscsi_auth_type == "key"
+  iscsi_public_key        = local.enable_iscsi_auth_key ? try(file(var.sshkey.path_to_public_key), tls_private_key.iscsi[0].public_key_openssh) : null
+  iscsi_private_key       = local.enable_iscsi_auth_key ? try(file(var.sshkey.path_to_private_key), tls_private_key.iscsi[0].private_key_pem) : null
+
+  // By default, authentication type of iSCSI target is ssh key pair but using username/password is a potential usecase.
+  enable_iscsi_auth_password = local.iscsi_count > 0 && local.iscsi_auth_type == "password"
+  iscsi_auth_password        = local.enable_iscsi_auth_password ? try(local.var_iscsi.authentication.password, random_password.iscsi_password[0].result) : null
 
   iscsi = merge(local.var_iscsi, {
     iscsi_count = local.iscsi_count,
@@ -145,6 +168,9 @@ locals {
   vnet_sap_name_prefix = local.vnet_nr_parts >= 3 ? split("-", upper(local.vnet_sap_name))[local.vnet_nr_parts - 1] == "VNET" ? split("-", local.vnet_sap_name)[local.vnet_nr_parts - 2] : local.vnet_sap_name : local.vnet_sap_name
   vnet_sap_addr        = local.vnet_sap_exists ? "" : try(local.var_vnet_sap.address_space, "")
 
+  // By default, Ansible ssh key for SID uses generated public key. Provide sshkey.path_to_public_key and path_to_private_key overides it
+  sid_public_key  = try(file(var.sshkey.path_to_public_key), tls_private_key.sid[0].public_key_openssh)
+  sid_private_key = try(file(var.sshkey.path_to_private_key), tls_private_key.sid[0].private_key_pem)
 
   //Admin subnet
   var_sub_admin    = try(local.var_vnet_sap.subnet_admin, {})

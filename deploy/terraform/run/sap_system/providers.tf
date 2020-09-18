@@ -13,7 +13,7 @@ Description:
 */
 
 provider "azurerm" {
-  version = "~> 2.10"
+  version = "~> 2.25.0"
   features {}
 }
 
@@ -24,5 +24,6 @@ terraform {
     local    = { version = "~> 1.4" }
     random   = { version = "~> 2.2" }
     null     = { version = "~> 2.1" }
+    tls      = { version = "~> 2.2" }
   }
 }

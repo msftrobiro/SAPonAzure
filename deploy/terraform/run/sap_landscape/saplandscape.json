@@ -21,6 +21,9 @@
                     "prefix": "10.1.0.0/24"
                 }
             }
+        },
+        "iscsi": {
+            "iscsi_count": 3
         }
     },
     "jumpboxes": {

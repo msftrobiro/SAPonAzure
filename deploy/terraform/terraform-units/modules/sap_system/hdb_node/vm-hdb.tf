@@ -146,9 +146,9 @@ resource "azurerm_linux_virtual_machine" "vm-dbnode" {
     azurerm_network_interface.nics-dbnodes-db[count.index].id
   ]
   size                            = lookup(local.sizes, local.hdb_vms[count.index].size).compute.vm_size
-  admin_username                  = local.hdb_vms[count.index].authentication.username
-  admin_password                  = lookup(local.hdb_vms[count.index].authentication, "password", null)
-  disable_password_authentication = local.hdb_vms[count.index].authentication.type != "password" ? true : false
+  admin_username                  = local.sid_auth_username
+  admin_password                  = local.sid_auth_password
+  disable_password_authentication = ! local.enable_auth_password
 
   dynamic "os_disk" {
     iterator = disk
@@ -174,9 +174,12 @@ resource "azurerm_linux_virtual_machine" "vm-dbnode" {
     }
   }
 
-  admin_ssh_key {
-    username   = local.hdb_vms[count.index].authentication.username
-    public_key = file(var.sshkey.path_to_public_key)
+  dynamic "admin_ssh_key" {
+    for_each = range(local.enable_auth_password ? 0 : 1)
+    content {
+      username   = local.hdb_vms[count.index].authentication.username
+      public_key = file(var.sshkey.path_to_public_key)
+    }
   }
 
   boot_diagnostics {

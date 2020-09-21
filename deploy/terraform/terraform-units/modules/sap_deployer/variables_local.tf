@@ -53,10 +53,9 @@ locals {
 
   // Resource group and location
 
-  region         = try(var.infrastructure.region, "")
-  environment    = try(var.infrastructure.environment, "")
-  location_short = try(var.region_mapping[local.region], "unkn")
-
+  region             = try(var.infrastructure.region, "")
+  environment        = try(var.infrastructure.environment, "")
+  location_short     = try(var.region_mapping[local.region], "unkn")
   vnet_mgmt_tempname = local.vnet_mgmt.name
   prefix             = try(var.infrastructure.resource_group.name, upper(format("%s-%s-%s", local.environment, local.location_short, substr(local.vnet_mgmt_tempname, 0, 7))))
   sa_prefix          = lower(format("%s%s%sdiag", substr(local.environment, 0, 5), local.location_short, substr(local.vnet_mgmt_tempname, 0, 7)))
@@ -90,6 +89,23 @@ locals {
   // Deployer(s) information from input
   deployer_input = var.deployers
 
+  // Deployer(s) information with default override
+  enable_deployers = length(local.deployer_input) > 0 ? true : false
+
+  // Deployer(s) authentication method with default
+  enable_password = contains(compact([
+    for deployer in local.deployer_input :
+    try(deployer.authentication.type, "key") == "password" ? true : false
+  ]), "true")
+
+  // By default use generated password. Provide password under authentication overides it
+  input_pwd_list = compact([
+    for deployer in local.deployer_input :
+    try(deployer.authentication.password, "")
+  ])
+  input_pwd = length(local.input_pwd_list) > 0 ? local.input_pwd_list[0] : null
+  password  = (local.enable_deployers && local.enable_password) ? try(local.input_pwd_list[0], random_password.deployer[0].result) : null
+
   enable_key = contains(compact([
     for deployer in local.deployer_input :
     try(deployer.authentication.type, "key") == "key" ? true : false
@@ -99,8 +115,6 @@ locals {
   public_key  = (local.enable_deployers && local.enable_key) ? try(file(var.sshkey.path_to_public_key), tls_private_key.deployer[0].public_key_openssh) : null
   private_key = (local.enable_deployers && local.enable_key) ? try(file(var.sshkey.path_to_private_key), tls_private_key.deployer[0].private_key_pem) : null
 
-  // Deployer(s) information with default override
-  enable_deployers = length(local.deployer_input) > 0 ? true : false
   deployers = [
     for idx, deployer in local.deployer_input : {
       "name"                 = "deployer",
@@ -115,12 +129,13 @@ locals {
         "version"         = try(deployer.os.source_image_id, "") == "" ? "latest" : ""
       },
       "authentication" = {
-        "type"     = "key",
-        "username" = try(deployer.authentication.username, "azureadm"),
+        "type"     = try(deployer.authentication.type, "key")
+        "username" = try(deployer.authentication.username, "azureadm")
         "sshkey" = {
           "public_key"  = local.public_key
           "private_key" = local.private_key
         }
+        "password" = local.password
       },
       "components" = [
         "terraform",

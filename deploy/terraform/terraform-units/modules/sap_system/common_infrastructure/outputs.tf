@@ -38,6 +38,18 @@ output "software_w_defaults" {
   value = local.software
 }
 
-output "user_vault_name" {
-  value = azurerm_key_vault.kv_user.name
+output "sid_kv_user" {
+  value = azurerm_key_vault.sid_kv_user
+}
+
+output "sid_kv_prvt" {
+  value = azurerm_key_vault.sid_kv_prvt
+}
+
+/*
+ To force dependency between kv access policy and secrets. Expected behavior:
+ https://github.com/terraform-providers/terraform-provider-azurerm/issues/4971
+*/
+output "sid_kv_user_msi" {
+  value = azurerm_key_vault_access_policy.sid_kv_user_msi
 }

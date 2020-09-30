@@ -32,7 +32,15 @@ variable "deployer-uai" {
 
 variable "deployer_user" {
   description = "Details of the users"
-  default = []
+  default     = []
+}
+
+variable "sid_kv_user" {
+  description = "Details of the user keyvault for sap_system"
+}
+
+variable "sid_kv_user_msi" {
+  description = "Azurerm_key_vault_access_policy is required to save secrets in KV"
 }
 
 variable "region_mapping" {
@@ -84,20 +92,6 @@ locals {
   prefix    = try(local.var_infra.resource_group.name, upper(replace(replace(format("%s-%s-%s_%s-%s", local.environment, local.location_short, substr(local.vnet_sap_name_prefix, 0, 7), local.codename, local.sid), "_-", "-"), "--", "-")))
   sa_prefix = lower(replace(format("%s%s%sdiag", substr(local.environment, 0, 5), local.location_short, substr(local.codename, 0, 7)), "--", "-"))
 
-  // Post fix for all deployed resources
-  postfix = random_id.sapsystem.hex
-
-  // key vault for sap system
-  kv_prefix            = upper(format("%s%s%s", substr(local.environment, 0, 5), local.location_short, substr(local.vnet_sap_name_prefix, 0, 7)))
-  kv_private_name      = format("%sSIDp%s", local.kv_prefix, upper(substr(local.postfix, 0, 3)))
-  kv_user_name         = format("%sSIDu%s", local.kv_prefix, upper(substr(local.postfix, 0, 3)))
-  kv_users             = var.deployer_user
-  sid_auth_type        = try(local.hdb.authentication.type, "key")
-  enable_auth_password = local.enable_deployment && local.sid_auth_type == "password"
-  enable_auth_key      = local.enable_deployment && local.sid_auth_type == "key"
-  sid_auth_username    = try(local.hdb.authentication.username, "azureadm")
-  sid_auth_password    = local.enable_auth_password ? try(local.hdb.authentication.password, random_password.password[0].result) : ""
-
   /* 
      TODO: currently sap landscape and sap system haven't been decoupled. 
      The key vault information of sap landscape will be obtained via input json.
@@ -106,12 +100,8 @@ locals {
   kv_landscape_id    = try(local.var_infra.landscape.key_vault_arm_id, "")
   secret_sid_pk_name = try(local.var_infra.landscape.sid_public_key_secret_name, "")
 
-  // SPN of Azure Fence Agent for Hana Database
-  enable_fence_agent          = local.enable_deployment && try(local.hdb.fence_agent, null) != null
-  fence_agent_subscription_id = local.enable_fence_agent ? local.hdb.fence_agent.subscription_id : null
-  fence_agent_tenant_id       = local.enable_fence_agent ? local.hdb.fence_agent.tenant_id : null
-  fence_agent_client_id       = local.enable_fence_agent ? local.hdb.fence_agent.client_id : null
-  fence_agent_client_secret   = local.enable_fence_agent ? local.hdb.fence_agent.client_secret : null
+  // Define this variable to make it easier when implementing existing kv.
+  sid_kv_user = var.sid_kv_user[0]
 
   # SAP vnet
   var_infra       = try(var.infrastructure, {})
@@ -171,25 +161,41 @@ locals {
   hdb_size = try(local.hdb.size, "Demo")
   hdb_fs   = try(local.hdb.filesystem, "xfs")
   hdb_ha   = try(local.hdb.high_availability, false)
-  hdb_auth = {
-    "type"     = local.sid_auth_type
-    "username" = local.sid_auth_username
-    "password" = local.sid_auth_password
-  }
 
-  hdb_ins                = try(local.hdb.instance, {})
-  hdb_sid                = try(local.hdb_ins.sid, local.sid) // HANA database sid from the Databases array for use as reference to LB/AS
-  hdb_nr                 = try(local.hdb_ins.instance_number, "01")
-  hdb_cred               = try(local.hdb.credentials, {})
+  sid_auth_type        = try(local.hdb.authentication.type, "key")
+  enable_auth_password = local.enable_deployment && local.sid_auth_type == "password"
+  enable_auth_key      = local.enable_deployment && local.sid_auth_type == "key"
+  sid_auth_username    = try(local.hdb.authentication.username, "azureadm")
+  sid_auth_password    = local.enable_auth_password ? try(local.hdb.authentication.password, random_password.password[0].result) : ""
+
   db_systemdb_password   = local.enable_deployment ? try(local.hdb_cred.db_systemdb_password, random_password.credentials[0].result) : null
   os_sidadm_password     = local.enable_deployment ? try(local.hdb_cred.os_sidadm_password, random_password.credentials[1].result) : null
   os_sapadm_password     = local.enable_deployment ? try(local.hdb_cred.os_sapadm_password, random_password.credentials[2].result) : null
   xsa_admin_password     = local.enable_deployment ? try(local.hdb_cred.xsa_admin_password, random_password.credentials[3].result) : null
   cockpit_admin_password = local.enable_deployment ? try(local.hdb_cred.cockpit_admin_password, random_password.credentials[4].result) : null
   ha_cluster_password    = local.enable_deployment && local.hdb_ha ? try(local.hdb_cred.ha_cluster_password, random_password.credentials[5].result) : null
-  components             = merge({ hana_database = [] }, try(local.hdb.components, {}))
-  xsa                    = try(local.hdb.xsa, { routing = "ports" })
-  shine                  = try(local.hdb.shine, { email = "shinedemo@microsoft.com" })
+
+  // SPN of Azure Fence Agent for Hana Database
+  enable_fence_agent          = local.enable_deployment && try(local.hdb.fence_agent, null) != null
+  fence_agent_subscription_id = local.enable_fence_agent ? local.hdb.fence_agent.subscription_id : null
+  fence_agent_tenant_id       = local.enable_fence_agent ? local.hdb.fence_agent.tenant_id : null
+  fence_agent_client_id       = local.enable_fence_agent ? local.hdb.fence_agent.client_id : null
+  fence_agent_client_secret   = local.enable_fence_agent ? local.hdb.fence_agent.client_secret : null
+
+  hdb_auth = {
+    "type"     = local.sid_auth_type
+    "username" = local.sid_auth_username
+    "password" = local.sid_auth_password
+  }
+
+  hdb_ins  = try(local.hdb.instance, {})
+  hdb_sid  = try(local.hdb_ins.sid, local.sid) // HANA database sid from the Databases array for use as reference to LB/AS
+  hdb_nr   = try(local.hdb_ins.instance_number, "01")
+  hdb_cred = try(local.hdb.credentials, {})
+
+  components = merge({ hana_database = [] }, try(local.hdb.components, {}))
+  xsa        = try(local.hdb.xsa, { routing = "ports" })
+  shine      = try(local.hdb.shine, { email = "shinedemo@microsoft.com" })
 
   customer_provided_names = try(local.hdb.dbnodes[0].name, "") == "" ? false : true
 

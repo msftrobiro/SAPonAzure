@@ -14,18 +14,22 @@ variable codename {
 
 variable management_vnet_name {
   description = "Name of Management vnet"
+  default = ""
 }
 
 variable sap_vnet_name {
   description = "Name of SAP vnet"
+  default = ""
 }
 
 variable sap_sid {
   description = "SAP SID"
+  default = ""
 }
 
 variable db_sid {
   description = "Database SID"
+  default = ""
 }
 
 variable random_id {
@@ -191,7 +195,7 @@ variable resource_suffixes {
     "deployer-subnet-nsg" = "_deployment-subnet-nsg"
     "iscsi-subnet"        = "_iscsi-subnet"
     "iscsi-subnet-nsg"    = "_iscsiSubnet-nsg"
-    "library-rg"          = "_SAP-LIBRARY"
+    "library-rg"          = "-SAP_LIBRARY"
     "library-state"       = "_SAP-LIBRARY.terraform.tfstate"
     "kv"                  = ""
     "msi"                 = "-msi"

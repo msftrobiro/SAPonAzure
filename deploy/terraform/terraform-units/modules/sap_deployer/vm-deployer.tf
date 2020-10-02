@@ -6,10 +6,13 @@ Description:
   Define 0..n Deployer(s).
 */
 
+data azurerm_subscription "primary" {}
+data azurerm_client_config "current" {}
+
 // Public IP addresse and nic for Deployer
 resource "azurerm_public_ip" "deployer" {
   count               = length(local.deployers)
-  name                = format("%s-%s%02d-pip", local.prefix, local.deployers[count.index].name, count.index)
+  name                = format("%s_%s%s", local.prefix, local.deployers[count.index].name, local.resource_suffixes.pip)
   location            = azurerm_resource_group.deployer[0].location
   resource_group_name = azurerm_resource_group.deployer[0].name
   allocation_method   = "Static"
@@ -17,7 +20,7 @@ resource "azurerm_public_ip" "deployer" {
 
 resource "azurerm_network_interface" "deployer" {
   count               = length(local.deployers)
-  name                = format("%s-%s%02d-nic", local.prefix, local.deployers[count.index].name, count.index)
+  name                = format("%s_%s%s", local.prefix, local.deployers[count.index].name, local.resource_suffixes.nic)
   location            = azurerm_resource_group.deployer[0].location
   resource_group_name = azurerm_resource_group.deployer[0].name
 
@@ -37,9 +40,6 @@ resource "azurerm_user_assigned_identity" "deployer" {
   name                = format("%s-msi", local.prefix)
 }
 
-data "azurerm_subscription" "primary" {}
-data "azurerm_client_config" "current" {}
-
 // Add role to be able to deploy resources
 resource "azurerm_role_assignment" "sub_contributor" {
   scope                = data.azurerm_subscription.primary.id
@@ -57,8 +57,8 @@ resource "azurerm_role_assignment" "sub_user_admin" {
 // Linux Virtual Machine for Deployer
 resource "azurerm_linux_virtual_machine" "deployer" {
   count                           = length(local.deployers)
-  name                            = format("%s-%s%02d", local.prefix,local.deployers[count.index].name, count.index)
-  computer_name                   = format("%s%02d", replace(replace(local.deployers[count.index].name,"-",""),"_",""), count.index)
+  name                            = format("%s_%s%s", local.prefix, local.deployers[count.index].name, local.resource_suffixes.vm)
+  computer_name                   = local.deployers[count.index].name
   location                        = azurerm_resource_group.deployer[0].location
   resource_group_name             = azurerm_resource_group.deployer[0].name
   network_interface_ids           = [azurerm_network_interface.deployer[count.index].id]
@@ -68,7 +68,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   disable_password_authentication = local.deployers[count.index].authentication.type != "password" ? true : false
 
   os_disk {
-    name                 = format("%s-%s%02d-osdisk", local.prefix, local.deployers[count.index].name, count.index)
+    name                 = format("%s_%s%s", local.prefix, local.deployers[count.index].name, local.resource_suffixes.osdisk)
     caching              = "ReadWrite"
     storage_account_type = local.deployers[count.index].disk_type
   }

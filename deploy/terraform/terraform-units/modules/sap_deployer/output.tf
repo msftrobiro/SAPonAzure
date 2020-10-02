@@ -9,11 +9,6 @@ output "deployer_rg_name" {
   value = azurerm_resource_group.deployer[0].name
 }
 
-// Unique ID for deployer
-output "deployer_id" {
-  value = random_id.deployer
-}
-
 // Details of management vnet that is deployed/imported
 output "vnet_mgmt" {
   value = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0] : azurerm_virtual_network.vnet_mgmt[0]
@@ -44,3 +39,6 @@ output "deployers" {
   value = local.deployers_updated
 }
 
+output "random_id" {
+  value = random_id.deployer.hex
+}

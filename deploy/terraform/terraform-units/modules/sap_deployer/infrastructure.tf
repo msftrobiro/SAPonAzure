@@ -4,11 +4,6 @@ Description:
   Define infrastructure resources for deployer(s).
 */
 
-// Random 8 char identifier for sap deployer resources
-resource "random_id" "deployer" {
-  byte_length = 4
-}
-
 // Create managed resource group for sap deployer with CanNotDelete lock
 resource "azurerm_resource_group" "deployer" {
   count    = local.enable_deployers ? 1 : 0
@@ -52,7 +47,7 @@ data "azurerm_subnet" "subnet_mgmt" {
 // Creates boot diagnostics storage account for Deployer
 resource "azurerm_storage_account" "deployer" {
   count                     = local.enable_deployers ? 1 : 0
-  name                      = lower(format("%s%s",local.sa_prefix,substr(local.postfix,0,4)))
+  name                      = local.storageaccount_names
   resource_group_name       = azurerm_resource_group.deployer[0].name
   location                  = azurerm_resource_group.deployer[0].location
   account_replication_type  = "LRS"

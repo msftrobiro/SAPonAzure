@@ -79,7 +79,7 @@ variable "nics-anydb" {
   description = "List of NICs for the Web dispatcher VMs"
 }
 
-variable "random-id" {
+variable "random_id" {
   description = "Random hex string"
 }
 variable "anydb-loadbalancers" {
@@ -112,7 +112,7 @@ locals {
           role           = dbnode.role,
           platform       = database.platform,
           authentication = database.authentication,
-          name           = dbnode.name
+          name           = dbnode.computername
         }
         if try(database.platform, "NONE") == "HANA"
       ],
@@ -121,7 +121,7 @@ locals {
           role           = dbnode.role,
           platform       = database.platform,
           authentication = database.authentication,
-          name           = dbnode.name
+          name           = dbnode.computername
         }
         if try(database.platform, "NONE") == "HANA" && database.high_availability
       ]

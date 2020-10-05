@@ -13,8 +13,7 @@ HANA DB Linux Server private IP range: .10 -
 # Creates the admin traffic NIC and private IP address for database nodes
 resource "azurerm_network_interface" "nics-dbnodes-admin" {
   count                         = local.enable_deployment ? length(local.hdb_vms) : 0
-  name                          = local.customer_provided_names ? format("%s-admin-nic",local.hdb_vms[count.index].name) : format("%s_%s-adminnic", local.prefix,local.hdb_vms[count.index].name)
-  
+  name                          = format("%s%s",local.hdb_vms[count.index].name,  local.resource_suffixes.admin-nic)
   location                      = var.resource-group[0].location
   resource_group_name           = var.resource-group[0].name
   enable_accelerated_networking = true
@@ -30,7 +29,7 @@ resource "azurerm_network_interface" "nics-dbnodes-admin" {
 # Creates the DB traffic NIC and private IP address for database nodes
 resource "azurerm_network_interface" "nics-dbnodes-db" {
   count                         = local.enable_deployment ? length(local.hdb_vms) : 0
-  name                          = local.customer_provided_names ? format("%s-db-nic",local.hdb_vms[count.index].name) : format("%s_%s-dbnic", local.prefix,local.hdb_vms[count.index].name)
+  name                          = format("%s%s",local.hdb_vms[count.index].name,  local.resource_suffixes.db-nic)
   location                      = var.resource-group[0].location
   resource_group_name           = var.resource-group[0].name
   enable_accelerated_networking = true
@@ -52,12 +51,12 @@ Load balancer front IP address range: .4 - .9
 
 resource "azurerm_lb" "hdb" {
   count               = local.enable_deployment ? 1 : 0
-  name                = format("%s_db-alb", local.prefix)
+  name                = format("%s%s", local.prefix,  local.resource_suffixes.db-alb)
   resource_group_name = var.resource-group[0].name
   location            = var.resource-group[0].location
 
   frontend_ip_configuration {
-    name                          = format("%s_db-alb-feip", local.prefix)
+    name                          = format("%s%s", local.prefix,  local.resource_suffixes.db-alb-feip)
     subnet_id                     = local.sub_db_exists ? data.azurerm_subnet.sap-db[0].id : azurerm_subnet.sap-db[0].id
     private_ip_address_allocation = "Static"
     private_ip_address            = try(local.hana_database.loadbalancer.frontend_ip, (local.sub_db_exists ? cidrhost(data.azurerm_subnet.sap-db[0].address_prefixes[0] , tonumber(count.index) + 4) : cidrhost(azurerm_subnet.sap-db[0].address_prefixes[0] , tonumber(count.index) + 4)))
@@ -66,16 +65,17 @@ resource "azurerm_lb" "hdb" {
 
 resource "azurerm_lb_backend_address_pool" "hdb" {
   count               = local.enable_deployment ? 1 : 0
+  name                = format("%s%s", local.prefix,  local.resource_suffixes.db-alb-bepool)
   resource_group_name = var.resource-group[0].name
   loadbalancer_id     = azurerm_lb.hdb[count.index].id
-  name                = format("%s_dbalb-bepool", local.prefix)
+  
 }
 
 resource "azurerm_lb_probe" "hdb" {
   count               = local.enable_deployment ? 1 : 0
   resource_group_name = var.resource-group[0].name
   loadbalancer_id     = azurerm_lb.hdb[count.index].id
-  name                = format("%s_dbalb-hp", local.prefix)
+  name                = format("%s%s", local.prefix,  local.resource_suffixes.db-alb-hp)
   port                = "625${local.hana_database.instance.instance_number}"
   protocol            = "Tcp"
   interval_in_seconds = 5
@@ -96,11 +96,11 @@ resource "azurerm_lb_rule" "hdb" {
   count                          = local.enable_deployment ? length(local.loadbalancer_ports) : 0
   resource_group_name            = var.resource-group[0].name
   loadbalancer_id                = azurerm_lb.hdb[0].id
-  name                           = "${upper(local.loadbalancer_ports[count.index].sid)}_HDB_${local.loadbalancer_ports[count.index].port}"
+  name =                           format("%s%s%05d-%02d",local.prefix,local.resource_suffixes.db-alb-rule,local.loadbalancer_ports[count.index].port,count.index)
   protocol                       = "Tcp"
   frontend_port                  = local.loadbalancer_ports[count.index].port
   backend_port                   = local.loadbalancer_ports[count.index].port
-  frontend_ip_configuration_name = format("%s_db-alb-feip", local.prefix)
+  frontend_ip_configuration_name = format("%s%s", local.prefix,  local.resource_suffixes.db-alb-feip)
   backend_address_pool_id        = azurerm_lb_backend_address_pool.hdb[0].id
   probe_id                       = azurerm_lb_probe.hdb[0].id
   enable_floating_ip             = true
@@ -110,7 +110,7 @@ resource "azurerm_lb_rule" "hdb" {
 
 resource "azurerm_availability_set" "hdb" {
   count                        = local.enable_deployment ? 1 : 0
-  name                         = format("%s_hdb-avset", local.prefix)
+  name                         = format("%s%s", local.prefix,  local.resource_suffixes.db-avset)
   location                     = var.resource-group[0].location
   resource_group_name          = var.resource-group[0].name
   platform_update_domain_count = 20
@@ -135,8 +135,8 @@ resource "azurerm_managed_disk" "data-disk" {
 # Manages Linux Virtual Machine for HANA DB servers
 resource "azurerm_linux_virtual_machine" "vm-dbnode" {
   count                        = local.enable_deployment ? length(local.hdb_vms) : 0
-  name                         = local.customer_provided_names ? format("%s",local.hdb_vms[count.index].name) : format("%s_%s", local.prefix,local.hdb_vms[count.index].name)
-  computer_name                = replace(local.hdb_vms[count.index].name, "_", "")
+  name                         = local.hdb_vms[count.index].name
+  computer_name                = local.hdb_vms[count.index].computername
   location                     = var.resource-group[0].location
   resource_group_name          = var.resource-group[0].name
   availability_set_id          = azurerm_availability_set.hdb[0].id
@@ -154,7 +154,7 @@ resource "azurerm_linux_virtual_machine" "vm-dbnode" {
     iterator = disk
     for_each = flatten([for storage_type in lookup(local.sizes, local.hdb_vms[count.index].size).storage : [for disk_count in range(storage_type.count) : { name = storage_type.name, id = disk_count, disk_type = storage_type.disk_type, size_gb = storage_type.size_gb, caching = storage_type.caching }] if storage_type.name == "os"])
     content {
-      name                 = local.customer_provided_names ? format("%s-osdisk",local.hdb_vms[count.index].name) : format("%s_%s-osdisk", local.prefix,local.hdb_vms[count.index].name)
+      name                 = format("%s%s",local.hdb_vms[count.index].name, local.resource_suffixes.osdisk)
       caching              = disk.value.caching
       storage_account_type = disk.value.disk_type
       disk_size_gb         = disk.value.size_gb

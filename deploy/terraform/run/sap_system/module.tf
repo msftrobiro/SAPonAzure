@@ -146,7 +146,7 @@ module "anydb_node" {
   vnet-sap         = module.common_infrastructure.vnet-sap
   storage-bootdiag = module.common_infrastructure.storage-bootdiag
   ppg              = module.common_infrastructure.ppg
-  random-id        = module.common_infrastructure.random_id
+  naming           = module.sap_namegenerator.naming
 }
 
 // Generate output files

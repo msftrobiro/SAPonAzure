@@ -17,8 +17,8 @@ steps:
       else
         deployer_prefix=${deployer_env}
       fi
-      deployer_rg_name="${deployer_prefix}-EAUS-MGMT-INFRASTRUCTURE"
-      msi_name="${deployer_prefix}-EAUS-MGMT-msi"
+      
+      deployer_environment=${deployer_prefix}
 
       # Modify environment value so it starts with u and with length of 5
       saplib_env=${{parameters.saplib_env}}
@@ -52,8 +52,7 @@ steps:
       cp ${repo_dir}/deploy/terraform/bootstrap/sap_library/saplibrary.json ${ws_dir}/saplibrary.json
       cat ${ws_dir}/saplibrary.json \
       | jq --arg environment "${saplib_prefix}" .infrastructure.environment\ =\ \$environment \
-      | jq --arg deployer_rg_name "${deployer_rg_name}" .deployer.resource_group.name\ =\ \$deployer_rg_name \
-      | jq --arg msi_name "${msi_name}" .deployer.msi.name\ =\ \$msi_name \
+      | jq --arg deployer_environment "${deployer_environment}" .deployer.environment\ =\ \$deployer_environment \
       > ${input}
 
       cat ${input}

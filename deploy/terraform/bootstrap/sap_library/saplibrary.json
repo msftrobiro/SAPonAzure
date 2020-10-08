@@ -8,15 +8,9 @@
         }
     },
     "deployer": {
-        "resource_group": {
-            "name": ""
-        },
-        "msi": {
-            "name": ""
-        },
-        "users": {
-            "object_id": []
-        }
+        "environment": "global",
+        "region": "eastus",
+        "vnet": "MGMT"
     },
     "software": {
         "downloader": {

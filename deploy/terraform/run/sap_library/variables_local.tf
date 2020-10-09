@@ -38,8 +38,16 @@ variable "region_mapping" {
 }
 
 locals {
-  // Sap library's environment
-  environment = upper(try(var.infrastructure.environment, ""))
+  // Derive resource group name for saplibrary
+  var_infra      = try(var.infrastructure, {})
+  region         = try(local.var_infra.region, "")
+  environment    = upper(try(var.infrastructure.environment, ""))
+  location_short = try(var.region_mapping[local.region], "unkn")
+  prefix         = upper(format("%s-%s", local.environment, local.location_short))
+  var_rg         = try(local.var_infra.resource_group, {})
+  rg_exists      = try(local.var_rg.is_existing, false)
+  rg_arm_id      = local.rg_exists ? try(local.var_rg.arm_id, "") : ""
+  rg_name        = local.rg_exists ? "" : try(local.var_rg.name, format("%s-SAP_LIBRARY", local.prefix))
 
   // Derive resource group name for deployer
   deployer                = try(var.deployer, {})
@@ -51,7 +59,12 @@ locals {
   deployer_rg_name = try(local.deployer.resource_group_name, format("%s-INFRASTRUCTURE", local.deployer_prefix))
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
-  deployer_key_vault_arm_id = try(data.terraform_remote_state.local_deployer.outputs.deployer_kv_user_arm_id, "")
+  deployer_key_vault_arm_id = try(data.terraform_remote_state.remote_deployer.outputs.deployer_kv_user_arm_id, "")
+
+  saplib_resource_group_name   = local.rg_name
+  tfstate_storage_account_name = local.deployer.tfstate_storage_account_name
+  tfstate_container_name       = "tfstate"
+  deployer_tfstate_key         = format("%s%s", local.deployer_rg_name, ".terraform.tfstate")
 
   spn = {
     subscription_id = data.azurerm_key_vault_secret.subscription_id.value,

@@ -1,15 +1,23 @@
 {
     "infrastructure": {
         "region": "eastus",
-        "environment": "np",
+        "environment": "global",
         "resource_group": {
             "is_existing": "false",
             "arm_id": ""
         }
     },
     "deployer": {
-        "environment": "np",
+        "environment": "global",
         "region": "eastus",
         "vnet": "MGMT"
+    },
+    "software": {
+        "downloader": {
+            "credentials": {
+                "sap_user": "",
+                "sap_password": ""
+            }
+        }
     }
 }

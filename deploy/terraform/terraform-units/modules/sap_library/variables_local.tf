@@ -1,3 +1,9 @@
+/*
+Description:
+
+  Define local variables.
+*/
+
 // Input arguments 
 variable naming {
   description = "naming convention"

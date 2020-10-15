@@ -122,7 +122,7 @@ locals {
 }
 
 locals {
-  rg_library_location      = local.rg_exists ? data.azurerm_resource_group.library[0].location : azurerm_resource_group.library[0].location
-  storagecontainer_sapbits = ! local.sa_sapbits_blob_container_enable ? null : local.sa_sapbits_blob_container_name
-  fileshare_sapbits_name   = local.sa_sapbits_file_share_enable ? local.sa_sapbits_file_share_name : null
+  rg_library_location           = local.rg_exists ? data.azurerm_resource_group.library[0].location : azurerm_resource_group.library[0].location
+  storagecontainer_sapbits_name = local.sa_sapbits_blob_container_enable ? local.sa_sapbits_blob_container_name : null
+  fileshare_sapbits_name        = local.sa_sapbits_file_share_enable ? local.sa_sapbits_file_share_name : null
 }

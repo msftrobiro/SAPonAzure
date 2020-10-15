@@ -2,16 +2,20 @@ output "tfstate_storage_account" {
   value = local.sa_tfstate_name
 }
 
-output "sapbits_storage_account" {
+output "sapbits_storage_account_name" {
   value = local.sa_sapbits_name
+}
+
+output "sapbits_sa_resource_group_name" {
+  value = local.rg_name
 }
 
 output "storagecontainer_tfstate" {
   value = local.sa_tfstate_container_name
 }
 
-output "storagecontainer_sapbits" {
-  value = local.storagecontainer_sapbits
+output "storagecontainer_sapbits_name" {
+  value = local.storagecontainer_sapbits_name
 }
 
 output "fileshare_sapbits_name" {

@@ -1,12 +1,12 @@
 {
   "infrastructure": {
     "region": "eastus",
-    "environment": "global",
+    "environment": "NP",
     "resource_group": {
       "is_existing": "false",
       "arm_id": ""
     },
-    "zones": [],
+    "zones": ["1","2"],
     "vnets": {
       "management": {
         "saplib_resource_group_name": "",
@@ -44,7 +44,7 @@
         "offer": "sles-sap-12-sp5",
         "sku": "gen1"
       },
-      "zones": [],
+      "zones": ["1"],
       "credentials": {
         "db_systemdb_password": "<db_systemdb_password>",
         "os_sidadm_password": "<os_sidadm_password>",
@@ -61,11 +61,11 @@
     "scs_instance_number": "01",
     "ers_instance_number": "02",
     "scs_high_availability": false,
-    "application_server_count": 1,
+    "application_server_count": 2,
     "webdispatcher_count": 1,
-    "app_zones": [],
-    "scs_zones": [],
-    "web_zones": [],
+    "app_zones": ["1","2"],
+    "scs_zones": ["1"],
+    "web_zones": ["1"],
     "authentication": {
       "type": "key",
       "username": "azureadm"

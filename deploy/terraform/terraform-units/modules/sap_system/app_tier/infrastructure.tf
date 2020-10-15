@@ -43,6 +43,7 @@ resource "azurerm_lb" "scs" {
   name                = format("%s%s", local.prefix, local.resource_suffixes.scs-alb)
   resource_group_name = var.resource-group[0].name
   location            = var.resource-group[0].location
+  sku                 = local.scs_zonal_deployment ? "Standard" : "Basic"
 
   frontend_ip_configuration {
     name                          = format("%s%s", local.prefix, local.resource_suffixes.scs-alb-feip)
@@ -110,13 +111,13 @@ resource "azurerm_lb_rule" "ers" {
 
 # Create the SCS Availability Set
 resource "azurerm_availability_set" "scs" {
-  count                        = local.enable_deployment ? 1 : 0
-  name                         = format("%s%s", local.prefix, local.resource_suffixes.scs-avset)
+  count                        = local.enable_deployment ? local.scs_server_count == local.scs_zone_count ? 0 : max(length(local.scs_zones), 1) : 0
+  name                         = local.scs_zonal_deployment ? format("%s_z%s%s", local.prefix, local.scs_zones[count.index], local.resource_suffixes.scs-avset) : format("%s%s", local.prefix, local.resource_suffixes.scs-avset)
   location                     = var.resource-group[0].location
   resource_group_name          = var.resource-group[0].name
   platform_update_domain_count = 20
   platform_fault_domain_count  = 2
-  proximity_placement_group_id = lookup(var.infrastructure, "ppg", false) != false ? (var.ppg[0].id) : null
+  proximity_placement_group_id = local.scs_zonal_deployment ? var.ppg[count.index % length(local.scs_zones)].id : var.ppg[0].id
   managed                      = true
 }
 
@@ -126,13 +127,13 @@ resource "azurerm_availability_set" "scs" {
 
 # Create the Application Availability Set
 resource "azurerm_availability_set" "app" {
-  count                        = local.enable_deployment ? 1 : 0
-  name                         = format("%s%s", local.prefix, local.resource_suffixes.app-avset)
+  count                        = local.enable_deployment ? local.application_server_count == local.app_zone_count ? 0 : max(local.app_zone_count, 1) : 0
+  name                         = local.app_zonal_deployment ? format("%s_z%s%s", local.prefix, local.app_zones[count.index], local.resource_suffixes.app-avset) : format("%s%s", local.prefix, local.resource_suffixes.app-avset)
   location                     = var.resource-group[0].location
   resource_group_name          = var.resource-group[0].name
   platform_update_domain_count = 20
   platform_fault_domain_count  = 2
-  proximity_placement_group_id = lookup(var.infrastructure, "ppg", false) != false ? (var.ppg[0].id) : null
+  proximity_placement_group_id = local.app_zonal_deployment ? var.ppg[count.index % local.app_zone_count].id : var.ppg[0].id
   managed                      = true
 }
 
@@ -147,6 +148,7 @@ resource "azurerm_lb" "web" {
   name                = format("%s%s", local.prefix, local.resource_suffixes.web-alb)
   resource_group_name = var.resource-group[0].name
   location            = var.resource-group[0].location
+  sku                 = local.web_zonal_deployment ? "Standard" : "Basic"
 
   frontend_ip_configuration {
     name                          = format("%s%s", local.prefix, local.resource_suffixes.web-alb-feip)
@@ -189,12 +191,12 @@ resource "azurerm_network_interface_backend_address_pool_association" "web" {
 
 # Create the Web dispatcher Availability Set
 resource "azurerm_availability_set" "web" {
-  count                        = local.enable_deployment ? 1 : 0
-  name                         = format("%s%s", local.prefix, local.resource_suffixes.web-avset)
+  count                        = local.enable_deployment ? local.webdispatcher_count == local.web_zone_count ? 0 : max(length(local.web_zones), 1) : 0
+  name                         = local.web_zonal_deployment ? format("%s_z%s%s", local.prefix, local.web_zones[count.index], local.resource_suffixes.web-avset) : format("%s%s", local.prefix, local.resource_suffixes.web-avset)
   location                     = var.resource-group[0].location
   resource_group_name          = var.resource-group[0].name
   platform_update_domain_count = 20
   platform_fault_domain_count  = 2
-  proximity_placement_group_id = lookup(var.infrastructure, "ppg", false) != false ? (var.ppg[0].id) : null
+  proximity_placement_group_id = local.web_zonal_deployment ? var.ppg[count.index % length(local.web_zones)].id : var.ppg[0].id
   managed                      = true
 }

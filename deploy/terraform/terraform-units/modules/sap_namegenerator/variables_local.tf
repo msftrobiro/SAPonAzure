@@ -235,7 +235,14 @@ variable resource_suffixes {
   }
 }
 
+variable zones {
+  type        = list(string)
+  description = "List of availability zones"
+  default = []
+}
+
 locals {
+
   location_short = upper(try(var.region_mapping[var.location], "unkn"))
 
   env_verified      = upper(substr(var.environment, 0, var.sapautomation_name_limits.environment_variable_length))
@@ -245,5 +252,6 @@ locals {
   random_id_verified    = upper(substr(var.random_id, 0, var.sapautomation_name_limits.random_id_length))
   random_id_vm_verified = lower(substr(var.random_id, 0, var.sapautomation_name_limits.random_id_length))
 
+  zonal_deployment = try(length(var.zones),0) > 0 ? true : false
 }
 

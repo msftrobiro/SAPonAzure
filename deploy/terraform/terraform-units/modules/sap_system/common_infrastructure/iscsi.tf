@@ -98,7 +98,7 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
   disable_password_authentication = local.iscsi.authentication.type != "password" ? true : false
 
   os_disk {
-    name                 = format("%s_%s%s", local.prefix, local.virtualmachine_names[count.index], local.resource_suffixes.osdisk) 
+    name                 = format("%s_%s%s", local.prefix, local.virtualmachine_names[count.index], local.resource_suffixes.osdisk)
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
   }

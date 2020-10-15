@@ -4,16 +4,16 @@
 */
 
 module "deployer" {
-  source            = "../../terraform-units/modules/sap_system/deployer"
-  application       = var.application
-  databases         = var.databases
-  infrastructure    = var.infrastructure
-  jumpboxes         = var.jumpboxes
-  options           = var.options
-  software          = var.software
-  ssh-timeout       = var.ssh-timeout
-  sshkey            = var.sshkey
-  naming            = module.sap_namegenerator.naming
+  source         = "../../terraform-units/modules/sap_system/deployer"
+  application    = var.application
+  databases      = var.databases
+  infrastructure = var.infrastructure
+  jumpboxes      = var.jumpboxes
+  options        = var.options
+  software       = var.software
+  ssh-timeout    = var.ssh-timeout
+  sshkey         = var.sshkey
+  naming         = module.sap_namegenerator.naming
 }
 
 module "saplibrary" {
@@ -69,6 +69,7 @@ module "sap_namegenerator" {
   app_server_count = local.app_server_count
   web_server_count = local.webdispatcher_count
   scs_server_count = local.scs_server_count
+  zones            = local.zones
 }
 
 // Create Jumpboxes

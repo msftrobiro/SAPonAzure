@@ -29,14 +29,15 @@ variable naming {
 // Set defaults
 locals {
 
-  db_server_count      = length(var.naming.virtualmachine_names.HANA)
-  virtualmachine_names = concat(var.naming.virtualmachine_names.HANA, var.naming.virtualmachine_names.HANA_HA)
+  computer_names       = var.naming.virtualmachine_names.HANA_COMPUTERNAME 
+  virtualmachine_names = var.naming.virtualmachine_names.HANA_VMNAME
+
   storageaccount_names = var.naming.storageaccount_names.SDU
   resource_suffixes    = var.naming.resource_suffixes
 
-  region  = try(var.infrastructure.region, "")
-  sid     = upper(try(var.application.sid, ""))
-  prefix  = try(var.infrastructure.resource_group.name, var.naming.prefix.SDU)
+  region = try(var.infrastructure.region, "")
+  sid    = upper(try(var.application.sid, ""))
+  prefix = try(var.infrastructure.resource_group.name, var.naming.prefix.SDU)
 
   rg_name = try(var.infrastructure.resource_group.name, format("%s%s", local.prefix, local.resource_suffixes.sdu-rg))
 
@@ -48,7 +49,7 @@ locals {
   vnet_sap_name   = local.vnet_sap_exists ? try(split("/", local.vnet_sap_arm_id)[8], "") : try(local.var_vnet_sap.name, "")
   vnet_nr_parts   = length(split("-", local.vnet_sap_name))
   // Default naming of vnet has multiple parts. Taking the second-last part as the name 
-  vnet_sap_name_prefix = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? split("-", local.vnet_sap_name)[(local.vnet_nr_parts -2)] : local.vnet_sap_name
+  vnet_sap_name_prefix = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? split("-", local.vnet_sap_name)[(local.vnet_nr_parts - 2)] : local.vnet_sap_name
 
   // Admin subnet
   var_sub_admin    = try(var.infrastructure.vnets.sap.subnet_admin, {})
@@ -59,7 +60,7 @@ locals {
 
   // Admin NSG
   var_sub_admin_nsg    = try(var.infrastructure.vnets.sap.subnet_admin.nsg, {})
-  sub_admin_nsg_arm_id = try(local.var_sub_admin_nsg.arm_id, "") 
+  sub_admin_nsg_arm_id = try(local.var_sub_admin_nsg.arm_id, "")
   sub_admin_nsg_exists = length(local.sub_admin_nsg_arm_id) > 0 ? true : false
   sub_admin_nsg_name   = local.sub_admin_nsg_exists ? try(split("/", local.sub_admin_nsg_arm_id)[8], "") : try(local.var_sub_admin_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.admin-subnet-nsg))
 
@@ -72,7 +73,7 @@ locals {
 
   // DB NSG
   var_sub_db_nsg    = try(var.infrastructure.vnets.sap.subnet_db.nsg, {})
-  sub_db_nsg_arm_id = try(local.var_sub_db_nsg.arm_id, "") 
+  sub_db_nsg_arm_id = try(local.var_sub_db_nsg.arm_id, "")
   sub_db_nsg_exists = length(local.sub_db_nsg_arm_id) > 0 ? true : false
   sub_db_nsg_name   = local.sub_db_nsg_exists ? try(split("/", local.sub_db_nsg_arm_id)[8], "") : try(local.var_sub_db_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.db-subnet-nsg))
 
@@ -84,7 +85,13 @@ locals {
   enable_deployment = (length(local.hdb_list) > 0) ? true : false
 
   // Filter the list of databases to only HANA platform entries
-  hdb          = try(local.hdb_list[0], {})
+  hdb = try(local.hdb_list[0], {})
+
+  // Zones
+  zones            = try(local.hdb.zones, [])
+  zonal_deployment = length(local.zones) > 0 ? true : false
+  db_zone_count    = try(length(local.zones), 1)
+
   hdb_platform = try(local.hdb.platform, "NONE")
   hdb_version  = try(local.hdb.db_version, "2.00.043")
   // If custom image is used, we do not overwrite os reference with default value
@@ -104,6 +111,9 @@ locals {
       "username" = "azureadm"
   })
 
+  node_count      = try(length(local.hdb.dbnodes), 0)
+  db_server_count = local.hdb_ha ? local.node_count * 2 : local.node_count
+
   hdb_ins                = try(local.hdb.instance, {})
   hdb_sid                = try(local.hdb_ins.sid, local.sid) // HANA database sid from the Databases array for use as reference to LB/AS
   hdb_nr                 = try(local.hdb_ins.instance_number, "00")
@@ -119,16 +129,16 @@ locals {
   shine                  = try(local.hdb.shine, { email = "shinedemo@microsoft.com" })
 
   dbnodes = flatten([[for idx, dbnode in try(local.hdb.dbnodes, [{}]) : {
-    name         = try("${dbnode.name}-0", (length(local.prefix) > 0 ? format("%s_%s%s", local.prefix, local.virtualmachine_names[idx], local.resource_suffixes.vm) : format("%s%s", local.virtualmachine_names[idx], local.resource_suffixes.vm)))
-    computername = try("${dbnode.name}-0", format("%s%s", local.virtualmachine_names[idx], local.resource_suffixes.vm))
+    name         = try("${dbnode.name}-0", format("%s_%s%s", local.prefix, local.virtualmachine_names[idx], local.resource_suffixes.vm))
+    computername = try("${dbnode.name}-0", local.computer_names[idx], local.resource_suffixes.vm)
     role         = try(dbnode.role, "worker")
     admin_nic_ip = lookup(dbnode, "admin_nic_ips", [false, false])[0]
     db_nic_ip    = lookup(dbnode, "db_nic_ips", [false, false])[0]
     }
     ],
     [for idx, dbnode in try(local.hdb.dbnodes, [{}]) : {
-      name         = try("${dbnode.name}-1", (length(local.prefix) > 0 ? format("%s_%s%s", local.prefix, local.virtualmachine_names[idx + local.db_server_count], local.resource_suffixes.vm) : format("%s%s", local.virtualmachine_names[idx + local.db_server_count], local.resource_suffixes.vm)))
-      computername = try("${dbnode.name}-1", format("%s%s", local.virtualmachine_names[idx + local.db_server_count], local.resource_suffixes.vm))
+      name         = try("${dbnode.name}-1", format("%s_%s%s", local.prefix, local.virtualmachine_names[idx + local.node_count], local.resource_suffixes.vm))
+      computername = try("${dbnode.name}-1", local.computer_names[idx + local.node_count])
       role         = try(dbnode.role, "worker")
       admin_nic_ip = lookup(dbnode, "admin_nic_ips", [false, false])[1]
       db_nic_ip    = lookup(dbnode, "db_nic_ips", [false, false])[1]
@@ -231,8 +241,9 @@ locals {
   ) : []
 
   data-disk-list = flatten([
-    for hdb_vm in local.hdb_vms : [
+    for vm_counter, hdb_vm in local.hdb_vms : [
       for datadisk in local.data-disk-per-dbnode : {
+        vm_index                  = vm_counter
         name                      = format("%s-%s", hdb_vm.name, datadisk.suffix)
         caching                   = datadisk.caching
         storage_account_type      = datadisk.storage_account_type

@@ -75,3 +75,17 @@ resource "azurerm_subnet_network_security_group_association" "Associate-db" {
   subnet_id                 = local.sub_db_exists ? data.azurerm_subnet.sap-db[0].id : azurerm_subnet.sap-db[0].id
   network_security_group_id = local.sub_db_nsg_exists ? data.azurerm_network_security_group.db[0].id : azurerm_network_security_group.db[0].id
 }
+
+
+# AVAILABILITY SET ================================================================================================
+
+resource "azurerm_availability_set" "hdb" {
+  count                        = local.enable_deployment ? max(length(local.zones), 1) : 0
+  name                         = local.zonal_deployment ? format("%s_z%s%s", local.prefix, local.zones[count.index], local.resource_suffixes.db-avset) : format("%s%s", local.prefix, local.resource_suffixes.db-avset)
+  location                     = var.resource-group[0].location
+  resource_group_name          = var.resource-group[0].name
+  platform_update_domain_count = 20
+  platform_fault_domain_count  = 2
+  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % length(local.zones)].id : var.ppg[0].id
+  managed                      = true
+}

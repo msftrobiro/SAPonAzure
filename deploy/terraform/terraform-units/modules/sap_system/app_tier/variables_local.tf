@@ -25,15 +25,28 @@ variable naming {
 // Set defaults
 locals {
 
-  app_virtualmachine_names = var.naming.virtualmachine_names.APP
-  scs_virtualmachine_names = var.naming.virtualmachine_names.SCS
-  web_virtualmachine_names = var.naming.virtualmachine_names.WEB
+  app_virtualmachine_names = var.naming.virtualmachine_names.APP_COMPUTERNAME
+  scs_virtualmachine_names = var.naming.virtualmachine_names.SCS_COMPUTERNAME
+  web_virtualmachine_names = var.naming.virtualmachine_names.WEB_COMPUTERNAME   
   resource_suffixes        = var.naming.resource_suffixes
 
   region  = try(var.infrastructure.region, "")
   sid     = upper(try(var.application.sid, ""))
   prefix  = try(var.infrastructure.resource_group.name, var.naming.prefix.SDU)
   rg_name = try(var.infrastructure.resource_group.name, format("%s%s", local.prefix, local.resource_suffixes.sdu-rg))
+
+  // Zones
+  app_zones            = try(var.application.app_zones, [])
+  app_zonal_deployment = length(local.app_zones) > 0 ? true : false
+  app_zone_count       = length(local.app_zones)
+
+  scs_zones            = try(var.application.scs_zones, [])
+  scs_zonal_deployment = length(local.scs_zones) > 0 ? true : false
+  scs_zone_count       = length(local.scs_zones)
+
+  web_zones            = try(var.application.web_zones, [])
+  web_zonal_deployment = length(local.web_zones) > 0 ? true : false
+  web_zone_count       = length(local.web_zones)
 
   # SAP vnet
   var_infra       = try(var.infrastructure, {})
@@ -43,7 +56,7 @@ locals {
   vnet_sap_name   = local.vnet_sap_exists ? try(split("/", local.vnet_sap_arm_id)[8], "") : try(local.var_vnet_sap.name, "")
   vnet_nr_parts   = length(split("-", local.vnet_sap_name))
   // Default naming of vnet has multiple parts. Taking the second-last part as the name 
-  vnet_sap_name_prefix = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? split("-", local.vnet_sap_name)[(local.vnet_nr_parts -2)] : local.vnet_sap_name
+  vnet_sap_name_prefix = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? split("-", local.vnet_sap_name)[(local.vnet_nr_parts - 2)] : local.vnet_sap_name
 
   // APP subnet
   var_sub_app    = try(var.infrastructure.vnets.sap.subnet_app, {})
@@ -72,12 +85,12 @@ locals {
 
   // WEB NSG
   sub_web_nsg        = try(local.sub_web.nsg, {})
-  sub_web_nsg_arm_id = try(local.sub_web_nsg.arm_id, "") 
+  sub_web_nsg_arm_id = try(local.sub_web_nsg.arm_id, "")
   sub_web_nsg_exists = length(local.sub_web_nsg_arm_id) > 0 ? true : false
   sub_web_nsg_name   = local.sub_web_nsg_exists ? try(split("/", local.sub_web_nsg_arm_id)[8], "") : try(local.sub_web_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.web-subnet-nsg))
   sub_web_nsg_deployed = try(local.sub_web_defined ? (
     local.sub_web_nsg_exists ? data.azurerm_network_security_group.nsg-web[0] : azurerm_network_security_group.nsg-web[0]) : (
-    local.sub_app_nsg_exists ? data.azurerm_network_security_group.nsg-app[0] : azurerm_network_security_group.nsg-app[0]), null)
+  local.sub_app_nsg_exists ? data.azurerm_network_security_group.nsg-app[0] : azurerm_network_security_group.nsg-app[0]), null)
 
   application_sid          = try(var.application.sid, "")
   enable_deployment        = try(var.application.enable_deployment, false)
@@ -85,6 +98,7 @@ locals {
   ers_instance_number      = try(var.application.ers_instance_number, "02")
   scs_high_availability    = try(var.application.scs_high_availability, false)
   application_server_count = try(var.application.application_server_count, 0)
+  scs_server_count         = local.scs_high_availability ? 2 : 1
   webdispatcher_count      = try(var.application.webdispatcher_count, 0)
   vm_sizing                = try(var.application.vm_sizing, "Default")
   app_nic_ips              = try(var.application.app_nic_ips, [])

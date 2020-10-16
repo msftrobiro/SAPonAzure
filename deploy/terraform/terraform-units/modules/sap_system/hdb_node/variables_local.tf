@@ -26,10 +26,18 @@ variable naming {
   description = "Defines the names for the resources"
 }
 
-// Set defaults
-locals {
+variable "custom_disk_sizes_filename" {
+  type        = string
+  description = "Disk size json file"
+  default     = ""
+}
 
-  computer_names       = var.naming.virtualmachine_names.HANA_COMPUTERNAME 
+locals {
+  // Imports database sizing information
+
+  sizes      = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/hdb_sizes.json"))
+
+  computer_names       = var.naming.virtualmachine_names.HANA_COMPUTERNAME
   virtualmachine_names = var.naming.virtualmachine_names.HANA_VMNAME
 
   storageaccount_names = var.naming.storageaccount_names.SDU
@@ -111,7 +119,7 @@ locals {
       "username" = "azureadm"
   })
 
-  node_count      = try(length(local.hdb.dbnodes), 0)
+  node_count      = try(length(local.hdb.dbnodes), 1)
   db_server_count = local.hdb_ha ? local.node_count * 2 : local.node_count
 
   hdb_ins                = try(local.hdb.instance, {})
@@ -182,9 +190,6 @@ locals {
   // SAP SID used in HDB resource naming convention
   sap_sid = try(var.application.sid, local.sid)
 
-  // Imports HANA database sizing information
-  sizes = jsondecode(file("${path.module}/../../../../../configs/hdb_sizes.json"))
-
   // Numerically indexed Hash of HANA DB nodes to be created
   hdb_vms = [
     for idx, dbnode in local.dbnodes : {
@@ -229,9 +234,12 @@ locals {
     [
       for storage_type in lookup(local.sizes, local.hdb_size).storage : [
         for disk_count in range(storage_type.count) : {
-          suffix                    = format("%s%02d", storage_type.name, disk_count)
-          storage_account_type      = storage_type.disk_type,
-          disk_size_gb              = storage_type.size_gb,
+          suffix               = format("%s%02d", storage_type.name, disk_count)
+          storage_account_type = storage_type.disk_type,
+          disk_size_gb         = storage_type.size_gb,
+          //The following two lines are for Ultradisks only
+          disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
+          disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = storage_type.write_accelerator
         }
@@ -240,16 +248,26 @@ locals {
     ]
   ) : []
 
-  data-disk-list = flatten([
+  data_disk_list = flatten([
     for vm_counter, hdb_vm in local.hdb_vms : [
-      for datadisk in local.data-disk-per-dbnode : {
+      for idx, datadisk in local.data-disk-per-dbnode : {
         vm_index                  = vm_counter
         name                      = format("%s-%s", hdb_vm.name, datadisk.suffix)
+        vm_index                  = vm_counter
         caching                   = datadisk.caching
         storage_account_type      = datadisk.storage_account_type
         disk_size_gb              = datadisk.disk_size_gb
         write_accelerator_enabled = datadisk.write_accelerator_enabled
+        disk_iops_read_write      = datadisk.disk_iops_read_write
+        disk_mbps_read_write      = datadisk.disk_mbps_read_write
+        lun                       = idx
       }
     ]
   ])
+
+  storage_list = lookup(local.sizes, local.hdb_size).storage
+  enable_ultradisk = try(compact([
+    for storage in local.storage_list :
+    storage.disk_type == "UltraSSD_LRS" ? true : ""
+  ])[0], false)
 }

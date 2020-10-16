@@ -80,6 +80,10 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
     public_key = file(var.sshkey.path_to_public_key)
   }
 
+  additional_capabilities {
+    ultra_ssd_enabled = local.enable_ultradisk
+  }
+
   boot_diagnostics {
     storage_account_uri = var.storage-bootdiag.primary_blob_endpoint
   }
@@ -137,6 +141,10 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
 
   admin_username = local.authentication.username
   admin_password = try(local.authentication.password, null)
+
+  additional_capabilities {
+    ultra_ssd_enabled = local.enable_ultradisk
+  }
 
   boot_diagnostics {
     storage_account_uri = var.storage-bootdiag.primary_blob_endpoint

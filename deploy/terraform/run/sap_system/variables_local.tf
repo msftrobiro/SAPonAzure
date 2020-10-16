@@ -13,6 +13,16 @@ variable "scenario" {
   default     = "HANA Database"
 }
 
+variable "db_disk_sizes_filename" {
+  description = "Custom disk configuration json file for database tier"
+  default     = ""
+}
+
+variable "app_disk_sizes_filename" {
+  description = "Custom disk configuration json file for application tier"
+  default     = ""
+}
+
 # Set defaults
 locals {
 

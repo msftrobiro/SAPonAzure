@@ -18,9 +18,18 @@ variable naming {
   description = "Defines the names for the resources"
 }
 
-locals {
+variable "custom_disk_sizes_filename" {
+  type        = string
+  description = "Disk size json file"
+  default     = ""
+}
 
-  computer_names       = var.naming.virtualmachine_names.ANYDB_COMPUTERNAME 
+locals {
+  // Imports database sizing information
+
+  sizes      = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/anydb_sizes.json"))
+
+  computer_names       = var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
   virtualmachine_names = var.naming.virtualmachine_names.ANYDB_VMNAME
 
   storageaccount_names = var.naming.storageaccount_names.SDU
@@ -59,9 +68,6 @@ locals {
   sub_db_nsg_exists = length(local.sub_db_nsg_arm_id) > 0 ? true : false
   sub_db_nsg_name   = local.sub_db_nsg_exists ? try(split("/", local.sub_db_nsg_arm_id)[8], "") : try(local.var_sub_db_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.db-subnet-nsg))
 
-  // Imports database sizing information
-  sizes = jsondecode(file("${path.module}/../../../../../configs/anydb_sizes.json"))
-
   // PPG Information
   ppgId = lookup(var.infrastructure, "ppg", false) != false ? (var.ppg[0].id) : null
 
@@ -91,7 +97,7 @@ locals {
   db_sid       = lower(substr(local.anydb_platform, 0, 3))
   loadbalancer = try(local.anydb.loadbalancer, {})
 
-  node_count      = try(length(var.databases[0].dbnodes), 0)
+  node_count      = try(length(var.databases[0].dbnodes), 1)
   db_server_count = local.anydb_ha ? local.node_count * 2 : local.node_count
 
   authentication = try(local.anydb.authentication,
@@ -217,18 +223,44 @@ locals {
     }
   ])
 
-  anydb_disks = flatten([
-    for vm_counter, anydb_vm in local.anydb_vms : [
+  data-disk-per-dbnode = (length(local.anydb_vms) > 0) ? flatten(
+    [
       for storage_type in lookup(local.sizes, local.anydb_size).storage : [
         for disk_count in range(storage_type.count) : {
-          vm_index                  = vm_counter
-          name                      = format("%s-%s%02d", anydb_vm.name, storage_type.name, disk_count)
-          storage_account_type      = storage_type.disk_type
-          disk_size_gb              = storage_type.size_gb
-          caching                   = storage_type.caching
+          suffix               = format("%s%02d", storage_type.name, disk_count)
+          storage_account_type = storage_type.disk_type,
+          disk_size_gb         = storage_type.size_gb,
+          //The following two lines are for Ultradisks only
+          disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
+          disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          caching                   = storage_type.caching,
           write_accelerator_enabled = storage_type.write_accelerator
         }
       ]
       if storage_type.name != "os"
-  ]])
+    ]
+  ) : []
+
+  anydb_disks = flatten([
+    for vm_counter, anydb_vm in local.anydb_vms : [
+      for idx, datadisk in local.data-disk-per-dbnode : {
+        name                      = format("%s-%s", anydb_vm.name, datadisk.suffix)
+        vm_index                  = vm_counter
+        caching                   = datadisk.caching
+        storage_account_type      = datadisk.storage_account_type
+        disk_size_gb              = datadisk.disk_size_gb
+        write_accelerator_enabled = datadisk.write_accelerator_enabled
+        disk_iops_read_write      = datadisk.disk_iops_read_write
+        disk_mbps_read_write      = datadisk.disk_mbps_read_write
+        lun                       = idx
+      }
+    ]
+  ])
+
+  storage_list = lookup(local.sizes, local.anydb_size).storage
+  enable_ultradisk = try(compact([
+    for storage in local.storage_list :
+    storage.disk_type == "UltraSSD_LRS" ? true : ""
+  ])[0], false)
+
 }

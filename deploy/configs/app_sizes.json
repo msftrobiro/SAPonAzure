@@ -6,6 +6,7 @@
         "accelerated_networking": false
       },
       "storage": [{
+        "count": 1,
         "name": "data",
         "disk_type": "Premium_LRS",
         "size_gb": 512,
@@ -21,6 +22,7 @@
         "accelerated_networking": false
       },
       "storage": [{
+        "count": 1,
         "name": "data",
         "disk_type": "Premium_LRS",
         "size_gb": 512,
@@ -36,6 +38,7 @@
         "accelerated_networking": false
       },
       "storage": [{
+        "count": 1,
         "name": "data",
         "disk_type": "Premium_LRS",
         "size_gb": 512,

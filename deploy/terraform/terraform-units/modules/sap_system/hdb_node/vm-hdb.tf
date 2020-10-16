@@ -187,6 +187,10 @@ resource "azurerm_linux_virtual_machine" "vm-dbnode" {
     public_key = file(var.sshkey.path_to_public_key)
   }
 
+  additional_capabilities {
+    ultra_ssd_enabled = local.enable_ultradisk
+  }
+
   boot_diagnostics {
     storage_account_uri = var.storage-bootdiag.primary_blob_endpoint
   }
@@ -194,16 +198,16 @@ resource "azurerm_linux_virtual_machine" "vm-dbnode" {
 
 # Creates managed data disk
 resource "azurerm_managed_disk" "data-disk" {
-  count                = local.enable_deployment ? length(local.data-disk-list) : 0
-  name                 = local.data-disk-list[count.index].name
+  count                = local.enable_deployment ? length(local.data_disk_list) : 0
+  name                 = local.data_disk_list[count.index].name
   location             = var.resource-group[0].location
   resource_group_name  = var.resource-group[0].name
   create_option        = "Empty"
-  storage_account_type = local.data-disk-list[count.index].storage_account_type
-  disk_size_gb         = local.data-disk-list[count.index].disk_size_gb
+  storage_account_type = local.data_disk_list[count.index].storage_account_type
+  disk_size_gb         = local.data_disk_list[count.index].disk_size_gb
   zones = local.zonal_deployment ? (
     local.db_server_count == local.db_zone_count ? (
-      [azurerm_linux_virtual_machine.vm-dbnode[local.data-disk-list[count.index].vm_index].zone]) : (
+      [azurerm_linux_virtual_machine.vm-dbnode[local.data_disk_list[count.index].vm_index].zone]) : (
       null
     )) : (
     null
@@ -212,10 +216,10 @@ resource "azurerm_managed_disk" "data-disk" {
 
 # Manages attaching a Disk to a Virtual Machine
 resource "azurerm_virtual_machine_data_disk_attachment" "vm-dbnode-data-disk" {
-  count                     = local.enable_deployment ? length(local.data-disk-list) : 0
+  count                     = local.enable_deployment ? length(local.data_disk_list) : 0
   managed_disk_id           = azurerm_managed_disk.data-disk[count.index].id
-  virtual_machine_id        = azurerm_linux_virtual_machine.vm-dbnode[local.data-disk-list[count.index].vm_index].id
-  caching                   = local.data-disk-list[count.index].caching
-  write_accelerator_enabled = local.data-disk-list[count.index].write_accelerator_enabled
+  virtual_machine_id        = azurerm_linux_virtual_machine.vm-dbnode[local.data_disk_list[count.index].vm_index].id
+  caching                   = local.data_disk_list[count.index].caching
+  write_accelerator_enabled = local.data_disk_list[count.index].write_accelerator_enabled
   lun                       = count.index
 }

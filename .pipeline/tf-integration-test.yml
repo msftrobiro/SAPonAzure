@@ -7,6 +7,13 @@ pr:
   paths:
     include:
     - deploy/terraform/*
+schedules:
+- cron: '0 0 * * *'
+  displayName: Daily midnight integration test (UTC)
+  branches:
+    include:
+    - feature/*
+  always: true
 variables:
   - group: azure-config-variables
   - group: azure-sap-hana-pipeline-secrets

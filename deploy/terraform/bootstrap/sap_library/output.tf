@@ -42,3 +42,11 @@ output "remote_state_storage_account_name" {
 output "remote_state_container_name" {
   value = module.sap_library.remote_state_container_name
 }
+
+output "saplibrary_environment" {
+  value = local.environment
+}
+
+output "saplibrary_subscription_id" {
+  value = local.spn.subscription_id
+}

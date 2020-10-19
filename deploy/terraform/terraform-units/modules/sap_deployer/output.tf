@@ -6,7 +6,7 @@ Description:
 
 // Deployer resource group name
 output "deployer_rg_name" {
-  value = azurerm_resource_group.deployer[0].name
+  value = local.enable_deployers ? azurerm_resource_group.deployer[0].name : ""
 }
 
 // Unique ID for deployer
@@ -48,8 +48,18 @@ output "user_vault_name" {
   value = azurerm_key_vault.kv_user[0].name
 }
 
+output "prvt_vault_name" {
+  value = azurerm_key_vault.kv_prvt[0].name
+}
+
+// output the secret name of public key
 output "ppk_name" {
   value = local.enable_deployers && local.enable_key ? azurerm_key_vault_secret.ppk[0].name : ""
+}
+
+// output the secret name of private key
+output "pk_name" {
+  value = local.enable_deployers && local.enable_key ? azurerm_key_vault_secret.pk[0].name : ""
 }
 
 output "pwd_name" {
@@ -62,3 +72,11 @@ output "deployer_user" {
   value = local.deployer_users_id_list
 }
 */
+
+output "deployer_kv_user_arm_id" {
+  value = local.enable_deployers ? azurerm_key_vault.kv_user[0].id : ""
+}
+
+output "deployer_public_ip_address" {
+  value = local.enable_deployers ? local.deployer_public_ip_address_list : []
+}

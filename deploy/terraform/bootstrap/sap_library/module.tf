@@ -9,4 +9,6 @@ module "sap_library" {
   storage_account_tfstate = var.storage_account_tfstate
   software                = var.software
   deployer                = var.deployer
+  spn                     = local.spn
+  deployer_tfstate        = data.terraform_remote_state.deployer
 }

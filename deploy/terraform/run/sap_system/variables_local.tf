@@ -88,6 +88,9 @@ locals {
   scs_high_availability = try(var.application.scs_high_availability, false)
   scs_server_count      = try(var.application.scs_server_count, 1) * (local.scs_high_availability ? 2 : 1)
 
-  zones = try(var.databases[0].zones, [])
+  db_zones  = try(var.databases[0].zones, [])
+  app_zones = try(var.application.app_zones, [])
+  scs_zones = try(var.application.scs_zones, [])
+  web_zones = try(var.application.web_zones, [])
 
 }

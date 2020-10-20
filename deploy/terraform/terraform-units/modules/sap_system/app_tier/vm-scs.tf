@@ -26,7 +26,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "scs" {
 resource "azurerm_linux_virtual_machine" "scs" {
   count               = local.enable_deployment && (upper(local.app_ostype) == "LINUX") ? local.scs_server_count : 0
   name                = format("%s_%s%s", local.prefix, local.scs_virtualmachine_names[count.index], local.resource_suffixes.vm)
-  computer_name       = local.scs_virtualmachine_names[count.index]
+  computer_name       = local.scs_computer_names[count.index]
   location            = var.resource-group[0].location
   resource_group_name = var.resource-group[0].name
 
@@ -83,7 +83,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
 resource "azurerm_windows_virtual_machine" "scs" {
   count               = local.enable_deployment && (upper(local.app_ostype) == "WINDOWS") ? local.scs_server_count : 0
   name                = format("%s_%s%s", local.prefix, local.scs_virtualmachine_names[count.index], local.resource_suffixes.vm)
-  computer_name       = local.scs_virtualmachine_names[count.index]
+  computer_name       = local.scs_computer_names[count.index]
   location            = var.resource-group[0].location
   resource_group_name = var.resource-group[0].name
 

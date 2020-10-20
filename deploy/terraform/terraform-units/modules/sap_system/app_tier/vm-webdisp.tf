@@ -21,7 +21,7 @@ resource "azurerm_network_interface" "web" {
 resource "azurerm_linux_virtual_machine" "web" {
   count               = local.enable_deployment ? (upper(local.app_ostype) == "LINUX" ? local.webdispatcher_count : 0) : 0
   name                = format("%s_%s%s", local.prefix, local.web_virtualmachine_names[count.index], local.resource_suffixes.vm)
-  computer_name       = local.web_virtualmachine_names[count.index]
+  computer_name       = local.web_computer_names[count.index]
   location            = var.resource-group[0].location
   resource_group_name = var.resource-group[0].name
 
@@ -77,7 +77,7 @@ resource "azurerm_linux_virtual_machine" "web" {
 resource "azurerm_windows_virtual_machine" "web" {
   count               = local.enable_deployment ? (upper(local.app_ostype) == "WINDOWS" ? local.webdispatcher_count : 0) : 0
   name                = format("%s_%s%s", local.prefix, local.web_virtualmachine_names[count.index], local.resource_suffixes.vm)
-  computer_name       = local.web_virtualmachine_names[count.index]
+  computer_name       = local.web_computer_names[count.index]
   location            = var.resource-group[0].location
   resource_group_name = var.resource-group[0].name
 

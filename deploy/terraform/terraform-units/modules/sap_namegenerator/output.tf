@@ -16,10 +16,22 @@ output naming {
       }
     }
     keyvault_names = {
-      DEPLOYER = local.deployer_keyvault_name
-      LIBRARY  = local.library_keyvault_name
-      SDU      = local.sdu_keyvault_name
-      VNET     = local.vnet_keyvault_name
+      DEPLOYER = {
+        private_access = local.deployer_private_keyvault_name
+        user_access    = local.deployer_user_keyvault_name
+      }
+      LIBRARY = {
+        private_access = local.library_private_keyvault_name
+        user_access    = local.library_user_keyvault_name
+      }
+      SDU = {
+        private_access = local.sdu_private_keyvault_name
+        user_access    = local.sdu_user_keyvault_name
+      }
+      VNET = {
+        private_access = local.vnet_private_keyvault_name
+        user_access    = local.vnet_user_keyvault_name
+      }
     }
     virtualmachine_names = {
       ANCHOR_COMPUTERNAME = local.anchor_server_names

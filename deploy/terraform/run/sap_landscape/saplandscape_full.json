@@ -2,6 +2,11 @@
     "infrastructure": {
         "environment": "np",
         "region": "eastus",
+        "resource_group": {
+            "is_existing": "false",
+            "arm_id": "",
+            "name": "azure-test-saplandscape-rg"
+        },
         "vnets": {
             "management": {
                 "tfstate_resource_id": "",

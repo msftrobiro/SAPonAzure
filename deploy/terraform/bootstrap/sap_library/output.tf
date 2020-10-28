@@ -50,3 +50,7 @@ output "saplibrary_environment" {
 output "saplibrary_subscription_id" {
   value = local.spn.subscription_id
 }
+
+output "tfstate_resource_id" {
+  value = module.sap_library.tfstate_resource_id
+}

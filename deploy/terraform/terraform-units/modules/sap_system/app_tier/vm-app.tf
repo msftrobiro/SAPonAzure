@@ -1,7 +1,7 @@
 # Create Application NICs
 resource "azurerm_network_interface" "app" {
   count                         = local.enable_deployment ? local.application_server_count : 0
-  name                          = format("%s_%s%s", local.prefix, local.app_virtualmachine_names[count.index], local.resource_suffixes.nic)
+  name                          = format("%s%s%s%s", local.prefix, var.naming.separator, local.app_virtualmachine_names[count.index], local.resource_suffixes.nic)
   location                      = var.resource-group[0].location
   resource_group_name           = var.resource-group[0].name
   enable_accelerated_networking = local.app_sizing.compute.accelerated_networking
@@ -17,7 +17,7 @@ resource "azurerm_network_interface" "app" {
 # Create the Linux Application VM(s)
 resource "azurerm_linux_virtual_machine" "app" {
   count               = local.enable_deployment ? (upper(local.app_ostype) == "LINUX" ? local.application_server_count : 0) : 0
-  name                = format("%s_%s%s", local.prefix, local.app_virtualmachine_names[count.index], local.resource_suffixes.vm)
+  name                = format("%s%s%s%s", local.prefix, var.naming.separator, local.app_virtualmachine_names[count.index], local.resource_suffixes.vm)
   computer_name       = local.app_computer_names[count.index]
   location            = var.resource-group[0].location
   resource_group_name = var.resource-group[0].name
@@ -44,7 +44,7 @@ resource "azurerm_linux_virtual_machine" "app" {
   disable_password_authentication = true
 
   os_disk {
-    name                 = format("%s_%s%s", local.prefix, local.app_virtualmachine_names[count.index], local.resource_suffixes.osdisk)
+    name                 = format("%s%s%s%s", local.prefix, var.naming.separator, local.app_virtualmachine_names[count.index], local.resource_suffixes.osdisk)
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -74,7 +74,7 @@ resource "azurerm_linux_virtual_machine" "app" {
 # Create the Windows Application VM(s)
 resource "azurerm_windows_virtual_machine" "app" {
   count               = local.enable_deployment ? (upper(local.app_ostype) == "WINDOWS" ? local.application_server_count : 0) : 0
-  name                = format("%s_%s%s", local.prefix, local.app_virtualmachine_names[count.index], local.resource_suffixes.vm)
+  name                = format("%s%s%s%s", local.prefix, var.naming.separator, local.app_virtualmachine_names[count.index], local.resource_suffixes.vm)
   computer_name       = local.app_computer_names[count.index]
   location            = var.resource-group[0].location
   resource_group_name = var.resource-group[0].name
@@ -101,7 +101,7 @@ resource "azurerm_windows_virtual_machine" "app" {
   admin_password = local.authentication.password
 
   os_disk {
-    name                 = format("%s_%s%s", local.prefix, local.app_virtualmachine_names[count.index], local.resource_suffixes.osdisk)
+    name                 = format("%s%s%s%s", local.prefix, var.naming.separator, local.app_virtualmachine_names[count.index], local.resource_suffixes.osdisk)
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -126,7 +126,7 @@ resource "azurerm_windows_virtual_machine" "app" {
 # Creates managed data disk
 resource "azurerm_managed_disk" "app" {
   count                = local.enable_deployment ? length(local.app-data-disks) : 0
-  name                 = format("%s_%s%s", local.prefix, local.app_virtualmachine_names[count.index], local.app-data-disks[count.index].suffix)
+  name                 = format("%s%s%s%s", local.prefix, var.naming.separator, local.app_virtualmachine_names[count.index], local.app-data-disks[count.index].suffix)
   location             = var.resource-group[0].location
   resource_group_name  = var.resource-group[0].name
   create_option        = "Empty"

@@ -1,7 +1,7 @@
 # Create SCS NICs
 resource "azurerm_network_interface" "scs" {
   count                         = local.enable_deployment ? local.scs_server_count : 0
-  name                          = format("%s_%s%s", local.prefix, local.scs_virtualmachine_names[count.index], local.resource_suffixes.nic)
+  name                          = format("%s%s%s%s", local.prefix, var.naming.separator, local.scs_virtualmachine_names[count.index], local.resource_suffixes.nic)
   location                      = var.resource-group[0].location
   resource_group_name           = var.resource-group[0].name
   enable_accelerated_networking = local.scs_sizing.compute.accelerated_networking
@@ -25,7 +25,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "scs" {
 # Create the SCS Linux VM(s)
 resource "azurerm_linux_virtual_machine" "scs" {
   count               = local.enable_deployment && (upper(local.app_ostype) == "LINUX") ? local.scs_server_count : 0
-  name                = format("%s_%s%s", local.prefix, local.scs_virtualmachine_names[count.index], local.resource_suffixes.vm)
+  name                = format("%s%s%s%s", local.prefix, var.naming.separator, local.scs_virtualmachine_names[count.index], local.resource_suffixes.vm)
   computer_name       = local.scs_computer_names[count.index]
   location            = var.resource-group[0].location
   resource_group_name = var.resource-group[0].name
@@ -52,7 +52,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
   disable_password_authentication = true
 
   os_disk {
-    name                 = format("%s_%s%s", local.prefix, local.scs_virtualmachine_names[count.index], local.resource_suffixes.osdisk)
+    name                 = format("%s%s%s%s", local.prefix, var.naming.separator, local.scs_virtualmachine_names[count.index], local.resource_suffixes.osdisk)
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -82,7 +82,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
 # Create the SCS Windows VM(s)
 resource "azurerm_windows_virtual_machine" "scs" {
   count               = local.enable_deployment && (upper(local.app_ostype) == "WINDOWS") ? local.scs_server_count : 0
-  name                = format("%s_%s%s", local.prefix, local.scs_virtualmachine_names[count.index], local.resource_suffixes.vm)
+  name                = format("%s%s%s%s", local.prefix, var.naming.separator, local.scs_virtualmachine_names[count.index], local.resource_suffixes.vm)
   computer_name       = local.scs_computer_names[count.index]
   location            = var.resource-group[0].location
   resource_group_name = var.resource-group[0].name
@@ -109,7 +109,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
   admin_password = local.authentication.password
 
   os_disk {
-    name                 = format("%s_%s%s", local.prefix, local.scs_virtualmachine_names[count.index], local.resource_suffixes.osdisk)
+    name                 = format("%s%s%s%s", local.prefix, var.naming.separator, local.scs_virtualmachine_names[count.index], local.resource_suffixes.osdisk)
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -134,7 +134,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
 # Creates managed data disk
 resource "azurerm_managed_disk" "scs" {
   count                = local.enable_deployment ? length(local.scs-data-disks) : 0
-  name                 = format("%s_%s%s", local.prefix, local.scs_virtualmachine_names[count.index], local.scs-data-disks[count.index].suffix)
+  name                 = format("%s%s%s%s", local.prefix, var.naming.separator, local.scs_virtualmachine_names[count.index], local.scs-data-disks[count.index].suffix)
   location             = var.resource-group[0].location
   resource_group_name  = var.resource-group[0].name
   create_option        = "Empty"

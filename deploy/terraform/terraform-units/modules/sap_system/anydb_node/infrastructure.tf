@@ -37,9 +37,9 @@ resource "azurerm_lb_probe" "anydb" {
 }
 
 resource "azurerm_network_interface_backend_address_pool_association" "anydb" {
-  count                   = local.enable_deployment ? length(azurerm_network_interface.anydb) : 0
-  network_interface_id    = azurerm_network_interface.anydb[count.index].id
-  ip_configuration_name   = azurerm_network_interface.anydb[count.index].ip_configuration[0].name
+  count                   = local.enable_deployment ? length(azurerm_network_interface.anydb_db) : 0
+  network_interface_id    = azurerm_network_interface.anydb_db[count.index].id
+  ip_configuration_name   = azurerm_network_interface.anydb_db[count.index].ip_configuration[0].name
   backend_address_pool_id = azurerm_lb_backend_address_pool.anydb[0].id
 }
 
@@ -55,6 +55,8 @@ resource "azurerm_availability_set" "anydb" {
   proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % length(local.zones)].id : var.ppg[0].id
   managed                      = true
 }
+
+# VNET ================================================================================================
 
 # Creates db subnet of SAP VNET
 resource "azurerm_subnet" "anydb" {

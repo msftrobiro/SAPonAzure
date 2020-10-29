@@ -43,22 +43,6 @@ data "azurerm_network_security_group" "iscsi" {
   resource_group_name = split("/", local.sub_iscsi_nsg_arm_id)[4]
 }
 
-# Creates network security rule to deny external traffic for SAP iSCSI subnet
-resource "azurerm_network_security_rule" "iscsi" {
-  count                        = local.iscsi_count == 0 ? 0 : (local.sub_iscsi_exists ? 0 : 1)
-  name                         = "deny-inbound-traffic"
-  resource_group_name          = local.rg_exists ? data.azurerm_resource_group.resource-group[0].name : azurerm_resource_group.resource-group[0].name
-  network_security_group_name  = azurerm_network_security_group.iscsi[0].name
-  priority                     = 102
-  direction                    = "Inbound"
-  access                       = "deny"
-  protocol                     = "Tcp"
-  source_port_range            = "*"
-  destination_port_range       = "*"
-  source_address_prefix        = "*"
-  destination_address_prefixes = try(var.subnet-sap-admin.address_prefixes, "*")
-}
-
 /*-----------------------------------------------------------------------------8
 iSCSI device IP address range: .4 - 
 +--------------------------------------4--------------------------------------*/

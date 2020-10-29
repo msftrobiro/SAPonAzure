@@ -41,7 +41,6 @@ module "common_infrastructure" {
   software            = var.software
   ssh-timeout         = var.ssh-timeout
   sshkey              = var.sshkey
-  subnet-sap-admin    = module.hdb_node.subnet-sap-admin
   vnet-mgmt           = module.deployer.vnet-mgmt
   subnet-mgmt         = module.deployer.subnet-mgmt
   nsg-mgmt            = module.deployer.nsg-mgmt
@@ -115,6 +114,7 @@ module "hdb_node" {
   ppg                        = module.common_infrastructure.ppg
   naming                     = module.sap_namegenerator.naming
   custom_disk_sizes_filename = var.db_disk_sizes_filename
+  admin_subnet               = module.common_infrastructure.admin_subnet
 }
 
 // Create Application Tier nodes
@@ -134,7 +134,9 @@ module "app_tier" {
   storage-bootdiag           = module.common_infrastructure.storage-bootdiag
   ppg                        = module.common_infrastructure.ppg
   naming                     = module.sap_namegenerator.naming
+  admin_subnet               = module.common_infrastructure.admin_subnet
   custom_disk_sizes_filename = var.app_disk_sizes_filename
+
 }
 
 // Create anydb database nodes
@@ -154,6 +156,7 @@ module "anydb_node" {
   ppg                        = module.common_infrastructure.ppg
   naming                     = module.sap_namegenerator.naming
   custom_disk_sizes_filename = var.db_disk_sizes_filename
+  admin_subnet               = module.common_infrastructure.admin_subnet
 }
 
 // Generate output files
@@ -183,10 +186,14 @@ module "output_files" {
   loadbalancers                = module.hdb_node.loadbalancers
   hdb-sid                      = module.hdb_node.hdb-sid
   hana-database-info           = module.hdb_node.hana-database-info
-  nics-scs                     = module.app_tier.nics-scs
-  nics-app                     = module.app_tier.nics-app
-  nics-web                     = module.app_tier.nics-web
-  nics-anydb                   = module.anydb_node.nics-anydb
+  nics_scs                     = module.app_tier.nics_scs
+  nics_app                     = module.app_tier.nics_app
+  nics_web                     = module.app_tier.nics_web
+  nics_anydb                   = module.anydb_node.nics_anydb
+  nics_scs_admin               = module.app_tier.nics_scs_admin
+  nics_app_admin               = module.app_tier.nics_app_admin
+  nics_web_admin               = module.app_tier.nics_web_admin
+  nics_anydb_admin             = module.anydb_node.nics_anydb_admin
   any-database-info            = module.anydb_node.any-database-info
   anydb-loadbalancers          = module.anydb_node.anydb-loadbalancers
   deployers                    = module.deployer.import_deployer

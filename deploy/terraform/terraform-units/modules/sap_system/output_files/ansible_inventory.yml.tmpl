@@ -2,8 +2,8 @@ all:
   children:
     iscsi:
       hosts:
-%{~ for ip-iscsi in ips-iscsi }
-        ${ip-iscsi}:
+%{~ for ip_iscsi in ips_iscsi }
+        ${ip_iscsi}:
           ansible_connection:  "ssh"
 %{~ if iscsi.authentication.type == "key" }
           ansible_user:        "${iscsi.authentication.username}"
@@ -18,7 +18,7 @@ all:
     jumpboxes_windows:
       hosts:
 %{~ for jumpbox-windows in jumpboxes-windows }
-        ${ips-jumpboxes-windows[index(jumpboxes-windows, jumpbox-windows)]}:
+        ${ips_jumpboxes-windows[index(jumpboxes-windows, jumpbox-windows)]}:
           ansible_connection:                   "winrm"
           ansible_user:                         "${jumpbox-windows.authentication.username}"
           ansible_ssh_pass:                     "${jumpbox-windows.authentication.password}"
@@ -31,7 +31,7 @@ all:
       hosts:
 %{~ for jumpbox-linux in jumpboxes-linux }
 %{~ if jumpbox-linux.destroy_after_deploy != "true"}
-        ${ips-jumpboxes-linux[index(jumpboxes-linux, jumpbox-linux)]}:
+        ${ips_jumpboxes-linux[index(jumpboxes-linux, jumpbox-linux)]}:
           ansible_connection:  "ssh"
 %{~ if jumpbox-linux.authentication.type == "key" }
           ansible_user:        "${jumpbox-linux.authentication.username}"
@@ -46,103 +46,103 @@ all:
 
     hanadbnodes:
       hosts:
-%{~ for ip-dbnode-admin in ips-dbnodes-admin }
-        ${ip-dbnode-admin}:
+%{~ for ip_dbnode-admin in ips_dbnodes-admin }
+        ${ip_dbnode-admin}:
           ansible_connection:  "ssh"
-%{~ if dbnodes[index(ips-dbnodes-admin, ip-dbnode-admin)].authentication.type == "key" }
-          ansible_user:        "${dbnodes[index(ips-dbnodes-admin, ip-dbnode-admin)].authentication.username}"
+%{~ if dbnodes[index(ips_dbnodes-admin, ip_dbnode-admin)].authentication.type == "key" }
+          ansible_user:        "${dbnodes[index(ips_dbnodes-admin, ip_dbnode-admin)].authentication.username}"
 %{~ endif }
-%{~ if dbnodes[index(ips-dbnodes-admin, ip-dbnode-admin)].authentication.type == "password" }
-          ansible_user:        "${dbnodes[index(ips-dbnodes-admin, ip-dbnode-admin)].authentication.username}"
-          ansible_ssh_pass:    "${dbnodes[index(ips-dbnodes-admin, ip-dbnode-admin)].authentication.password}"
-          ansible_become_pass: "${dbnodes[index(ips-dbnodes-admin, ip-dbnode-admin)].authentication.password}"
+%{~ if dbnodes[index(ips_dbnodes-admin, ip_dbnode-admin)].authentication.type == "password" }
+          ansible_user:        "${dbnodes[index(ips_dbnodes-admin, ip_dbnode-admin)].authentication.username}"
+          ansible_ssh_pass:    "${dbnodes[index(ips_dbnodes-admin, ip_dbnode-admin)].authentication.password}"
+          ansible_become_pass: "${dbnodes[index(ips_dbnodes-admin, ip_dbnode-admin)].authentication.password}"
 %{~ endif }
 %{~ endfor }
 
     scs:
       hosts:
-%{~ for ip-scs in ips-scs }
-        ${ip-scs}:
+%{~ for ip_scs in ips_scs }
+        ${ip_scs}:
           ansible_connection: "ssh"
           ansible_user:       "${application.authentication.username}"
 %{~ endfor }
 
     app:
       hosts:
-%{~ for ip-app in ips-app }
-        ${ip-app}:
+%{~ for ip_app in ips_app }
+        ${ip_app}:
           ansible_connection: "ssh"
           ansible_user:       "${application.authentication.username}"
 %{~ endfor }
 
     web:
       hosts:
-%{~ for ip-web in ips-web }
-        ${ip-web}:
+%{~ for ip_web in ips_web }
+        ${ip_web}:
           ansible_connection: "ssh"
           ansible_user:       "${application.authentication.username}"
 %{~ endfor }
 
     asenodes:
       hosts:
-%{~ for ips-anydbnode in ips-anydbnodes }
-%{~ if anydbnodes[index(ips-anydbnodes, ips-anydbnode)].platform == "ASE" }
-        ${ips-anydbnode}:
+%{~ for ips_anydbnode in ips_anydbnodes }
+%{~ if anydbnodes[index(ips_anydbnodes, ips_anydbnode)].platform == "ASE" }
+        ${ips_anydbnode}:
           ansible_connection:  "ssh"
-%{~ if anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.type == "key" }
-          ansible_user:        "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.username}"
+%{~ if anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.type == "key" }
+          ansible_user:        "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.username}"
 %{~ endif }
-%{~ if anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.type == "password" }
-          ansible_user:        "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.username}"
-          ansible_ssh_pass:    "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.password}"
-          ansible_become_pass: "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.password}"
+%{~ if anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.type == "password" }
+          ansible_user:        "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.username}"
+          ansible_ssh_pass:    "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.password}"
+          ansible_become_pass: "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.password}"
 %{~ endif }
 %{~ endif }
 %{~ endfor }
 
     oraclenodes:
       hosts:
-%{~ for ips-anydbnode in ips-anydbnodes }
-%{~ if anydbnodes[index(ips-anydbnodes, ips-anydbnode)].platform == "ORACLE" }
-        ${ips-anydbnode}:
+%{~ for ips_anydbnode in ips_anydbnodes }
+%{~ if anydbnodes[index(ips_anydbnodes, ips_anydbnode)].platform == "ORACLE" }
+        ${ips_anydbnode}:
           ansible_connection:  "ssh"
-%{~ if anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.type == "key" }
-          ansible_user:        "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.username}"
+%{~ if anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.type == "key" }
+          ansible_user:        "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.username}"
 %{~ endif }
-%{~ if anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.type == "password" }
-          ansible_user:        "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.username}"
-          ansible_ssh_pass:    "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.password}"
-          ansible_become_pass: "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.password}"
+%{~ if anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.type == "password" }
+          ansible_user:        "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.username}"
+          ansible_ssh_pass:    "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.password}"
+          ansible_become_pass: "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.password}"
 %{~ endif }
 %{~ endif }
 %{~ endfor }
 
     db2nodes:
       hosts:
-%{~ for ips-anydbnode in ips-anydbnodes }
-%{~ if anydbnodes[index(ips-anydbnodes, ips-anydbnode)].platform == "DB2" }
-        ${ips-anydbnode}:
+%{~ for ips_anydbnode in ips_anydbnodes }
+%{~ if anydbnodes[index(ips_anydbnodes, ips_anydbnode)].platform == "DB2" }
+        ${ips_anydbnode}:
           ansible_connection:  "ssh"
-%{~ if anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.type == "key" }
-          ansible_user:        "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.username}"
+%{~ if anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.type == "key" }
+          ansible_user:        "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.username}"
 %{~ endif }
-%{~ if anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.type == "password" }
-          ansible_user:        "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.username}"
-          ansible_ssh_pass:    "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.password}"
-          ansible_become_pass: "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.password}"
+%{~ if anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.type == "password" }
+          ansible_user:        "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.username}"
+          ansible_ssh_pass:    "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.password}"
+          ansible_become_pass: "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.password}"
 %{~ endif }
 %{~ endif }
 %{~ endfor }
 
     sqlservernodes:
       hosts:
-%{~ for ips-anydbnode in ips-anydbnodes }
-%{~ if anydbnodes[index(ips-anydbnodes, ips-anydbnode)].platform == "SQLSERVER" }
-        ${ips-anydbnode}:
+%{~ for ips_anydbnode in ips_anydbnodes }
+%{~ if anydbnodes[index(ips_anydbnodes, ips_anydbnode)].platform == "SQLSERVER" }
+        ${ips_anydbnode}:
           ansible_connection:  "winrm"
-          ansible_user:        "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.username}"
-          ansible_ssh_pass:    "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.password}"
-          ansible_become_pass: "${anydbnodes[index(ips-anydbnodes, ips-anydbnode)].authentication.password}"
+          ansible_user:        "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.username}"
+          ansible_ssh_pass:    "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.password}"
+          ansible_become_pass: "${anydbnodes[index(ips_anydbnodes, ips_anydbnode)].authentication.password}"
 %{~ endif }
 %{~ endfor }
 

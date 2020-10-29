@@ -9,10 +9,6 @@ variable "is_single_node_hana" {
   default     = false
 }
 
-variable "subnet-sap-admin" {
-  description = "Information about SAP admin subnet"
-}
-
 variable "vnet-mgmt" {
   description = "Details about management vnet of deployer(s)"
 }
@@ -87,6 +83,8 @@ locals {
 
   //iSCSI
   var_iscsi = try(local.var_infra.iscsi, {})
+
+  enable_admin_subnet = try(var.application.dual_nics, false) || try(var.databases[0].dual_nics, false) || length(local.hana-databases) > 0
 
   //iSCSI target device(s) is only created when below conditions met:
   //- iscsi is defined in input JSON

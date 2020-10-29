@@ -1,6 +1,3 @@
-output "subnet-sap-admin" {
-  value = try(local.sub_admin_exists ? data.azurerm_subnet.sap-admin[0] : azurerm_subnet.sap-admin[0], {})
-}
 
 output "nics-dbnodes-admin" {
   value = azurerm_network_interface.nics-dbnodes-admin

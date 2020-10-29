@@ -28,6 +28,11 @@ variable "custom_disk_sizes_filename" {
   default     = ""
 }
 
+variable "admin_subnet" {
+  description = "Information about SAP admin subnet"
+}
+
+
 locals {
   // Imports Disk sizing sizing information
   sizes = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/app_sizes.json"))
@@ -40,7 +45,7 @@ locals {
   web_computer_names       = var.naming.virtualmachine_names.WEB_COMPUTERNAME
   web_virtualmachine_names = var.naming.virtualmachine_names.WEB_VMNAME
 
-  resource_suffixes        = var.naming.resource_suffixes
+  resource_suffixes = var.naming.resource_suffixes
 
   region  = try(var.infrastructure.region, "")
   sid     = upper(try(var.application.sid, ""))
@@ -68,20 +73,29 @@ locals {
   vnet_sap_name   = local.vnet_sap_exists ? try(split("/", local.vnet_sap_arm_id)[8], "") : try(local.var_vnet_sap.name, "")
   vnet_nr_parts   = length(split("-", local.vnet_sap_name))
   // Default naming of vnet has multiple parts. Taking the second-last part as the name 
-  vnet_sap_name_prefix = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? split("-", local.vnet_sap_name)[(local.vnet_nr_parts - 2)] : local.vnet_sap_name
+  vnet_sap_name_prefix = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? (
+    split("-", local.vnet_sap_name)[(local.vnet_nr_parts - 2)]) : (
+    local.vnet_sap_name
+  )
 
   // APP subnet
   var_sub_app    = try(var.infrastructure.vnets.sap.subnet_app, {})
   sub_app_arm_id = try(local.var_sub_app.arm_id, "")
   sub_app_exists = length(local.sub_app_arm_id) > 0 ? true : false
-  sub_app_name   = local.sub_app_exists ? try(split("/", local.sub_app_arm_id)[10], "") : try(local.var_sub_app.name, format("%s%s", local.prefix, local.resource_suffixes.app-subnet))
+  sub_app_name = local.sub_app_exists ? (
+    try(split("/", local.sub_app_arm_id)[10], "")) : (
+    try(local.var_sub_app.name, format("%s%s", local.prefix, local.resource_suffixes.app-subnet))
+  )
   sub_app_prefix = try(local.var_sub_app.prefix, "")
 
   // APP NSG
   var_sub_app_nsg    = try(local.var_sub_app.nsg, {})
   sub_app_nsg_arm_id = try(local.var_sub_app_nsg.arm_id, "")
   sub_app_nsg_exists = length(local.sub_app_nsg_arm_id) > 0 ? true : false
-  sub_app_nsg_name   = local.sub_app_nsg_exists ? try(split("/", local.sub_app_nsg_arm_id)[8], "") : try(local.var_sub_app_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.app-subnet-nsg))
+  sub_app_nsg_name = local.sub_app_nsg_exists ? (
+    try(split("/", local.sub_app_nsg_arm_id)[8], "")) : (
+    try(local.var_sub_app_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.app-subnet-nsg))
+  )
 
   // WEB subnet
   #If subnet_web is not specified deploy into app subnet
@@ -89,20 +103,30 @@ locals {
   sub_web         = try(var.infrastructure.vnets.sap.subnet_web, {})
   sub_web_arm_id  = try(local.sub_web.arm_id, "")
   sub_web_exists  = length(local.sub_web_arm_id) > 0 ? true : false
-  sub_web_name    = local.sub_web_exists ? try(split("/", local.sub_web_arm_id)[10], "") : try(local.sub_web.name, format("%s%s", local.prefix, local.resource_suffixes.web-subnet))
-  sub_web_prefix  = try(local.sub_web.prefix, "")
+  sub_web_name = local.sub_web_exists ? (
+    try(split("/", local.sub_web_arm_id)[10], "")) : (
+    try(local.sub_web.name, format("%s%s", local.prefix, local.resource_suffixes.web-subnet))
+  )
+
+  sub_web_prefix = try(local.sub_web.prefix, "")
   sub_web_deployed = try(local.sub_web_defined ? (
     local.sub_web_exists ? data.azurerm_subnet.subnet-sap-web[0] : azurerm_subnet.subnet-sap-web[0]) : (
-  local.sub_app_exists ? data.azurerm_subnet.subnet-sap-app[0] : azurerm_subnet.subnet-sap-app[0]), null)
+    local.sub_app_exists ? data.azurerm_subnet.subnet-sap-app[0] : azurerm_subnet.subnet-sap-app[0]), null
+  )
 
   // WEB NSG
   sub_web_nsg        = try(local.sub_web.nsg, {})
   sub_web_nsg_arm_id = try(local.sub_web_nsg.arm_id, "")
   sub_web_nsg_exists = length(local.sub_web_nsg_arm_id) > 0 ? true : false
-  sub_web_nsg_name   = local.sub_web_nsg_exists ? try(split("/", local.sub_web_nsg_arm_id)[8], "") : try(local.sub_web_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.web-subnet-nsg))
+  sub_web_nsg_name = local.sub_web_nsg_exists ? (
+    try(split("/", local.sub_web_nsg_arm_id)[8], "")) : (
+    try(local.sub_web_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.web-subnet-nsg))
+  )
+  
   sub_web_nsg_deployed = try(local.sub_web_defined ? (
     local.sub_web_nsg_exists ? data.azurerm_network_security_group.nsg-web[0] : azurerm_network_security_group.nsg-web[0]) : (
-  local.sub_app_nsg_exists ? data.azurerm_network_security_group.nsg-app[0] : azurerm_network_security_group.nsg-app[0]), null)
+    local.sub_app_nsg_exists ? data.azurerm_network_security_group.nsg-app[0] : azurerm_network_security_group.nsg-app[0]), null
+  )
 
   application_sid          = try(var.application.sid, "")
   enable_deployment        = try(var.application.enable_deployment, false)
@@ -114,10 +138,16 @@ locals {
   webdispatcher_count      = try(var.application.webdispatcher_count, 0)
   vm_sizing                = try(var.application.vm_sizing, "Default")
   app_nic_ips              = try(var.application.app_nic_ips, [])
+  app_admin_nic_ips        = try(var.application.app_admin_nic_ips, [])
   scs_lb_ips               = try(var.application.scs_lb_ips, [])
   scs_nic_ips              = try(var.application.scs_nic_ips, [])
+  scs_admin_nic_ips        = try(var.application.scs_admin_nic_ips, [])
   web_lb_ips               = try(var.application.web_lb_ips, [])
   web_nic_ips              = try(var.application.web_nic_ips, [])
+  web_admin_nic_ips        = try(var.application.web_admin_nic_ips, [])
+
+  // Dual network cards
+  apptier_dual_nics = try(var.application.dual_nics, false)
 
   app_ostype = try(var.application.os.os_type, "Linux")
   app_oscode = upper(local.app_ostype) == "LINUX" ? "l" : "w"
@@ -144,7 +174,7 @@ locals {
   // OS image for all SCS VMs
   // If custom image is used, we do not overwrite os reference with default value
   // If no publisher or no custom image is specified use the custom image from the app if specified
-  scs_custom_image    = try(var.application.scs_os.source_image_id, "") == "" && ! local.app_custom_image ? false : true
+  scs_custom_image = try(var.application.scs_os.source_image_id, "") == "" && ! local.app_custom_image ? false : true
 
   scs_os = {
     "source_image_id" = local.scs_custom_image ? try(var.application.scs_os.source_image_id, var.application.os.source_image_id) : ""
@@ -157,7 +187,7 @@ locals {
   // OS image for all WebDispatcher VMs
   // If custom image is used, we do not overwrite os reference with default value
   // If no publisher or no custom image is specified use the custom image from the app if specified
-  web_custom_image    = try(var.application.web_os.source_image_id, "") == "" && ! local.app_custom_image ? false : true
+  web_custom_image = try(var.application.web_os.source_image_id, "") == "" && ! local.app_custom_image ? false : true
 
   web_os = {
     "source_image_id" = local.web_custom_image ? var.application.web_os.source_image_id : ""
@@ -166,9 +196,7 @@ locals {
     "sku"             = try(var.application.web_os.sku, local.web_custom_image ? "" : local.app_os.sku)
     "version"         = try(var.application.web_os.version, local.web_custom_image ? "" : local.app_os.version)
   }
-}
 
-locals {
   // Subnet IP Offsets
   // Note: First 4 IP addresses in a subnet are reserved by Azure
   ip_offsets = {

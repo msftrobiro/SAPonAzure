@@ -1,3 +1,4 @@
+
 # Creates app subnet of SAP VNET
 resource "azurerm_subnet" "subnet-sap-app" {
   count                = local.enable_deployment ? (local.sub_app_exists ? 0 : 1) : 0
@@ -153,7 +154,7 @@ resource "azurerm_lb" "web" {
   frontend_ip_configuration {
     name                          = format("%s%s", local.prefix, local.resource_suffixes.web-alb-feip)
     subnet_id                     = local.sub_web_deployed.id
-    private_ip_address            = cidrhost(local.sub_web_deployed.address_prefixes[0], local.ip_offsets.web_lb)
+    private_ip_address            = try(local.web_lb_ips[0], cidrhost(local.sub_web_deployed.address_prefixes[0], local.ip_offsets.web_lb))
     private_ip_address_allocation = "Static"
   }
 }

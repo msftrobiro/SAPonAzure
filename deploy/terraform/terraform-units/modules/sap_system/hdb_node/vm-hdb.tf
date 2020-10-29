@@ -20,13 +20,10 @@ resource "azurerm_network_interface" "nics-dbnodes-admin" {
 
   ip_configuration {
     name      = "ipconfig1"
-    subnet_id = local.sub_admin_exists ? data.azurerm_subnet.sap-admin[0].id : azurerm_subnet.sap-admin[0].id
+    subnet_id = var.admin_subnet.id
     private_ip_address = lookup(local.hdb_vms[count.index], "admin_nic_ip", false) != false ? (
       local.hdb_vms[count.index].admin_nic_ip) : (
-      cidrhost((local.sub_admin_exists ? (
-        data.azurerm_subnet.sap-admin[0].address_prefixes[0]) : (
-        azurerm_subnet.sap-admin[0].address_prefixes[0])
-      ), tonumber(count.index) + 10)
+      cidrhost(var.admin_subnet.address_prefixes[0], tonumber(count.index) + 10)
     )
 
     private_ip_address_allocation = "static"

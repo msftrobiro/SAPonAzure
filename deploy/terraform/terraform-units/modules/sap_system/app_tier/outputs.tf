@@ -1,11 +1,58 @@
-output "nics-scs" {
+output "nics_scs" {
   value = azurerm_network_interface.scs
 }
 
-output "nics-app" {
+output "nics_app" {
   value = azurerm_network_interface.app
 }
 
-output "nics-web" {
+output "nics_web" {
   value = azurerm_network_interface.web
+}
+
+output "nics_scs_admin" {
+  value = azurerm_network_interface.scs_admin
+}
+
+output "nics_app_admin" {
+  value = azurerm_network_interface.app_admin
+}
+
+output "nics_web_admin" {
+  value = azurerm_network_interface.web_admin
+}
+output "app_ip" {
+  value = azurerm_network_interface.app.*.ip_configuration.private_ip_address
+}
+
+output "app_admin_ip" {
+  value = azurerm_network_interface.app_admin.*.ip_configuration.private_ip_address
+}
+
+output "scs_ip" {
+  value = azurerm_network_interface.scs.*.ip_configuration.private_ip_address
+}
+
+output "scs_admin_ip" {
+  value = azurerm_network_interface.scs_admin.*.ip_configuration.private_ip_address
+}
+
+output "web_ip" {
+  value = azurerm_network_interface.web.*.ip_configuration.private_ip_address
+}
+
+output "web_admin_ip" {
+  value = azurerm_network_interface.web_admin.*.ip_configuration.private_ip_address
+}
+
+output "web_lb_ip" {
+  value = azurerm_lb.web.*.frontend_ip_configuration.private_ip_address
+}
+
+output "scs_lb_ip" {
+  value = azurerm_lb.scs.*.frontend_ip_configuration[0].private_ip_address
+}
+
+output "ers_lb_ip" {
+  value = azurerm_lb.web.*.frontend_ip_configuration[1].private_ip_address
 }

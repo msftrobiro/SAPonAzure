@@ -24,10 +24,14 @@ variable "custom_disk_sizes_filename" {
   default     = ""
 }
 
+variable "admin_subnet" {
+  description = "Information about SAP admin subnet"
+}
+
 locals {
   // Imports database sizing information
 
-  sizes      = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/anydb_sizes.json"))
+  sizes = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/anydb_sizes.json"))
 
   computer_names       = var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
   virtualmachine_names = var.naming.virtualmachine_names.ANYDB_VMNAME
@@ -53,23 +57,39 @@ locals {
   vnet_sap_name   = local.vnet_sap_exists ? try(split("/", local.vnet_sap_arm_id)[8], "") : try(local.var_vnet_sap.name, "")
   vnet_nr_parts   = length(split("-", local.vnet_sap_name))
   // Default naming of vnet has multiple parts. Taking the second-last part as the name 
-  vnet_sap_name_prefix = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? split("-", local.vnet_sap_name)[(local.vnet_nr_parts - 2)] : local.vnet_sap_name
+  vnet_sap_name_prefix = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? (
+    split("-", local.vnet_sap_name)[(local.vnet_nr_parts - 2)]) : (
+    local.vnet_sap_name
+  )
 
   // DB subnet
   var_sub_db    = try(var.infrastructure.vnets.sap.subnet_db, {})
   sub_db_arm_id = try(local.var_sub_db.arm_id, "")
   sub_db_exists = length(local.sub_db_arm_id) > 0 ? true : false
-  sub_db_name   = local.sub_db_exists ? try(split("/", local.sub_db_arm_id)[10], "") : try(local.var_sub_db.name, format("%s%s", local.prefix, local.resource_suffixes.db-subnet))
+  sub_db_name = local.sub_db_exists ? (
+    try(split("/", local.sub_db_arm_id)[10], "")) : (
+    try(local.var_sub_db.name, format("%s%s", local.prefix, local.resource_suffixes.db-subnet))
+  )
   sub_db_prefix = try(local.var_sub_db.prefix, "")
 
   // DB NSG
   var_sub_db_nsg    = try(var.infrastructure.vnets.sap.subnet_db.nsg, {})
   sub_db_nsg_arm_id = try(local.var_sub_db_nsg.arm_id, "")
   sub_db_nsg_exists = length(local.sub_db_nsg_arm_id) > 0 ? true : false
-  sub_db_nsg_name   = local.sub_db_nsg_exists ? try(split("/", local.sub_db_nsg_arm_id)[8], "") : try(local.var_sub_db_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.db-subnet-nsg))
+  sub_db_nsg_name = local.sub_db_nsg_exists ? (
+    try(split("/", local.sub_db_nsg_arm_id)[8], "")) : (
+    try(local.var_sub_db_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.db-subnet-nsg))
+  )
 
   // PPG Information
   ppgId = lookup(var.infrastructure, "ppg", false) != false ? (var.ppg[0].id) : null
+
+  anydb          = try(local.anydb-databases[0], {})
+  anydb_platform = try(local.anydb.platform, "NONE")
+  anydb_version  = try(local.anydb.db_version, "")
+
+  // Dual network cards
+  anydb_dual_nics = try(local.anydb.dual_nics, false)
 
   // Filter the list of databases to only AnyDB platform entries
   // Supported databases: Oracle, DB2, SQLServer, ASE 
@@ -77,10 +97,6 @@ locals {
     for database in var.databases : database
     if contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], upper(try(database.platform, "NONE")))
   ]
-
-  anydb          = try(local.anydb-databases[0], {})
-  anydb_platform = try(local.anydb.platform, "NONE")
-  anydb_version  = try(local.anydb.db_version, "")
 
   // Enable deployment based on length of local.anydb-databases
   enable_deployment = (length(local.anydb-databases) > 0) ? true : false
@@ -172,14 +188,16 @@ locals {
     name         = try("${dbnode.name}-0", format("%s%s%s%s", local.prefix, local.prefix, var.naming.separator,local.virtualmachine_names[idx], local.resource_suffixes.vm))
     computername = try("${dbnode.name}-0", local.computer_names[idx], local.resource_suffixes.vm)
     role         = try(dbnode.role, "worker"),
-    db_nic_ip    = lookup(dbnode, "db_nic_ips", [false, false])[0]
+    db_nic_ip    = lookup(dbnode, "db_nic_ips", [null, null])[0]
+    admin_nic_ip = lookup(dbnode, "admin_nic_ips", [null, null])[0]
     }
     ],
     [for idx, dbnode in try(local.anydb.dbnodes, [{}]) : {
       name         = try("${dbnode.name}-1", format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[idx + local.node_count], local.resource_suffixes.vm))
       computername = try("${dbnode.name}-1", local.computer_names[idx + local.node_count], local.resource_suffixes.vm)
       role         = try(dbnode.role, "worker"),
-      db_nic_ip    = lookup(dbnode, "db_nic_ips", [false, false])[1],
+      db_nic_ip    = lookup(dbnode, "db_nic_ips", [null, null])[1],
+      admin_nic_ip = lookup(dbnode, "admin_nic_ips", [null, null])[1]
       } if local.anydb_ha
     ]
     ]
@@ -191,6 +209,7 @@ locals {
       name           = dbnode.name
       computername   = dbnode.computername
       db_nic_ip      = dbnode.db_nic_ip
+      admin_nic_ip   = dbnode.admin_nic_ip
       size           = local.anydb_sku
       os             = local.anydb_ostype,
       authentication = local.authentication

@@ -32,10 +32,14 @@ variable "custom_disk_sizes_filename" {
   default     = ""
 }
 
+variable "admin_subnet" {
+  description = "Information about SAP admin subnet"
+}
+
 locals {
   // Imports database sizing information
 
-  sizes      = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/hdb_sizes.json"))
+  sizes = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/hdb_sizes.json"))
 
   computer_names       = var.naming.virtualmachine_names.HANA_COMPUTERNAME
   virtualmachine_names = var.naming.virtualmachine_names.HANA_VMNAME
@@ -57,20 +61,10 @@ locals {
   vnet_sap_name   = local.vnet_sap_exists ? try(split("/", local.vnet_sap_arm_id)[8], "") : try(local.var_vnet_sap.name, "")
   vnet_nr_parts   = length(split("-", local.vnet_sap_name))
   // Default naming of vnet has multiple parts. Taking the second-last part as the name 
-  vnet_sap_name_prefix = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? split("-", local.vnet_sap_name)[(local.vnet_nr_parts - 2)] : local.vnet_sap_name
-
-  // Admin subnet
-  var_sub_admin    = try(var.infrastructure.vnets.sap.subnet_admin, {})
-  sub_admin_arm_id = try(local.var_sub_admin.arm_id, "")
-  sub_admin_exists = length(local.sub_admin_arm_id) > 0 ? true : false
-  sub_admin_name   = local.sub_admin_exists ? try(split("/", local.sub_admin_arm_id)[10], "") : try(local.var_sub_admin.name, format("%s%s", local.prefix, local.resource_suffixes.admin-subnet))
-  sub_admin_prefix = try(local.var_sub_admin.prefix, "")
-
-  // Admin NSG
-  var_sub_admin_nsg    = try(var.infrastructure.vnets.sap.subnet_admin.nsg, {})
-  sub_admin_nsg_arm_id = try(local.var_sub_admin_nsg.arm_id, "")
-  sub_admin_nsg_exists = length(local.sub_admin_nsg_arm_id) > 0 ? true : false
-  sub_admin_nsg_name   = local.sub_admin_nsg_exists ? try(split("/", local.sub_admin_nsg_arm_id)[8], "") : try(local.var_sub_admin_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.admin-subnet-nsg))
+  vnet_sap_name_prefix = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? (
+    split("-", local.vnet_sap_name)[(local.vnet_nr_parts - 2)]) : (
+    local.vnet_sap_name
+  )
 
   // DB subnet
   var_sub_db    = try(var.infrastructure.vnets.sap.subnet_db, {})
@@ -83,7 +77,10 @@ locals {
   var_sub_db_nsg    = try(var.infrastructure.vnets.sap.subnet_db.nsg, {})
   sub_db_nsg_arm_id = try(local.var_sub_db_nsg.arm_id, "")
   sub_db_nsg_exists = length(local.sub_db_nsg_arm_id) > 0 ? true : false
-  sub_db_nsg_name   = local.sub_db_nsg_exists ? try(split("/", local.sub_db_nsg_arm_id)[8], "") : try(local.var_sub_db_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.db-subnet-nsg))
+  sub_db_nsg_name = local.sub_db_nsg_exists ? (
+    try(split("/", local.sub_db_nsg_arm_id)[8], "")) : (
+    try(local.var_sub_db_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.db-subnet-nsg))
+  )
 
   hdb_list = [
     for db in var.databases : db

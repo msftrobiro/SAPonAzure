@@ -2,10 +2,6 @@ variable "resource-group" {
   description = "Details of the resource group"
 }
 
-variable "subnet-mgmt" {
-  description = "Details of the management subnet"
-}
-
 variable "vnet-sap" {
   description = "Details of the SAP VNet"
 }
@@ -32,6 +28,14 @@ variable "admin_subnet" {
   description = "Information about SAP admin subnet"
 }
 
+variable "deployer_user" {
+  description = "Details of the users"
+  default     = []
+}
+
+variable "sid_kv_user" {
+  description = "Details of the user keyvault for sap_system"
+}
 
 locals {
   // Imports Disk sizing sizing information
@@ -64,6 +68,29 @@ locals {
   web_zones            = try(var.application.web_zones, [])
   web_zonal_deployment = length(local.web_zones) > 0 ? true : false
   web_zone_count       = length(local.web_zones)
+
+  sid_auth_type        = try(var.application.authentication.type, upper(local.app_ostype) == "LINUX" ? "key" : "password")
+  enable_auth_password = local.enable_deployment && local.sid_auth_type == "password"
+  enable_auth_key      = local.enable_deployment && local.sid_auth_type == "key"
+  sid_auth_username    = try(var.application.authentication.username, "azureadm")
+  sid_auth_password    = local.enable_auth_password ? try(var.application.authentication.password, random_password.password[0].result) : ""
+
+  authentication = {
+    "type"     = local.sid_auth_type
+    "username" = local.sid_auth_username
+    "password" = local.sid_auth_password
+  }
+
+  /* 
+     TODO: currently sap landscape and sap system haven't been decoupled. 
+     The key vault information of sap landscape will be obtained via input json.
+     At phase 2, the logic will be updated and the key vault information will be obtained from tfstate file of sap landscape.  
+  */
+  kv_landscape_id    = try(local.var_infra.landscape.key_vault_arm_id, "")
+  secret_sid_pk_name = try(local.var_infra.landscape.sid_public_key_secret_name, "")
+
+  // Define this variable to make it easier when implementing existing kv.
+  sid_kv_user = try(var.sid_kv_user[0], null)
 
   # SAP vnet
   var_infra       = try(var.infrastructure, {})
@@ -122,7 +149,7 @@ locals {
     try(split("/", local.sub_web_nsg_arm_id)[8], "")) : (
     try(local.sub_web_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.web-subnet-nsg))
   )
-  
+
   sub_web_nsg_deployed = try(local.sub_web_defined ? (
     local.sub_web_nsg_exists ? data.azurerm_network_security_group.nsg-web[0] : azurerm_network_security_group.nsg-web[0]) : (
     local.sub_app_nsg_exists ? data.azurerm_network_security_group.nsg-app[0] : azurerm_network_security_group.nsg-app[0]), null
@@ -152,12 +179,6 @@ locals {
   app_ostype = try(var.application.os.os_type, "Linux")
   app_oscode = upper(local.app_ostype) == "LINUX" ? "l" : "w"
 
-  authentication = try(var.application.authentication,
-    {
-      "type"     = upper(local.app_ostype) == "LINUX" ? "key" : "password"
-      "username" = "azureadm"
-      "password" = "Sap@hana2019!"
-  })
 
   // OS image for all Application Tier VMs
   // If custom image is used, we do not overwrite os reference with default value
@@ -183,6 +204,10 @@ locals {
     "sku"             = try(var.application.scs_os.sku, local.scs_custom_image ? "" : local.app_os.sku)
     "version"         = try(var.application.scs_os.version, local.scs_custom_image ? "" : local.app_os.version)
   }
+
+  application = merge(var.application,
+    { authentication = local.authentication }
+  )
 
   // OS image for all WebDispatcher VMs
   // If custom image is used, we do not overwrite os reference with default value

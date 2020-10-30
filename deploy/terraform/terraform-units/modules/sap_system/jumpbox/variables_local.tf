@@ -2,14 +2,6 @@ variable "resource-group" {
   description = "Details of the resource group"
 }
 
-variable "subnet-mgmt" {
-  description = "Details of the management subnet"
-}
-
-variable "nsg-mgmt" {
-  description = "Details of the management NSG"
-}
-
 variable "storage-bootdiag" {
   description = "Details of the boot diagnostics storage account"
 }
@@ -26,11 +18,17 @@ variable "random-id" {
   description = "Random hex for creating unique Azure key vault name"
 }
 
-variable "deployer-uai" {
-  description = "Details of the UAI used by deployer(s)"
+variable "deployer_tfstate" {
+  description = "Deployer tfstate file"
 }
 
 locals {
+
+  // Retrieve deployer information from tfstate file
+  deployer-uai = var.deployer_tfstate.deployer_uai
+  subnet-mgmt  = var.deployer_tfstate.subnet_mgmt
+  nsg-mgmt     = var.deployer_tfstate.nsg_mgmt
+
   output-tf = jsondecode(var.output-json.content)
 
   # Linux jumpbox information

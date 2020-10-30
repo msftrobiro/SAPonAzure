@@ -95,13 +95,16 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
     }
   }
 
-  admin_username                  = local.authentication.username
-  admin_password                  = local.authentication.type == "password" ? try(local.authentication.password, null) : null
-  disable_password_authentication = local.authentication.type != "password" ? true : false
+  admin_username                  = local.sid_auth_username
+  admin_password                  = local.sid_auth_password
+  disable_password_authentication = ! local.enable_auth_password
 
-  admin_ssh_key {
-    username   = local.authentication.username
-    public_key = file(var.sshkey.path_to_public_key)
+  dynamic "admin_ssh_key" {
+    for_each = range(local.enable_auth_password ? 0 : 1)
+    content {
+      username   = local.anydb_vms[count.index].authentication.username
+      public_key = data.azurerm_key_vault_secret.sid_pk[0].value
+    }
   }
 
   additional_capabilities {
@@ -166,8 +169,8 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
     }
   }
 
-  admin_username = local.authentication.username
-  admin_password = try(local.authentication.password, null)
+  admin_username = local.sid_auth_username
+  admin_password = local.sid_auth_password
 
   additional_capabilities {
     ultra_ssd_enabled = local.enable_ultradisk

@@ -2,14 +2,6 @@ variable "resource-group" {
   description = "Details of the resource group"
 }
 
-variable "subnet-mgmt" {
-  description = "Details of the management subnet"
-}
-
-variable "nsg-mgmt" {
-  description = "Details of the NSG for management subnet"
-}
-
 variable "vnet-sap" {
   description = "Details of the SAP VNet"
 }
@@ -36,6 +28,11 @@ variable "admin_subnet" {
   description = "Information about SAP admin subnet"
 }
 
+variable "sid_kv_user" {
+  description = "Details of the user keyvault for sap_system"
+}
+
+
 locals {
   // Imports database sizing information
 
@@ -52,6 +49,17 @@ locals {
   prefix = try(var.infrastructure.resource_group.name, var.naming.prefix.SDU)
 
   rg_name = try(var.infrastructure.resource_group.name, format("%s%s", local.prefix, local.resource_suffixes.sdu-rg))
+
+  /* 
+     TODO: currently sap landscape and sap system haven't been decoupled. 
+     The key vault information of sap landscape will be obtained via input json.
+     At phase 2, the logic will be updated and the key vault information will be obtained from tfstate file of sap landscape.  
+  */
+  kv_landscape_id    = try(local.var_infra.landscape.key_vault_arm_id, "")
+  secret_sid_pk_name = try(local.var_infra.landscape.sid_public_key_secret_name, "")
+
+  // Define this variable to make it easier when implementing existing kv.
+  sid_kv_user = try(var.sid_kv_user[0], null)
 
   # SAP vnet
   var_infra       = try(var.infrastructure, {})
@@ -110,28 +118,35 @@ locals {
   hdb_size = try(local.hdb.size, "Demo")
   hdb_fs   = try(local.hdb.filesystem, "xfs")
   hdb_ha   = try(local.hdb.high_availability, false)
-  hdb_auth = try(local.hdb.authentication,
-    {
-      "type"     = "key"
-      "username" = "azureadm"
-  })
+
+  sid_auth_type        = try(local.hdb.authentication.type, "key")
+  enable_auth_password = local.enable_deployment && local.sid_auth_type == "password"
+  enable_auth_key      = local.enable_deployment && local.sid_auth_type == "key"
+  sid_auth_username    = try(local.hdb.authentication.username, "azureadm")
+  sid_auth_password    = local.enable_auth_password ? try(local.hdb.authentication.password, random_password.password[0].result) : ""
+
+  db_systemdb_password   = "db_systemdb_password"
+  os_sidadm_password     = "os_sidadm_password"
+  os_sapadm_password     = "os_sapadm_password"
+  xsa_admin_password     = "xsa_admin_password"
+  cockpit_admin_password = "cockpit_admin_password"
+  ha_cluster_password    = "ha_cluster_password"
+
+  hdb_auth = {
+    "type"     = local.sid_auth_type
+    "username" = local.sid_auth_username
+    "password" = "hdb_vm_password"
+  }
 
   node_count      = try(length(local.hdb.dbnodes), 1)
   db_server_count = local.hdb_ha ? local.node_count * 2 : local.node_count
 
-  hdb_ins                = try(local.hdb.instance, {})
-  hdb_sid                = try(local.hdb_ins.sid, local.sid) // HANA database sid from the Databases array for use as reference to LB/AS
-  hdb_nr                 = try(local.hdb_ins.instance_number, "00")
-  hdb_cred               = try(local.hdb.credentials, {})
-  db_systemdb_password   = try(local.hdb_cred.db_systemdb_password, "")
-  os_sidadm_password     = try(local.hdb_cred.os_sidadm_password, "")
-  os_sapadm_password     = try(local.hdb_cred.os_sapadm_password, "")
-  xsa_admin_password     = try(local.hdb_cred.xsa_admin_password, "")
-  cockpit_admin_password = try(local.hdb_cred.cockpit_admin_password, "")
-  ha_cluster_password    = try(local.hdb_cred.ha_cluster_password, "")
-  components             = merge({ hana_database = [] }, try(local.hdb.components, {}))
-  xsa                    = try(local.hdb.xsa, { routing = "ports" })
-  shine                  = try(local.hdb.shine, { email = "shinedemo@microsoft.com" })
+  hdb_ins    = try(local.hdb.instance, {})
+  hdb_sid    = try(local.hdb_ins.sid, local.sid) // HANA database sid from the Databases array for use as reference to LB/AS
+  hdb_nr     = try(local.hdb_ins.instance_number, "01")
+  components = merge({ hana_database = [] }, try(local.hdb.components, {}))
+  xsa        = try(local.hdb.xsa, { routing = "ports" })
+  shine      = try(local.hdb.shine, { email = "shinedemo@microsoft.com" })
 
   dbnodes = flatten([[for idx, dbnode in try(local.hdb.dbnodes, [{}]) : {
     name         = try("${dbnode.name}-0", format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[idx], local.resource_suffixes.vm))

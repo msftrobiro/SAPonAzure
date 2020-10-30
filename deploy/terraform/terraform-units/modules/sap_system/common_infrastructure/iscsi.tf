@@ -43,6 +43,8 @@ data "azurerm_network_security_group" "iscsi" {
   resource_group_name = split("/", local.sub_iscsi_nsg_arm_id)[4]
 }
 
+// TODO: Add nsr to iSCSI's nsg
+
 /*-----------------------------------------------------------------------------8
 iSCSI device IP address range: .4 - 
 +--------------------------------------4--------------------------------------*/
@@ -78,8 +80,8 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
   network_interface_ids           = [azurerm_network_interface.iscsi[count.index].id]
   size                            = local.iscsi.size
   admin_username                  = local.iscsi.authentication.username
-  admin_password                  = lookup(local.iscsi.authentication, "password", null)
-  disable_password_authentication = local.iscsi.authentication.type != "password" ? true : false
+  admin_password                  = local.iscsi_auth_password
+  disable_password_authentication = local.enable_iscsi_auth_key
 
   os_disk {
     name                 = format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[count.index], local.resource_suffixes.osdisk)
@@ -94,9 +96,12 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
     version   = "latest"
   }
 
-  admin_ssh_key {
-    username   = local.iscsi.authentication.username
-    public_key = file(var.sshkey.path_to_public_key)
+  dynamic "admin_ssh_key" {
+    for_each = range(local.enable_iscsi_auth_key ? 1 : 0)
+    content {
+      username   = local.iscsi_auth_username
+      public_key = local.iscsi_public_key
+    }
   }
 
   boot_diagnostics {

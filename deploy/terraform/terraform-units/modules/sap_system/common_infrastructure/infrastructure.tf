@@ -93,7 +93,7 @@ resource "azurerm_virtual_network_peering" "peering-sap-management" {
   name                         = substr(format("%s_to_%s", local.vnet_sap_exists ? data.azurerm_virtual_network.vnet-sap[0].name : azurerm_virtual_network.vnet-sap[0].name, var.vnet-mgmt.name), 0, 80)
   resource_group_name          = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet-sap[0].resource_group_name : azurerm_virtual_network.vnet-sap[0].resource_group_name
   virtual_network_name         = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet-sap[0].name : azurerm_virtual_network.vnet-sap[0].name
-  remote_virtual_network_id    = var.vnet-mgmt.id
+  remote_virtual_network_id    = local.vnet-mgmt.id
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
 }

@@ -34,18 +34,6 @@ variable "nics-dbnodes-db" {
   description = "NICs of HANA database nodes"
 }
 
-variable "storage-sapbits" {
-  description = "Details of the storage account for SAP bits"
-}
-
-variable "file_share_name" {
-  description = "Name of the file share for SAP bits"
-}
-
-variable "storagecontainer-sapbits" {
-  description = "Details of the storage container for SAP bits"
-}
-
 variable "nics-iscsi" {
   description = "NICs of ISCSI target servers"
 }
@@ -99,6 +87,7 @@ variable "nics_anydb_admin" {
 variable "random_id" {
   description = "Random hex string"
 }
+
 variable "anydb-loadbalancers" {
   description = "List of LoadBalancers created for HANA Databases"
 }
@@ -107,18 +96,15 @@ variable "any-database-info" {
   description = "Updated anydb database json"
 }
 
-variable "deployers" {
-  description = "Details of the deployer(s)"
-}
-
 locals {
-  ips_iscsi                    = var.nics-iscsi[*].private_ip_address
-  ips_jumpboxes-windows        = var.nics-jumpboxes-windows[*].private_ip_address
-  ips_jumpboxes-linux          = var.nics-jumpboxes-linux[*].private_ip_address
-  public-ips_jumpboxes-windows = var.public-ips-jumpboxes-windows[*].ip_address
-  public-ips_jumpboxes-linux   = var.public-ips-jumpboxes-linux[*].ip_address
-  ips_dbnodes-admin            = [for key, value in var.nics-dbnodes-admin : value.private_ip_address]
-  ips_dbnodes-db               = [for key, value in var.nics-dbnodes-db : value.private_ip_address]
+
+  ips-iscsi                    = var.nics-iscsi[*].private_ip_address
+  ips-jumpboxes-windows        = var.nics-jumpboxes-windows[*].private_ip_address
+  ips-jumpboxes-linux          = var.nics-jumpboxes-linux[*].private_ip_address
+  public-ips-jumpboxes-windows = var.public-ips-jumpboxes-windows[*].ip_address
+  public-ips-jumpboxes-linux   = var.public-ips-jumpboxes-linux[*].ip_address
+  ips-dbnodes-admin            = [for key, value in var.nics-dbnodes-admin : value.private_ip_address]
+  ips-dbnodes-db               = [for key, value in var.nics-dbnodes-db : value.private_ip_address]
   databases = [
     var.hana-database-info
   ]
@@ -155,8 +141,8 @@ locals {
   ips_web = [for key, value in local.ips_primary_web : value.private_ip_address]
 
   ips_primary_anydb = length(var.nics_anydb_admin) > 0 ? var.nics_anydb_admin : var.nics_anydb
-  ips_anydbnodes = [for key, value in local.ips_primary_anydb : value.private_ip_address]
-  
+  ips_anydbnodes    = [for key, value in local.ips_primary_anydb : value.private_ip_address]
+
   anydatabases = [
     var.any-database-info
   ]

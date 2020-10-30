@@ -21,6 +21,7 @@ output "nics_app_admin" {
 output "nics_web_admin" {
   value = azurerm_network_interface.web_admin
 }
+
 output "app_ip" {
   value = azurerm_network_interface.app.*.ip_configuration.private_ip_address
 }
@@ -55,4 +56,8 @@ output "scs_lb_ip" {
 
 output "ers_lb_ip" {
   value = azurerm_lb.web.*.frontend_ip_configuration[1].private_ip_address
+}
+
+output "application" {
+  value = local.application
 }

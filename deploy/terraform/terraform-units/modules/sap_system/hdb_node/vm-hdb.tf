@@ -12,8 +12,9 @@ HANA DB Linux Server private IP range: .10 -
 
 # Creates the admin traffic NIC and private IP address for database nodes
 resource "azurerm_network_interface" "nics-dbnodes-admin" {
-  count                         = local.enable_deployment ? length(local.hdb_vms) : 0
-  name                          = format("%s%s", local.hdb_vms[count.index].name, local.resource_suffixes.admin-nic)
+  count = local.enable_deployment ? length(local.hdb_vms) : 0
+  name  = format("%s%s", local.hdb_vms[count.index].name, local.resource_suffixes.admin-nic)
+
   location                      = var.resource-group[0].location
   resource_group_name           = var.resource-group[0].name
   enable_accelerated_networking = true
@@ -32,8 +33,9 @@ resource "azurerm_network_interface" "nics-dbnodes-admin" {
 
 # Creates the DB traffic NIC and private IP address for database nodes
 resource "azurerm_network_interface" "nics-dbnodes-db" {
-  count                         = local.enable_deployment ? length(local.hdb_vms) : 0
-  name                          = format("%s%s", local.hdb_vms[count.index].name, local.resource_suffixes.db-nic)
+  count = local.enable_deployment ? length(local.hdb_vms) : 0
+  name  = format("%s%s", local.hdb_vms[count.index].name, local.resource_suffixes.db-nic)
+
   location                      = var.resource-group[0].location
   resource_group_name           = var.resource-group[0].name
   enable_accelerated_networking = true
@@ -139,15 +141,15 @@ resource "azurerm_linux_virtual_machine" "vm-dbnode" {
   )
 
   zone = local.enable_ultradisk || local.db_server_count == local.db_zone_count ? local.zones[count.index % local.db_zone_count] : null
-      
+
   network_interface_ids = [
     azurerm_network_interface.nics-dbnodes-admin[count.index].id,
     azurerm_network_interface.nics-dbnodes-db[count.index].id
   ]
   size                            = lookup(local.sizes, local.hdb_vms[count.index].size).compute.vm_size
-  admin_username                  = local.hdb_vms[count.index].authentication.username
-  admin_password                  = lookup(local.hdb_vms[count.index].authentication, "password", null)
-  disable_password_authentication = local.hdb_vms[count.index].authentication.type != "password" ? true : false
+  admin_username                  = local.sid_auth_username
+  admin_password                  = local.sid_auth_password
+  disable_password_authentication = ! local.enable_auth_password
 
   dynamic "os_disk" {
     iterator = disk
@@ -173,9 +175,12 @@ resource "azurerm_linux_virtual_machine" "vm-dbnode" {
     }
   }
 
-  admin_ssh_key {
-    username   = local.hdb_vms[count.index].authentication.username
-    public_key = file(var.sshkey.path_to_public_key)
+  dynamic "admin_ssh_key" {
+    for_each = range(local.enable_auth_password ? 0 : 1)
+    content {
+      username   = local.hdb_vms[count.index].authentication.username
+      public_key = data.azurerm_key_vault_secret.sid_pk[0].value
+    }
   }
 
   additional_capabilities {
@@ -197,9 +202,9 @@ resource "azurerm_managed_disk" "data-disk" {
   storage_account_type = local.data_disk_list[count.index].storage_account_type
   disk_size_gb         = local.data_disk_list[count.index].disk_size_gb
   zones = local.enable_ultradisk || local.db_server_count == local.db_zone_count ? (
-        [azurerm_linux_virtual_machine.vm-dbnode[local.data_disk_list[count.index].vm_index].zone]) : (
-        null
-      )
+    [azurerm_linux_virtual_machine.vm-dbnode[local.data_disk_list[count.index].vm_index].zone]) : (
+    null
+  )
 }
 
 # Manages attaching a Disk to a Virtual Machine

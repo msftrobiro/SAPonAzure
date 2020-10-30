@@ -2,10 +2,6 @@ variable "resource-group" {
   description = "Details of the resource group"
 }
 
-variable "subnet-mgmt" {
-  description = "Details of the management subnet"
-}
-
 variable "vnet-sap" {
   description = "Details of the SAP VNet"
 }
@@ -20,6 +16,15 @@ variable "ppg" {
 
 variable "random-id" {
   description = "Random hex string"
+}
+
+variable "deployer_user" {
+  description = "Details of the users"
+  default     = []
+}
+
+variable "sid_kv_user" {
+  description = "Details of the user keyvault for sap_system"
 }
 
 variable "region_mapping" {
@@ -72,6 +77,29 @@ locals {
   sa_prefix   = lower(replace(format("%s%s%sdiag", substr(local.environment, 0, 5), local.location_short, substr(local.codename, 0, 7)), "--", "-"))
   vnet_prefix = try(local.var_infra.resource_group.name, format("%s-%s", local.environment, local.location_short))
 
+  sid_auth_type        = try(var.application.authentication.type, upper(local.app_ostype) == "LINUX" ? "key" : "password")
+  enable_auth_password = local.enable_deployment && local.sid_auth_type == "password"
+  enable_auth_key      = local.enable_deployment && local.sid_auth_type == "key"
+  sid_auth_username    = try(var.application.authentication.username, "azureadm")
+  sid_auth_password    = local.enable_auth_password ? try(var.application.authentication.password, random_password.password[0].result) : ""
+
+  authentication = {
+    "type"     = local.sid_auth_type
+    "username" = local.sid_auth_username
+    "password" = local.sid_auth_password
+  }
+
+  /* 
+     TODO: currently sap landscape and sap system haven't been decoupled. 
+     The key vault information of sap landscape will be obtained via input json.
+     At phase 2, the logic will be updated and the key vault information will be obtained from tfstate file of sap landscape.  
+  */
+  kv_landscape_id    = try(local.var_infra.landscape.key_vault_arm_id, "")
+  secret_sid_pk_name = try(local.var_infra.landscape.sid_public_key_secret_name, "")
+
+  // Define this variable to make it easier when implementing existing kv.
+  sid_kv_user = try(var.sid_kv_user[0], null)
+
   # SAP vnet
   var_infra       = try(var.infrastructure, {})
   var_vnet_sap    = try(local.var_infra.vnets.sap, {})
@@ -80,7 +108,7 @@ locals {
   vnet_sap_name   = local.vnet_sap_exists ? split("/", local.vnet_sap_arm_id)[8] : try(local.var_vnet_sap.name, "")
   vnet_nr_parts   = length(split("-", local.vnet_sap_name))
   // Default naming of vnet has multiple parts. Taking the second-last part as the name 
-  vnet_sap_name_prefix = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? split("-", local.vnet_sap_name)[(local.vnet_nr_parts -2)] : local.vnet_sap_name
+  vnet_sap_name_prefix = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? split("-", local.vnet_sap_name)[(local.vnet_nr_parts - 2)] : local.vnet_sap_name
 
   // APP subnet
   var_sub_app    = try(var.infrastructure.vnets.sap.subnet_app, {})
@@ -133,12 +161,6 @@ locals {
   app_ostype = try(var.application.os.os_type, "Linux")
   app_oscode = upper(local.app_ostype) == "LINUX" ? "l" : "w"
 
-  authentication = try(var.application.authentication,
-    {
-      "type"     = upper(local.app_ostype) == "LINUX" ? "key" : "password"
-      "username" = "azureadm"
-      "password" = "Sap@hana2019!"
-  })
 
   // OS image for all Application Tier VMs
   // If custom image is used, we do not overwrite os reference with default value
@@ -151,6 +173,10 @@ locals {
     "sku"             = try(var.application.os.sku, local.app_custom_image ? "" : "gen1")
     "version"         = try(var.application.os.version, local.app_custom_image ? "" : "latest")
   }
+
+  application = merge(var.application,
+    { authentication = local.authentication }
+  )
 
 }
 

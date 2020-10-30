@@ -43,21 +43,7 @@ data "azurerm_network_security_group" "iscsi" {
   resource_group_name = split("/", local.sub_iscsi_nsg_arm_id)[4]
 }
 
-# Creates network security rule to deny external traffic for SAP iSCSI subnet
-resource "azurerm_network_security_rule" "iscsi" {
-  count                        = local.iscsi_count == 0 ? 0 : (local.sub_iscsi_exists ? 0 : 1)
-  name                         = "deny-inbound-traffic"
-  resource_group_name          = local.rg_exists ? data.azurerm_resource_group.resource-group[0].name : azurerm_resource_group.resource-group[0].name
-  network_security_group_name  = azurerm_network_security_group.iscsi[0].name
-  priority                     = 102
-  direction                    = "Inbound"
-  access                       = "deny"
-  protocol                     = "Tcp"
-  source_port_range            = "*"
-  destination_port_range       = "*"
-  source_address_prefix        = "*"
-  destination_address_prefixes = try(var.subnet-sap-admin.address_prefixes, "*")
-}
+// TODO: Add nsr to iSCSI's nsg
 
 /*-----------------------------------------------------------------------------8
 iSCSI device IP address range: .4 - 
@@ -94,8 +80,8 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
   size                            = local.iscsi.size
   computer_name                   = "iscsi-${format("%02d", count.index)}"
   admin_username                  = local.iscsi.authentication.username
-  admin_password                  = lookup(local.iscsi.authentication, "password", null)
-  disable_password_authentication = local.iscsi.authentication.type != "password" ? true : false
+  admin_password                  = local.iscsi_auth_password
+  disable_password_authentication = local.enable_iscsi_auth_key
 
   os_disk {
     name                 = "iscsi-${format("%02d", count.index)}-osdisk"
@@ -110,9 +96,12 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
     version   = "latest"
   }
 
-  admin_ssh_key {
-    username   = local.iscsi.authentication.username
-    public_key = file(var.sshkey.path_to_public_key)
+  dynamic "admin_ssh_key" {
+    for_each = range(local.enable_iscsi_auth_key ? 1 : 0)
+    content {
+      username   = local.iscsi_auth_username
+      public_key = local.iscsi_public_key
+    }
   }
 
   boot_diagnostics {

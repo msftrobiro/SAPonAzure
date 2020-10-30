@@ -9,3 +9,7 @@ output "nics-app" {
 output "nics-web" {
   value = azurerm_network_interface.web
 }
+
+output "application" {
+  value = local.application
+}

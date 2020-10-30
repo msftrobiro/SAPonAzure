@@ -6,14 +6,6 @@ output "vnet-sap" {
   value = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet-sap : azurerm_virtual_network.vnet-sap
 }
 
-output "subnet-mgmt" {
-  value = var.subnet-mgmt
-}
-
-output "nsg-mgmt" {
-  value = var.nsg-mgmt
-}
-
 output "storage-bootdiag" {
   value = azurerm_storage_account.storage-bootdiag
 }
@@ -36,4 +28,12 @@ output "infrastructure_w_defaults" {
 
 output "software_w_defaults" {
   value = local.software
+}
+
+output "sid_kv_user" {
+  value = local.enable_sid_deployment ? azurerm_key_vault.sid_kv_user : null
+}
+
+output "sid_kv_prvt" {
+  value = local.enable_sid_deployment ? azurerm_key_vault.sid_kv_prvt : null
 }

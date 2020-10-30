@@ -34,18 +34,6 @@ variable "nics-dbnodes-db" {
   description = "NICs of HANA database nodes"
 }
 
-variable "storage-sapbits" {
-  description = "Details of the storage account for SAP bits"
-}
-
-variable "file_share_name" {
-  description = "Name of the file share for SAP bits"
-}
-
-variable "storagecontainer-sapbits" {
-  description = "Details of the storage container for SAP bits"
-}
-
 variable "nics-iscsi" {
   description = "NICs of ISCSI target servers"
 }
@@ -82,6 +70,7 @@ variable "nics-anydb" {
 variable "random-id" {
   description = "Random hex string"
 }
+
 variable "anydb-loadbalancers" {
   description = "List of LoadBalancers created for HANA Databases"
 }
@@ -90,11 +79,8 @@ variable "any-database-info" {
   description = "Updated anydb database json"
 }
 
-variable "deployers" {
-  description = "Details of the deployer(s)"
-}
-
 locals {
+
   ips-iscsi                    = var.nics-iscsi[*].private_ip_address
   ips-jumpboxes-windows        = var.nics-jumpboxes-windows[*].private_ip_address
   ips-jumpboxes-linux          = var.nics-jumpboxes-linux[*].private_ip_address
@@ -158,5 +144,5 @@ locals {
       ]
     ])
     if adatabase != {}
-  ])
+  ]) 
 }

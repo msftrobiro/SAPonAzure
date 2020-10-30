@@ -3,30 +3,6 @@
   Setup common infrastructure
 */
 
-module "deployer" {
-  source         = "../../terraform-units/modules/sap_system/deployer"
-  application    = var.application
-  databases      = var.databases
-  infrastructure = var.infrastructure
-  jumpboxes      = var.jumpboxes
-  options        = var.options
-  software       = var.software
-  ssh-timeout    = var.ssh-timeout
-  sshkey         = var.sshkey
-}
-
-module "saplibrary" {
-  source         = "../../terraform-units/modules/sap_system/saplibrary"
-  application    = var.application
-  databases      = var.databases
-  infrastructure = var.infrastructure
-  jumpboxes      = var.jumpboxes
-  options        = var.options
-  software       = var.software
-  ssh-timeout    = var.ssh-timeout
-  sshkey         = var.sshkey
-}
-
 module "common_infrastructure" {
   source              = "../../terraform-units/modules/sap_system/common_infrastructure"
   is_single_node_hana = "true"
@@ -39,9 +15,10 @@ module "common_infrastructure" {
   ssh-timeout         = var.ssh-timeout
   sshkey              = var.sshkey
   subnet-sap-admin    = module.hdb_node.subnet-sap-admin
-  vnet-mgmt           = module.deployer.vnet-mgmt
-  subnet-mgmt         = module.deployer.subnet-mgmt
-  nsg-mgmt            = module.deployer.nsg-mgmt
+  service_principal   = local.service_principal
+  deployer_tfstate    = data.terraform_remote_state.deployer.outputs
+  // Comment out code with users.object_id for the time being.
+  // deployer_user       = module.deployer.deployer_user
 }
 
 // Create Jumpboxes
@@ -56,13 +33,11 @@ module "jumpbox" {
   ssh-timeout       = var.ssh-timeout
   sshkey            = var.sshkey
   resource-group    = module.common_infrastructure.resource-group
-  subnet-mgmt       = module.common_infrastructure.subnet-mgmt
-  nsg-mgmt          = module.common_infrastructure.nsg-mgmt
   storage-bootdiag  = module.common_infrastructure.storage-bootdiag
   output-json       = module.output_files.output-json
   ansible-inventory = module.output_files.ansible-inventory
   random-id         = module.common_infrastructure.random-id
-  deployer-uai      = module.deployer.deployer-uai
+  deployer_tfstate  = data.terraform_remote_state.deployer.outputs
 }
 
 // Create HANA database nodes
@@ -77,12 +52,13 @@ module "hdb_node" {
   ssh-timeout      = var.ssh-timeout
   sshkey           = var.sshkey
   resource-group   = module.common_infrastructure.resource-group
-  subnet-mgmt      = module.common_infrastructure.subnet-mgmt
-  nsg-mgmt         = module.common_infrastructure.nsg-mgmt
   vnet-sap         = module.common_infrastructure.vnet-sap
   storage-bootdiag = module.common_infrastructure.storage-bootdiag
   ppg              = module.common_infrastructure.ppg
   random-id        = module.common_infrastructure.random-id
+  sid_kv_user      = module.common_infrastructure.sid_kv_user
+  // Comment out code with users.object_id for the time being.
+  // deployer_user    = module.deployer.deployer_user
 }
 
 // Create Application Tier nodes
@@ -97,11 +73,13 @@ module "app_tier" {
   ssh-timeout      = var.ssh-timeout
   sshkey           = var.sshkey
   resource-group   = module.common_infrastructure.resource-group
-  subnet-mgmt      = module.common_infrastructure.subnet-mgmt
   vnet-sap         = module.common_infrastructure.vnet-sap
   storage-bootdiag = module.common_infrastructure.storage-bootdiag
   ppg              = module.common_infrastructure.ppg
   random-id        = module.common_infrastructure.random-id
+  sid_kv_user      = module.common_infrastructure.sid_kv_user
+  // Comment out code with users.object_id for the time being.  
+  // deployer_user    = module.deployer.deployer_user
 }
 
 // Create anydb database nodes
@@ -120,12 +98,13 @@ module "anydb_node" {
   storage-bootdiag = module.common_infrastructure.storage-bootdiag
   ppg              = module.common_infrastructure.ppg
   random-id        = module.common_infrastructure.random-id
+  sid_kv_user      = module.common_infrastructure.sid_kv_user
 }
 
 // Generate output files
 module "output_files" {
   source                       = "../../terraform-units/modules/sap_system/output_files"
-  application                  = var.application
+  application                  = module.app_tier.application
   databases                    = var.databases
   infrastructure               = var.infrastructure
   jumpboxes                    = var.jumpboxes
@@ -133,9 +112,6 @@ module "output_files" {
   software                     = var.software
   ssh-timeout                  = var.ssh-timeout
   sshkey                       = var.sshkey
-  storage-sapbits              = module.saplibrary.saplibrary
-  file_share_name              = module.saplibrary.file_share_name
-  storagecontainer-sapbits     = module.saplibrary.storagecontainer-sapbits
   nics-iscsi                   = module.common_infrastructure.nics-iscsi
   infrastructure_w_defaults    = module.common_infrastructure.infrastructure_w_defaults
   software_w_defaults          = module.common_infrastructure.software_w_defaults
@@ -155,6 +131,5 @@ module "output_files" {
   nics-anydb                   = module.anydb_node.nics-anydb
   any-database-info            = module.anydb_node.any-database-info
   anydb-loadbalancers          = module.anydb_node.anydb-loadbalancers
-  deployers                    = module.deployer.import_deployer
-  random-id        = module.common_infrastructure.random-id
+  random-id                    = module.common_infrastructure.random-id
 }

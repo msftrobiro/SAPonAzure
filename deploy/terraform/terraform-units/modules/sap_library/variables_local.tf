@@ -43,7 +43,18 @@ variable "region_mapping" {
   }
 }
 
+variable "deployer_tfstate" {
+  description = "terraform.tfstate of deployer"
+}
+
+variable "service_principal" {
+  description = "Current service principal used to authenticate to Azure"
+}
+
 locals {
+
+  // Post fix for all deployed resources
+  postfix = upper(substr(random_id.post_fix.hex, 0, 4))
 
   // Infrastructure
   var_infra = try(var.infrastructure, {})
@@ -93,10 +104,33 @@ locals {
 
   sa_tfstate_container_exists = try(var.storage_account_tfstate.tfstate_blob_container.is_existing, false)
   sa_tfstate_container_name   = try(var.storage_account_sapbits.tfstate_blob_container.name, "tfstate")
+
+  // deployer
+  deployer                = try(var.deployer, {})
+  deployer_environment    = try(local.deployer.environment, "")
+  deployer_location_short = try(var.region_mapping[local.deployer.region], "unkn")
+  deployer_vnet           = try(local.deployer.vnet, "")
+  deployer_prefix         = upper(format("%s-%s-%s", local.deployer_environment, local.deployer_location_short, substr(local.deployer_vnet, 0, 7)))
+
+  // Comment out code with users.object_id for the time being.
+  // deployer_users_id = try(local.deployer.users.object_id, [])
+
+  // key vault for saplibrary
+  kv_prefix       = upper(format("%s%s", substr(local.environment, 0, 5), local.location_short))
+  kv_private_name = format("%sSAPLIBprvt%s", local.kv_prefix, local.postfix)
+  kv_user_name    = format("%sSAPLIBuser%s", local.kv_prefix, local.postfix)
+
+  // Current service principal
+  service_principal = try(var.service_principal, {})
+
+  // deployer terraform.tfstate
+  deployer_tfstate          = var.deployer_tfstate
+  deployer_msi_principal_id = local.deployer_tfstate.outputs.deployer_uai.principal_id
+
 }
 
 locals {
-  rg_library_location      = local.rg_exists ? data.azurerm_resource_group.library[0].location : azurerm_resource_group.library[0].location
-  storagecontainer_sapbits = ! local.sa_sapbits_blob_container_enable ? null : local.sa_sapbits_blob_container_name
-  fileshare_sapbits_name   = local.sa_sapbits_file_share_enable ? local.sa_sapbits_file_share_name : null
+  rg_library_location           = local.rg_exists ? data.azurerm_resource_group.library[0].location : azurerm_resource_group.library[0].location
+  storagecontainer_sapbits_name = local.sa_sapbits_blob_container_enable ? local.sa_sapbits_blob_container_name : null
+  fileshare_sapbits_name        = local.sa_sapbits_file_share_enable ? local.sa_sapbits_file_share_name : null
 }

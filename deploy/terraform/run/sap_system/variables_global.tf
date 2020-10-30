@@ -15,9 +15,9 @@ variable "infrastructure" {
 
 variable "jumpboxes" {
   description = "Details of the jumpboxes"
-  default     = {
+  default = {
     windows = [],
-    linux = []
+    linux   = []
   }
 }
 
@@ -28,6 +28,7 @@ variable "options" {
 
 variable "software" {
   description = "Details of the infrastructure components required for SAP installation"
+  default     = {}
 }
 
 variable "ssh-timeout" {
@@ -37,8 +38,5 @@ variable "ssh-timeout" {
 
 variable "sshkey" {
   description = "Details of ssh key pair"
-  default = {
-    path_to_public_key  = "~/.ssh/id_rsa.pub",
-    path_to_private_key = "~/.ssh/id_rsa"
-  }
+  default     = {}
 }

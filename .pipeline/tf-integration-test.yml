@@ -33,6 +33,9 @@ stages:
         parameters:
           branch_name: $(sourceBranchName)
           deployer_env: "$(Build.BuildId)"
+      - template: templates/util/collect-deployer-info.yml
+        parameters:
+          deployer_env: "$(Build.BuildId)"
       - template: templates/deployer/post-deployer-steps.yml
         parameters:
           deployer_env: "$(Build.BuildId)"
@@ -52,7 +55,11 @@ stages:
       - template: templates/saplib/create-saplib-steps.yml
         parameters:
           branch_name: $(sourceBranchName)
+          deployer_env: "$(Build.BuildId)"
           saplib_env: "$(Build.BuildId)"
+      - template: templates/util/add-agent-to-deployer-nsg.yml
+        parameters:
+          deployer_env: "$(Build.BuildId)"
       - template: templates/saplib/post-saplib-steps.yml
         parameters:
           branch_name: $(sourceBranchName)
@@ -61,8 +68,27 @@ stages:
       - template: templates/util/remove-agent-from-deployer-nsg.yml
         parameters:
           deployer_env: "$(Build.BuildId)"
-  - job: createSAPSystem
+  - job: createSAPLandscape
     dependsOn: createSAPLib
+    steps:
+      - template: templates/util/prepare-agent.yml
+      - template: templates/util/collect-deployer-info.yml
+        parameters:
+          deployer_env: "$(Build.BuildId)"
+      - template: templates/util/add-agent-to-deployer-nsg.yml
+        parameters:
+          deployer_env: "$(Build.BuildId)"
+      - template: templates/saplandscape/create-saplandscape-steps.yml
+        parameters:
+          branch_name: $(sourceBranchName)
+          deployer_env: "$(Build.BuildId)"
+          saplib_env: "$(Build.BuildId)"
+          saplandscape_env: "$(Build.BuildId)"
+      - template: templates/util/remove-agent-from-deployer-nsg.yml
+        parameters:
+          deployer_env: "$(Build.BuildId)"
+  - job: createSAPSystem
+    dependsOn: createSAPLandscape
     steps:
       - template: templates/util/prepare-agent.yml
       - template: templates/util/collect-deployer-info.yml
@@ -76,6 +102,7 @@ stages:
           branch_name: $(sourceBranchName)
           deployer_env: "$(Build.BuildId)"
           saplib_env: "$(Build.BuildId)"
+          saplandscape_env: "$(Build.BuildId)"
           sapsystem_env: "$(Build.BuildId)"
       - template: templates/util/remove-agent-from-deployer-nsg.yml
         parameters:
@@ -89,14 +116,18 @@ stages:
 
           az login --service-principal --user $(hana-pipeline-spn-id) --password $(hana-pipeline-spn-pw) --tenant $(landscape-tenant) --output none
           sapsystem_rg="${environment}-EAUS-SAP-PRD"
-          echo "=== Mark and try to delete rg ${sapsystem_rg} ==="
+          echo "=== Mark rg for deletion ${sapsystem_rg} ==="
           az group update --resource-group ${sapsystem_rg} --set tags.Delete=True
 
+          saplandscape_rg="${environment}-EAUS-SAP0-INFRASTRUCTURE"
+          echo "=== Mark rg for deletion ${saplandscape_rg} ==="
+          az group update --resource-group ${saplandscape_rg} --set tags.Delete=True
+
           saplib_rg="${environment}-EAUS-SAP_LIBRARY"
-          echo "=== Mark and try to delete rg ${saplib_rg} ==="
+          echo "=== Mark rg for deletion ${saplib_rg} ==="
           az group update --resource-group ${saplib_rg} --set tags.Delete=True
 
-          deployer_rg="${environment}-EAUS-MGMT-INFRASTRUCTURE"
+          deployer_rg="${environment}-EAUS-DEP00-INFRASTRUCTURE"
           echo "=== Mark and try to delete rg ${deployer_rg} ==="
           az group update --resource-group ${deployer_rg} --set tags.Delete=True
 

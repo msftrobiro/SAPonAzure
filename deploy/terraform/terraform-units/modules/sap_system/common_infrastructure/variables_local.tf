@@ -13,18 +13,20 @@ variable "subnet-sap-admin" {
   description = "Information about SAP admin subnet"
 }
 
-variable "vnet-mgmt" {
-  description = "Details about management vnet of deployer(s)"
+variable "deployer_tfstate" {
+  description = "Deployer remote tfstate file"
 }
 
-variable "subnet-mgmt" {
-  description = "Details about management subnet of deployer(s)"
+variable "service_principal" {
+  description = "Current service principal used to authenticate to Azure"
 }
 
-variable "nsg-mgmt" {
-  description = "Details about management nsg of deployer(s)"
+/* Comment out code with users.object_id for the time being
+variable "deployer_user" {
+  description = "Details of the users"
+  default     = []
 }
-
+*/
 variable "region_mapping" {
   type        = map(string)
   description = "Region Mapping: Full = Single CHAR, 4-CHAR"
@@ -66,6 +68,12 @@ variable "region_mapping" {
 //Set defaults
 locals {
 
+  // Retrieve information about Deployer from tfstate file
+  deployer_tfstate = var.deployer_tfstate
+  vnet-mgmt        = local.deployer_tfstate.vnet_mgmt
+  subnet-mgmt      = local.deployer_tfstate.subnet_mgmt
+  nsg-mgmt         = local.deployer_tfstate.nsg_mgmt
+
   //Filter the list of databases to only HANA platform entries
   hana-databases = [
     for database in var.databases : database
@@ -82,6 +90,26 @@ locals {
     "sku"             = try(local.hdb.os.sku, local.hdb_custom_image ? "" : "gen1")
     "version"         = try(local.hdb.os.version, local.hdb_custom_image ? "" : "latest")
   }
+
+  //Enable DB deployment 
+  hdb_list = [
+    for db in var.databases : db
+    if contains(["HANA"], upper(try(db.platform, "NONE")))
+  ]
+  enable_hdb_deployment = (length(local.hdb_list) > 0) ? true : false
+
+  //Enable xDB deployment 
+  xdb_list = [
+    for db in var.databases : db
+    if contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], upper(try(db.platform, "NONE")))
+  ]
+  enable_xdb_deployment = (length(local.xdb_list) > 0) ? true : false
+
+  //Enable APP deployment
+  enable_app_deployment = try(var.application.enable_deployment, false)
+
+  //Enable SID deployment
+  enable_sid_deployment = local.enable_hdb_deployment || local.enable_app_deployment || local.enable_xdb_deployment
 
   var_infra = try(var.infrastructure, {})
 
@@ -108,15 +136,37 @@ locals {
   ppg_arm_id = local.ppg_exists ? try(local.var_ppg.arm_id, "") : ""
   ppg_name   = local.ppg_exists ? try(split("/", local.ppg_arm_id)[8], "") : try(local.var_ppg.name, format("%s_ppg", local.prefix))
 
+  // Post fix for all deployed resources
+  postfix = random_id.saplandscape.hex
+
+  /* Comment out code with users.object_id for the time being
+  // Additional users add to user KV
+  kv_users = var.deployer_user
+*/
+  // kv for sap landscape
+  kv_prefix       = upper(format("%s%s%s", substr(local.environment, 0, 5), local.location_short, substr(local.vnet_sap_name_prefix, 0, 7)))
+  kv_private_name = format("%sprvt%s", local.kv_prefix, upper(substr(local.postfix, 0, 3)))
+  kv_user_name    = format("%suser%s", local.kv_prefix, upper(substr(local.postfix, 0, 3)))
+
+  // key vault naming for sap system
+  sid_kv_prefix       = upper(format("%s%s%s", substr(local.environment, 0, 5), local.location_short, substr(local.vnet_sap_name_prefix, 0, 7)))
+  sid_kv_private_name = format("%s%sp%s", local.kv_prefix, local.sid, upper(substr(local.postfix, 0, 3)))
+  sid_kv_user_name    = format("%s%su%s", local.kv_prefix, local.sid, upper(substr(local.postfix, 0, 3)))
+
+  /* 
+     TODO: currently sap landscape and sap system haven't been decoupled. 
+     The key vault information of sap landscape will be obtained via input json.
+     At phase 2, the logic will be updated and the key vault information will be obtained from tfstate file of sap landscape.  
+  */
+  kv_landscape_id     = try(local.var_infra.landscape.key_vault_arm_id, "")
+  enable_landscape_kv = local.kv_landscape_id == ""
+
   //iSCSI
   var_iscsi = try(local.var_infra.iscsi, {})
 
   //iSCSI target device(s) is only created when below conditions met:
   //- iscsi is defined in input JSON
-  //- AND
-  //  - HANA database has high_availability set to true
-  //  - HANA database uses SUSE
-  iscsi_count = (local.hdb_ha && upper(local.hdb_os.publisher) == "SUSE") ? try(local.var_iscsi.iscsi_count, 0) : 0
+  iscsi_count = try(local.var_iscsi.iscsi_count, 0)
 
   iscsi_size = try(local.var_iscsi.size, "Standard_D2s_v3")
   iscsi_os = try(local.var_iscsi.os,
@@ -129,6 +179,15 @@ locals {
   iscsi_auth_type     = try(local.var_iscsi.authentication.type, "key")
   iscsi_auth_username = try(local.var_iscsi.authentication.username, "azureadm")
   iscsi_nic_ips       = local.sub_iscsi_exists ? try(local.var_iscsi.iscsi_nic_ips, []) : []
+
+  // By default, ssh key for iSCSI uses generated public key. Provide sshkey.path_to_public_key and path_to_private_key overides it
+  enable_iscsi_auth_key = local.iscsi_count > 0 && local.iscsi_auth_type == "key"
+  iscsi_public_key      = local.enable_iscsi_auth_key ? try(file(var.sshkey.path_to_public_key), tls_private_key.iscsi[0].public_key_openssh) : null
+  iscsi_private_key     = local.enable_iscsi_auth_key ? try(file(var.sshkey.path_to_private_key), tls_private_key.iscsi[0].private_key_pem) : null
+
+  // By default, authentication type of iSCSI target is ssh key pair but using username/password is a potential usecase.
+  enable_iscsi_auth_password = local.iscsi_count > 0 && local.iscsi_auth_type == "password"
+  iscsi_auth_password        = local.enable_iscsi_auth_password ? try(local.var_iscsi.authentication.password, random_password.iscsi_password[0].result) : null
 
   iscsi = merge(local.var_iscsi, {
     iscsi_count = local.iscsi_count,
@@ -151,6 +210,9 @@ locals {
   vnet_sap_name_prefix = local.vnet_nr_parts >= 3 ? split("-", upper(local.vnet_sap_name))[local.vnet_nr_parts - 1] == "VNET" ? split("-", local.vnet_sap_name)[local.vnet_nr_parts - 2] : local.vnet_sap_name : local.vnet_sap_name
   vnet_sap_addr        = local.vnet_sap_exists ? "" : try(local.var_vnet_sap.address_space, "")
 
+  // By default, Ansible ssh key for SID uses generated public key. Provide sshkey.path_to_public_key and path_to_private_key overides it
+  sid_public_key  = local.enable_landscape_kv ? try(file(var.sshkey.path_to_public_key), tls_private_key.sid[0].public_key_openssh) : null
+  sid_private_key = local.enable_landscape_kv ? try(file(var.sshkey.path_to_private_key), tls_private_key.sid[0].private_key_pem) : null
 
   //Admin subnet
   var_sub_admin    = try(local.var_vnet_sap.subnet_admin, {})
@@ -279,8 +341,8 @@ locals {
   }
 
   //Downloader
-  sap_user     = try(var.software.downloader.credentials.sap_user, "sap_smp_user")
-  sap_password = try(var.software.downloader.credentials.sap_password, "sap_smp_password")
+  sap_user     = "sap_smp_user"
+  sap_password = "sap_smp_password"
   hdb_versions = [
     for scenario in try(var.software.downloader.scenarios, []) : scenario.product_version
     if scenario.scenario_type == "DB"
@@ -333,4 +395,8 @@ locals {
   software = merge(var.software, {
     downloader = local.downloader
   })
+
+  // Current service principal
+  service_principal = try(var.service_principal, {})
+
 }

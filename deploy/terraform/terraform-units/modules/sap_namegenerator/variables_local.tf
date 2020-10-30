@@ -52,6 +52,11 @@ variable db_platform {
   default     = "LINUX"
 }
 
+variable anchor_ostype {
+  description = "Anchor Server operating system"
+  default     = "LINUX"
+}
+
 variable app_server_count {
   type    = number
   default = 1

@@ -93,4 +93,7 @@ locals {
   scs_zones = try(var.application.scs_zones, [])
   web_zones = try(var.application.web_zones, [])
 
+  anchor        = try(local.var_infra.anchor_vms, {})
+  anchor_ostype = upper(try(local.anchor.os.os_type, "LINUX"))
+
 }

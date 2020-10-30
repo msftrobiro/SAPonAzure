@@ -44,30 +44,63 @@ locals {
   zones            = distinct(concat(local.db_zones, local.app_zones, local.scs_zones, local.web_zones))
   zonal_deployment = length(local.zones) > 0 ? true : false
 
-  vnet_prefix          = var.naming.prefix.VNET
-  storageaccount_name  = var.naming.storageaccount_names.SDU
-  keyvault_names       = var.naming.keyvault_names.SDU
-  virtualmachine_names = var.naming.virtualmachine_names.ISCSI_COMPUTERNAME
-  resource_suffixes    = var.naming.resource_suffixes
+  vnet_prefix                 = var.naming.prefix.VNET
+  storageaccount_name         = var.naming.storageaccount_names.SDU
+  keyvault_names              = var.naming.keyvault_names.SDU
+  virtualmachine_names        = var.naming.virtualmachine_names.ISCSI_COMPUTERNAME
+  anchor_virtualmachine_names = var.naming.virtualmachine_names.ANCHOR_VMNAME
+  anchor_computer_names       = var.naming.virtualmachine_names.ANCHOR_COMPUTERNAME
+  resource_suffixes           = var.naming.resource_suffixes
 
-  //Filter the list of databases to only HANA platform entries
-  hana-databases = [
+
+  databases = [
     for database in var.databases : database
-    if try(database.platform, "NONE") == "HANA"
+    if try(database.platform, "NONE") != "NONE"
   ]
-  hdb    = try(local.hana-databases[0], {})
-  hdb_ha = try(local.hdb.high_availability, "false")
+
+  db    = try(local.databases[0], {})
+  db_ha = try(local.db.high_availability, "false")
+
   //If custom image is used, we do not overwrite os reference with default value
-  hdb_custom_image = try(local.hdb.os.source_image_id, "") != "" ? true : false
-  hdb_os = {
-    "source_image_id" = local.hdb_custom_image ? local.hdb.os.source_image_id : ""
-    "publisher"       = try(local.hdb.os.publisher, local.hdb_custom_image ? "" : "suse")
-    "offer"           = try(local.hdb.os.offer, local.hdb_custom_image ? "" : "sles-sap-12-sp5")
-    "sku"             = try(local.hdb.os.sku, local.hdb_custom_image ? "" : "gen1")
-    "version"         = try(local.hdb.os.version, local.hdb_custom_image ? "" : "latest")
+  db_custom_image = try(local.db.os.source_image_id, "") != "" ? true : false
+
+  db_os = {
+    "source_image_id" = local.db_custom_image ? local.db.os.source_image_id : ""
+    "publisher"       = try(local.db.os.publisher, local.db_custom_image ? "" : "suse")
+    "offer"           = try(local.db.os.offer, local.db_custom_image ? "" : "sles-sap-12-sp5")
+    "sku"             = try(local.db.os.sku, local.db_custom_image ? "" : "gen1")
+    "version"         = try(local.db.os.version, local.db_custom_image ? "" : "latest")
   }
 
+  db_ostype = upper(try(local.db.os.os_type, "LINUX"))
+
+  db_auth = try(local.db.authentication,
+    {
+      "type"     = "key"
+      "username" = "azureadm"
+  })
+
   var_infra = try(var.infrastructure, {})
+
+  //Anchor VM
+
+  anchor                = try(local.var_infra.anchor_vms, {})
+  deploy_anchor         = length(local.anchor) > 0 ? true : false
+  anchor_size           = try(local.anchor.sku, "Standard_D8s_v3")
+  anchor_authentication = try(local.anchor.authentication, local.db_auth)
+  anchor_nic_ips        = local.sub_admin_exists ? try(local.anchor.nic_ips, []) : []
+
+  anchor_custom_image = try(local.anchor.os.source_image_id, "") != "" ? true : false
+
+  anchor_os = {
+    "source_image_id" = local.anchor_custom_image ? local.anchor.os.source_image_id : ""
+    "publisher"       = try(local.anchor.os.publisher, local.anchor_custom_image ? "" : local.db_os.publisher)
+    "offer"           = try(local.anchor.os.offer, local.anchor_custom_image ? "" : local.db_os.offer)
+    "sku"             = try(local.anchor.os.sku, local.anchor_custom_image ? "" : local.db_os.sku)
+    "version"         = try(local.anchor.os.version, local.anchor_custom_image ? "" : local.db_os.version)
+  }
+
+  anchor_ostype = upper(try(local.anchor.os.os_type, local.db_ostype))
 
   //Resource group
   var_rg    = try(local.var_infra.resource_group, {})
@@ -84,14 +117,14 @@ locals {
   //iSCSI
   var_iscsi = try(local.var_infra.iscsi, {})
 
-  enable_admin_subnet = try(var.application.dual_nics, false) || try(var.databases[0].dual_nics, false) || length(local.hana-databases) > 0
+  enable_admin_subnet = try(var.application.dual_nics, false) || try(var.databases[0].dual_nics, false) || (upper(local.db.platform) == "HANA")
 
   //iSCSI target device(s) is only created when below conditions met:
   //- iscsi is defined in input JSON
   //- AND
   //  - HANA database has high_availability set to true
   //  - HANA database uses SUSE
-  iscsi_count = (local.hdb_ha && upper(local.hdb_os.publisher) == "SUSE") ? try(local.var_iscsi.iscsi_count, 0) : 0
+  iscsi_count = (local.db_ha && upper(local.db_os.publisher) == "SUSE") ? try(local.var_iscsi.iscsi_count, 0) : 0
   iscsi_size  = try(local.var_iscsi.size, "Standard_D2s_v3")
   iscsi_os = try(local.var_iscsi.os,
     {

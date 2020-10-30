@@ -57,6 +57,7 @@ module "sap_namegenerator" {
   sap_sid       = local.sap_sid
   db_sid        = local.db_sid
   app_ostype    = local.app_ostype
+  anchor_ostype = local.anchor_ostype
   db_ostype     = local.db_ostype
   /////////////////////////////////////////////////////////////////////////////////////
   // The naming module creates a list of servers names that is app_server_count

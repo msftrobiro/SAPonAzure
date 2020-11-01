@@ -43,12 +43,10 @@ locals {
   storageaccount_names = var.naming.storageaccount_names.SDU
   resource_suffixes    = var.naming.resource_suffixes
 
-  region    = try(var.infrastructure.region, "")
-  sap_sid   = upper(try(var.application.sid, ""))
-  anydb_sid = (length(local.anydb-databases) > 0) ? try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3))) : lower(substr(local.anydb_platform, 0, 3))
-  sid       = upper(try(var.application.sid, local.anydb_sid))
-  prefix    = try(var.infrastructure.resource_group.name, var.naming.prefix.SDU)
-  rg_name   = try(var.infrastructure.resource_group.name, format("%s%s", local.prefix, local.resource_suffixes.sdu-rg))
+  region  = try(var.infrastructure.region, "")
+  sap_sid = upper(try(var.application.sid, ""))
+  prefix  = try(var.infrastructure.resource_group.name, var.naming.prefix.SDU)
+  rg_name = try(var.infrastructure.resource_group.name, format("%s%s", local.prefix, local.resource_suffixes.sdu-rg))
 
   // Zones
   zones            = try(local.anydb.zones, [])
@@ -134,7 +132,8 @@ locals {
   node_count      = try(length(var.databases[0].dbnodes), 1)
   db_server_count = local.anydb_ha ? local.node_count * 2 : local.node_count
 
-  anydb_cred = try(local.anydb.credentials, {})
+  anydb_cred   = try(local.anydb.credentials, {})
+  loadbalancer = try(local.anydb.loadbalancer, {})
 
   sid_auth_type        = try(local.anydb.authentication.type, "key")
   enable_auth_password = local.enable_deployment && local.sid_auth_type == "password"
@@ -211,7 +210,7 @@ locals {
   )
 
   dbnodes = flatten([[for idx, dbnode in try(local.anydb.dbnodes, [{}]) : {
-    name         = try("${dbnode.name}-0", format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[idx], local.resource_suffixes.vm))
+    name         = try("${dbnode.name}-0", format("%s%s%s%s", local.prefix, local.prefix, var.naming.separator,local.virtualmachine_names[idx], local.resource_suffixes.vm))
     computername = try("${dbnode.name}-0", local.computer_names[idx], local.resource_suffixes.vm)
     role         = try(dbnode.role, "worker"),
     db_nic_ip    = lookup(dbnode, "db_nic_ips", [null, null])[0]

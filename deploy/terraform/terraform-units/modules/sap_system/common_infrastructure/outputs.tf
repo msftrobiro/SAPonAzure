@@ -10,10 +10,6 @@ output "storage-bootdiag" {
   value = azurerm_storage_account.storage-bootdiag
 }
 
-output "random_id" {
-  value = random_id.random_id.hex
-}
-
 output "nics-iscsi" {
   value = azurerm_network_interface.iscsi
 }
@@ -31,7 +27,7 @@ output "software_w_defaults" {
 }
 
 output "admin_subnet" {
-  value = ! local.enable_admin_subnet ? null : (local.sub_admin_exists ? data.azurerm_subnet.admin[0] : azurerm_subnet.admin[0])
+  value = local.sub_admin_exists ? data.azurerm_subnet.admin[0] : azurerm_subnet.admin[0]
 }
 
 output "sid_kv_user" {

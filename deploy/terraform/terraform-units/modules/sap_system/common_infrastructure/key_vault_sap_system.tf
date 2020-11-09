@@ -65,7 +65,6 @@ resource "azurerm_key_vault_access_policy" "sid_kv_user_portal" {
   key_vault_id = azurerm_key_vault.sid_kv_user[0].id
   tenant_id    = data.azurerm_client_config.deployer.tenant_id
   object_id    = local.kv_users[count.index]
-
   secret_permissions = [
     "delete",
     "get",

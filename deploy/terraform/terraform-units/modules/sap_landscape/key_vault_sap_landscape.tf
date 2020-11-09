@@ -1,6 +1,6 @@
 /*
   Description:
-  Set up key vault for sap landscape
+  Set up Key Vaults for sap landscape
 */
 
 // Create private KV with access policy
@@ -52,20 +52,6 @@ resource "azurerm_key_vault" "kv_user" {
   }
 }
 
-/* Comment out code with users.object_id for the time being
-resource "azurerm_key_vault_access_policy" "kv_user_portal" {
-  count        = local.enable_landscape_kv ? length(local.kv_users) : 0
-  key_vault_id = azurerm_key_vault.kv_user[0].id
-  tenant_id    = data.azurerm_client_config.deployer.tenant_id
-  object_id    = local.kv_users[count.index]
-  secret_permissions = [
-    "delete",
-    "get",
-    "list",
-    "set",
-  ]
-}
-*/
 // Using TF tls to generate SSH key pair for iscsi devices and store in user KV
 resource "tls_private_key" "iscsi" {
   count = (
@@ -89,10 +75,6 @@ resource "azurerm_key_vault_secret" "iscsi_pk" {
   key_vault_id = azurerm_key_vault.kv_user[0].id
 }
 
-/*
- To force dependency between kv access policy and secrets. Expected behavior:
- https://github.com/terraform-providers/terraform-provider-azurerm/issues/4971
-*/
 resource "azurerm_key_vault_secret" "iscsi_username" {
   count        = (local.enable_landscape_kv && local.enable_iscsi_auth_password) ? 1 : 0
   name         = format("%s-iscsi-username", local.prefix)
@@ -136,9 +118,4 @@ resource "azurerm_key_vault_secret" "sid_pk" {
   name         = format("%s-sid-sshkey-pub", local.prefix)
   value        = local.sid_public_key
   key_vault_id = azurerm_key_vault.kv_user[0].id
-}
-
-// random bytes to product
-resource "random_id" "saplandscape" {
-  byte_length = 4
 }

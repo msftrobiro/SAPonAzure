@@ -108,9 +108,6 @@ steps:
       | jq --arg deployer_tfstate_key "${deployer_tfstate_key}" .deployer_tfstate_key\ =\ \$deployer_tfstate_key \
       | jq --arg sap_vnet_address_space "${sap_vnet_address_space}" .infrastructure.vnets.sap.address_space\ =\ \$sap_vnet_address_space \
       | jq --arg subnet_iscsi_prefix "${subnet_iscsi_prefix}" .infrastructure.vnets.sap.subnet_iscsi.prefix\ =\ \$subnet_iscsi_prefix \
-      | jq --arg saplib_rg "${saplib_rg}" .software.storage_account_sapbits.saplib_resource_group_name\ =\ \$saplib_rg \
-      | jq --arg tfstate_sa_name "${tfstate_sa_name}" .software.storage_account_sapbits.tfstate_storage_account_name\ =\ \$tfstate_sa_name \
-      | jq --arg saplib_tfstate_key "${saplib_tfstate_key}" .software.storage_account_sapbits.saplib_tfstate_key\ =\ \$saplib_tfstate_key \
       > ${input}
 
       cat ${input}
@@ -123,8 +120,8 @@ steps:
         --backend-config "storage_account_name=${tfstate_sa_name}" \
         --backend-config "container_name=tfstate" \
         --backend-config "key=${sap_landscape_key}" \
-        ${repo_dir}/deploy/terraform/run/sap_system/
-      terraform apply -auto-approve -var-file=${input} ${repo_dir}/deploy/terraform/run/sap_system/
+        ${repo_dir}/deploy/terraform/run/sap_landscape/
+      terraform apply -auto-approve -var-file=${input} ${repo_dir}/deploy/terraform/run/sap_landscape/
       '
     displayName: "Deploy new sap landscape: Branch ${{parameters.branch_name}}"
     condition: or(succeededOrFailed(), always())

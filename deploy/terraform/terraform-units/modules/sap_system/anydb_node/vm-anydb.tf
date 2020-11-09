@@ -55,14 +55,14 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
 
-  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % local.db_zone_count].id : var.ppg[0].id
+  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % max(local.db_zone_count,1)].id : var.ppg[0].id
   //Ultra disk requires zonal deployment
   availability_set_id = local.enable_ultradisk ? null : (
-    local.zonal_deployment && local.db_server_count == local.db_zone_count ? null : azurerm_availability_set.anydb[count.index % local.db_zone_count].id
+    local.zonal_deployment && local.db_server_count == local.db_zone_count ? null : azurerm_availability_set.anydb[count.index % max(local.db_zone_count,1)].id
   )
 
   zone = local.zonal_deployment ? (
-    local.db_server_count == local.db_zone_count ? local.zones[count.index % local.db_zone_count] : null) : (
+    local.db_server_count == local.db_zone_count ? local.zones[count.index % max(local.db_zone_count,1)] : null) : (
     null
   )
 
@@ -129,15 +129,15 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
 
-  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % local.db_zone_count].id : var.ppg[0].id
+  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % max(local.db_zone_count,1)].id : var.ppg[0].id
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   //Ultra disk requires zonal deployment
   availability_set_id = local.enable_ultradisk ? null : (
-    local.zonal_deployment && local.db_server_count == local.db_zone_count ? null : azurerm_availability_set.anydb[count.index % local.db_zone_count].id
+    local.zonal_deployment && local.db_server_count == local.db_zone_count ? null : azurerm_availability_set.anydb[count.index % max(local.db_zone_count,1)].id
   )
 
   zone = local.zonal_deployment ? (
-    local.db_server_count == local.db_zone_count ? local.zones[count.index % local.db_zone_count] : null) : (
+    local.db_server_count == local.db_zone_count ? local.zones[count.index % max(local.db_zone_count,1)] : null) : (
     null
   )
 

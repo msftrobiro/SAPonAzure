@@ -56,7 +56,7 @@ locals {
   // Zones
   zones            = try(local.anydb.zones, [])
   zonal_deployment = length(local.zones) > 0 ? true : false
-  db_zone_count    = try(length(local.zones), 1)
+  db_zone_count    = length(local.zones)
 
   // SAP vnet
   var_infra       = try(var.infrastructure, {})

@@ -103,7 +103,7 @@ locals {
   // Zones
   zones            = try(local.hdb.zones, [])
   zonal_deployment = length(local.zones) > 0 ? true : false
-  db_zone_count    = try(length(local.zones), 1)
+  db_zone_count    = length(local.zones)
 
   hdb_platform = try(local.hdb.platform, "NONE")
   hdb_version  = try(local.hdb.db_version, "2.00.043")

@@ -28,15 +28,15 @@ resource "azurerm_linux_virtual_machine" "observer" {
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % local.db_zone_count].id : var.ppg[0].id
+  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % max(local.db_zone_count,1)].id : var.ppg[0].id
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id = local.zonal_deployment ? (
-    local.db_server_count == local.db_zone_count ? null : azurerm_availability_set.anydb[count.index % local.db_zone_count].id) : (
+    local.db_server_count == local.db_zone_count ? null : azurerm_availability_set.anydb[count.index % max(local.db_zone_count,1)].id) : (
     azurerm_availability_set.anydb[0].id
   )
 
   zone = local.zonal_deployment ? (
-    local.db_server_count == local.db_zone_count ? local.zones[count.index % local.db_zone_count] : null) : (
+    local.db_server_count == local.db_zone_count ? local.zones[count.index % max(local.db_zone_count,1)] : null) : (
     null
   )
 
@@ -83,15 +83,15 @@ resource "azurerm_windows_virtual_machine" "observer" {
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % local.db_zone_count].id : var.ppg[0].id
+  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % max(local.db_zone_count,1)].id : var.ppg[0].id
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id = local.zonal_deployment ? (
-    local.db_server_count == local.db_zone_count ? null : azurerm_availability_set.anydb[count.index % local.db_zone_count].id) : (
+    local.db_server_count == local.db_zone_count ? null : azurerm_availability_set.anydb[count.index % max(local.db_zone_count,1)].id) : (
     azurerm_availability_set.anydb[0].id
   )
 
   zone = local.zonal_deployment ? (
-    local.db_server_count == local.db_zone_count ? local.zones[count.index % local.db_zone_count] : null) : (
+    local.db_server_count == local.db_zone_count ? local.zones[count.index % max(local.db_zone_count,1)] : null) : (
     null
   )
 

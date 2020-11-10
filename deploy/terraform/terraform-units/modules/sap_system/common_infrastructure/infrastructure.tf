@@ -44,26 +44,21 @@ data "azurerm_subnet" "admin" {
   virtual_network_name = split("/", local.sub_admin_arm_id)[8]
 }
 
-// Creates SAP admin subnet nsg
-resource "azurerm_network_security_group" "admin" {
-  count               = local.sub_admin_nsg_exists && local.enable_admin_subnet ? 0 : 1
-  name                = local.sub_admin_nsg_name
-  resource_group_name = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
-  location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
+// Creates db subnet of SAP VNET
+resource "azurerm_subnet" "db" {
+  count                = local.enable_db_deployment ? (local.sub_db_exists ? 0 : 1) : 0
+  name                 = local.sub_db_name
+  resource_group_name  = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  virtual_network_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
+  address_prefixes     = [local.sub_db_prefix]
 }
 
-// Imports the SAP admin subnet nsg data
-data "azurerm_network_security_group" "admin" {
-  count               = local.sub_admin_nsg_exists && local.enable_admin_subnet ? 1 : 0
-  name                = split("/", local.sub_admin_nsg_arm_id)[8]
-  resource_group_name = split("/", local.sub_admin_nsg_arm_id)[4]
-}
-
-// Associates SAP admin nsg to SAP admin subnet
-resource "azurerm_subnet_network_security_group_association" "Associate_admin" {
-  count                     = local.enable_admin_subnet ? (signum((local.sub_admin_exists ? 0 : 1) + (local.sub_admin_nsg_exists ? 0 : 1))) : 0
-  subnet_id                 = local.sub_admin_exists ? data.azurerm_subnet.admin[0].id : azurerm_subnet.admin[0].id
-  network_security_group_id = local.sub_admin_nsg_exists ? data.azurerm_network_security_group.admin[0].id : azurerm_network_security_group.admin[0].id
+# Imports data of existing any-db subnet
+data "azurerm_subnet" "db" {
+  count                = local.enable_db_deployment ? (local.sub_db_exists ? 1 : 0) : 0
+  name                 = split("/", local.sub_db_arm_id)[10]
+  resource_group_name  = split("/", local.sub_db_arm_id)[4]
+  virtual_network_name = split("/", local.sub_db_arm_id)[8]
 }
 
 // Creates boot diagnostics storage account

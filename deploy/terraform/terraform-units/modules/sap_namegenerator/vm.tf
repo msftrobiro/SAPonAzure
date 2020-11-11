@@ -3,7 +3,6 @@ locals {
   db_oscode       = upper(var.db_ostype) == "LINUX" ? "l" : "w"
   app_oscode      = upper(var.app_ostype) == "LINUX" ? "l" : "w"
   anchor_oscode   = upper(var.anchor_ostype) == "LINUX" ? "l" : "w"
-  db_platformcode = substr(var.db_platform, 0, 3)
 
   anchor_computer_names = [for idx in range(length(local.zones)) :
     format("%sanchorz%s%02d%s%s", lower(var.sap_sid), local.zones[idx % length(local.zones)], idx, local.anchor_oscode, local.random_id_vm_verified)
@@ -99,13 +98,13 @@ locals {
   ]
 
   observer_computer_names = [for idx in range(length(local.zones)) :
-    format("%sobserver%02d%s%s", lower(var.sap_sid), idx, local.db_platformcode, local.random_id_vm_verified)
+    format("%sobserver%02d%s%s", lower(var.sap_sid), idx, local.db_oscode, local.random_id_vm_verified)
   ]
 
   observer_vm_names = [for idx in range(length(local.zones)) :
     local.zonal_deployment ? (
-      format("%sobserver_z%s_%02d%s%s", lower(var.sap_sid), local.zones[idx % length(local.zones)], idx, local.db_platformcode, local.random_id_vm_verified)) : (
-      format("%sobserver%02d%s%s", lower(var.sap_sid), idx, local.db_platformcode, local.random_id_vm_verified)
+      format("%sobserver_z%s_%02d%s%s", lower(var.sap_sid), local.zones[idx % length(local.zones)], idx, local.db_oscode, local.random_id_vm_verified)) : (
+      format("%sobserver%02d%s%s", lower(var.sap_sid), idx, local.db_oscode, local.random_id_vm_verified)
     )
   ]
 

@@ -31,7 +31,7 @@ locals {
   vnet_mgmt        = try(var.infrastructure.vnets.management, {})
   vnet_mgmt_arm_id = try(local.vnet_mgmt.arm_id, "")
   vnet_mgmt_exists = length(local.vnet_mgmt_arm_id) > 0 ? true : false
-  vnet_mgmt_name   = local.vnet_mgmt_exists ? split("/", local.vnet_mgmt_arm_id)[8] : format("%s-vnet", local.prefix)
+  vnet_mgmt_name   = local.vnet_mgmt_exists ? split("/", local.vnet_mgmt_arm_id)[8] : try(local.vnet_mgmt.name, format("%s-vnet", local.prefix))
   vnet_mgmt_addr   = local.vnet_mgmt_exists ? "" : try(local.vnet_mgmt.address_space, "")
 
   // Management subnet
@@ -46,7 +46,7 @@ locals {
   sub_mgmt_nsg             = try(local.sub_mgmt.nsg, {})
   sub_mgmt_nsg_arm_id      = try(local.sub_mgmt_nsg.arm_id, "")
   sub_mgmt_nsg_exists      = length(local.sub_mgmt_nsg_arm_id) > 0 ? true : false
-  sub_mgmt_nsg_name        = local.sub_mgmt_nsg_exists ? "" : try(local.sub_mgmt_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.deployer_subnet_nsg))
+  sub_mgmt_nsg_name        = local.sub_mgmt_nsg_exists ? split("/", local.sub_mgmt_nsg_arm_id[8]) : try(local.sub_mgmt_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.deployer_subnet_nsg))
   sub_mgmt_nsg_allowed_ips = local.sub_mgmt_nsg_exists ? [] : try(local.sub_mgmt_nsg.allowed_ips, ["0.0.0.0/0"])
   sub_mgmt_nsg_deployed    = try(local.sub_mgmt_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0] : azurerm_network_security_group.nsg_mgmt[0], null)
 

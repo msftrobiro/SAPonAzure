@@ -4,7 +4,7 @@
         "environment": "np",
         "vnets": {
             "management": {
-                "name": "DEP00",
+                "name": "NP-EAUS-DEP00-vnet",
                 "address_space": "10.0.0.0/26",
                 "subnet_mgmt": {
                     "prefix": "10.0.0.16/28"

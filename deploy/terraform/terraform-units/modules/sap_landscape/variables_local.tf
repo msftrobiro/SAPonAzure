@@ -18,7 +18,7 @@ variable naming {
 locals {
   // Resources naming
   vnet_prefix              = var.naming.prefix.VNET
-  storageaccount_name      = var.naming.storageaccount_names.SDU
+  storageaccount_name      = var.naming.storageaccount_names.VNET
   landscape_keyvault_names = var.naming.keyvault_names.VNET
   sid_keyvault_names       = var.naming.keyvault_names.SDU
   virtualmachine_names     = var.naming.virtualmachine_names.ISCSI_COMPUTERNAME

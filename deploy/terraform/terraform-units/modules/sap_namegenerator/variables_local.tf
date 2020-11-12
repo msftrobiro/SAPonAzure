@@ -109,7 +109,7 @@ variable azlimits {
     afw         = 50
     rg          = 80
     kv          = 24
-    st          = 24
+    stgaccnt    = 24
     vnet        = 38
     nsg         = 80
     snet        = 80
@@ -146,7 +146,7 @@ variable region_mapping {
     "centralus"          = "ceus"
     "eastasia"           = "eaas"
     "eastus"             = "eaus"
-    "eastus2"            = "eau2"
+    "eastus2"            = "eus2"
     "francecentral"      = "frce"
     "francesouth"        = "frso"
     "germanynorth"       = "geno"
@@ -264,14 +264,19 @@ variable db_zones {
   default     = []
 }
 
+variable custom_prefix {
+  type        = string
+  description = "Custom prefix"
+  default     = ""
+}
 
 locals {
 
   location_short = upper(try(var.region_mapping[var.location], "unkn"))
 
   env_verified      = upper(substr(var.environment, 0, var.sapautomation_name_limits.environment_variable_length))
-  vnet_verified     = upper(substr(var.sap_vnet_name, 0, var.sapautomation_name_limits.sap_vnet_length))
-  dep_vnet_verified = upper(substr(var.management_vnet_name, 0, var.sapautomation_name_limits.sap_vnet_length))
+  vnet_verified     = upper(trim(substr(var.sap_vnet_name, 0, var.sapautomation_name_limits.sap_vnet_length), "-_"))
+  dep_vnet_verified = upper(trim(substr(var.management_vnet_name, 0, var.sapautomation_name_limits.sap_vnet_length), "-_"))
 
   random_id_verified    = upper(substr(var.random_id, 0, var.sapautomation_name_limits.random_id_length))
   random_id_vm_verified = lower(substr(var.random_id, 0, var.sapautomation_name_limits.random_id_length))

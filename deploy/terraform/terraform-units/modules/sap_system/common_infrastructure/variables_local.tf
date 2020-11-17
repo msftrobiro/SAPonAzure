@@ -123,7 +123,7 @@ locals {
     for db in var.databases : db
     if contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], upper(try(db.platform, "NONE")))
   ]
-  
+
   enable_xdb_deployment = (length(local.xdb_list) > 0) ? true : false
   enable_db_deployment  = local.enable_xdb_deployment || local.enable_hdb_deployment
 
@@ -131,7 +131,7 @@ locals {
   enable_app_deployment = try(var.application.enable_deployment, false)
 
   //Enable SID deployment
-  enable_sid_deployment = local.enable_db_deployment || local.enable_app_deployment 
+  enable_sid_deployment = local.enable_db_deployment || local.enable_app_deployment
 
   var_infra = try(var.infrastructure, {})
 
@@ -172,10 +172,10 @@ locals {
   rg_name   = local.rg_exists ? try(split("/", local.rg_arm_id)[4], "") : try(local.var_rg.name, format("%s%s", local.prefix, local.resource_suffixes.sdu_rg))
 
   //PPG
-  var_ppg    = try(local.var_infra.ppg, {})
-  ppg_arm_id = try(local.var_ppg.arm_id, "")
-  ppg_exists = length(local.ppg_arm_id) > 0 ? true : false
-  ppg_name   = local.ppg_exists ? try(split("/", local.ppg_arm_id)[8], "") : try(local.var_ppg.name, format("%s%s", local.prefix, local.resource_suffixes.ppg))
+  var_ppg     = try(local.var_infra.ppg, {})
+  ppg_arm_ids = try(local.var_ppg.arm_ids, [])
+  ppg_exists  = length(local.ppg_arm_ids) > 0 ? true : false
+  ppg_names   = try(local.var_ppg.names, [format("%s%s", local.prefix, local.resource_suffixes.ppg)])
 
   /* Comment out code with users.object_id for the time being
   // Additional users add to user KV
@@ -243,8 +243,8 @@ locals {
     },
     ppg = {
       is_existing = local.ppg_exists,
-      name        = local.ppg_name,
-      arm_id      = local.ppg_arm_id
+      name        = local.ppg_names,
+      arm_id      = local.ppg_arm_ids
     },
     iscsi = local.landscape_infrastructure.iscsi
     vnets = {

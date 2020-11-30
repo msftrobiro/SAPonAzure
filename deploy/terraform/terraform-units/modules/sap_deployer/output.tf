@@ -57,17 +57,21 @@ output "prvt_vault_name" {
 }
 
 // output the secret name of private key
-output "ppk_name" {
-  value = local.enable_deployers && local.enable_key ? local.ppk_name : ""
+output "ppk_secret_name" {
+  value = local.enable_deployers && local.enable_key ? local.ppk_secret_name : ""
 }
 
 // output the secret name of public key
-output "pk_name" {
-  value = local.enable_deployers && local.enable_key ? local.pk_name : ""
+output "pk_secret_name" {
+  value = local.enable_deployers && local.enable_key ? local.pk_secret_name : ""
 }
 
-output "pwd_name" {
-  value = local.enable_deployers && local.enable_password ? local.pwd_name : ""
+output "username_secret_name" {
+  value = local.enable_deployers && local.enable_password ? local.username : ""
+}
+
+output "pwd_secret_name" {
+  value = local.enable_deployers && local.enable_password ? local.pwd_secret_name : ""
 }
 
 // Comment out code with users.object_id for the time being.

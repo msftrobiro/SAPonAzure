@@ -129,7 +129,7 @@ resource "tls_private_key" "deployer" {
 resource "azurerm_key_vault_secret" "ppk" {
   depends_on   = [azurerm_key_vault_access_policy.kv_user_pre_deployer[0]]
   count        = (local.enable_deployers && local.enable_key && ! local.key_exist) ? 1 : 0
-  name         = local.ppk_name
+  name         = local.ppk_secret_name
   value        = local.private_key
   key_vault_id = local.user_kv_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
 }
@@ -137,8 +137,16 @@ resource "azurerm_key_vault_secret" "ppk" {
 resource "azurerm_key_vault_secret" "pk" {
   depends_on   = [azurerm_key_vault_access_policy.kv_user_pre_deployer[0]]
   count        = (local.enable_deployers && local.enable_key && ! local.key_exist) ? 1 : 0
-  name         = local.pk_name
+  name         = local.pk_secret_name
   value        = local.public_key
+  key_vault_id = local.user_kv_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+}
+
+resource "azurerm_key_vault_secret" "username" {
+  depends_on   = [azurerm_key_vault_access_policy.kv_user_pre_deployer[0]]
+  count        = (local.enable_deployers && local.enable_password && ! local.username_exist) ? 1 : 0
+  name         = local.username_secret_name
+  value        = local.username
   key_vault_id = local.user_kv_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
 }
 
@@ -158,25 +166,31 @@ resource "random_password" "deployer" {
 resource "azurerm_key_vault_secret" "pwd" {
   depends_on   = [azurerm_key_vault_access_policy.kv_user_pre_deployer[0]]
   count        = (local.enable_deployers && local.enable_password && ! local.pwd_exist) ? 1 : 0
-  name         = local.pwd_name
+  name         = local.pwd_secret_name
   value        = local.password
   key_vault_id = local.user_kv_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
 }
 
 data "azurerm_key_vault_secret" "pk" {
   count        = (local.enable_deployers && local.enable_key && local.key_exist) ? 1 : 0
-  name         = local.pk_name
+  name         = local.pk_secret_name
   key_vault_id = local.user_key_vault_id
 }
 
 data "azurerm_key_vault_secret" "ppk" {
   count        = (local.enable_deployers && local.enable_key && local.key_exist) ? 1 : 0
-  name         = local.ppk_name
+  name         = local.ppk_secret_name
+  key_vault_id = local.user_key_vault_id
+}
+
+data "azurerm_key_vault_secret" "username" {
+  count        = (local.enable_deployers && local.enable_password && local.username_exist) ? 1 : 0
+  name         = local.username_secret_name
   key_vault_id = local.user_key_vault_id
 }
 
 data "azurerm_key_vault_secret" "pwd" {
   count        = (local.enable_deployers && local.enable_password && local.pwd_exist) ? 1 : 0
-  name         = local.pwd_name
+  name         = local.pwd_secret_name
   key_vault_id = local.user_key_vault_id
 }

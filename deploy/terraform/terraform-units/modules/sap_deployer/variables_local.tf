@@ -62,6 +62,11 @@ locals {
     try(deployer.authentication.type, "key") == "password" ? true : false
   ]), "true")
 
+  username = compact([
+    for deployer in local.deployer_input :
+    try(deployer.authentication.username, "azureadm")
+  ])[0]
+
   // By default use generated password. Provide password under authentication overides it
   input_pwd_list = compact([
     for deployer in local.deployer_input :
@@ -145,17 +150,21 @@ locals {
   prvt_key_vault_id = try(var.key_vault.kv_prvt_id, "")
   user_kv_exist     = try(length(local.user_key_vault_id) > 0, false)
   prvt_kv_exist     = try(length(local.prvt_key_vault_id) > 0, false)
- 
- // If the user specifies the secret name of key pair/password in input, the secrets will be imported instead of creating new secrets
-  public_key_secret_name  = try(var.key_vault.kv_sshkey_pub, "")
-  private_key_secret_name = try(var.key_vault.kv_sshkey_prvt, "")
-  password_secret_name    = try(var.key_vault.kv_pwd, "")
-  key_exist               = try(length(local.public_key_secret_name) > 0, false)
-  pwd_exist               = try(length(local.password_secret_name) > 0, false)
 
-  ppk_name = local.key_exist ? local.private_key_secret_name : format("%s-sshkey", local.prefix)
-  pk_name  = local.key_exist ? local.public_key_secret_name : format("%s-sshkey-pub", local.prefix)
-  pwd_name = local.pwd_exist ? local.password_secret_name : format("%s-password", local.prefix)
+  // If the user specifies the secret name of key pair/password in input, the secrets will be imported instead of creating new secrets
+  input_public_key_secret_name  = try(var.key_vault.kv_sshkey_pub, "")
+  input_private_key_secret_name = try(var.key_vault.kv_sshkey_prvt, "")
+  input_password_secret_name    = try(var.key_vault.kv_pwd, "")
+  input_username_secret_name    = try(var.key_vault.kv_username, "")
+  // If public key secret name is provided, need to provide private key secret name as well, otherwise fail with error.
+  key_exist      = try(length(local.input_public_key_secret_name) > 0, false)
+  pwd_exist      = try(length(local.input_password_secret_name) > 0, false)
+  username_exist = try(length(local.input_username_secret_name) > 0, false)
+
+  ppk_secret_name      = local.key_exist ? local.input_private_key_secret_name : format("%s-sshkey", local.prefix)
+  pk_secret_name       = local.key_exist ? local.input_public_key_secret_name : format("%s-sshkey-pub", local.prefix)
+  pwd_secret_name      = local.pwd_exist ? local.input_password_secret_name : format("%s-password", local.prefix)
+  username_secret_name = local.username_exist ? local.input_username_secret_name : format("%s-username", local.prefix)
 
   // Extract information from the specified key vault arm ids
   user_kv_name    = local.user_kv_exist ? split("/", local.user_key_vault_id)[8] : local.keyvault_names.user_access

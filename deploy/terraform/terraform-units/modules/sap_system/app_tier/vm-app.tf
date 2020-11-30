@@ -78,10 +78,30 @@ resource "azurerm_linux_virtual_machine" "app" {
   disable_password_authentication = ! local.enable_auth_password
   admin_password                  = local.sid_auth_password
 
-  os_disk {
-    name                 = format("%s%s%s%s", local.prefix, var.naming.separator, local.app_virtualmachine_names[count.index], local.resource_suffixes.osdisk)
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
+  dynamic "os_disk" {
+    iterator = disk
+    for_each = flatten(
+      [
+        for storage_type in local.app_sizing.storage : [
+          for disk_count in range(storage_type.count) :
+          {
+            name      = storage_type.name,
+            id        = disk_count,
+            disk_type = storage_type.disk_type,
+            size_gb   = storage_type.size_gb,
+            caching   = storage_type.caching
+          }
+        ]
+        if storage_type.name == "os"
+      ]
+    )
+
+    content {
+      name                 = format("%s%s%s%s", local.prefix, var.naming.separator, local.app_virtualmachine_names[count.index], local.resource_suffixes.osdisk)
+      caching              = disk.value.caching
+      storage_account_type = disk.value.disk_type
+      disk_size_gb         = disk.value.size_gb
+    }
   }
 
   source_image_id = local.app_custom_image ? local.app_os.source_image_id : null

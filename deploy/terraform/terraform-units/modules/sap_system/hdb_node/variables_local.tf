@@ -101,6 +101,9 @@ locals {
   availabilityset_arm_ids = try(local.hdb.avset_arm_ids, [])
   availabilitysets_exist  = length(local.availabilityset_arm_ids) > 0 ? true : false
 
+  // Tags
+  tags = try(local.hdb.tags,{})
+  
   // Support dynamic addressing
   use_DHCP = try(local.hdb.use_DHCP, false)
 

@@ -225,6 +225,8 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   boot_diagnostics {
     storage_account_uri = var.storage_bootdiag.primary_blob_endpoint
   }
+
+  tags = local.tags
 }
 
 # Creates managed data disk

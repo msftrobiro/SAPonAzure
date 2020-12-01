@@ -12,17 +12,17 @@ resource "azurerm_network_interface" "anydb_db" {
   ip_configuration {
     primary   = true
     name      = "ipconfig1"
-    subnet_id = local.sub_db_exists ? data.azurerm_subnet.anydb[0].id : azurerm_subnet.anydb[0].id
+    subnet_id = var.db_subnet.id
 
-    private_ip_address = try(local.anydb_vms[count.index].db_nic_ip, false) != false ? (
-      local.anydb_vms[count.index].db_nic_ip) : (
-      cidrhost(local.sub_db_exists ? (
-        data.azurerm_subnet.anydb[0].address_prefixes[0]) : (
-        azurerm_subnet.anydb[0].address_prefixes[0]
-      ), tonumber(count.index) + local.anydb_ip_offsets.anydb_db_vm)
+    private_ip_address = local.use_DHCP ? (
+      null) : (
+      try(local.anydb_vms[count.index].db_nic_ip, false) != false ? (
+        local.anydb_vms[count.index].db_nic_ip) : (
+        cidrhost(var.db_subnet.address_prefixes[0], tonumber(count.index) + local.anydb_ip_offsets.anydb_db_vm)
+      )
     )
 
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
   }
 }
 
@@ -39,32 +39,38 @@ resource "azurerm_network_interface" "anydb_admin" {
     name      = "ipconfig1"
     subnet_id = var.admin_subnet.id
 
-    private_ip_address = try(local.anydb_vms[count.index].admin_nic_ip, false) != false ? (
-      local.anydb_vms[count.index].admin_nic_ip) : (
-      cidrhost(var.admin_subnet[0].address_prefixes[0], tonumber(count.index) + local.anydb_ip_offsets.anydb_admin_vm)
+    private_ip_address = local.use_DHCP ? (
+      null) : (
+      try(local.anydb_vms[count.index].admin_nic_ip, false) != false ? (
+        local.anydb_vms[count.index].admin_nic_ip) : (
+        cidrhost(var.admin_subnet[0].address_prefixes[0], tonumber(count.index) + local.anydb_ip_offsets.anydb_admin_vm)
+      )
     )
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
   }
 }
 
 // Section for Linux Virtual machine 
 resource "azurerm_linux_virtual_machine" "dbserver" {
+  depends_on          = [var.anchor_vm]
   count               = local.enable_deployment ? ((upper(local.anydb_ostype) == "LINUX") ? local.db_server_count : 0) : 0
   name                = local.anydb_vms[count.index].name
   computer_name       = local.anydb_vms[count.index].computername
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
 
-  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % local.db_zone_count].id : var.ppg[0].id
+  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % max(local.db_zone_count, 1)].id : var.ppg[0].id
   //Ultra disk requires zonal deployment
   availability_set_id = local.enable_ultradisk ? null : (
-    local.zonal_deployment && local.db_server_count == local.db_zone_count ? null : azurerm_availability_set.anydb[count.index % local.db_zone_count].id
+    local.zonal_deployment && local.db_server_count == local.db_zone_count ? null : (
+      local.availabilitysets_exist ? (
+        data.azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id) : (
+        azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id
+      )
+    )
   )
 
-  zone = local.zonal_deployment ? (
-    local.db_server_count == local.db_zone_count ? local.zones[count.index % local.db_zone_count] : null) : (
-    null
-  )
+  zone = local.enable_ultradisk || local.db_server_count == local.db_zone_count ? local.zones[count.index % max(local.db_zone_count, 1)] : null
 
   network_interface_ids = local.anydb_dual_nics ? (
     [azurerm_network_interface.anydb_admin[count.index].id, azurerm_network_interface.anydb_db[count.index].id]) : (
@@ -115,31 +121,32 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   boot_diagnostics {
     storage_account_uri = var.storage_bootdiag.primary_blob_endpoint
   }
-  tags = {
-    environment = "SAP"
-    SID         = upper(local.sap_sid)
-  }
+
+  tags = local.tags
 }
 
 // Section for Windows Virtual machine 
 resource "azurerm_windows_virtual_machine" "dbserver" {
+  depends_on          = [var.anchor_vm]
   count               = local.enable_deployment ? ((upper(local.anydb_ostype) == "WINDOWS") ? local.db_server_count : 0) : 0
   name                = local.anydb_vms[count.index].name
   computer_name       = local.anydb_vms[count.index].computername
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
 
-  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % local.db_zone_count].id : var.ppg[0].id
+  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % max(local.db_zone_count, 1)].id : var.ppg[0].id
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   //Ultra disk requires zonal deployment
   availability_set_id = local.enable_ultradisk ? null : (
-    local.zonal_deployment && local.db_server_count == local.db_zone_count ? null : azurerm_availability_set.anydb[count.index % local.db_zone_count].id
+    local.zonal_deployment && local.db_server_count == local.db_zone_count ? null : (
+      local.availabilitysets_exist ? (
+        data.azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id) : (
+        azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id
+      )
+    )
   )
 
-  zone = local.zonal_deployment ? (
-    local.db_server_count == local.db_zone_count ? local.zones[count.index % local.db_zone_count] : null) : (
-    null
-  )
+  zone = local.enable_ultradisk || local.db_server_count == local.db_zone_count ? local.zones[count.index % max(local.db_zone_count, 1)] : null
 
   network_interface_ids = local.anydb_dual_nics ? (
     [azurerm_network_interface.anydb_admin[count.index].id, azurerm_network_interface.anydb_db[count.index].id]) : (
@@ -180,10 +187,8 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   boot_diagnostics {
     storage_account_uri = var.storage_bootdiag.primary_blob_endpoint
   }
-  tags = {
-    environment = "SAP"
-    SID         = upper(local.sap_sid)
-  }
+
+  tags = local.tags
 }
 
 // Creates managed data disks
@@ -206,7 +211,7 @@ resource "azurerm_managed_disk" "disks" {
 
 // Manages attaching a Disk to a Virtual Machine
 resource "azurerm_virtual_machine_data_disk_attachment" "vm_disks" {
-  count           = local.enable_deployment ? length(azurerm_managed_disk.disks) : 0
+  count           = local.enable_deployment ? length(local.anydb_disks) : 0
   managed_disk_id = azurerm_managed_disk.disks[count.index].id
   virtual_machine_id = upper(local.anydb_ostype) == "LINUX" ? (
     azurerm_linux_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].id) : (

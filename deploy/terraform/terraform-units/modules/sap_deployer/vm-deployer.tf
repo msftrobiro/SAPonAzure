@@ -11,7 +11,7 @@ data azurerm_client_config "current" {}
 
 // Public IP addresse and nic for Deployer
 resource "azurerm_public_ip" "deployer" {
-  count               = length(local.deployers)
+  count               = local.enable_deployer_public_ip ? length(local.deployers) : 0
   name                = format("%s%s%s%s", local.prefix, var.naming.separator, local.deployers[count.index].name, local.resource_suffixes.pip)
   location            = azurerm_resource_group.deployer[0].location
   resource_group_name = azurerm_resource_group.deployer[0].name
@@ -29,7 +29,7 @@ resource "azurerm_network_interface" "deployer" {
     subnet_id                     = local.sub_mgmt_deployed.id
     private_ip_address            = local.deployers[count.index].private_ip_address
     private_ip_address_allocation = "static"
-    public_ip_address_id          = azurerm_public_ip.deployer[count.index].id
+    public_ip_address_id          = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[count.index].id : ""
   }
 }
 
@@ -109,10 +109,10 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   }
 }
 
-// Prepare deployer with pre-installed softwares
+// Prepare deployer with pre-installed softwares if pip is created
 resource "null_resource" "prepare-deployer" {
   depends_on = [azurerm_linux_virtual_machine.deployer]
-  count      = length(local.deployers)
+  count      = local.enable_deployer_public_ip ? length(local.deployers) : 0
 
   connection {
     type        = "ssh"
@@ -135,11 +135,11 @@ resource "null_resource" "prepare-deployer" {
       "git clone https://github.com/Azure/sap-hana.git $HOME/Azure_SAP_Automated_Deployment/sap-hana",
       // Install terraform for all users
       "sudo apt-get install unzip",
-      "sudo mkdir -p /opt/terraform/terraform_0.12.29",
+      "sudo mkdir -p /opt/terraform/terraform_0.13.5",
       "sudo mkdir -p /opt/terraform/bin/",
-      "sudo wget -P /opt/terraform/terraform_0.12.29 https://releases.hashicorp.com/terraform/0.12.29/terraform_0.12.29_linux_amd64.zip",
-      "sudo unzip /opt/terraform/terraform_0.12.29/terraform_0.12.29_linux_amd64.zip -d /opt/terraform/terraform_0.12.29/",
-      "sudo ln -s /opt/terraform/terraform_0.12.29/terraform /opt/terraform/bin/terraform",
+      "sudo wget -P /opt/terraform/terraform_0.13.5 https://releases.hashicorp.com/terraform/0.13.5/terraform_0.13.5_linux_amd64.zip",
+      "sudo unzip /opt/terraform/terraform_0.13.5/terraform_0.13.5_linux_amd64.zip -d /opt/terraform/terraform_0.13.5/",
+      "sudo ln -s /opt/terraform/terraform_0.13.5/terraform /opt/terraform/bin/terraform",
       "sudo sh -c \"echo export PATH=$PATH:/opt/terraform/bin > /etc/profile.d/deploy_server.sh\"",
       // Set env for MSI
       "sudo sh -c \"echo export ARM_USE_MSI=true >> /etc/profile.d/deploy_server.sh\"",
@@ -150,7 +150,7 @@ resource "null_resource" "prepare-deployer" {
       "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash",
       // Install Git
       "sudo apt update",
-      "sudo apt-get install git=1:2.7.4-0ubuntu1.6",
+      "sudo apt-get install git=1:2.17.1-1ubuntu0.7",
       // install jq
       "sudo apt -y install jq=1.5+dfsg-2",
       // Install pip3

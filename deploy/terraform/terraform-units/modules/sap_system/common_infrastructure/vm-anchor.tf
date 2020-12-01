@@ -8,10 +8,13 @@ resource "azurerm_network_interface" "anchor" {
   enable_accelerated_networking = local.enable_accelerated_networking
 
   ip_configuration {
-    name                          = "IPConfig1"
-    subnet_id                     = local.sub_admin_exists ? data.azurerm_subnet.admin[0].id : azurerm_subnet.admin[0].id
-    private_ip_address            = local.sub_admin_exists ? local.anchor_nic_ips[count.index] : cidrhost(local.sub_admin_prefix, (count.index + 5))
-    private_ip_address_allocation = "static"
+    name      = "IPConfig1"
+    subnet_id = local.sub_db_exists ? data.azurerm_subnet.db[0].id : azurerm_subnet.db[0].id
+    private_ip_address = local.anchor_use_DHCP ? (
+      null) : (
+      try(local.anchor_nic_ips[count.index], cidrhost(local.sub_db_exists ? data.azurerm_subnet.db[0].address_prefixes[0] : azurerm_subnet.db[0].address_prefixes[0], (count.index + 5)))
+    )
+    private_ip_address_allocation = local.anchor_use_DHCP ? "Dynamic" : "Static"
   }
 }
 
@@ -22,7 +25,7 @@ resource "azurerm_linux_virtual_machine" "anchor" {
   computer_name                = local.anchor_computer_names[count.index]
   resource_group_name          = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   location                     = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  proximity_placement_group_id = azurerm_proximity_placement_group.ppg[count.index].id
+  proximity_placement_group_id = local.ppg_exists ? data.azurerm_proximity_placement_group.ppg[count.index].id : azurerm_proximity_placement_group.ppg[count.index].id
   zone                         = local.zones[count.index]
 
   network_interface_ids = [
@@ -72,7 +75,7 @@ resource "azurerm_windows_virtual_machine" "anchor" {
   computer_name                = local.anchor_computer_names[count.index]
   resource_group_name          = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   location                     = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  proximity_placement_group_id = azurerm_proximity_placement_group.ppg[count.index].id
+  proximity_placement_group_id = local.ppg_exists ? data.azurerm_proximity_placement_group.ppg[count.index].id : azurerm_proximity_placement_group.ppg[count.index].id
   zone                         = local.zones[count.index]
 
   network_interface_ids = [

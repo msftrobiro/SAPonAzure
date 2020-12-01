@@ -12,19 +12,36 @@ Description:
            For example, ~> 0.9   is equivalent to >= 0.9,   < 1.0 
                         ~> 0.8.4 is equivalent to >= 0.8.4, < 0.9
 */
-
 provider "azurerm" {
-  version = "~> 2.10"
   features {}
 }
 
 terraform {
-  required_version = ">= 0.12"
+  required_version = ">= 0.13"
   required_providers {
-    external = { version = "~> 1.2" }
-    local    = { version = "~> 1.4" }
-    random   = { version = "~> 2.2" }
-    null     = { version = "~> 2.1" }
-    tls      = { version = "~> 2.2" }
+    external = {
+      source  = "hashicorp/external"
+      version = "~> 2.0.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.0.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.0.0"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 3.0.0"
+    }
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 2.35.0"
+    }
   }
 }

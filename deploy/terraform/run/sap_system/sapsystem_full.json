@@ -1,4 +1,7 @@
 {
+  "tfstate_resource_id": "",
+  "deployer_tfstate_key": "",
+  "landscape_tfstate_key": "",
   "infrastructure": {
     "region": "eastus",
     "environment": "NP",
@@ -6,12 +9,22 @@
       "is_existing": "false",
       "arm_id": ""
     },
-    "vnets": {
-      "management": {
-        "saplib_resource_group_name": "",
-        "tfstate_storage_account_name": "",
-        "deployer_tfstate_key": ""
+    "anchor_vms": {
+      "sku": "Standard_D4s_v4",
+      "authentication": {
+        "type": "key",
+        "username": "azureadm"
       },
+      "accelerated_networking": true,
+      "os": {
+        "publisher": "SUSE",
+        "offer": "sles-sap-12-sp5",
+        "sku": "gen1"
+      },
+      "nic_ips": ["", "", ""],
+      "use_DHCP" : false
+    },
+    "vnets": {
       "sap": {
         "is_existing": "false",
         "arm_id": "",
@@ -22,9 +35,6 @@
         },
         "subnet_db": {
           "prefix": "10.1.2.0/24"
-        },
-        "subnet_iscsi": {
-          "prefix": "10.1.3.0/24"
         },
         "subnet_app": {
           "prefix": "10.1.4.0/24"
@@ -51,7 +61,25 @@
         "xsa_admin_password": "<xsa_admin_password>",
         "cockpit_admin_password": "<cockpit_admin_password>",
         "ha_cluster_password": "<ha_cluster_password>"
-      }
+      },
+      "avset_arm_ids": [
+        "/subscriptions/xxxx/resourceGroups/yyyy/providers/Microsoft.Compute/availabilitySets/PROTO-SID_db_avset"
+      ],
+      "use_DHCP": false,
+      "dbnodes": [
+        {
+          "name": "hdb1",
+          "role": "worker"
+        },
+        {
+          "name": "hdb2",
+          "role": "worker"
+        },
+        {
+          "name": "hdb3",
+          "role": "standby"
+        }
+      ]
     }
   ],
   "application": {
@@ -62,32 +90,13 @@
     "scs_high_availability": false,
     "application_server_count": 2,
     "webdispatcher_count": 1,
-    "app_zones": ["1","2"],
+    "app_zones": ["1", "2"],
     "scs_zones": ["1"],
     "web_zones": ["1"],
+    "use_DHCP": false,
     "authentication": {
       "type": "key",
       "username": "azureadm"
-    }
-  },
-  "software": {
-    "storage_account_sapbits": {
-      "saplib_resource_group_name": "",
-      "tfstate_storage_account_name": "",
-      "saplib_tfstate_key": ""
-    },
-    "downloader": {
-      "credentials": {
-        "sap_user": "<sap_user>",
-        "sap_password": "<sap_password>"
-      },
-      "scenarios": [
-        {
-          "scenario_type": "DB",
-          "product_name": "HANA",
-          "product_version": "2.0"
-        }
-      ]
     }
   },
   "sshkey": {
@@ -96,7 +105,6 @@
   },
   "options": {
     "enable_secure_transfer": true,
-    "ansible_execution": false,
     "enable_prometheus": true
   }
 }

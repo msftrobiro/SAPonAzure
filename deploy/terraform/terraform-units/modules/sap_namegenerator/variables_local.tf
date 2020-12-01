@@ -109,7 +109,7 @@ variable azlimits {
     afw         = 50
     rg          = 80
     kv          = 24
-    st          = 24
+    stgaccnt    = 24
     vnet        = 38
     nsg         = 80
     snet        = 80
@@ -185,27 +185,27 @@ variable resource_suffixes {
 
   default = {
     "admin_nic"           = "-admin-nic"
-    "admin_subnet"        = "_admin-subnet"
-    "admin_subnet_nsg"    = "_adminSubnet-nsg"
-    "app_alb"             = "_app-alb"
-    "app_avset"           = "_app-avset"
-    "app_subnet"          = "_app-subnet"
-    "app_subnet_nsg"      = "_appSubnet-nsg"
-    "db_alb"              = "_db-alb"
-    "db_alb_bepool"       = "_dbAlb-bePool"
-    "db_alb_feip"         = "_dbAlb-feip"
-    "db_alb_hp"           = "_dbAlb-hp"
-    "db_alb_rule"         = "_dbAlb-rule_"
-    "db_avset"            = "_db-avset"
+    "admin_subnet"        = "admin-subnet"
+    "admin_subnet_nsg"    = "adminSubnet-nsg"
+    "app_alb"             = "app-alb"
+    "app_avset"           = "app-avset"
+    "app_subnet"          = "app-subnet"
+    "app_subnet_nsg"      = "appSubnet-nsg"
+    "db_alb"              = "db-alb"
+    "db_alb_bepool"       = "dbAlb-bePool"
+    "db_alb_feip"         = "dbAlb-feip"
+    "db_alb_hp"           = "dbAlb-hp"
+    "db_alb_rule"         = "dbAlb-rule_"
+    "db_avset"            = "db-avset"
     "db_nic"              = "-db-nic"
-    "db_subnet"           = "_db-subnet"
-    "db_subnet_nsg"       = "_dbSubnet-nsg"
+    "db_subnet"           = "db-subnet"
+    "db_subnet_nsg"       = "dbSubnet-nsg"
     "deployer_rg"         = "-INFRASTRUCTURE"
     "deployer_state"      = "_DEPLOYER.terraform.tfstate"
     "deployer_subnet"     = "_deployment-subnet"
     "deployer_subnet_nsg" = "_deployment-nsg"
-    "iscsi_subnet"        = "_iscsi-subnet"
-    "iscsi_subnet_nsg"    = "_iscsiSubnet-nsg"
+    "iscsi_subnet"        = "iscsi-subnet"
+    "iscsi_subnet_nsg"    = "iscsiSubnet-nsg"
     "library_rg"          = "-SAP_LIBRARY"
     "library_state"       = "_SAP-LIBRARY.terraform.tfstate"
     "kv"                  = ""
@@ -214,28 +214,31 @@ variable resource_suffixes {
     "osdisk"              = "-OsDisk"
     "pip"                 = "-pip"
     "ppg"                 = "-ppg"
-    "scs_alb"             = "_scs-alb"
-    "scs_alb_bepool"      = "_scsAlb-bePool"
-    "scs_alb_feip"        = "_scsAlb-feip"
-    "scs_alb_hp"          = "_scsAlb-hp"
-    "scs_alb_rule"        = "_scsAlb-rule_"
-    "scs_ers_feip"        = "_scsErs-feip"
-    "scs_ers_hp"          = "_scsErs-hp"
-    "scs_ers_rule"        = "_scsErs-rule_"
-    "scs_scs_rule"        = "_scsScs-rule_"
+    "storage_nic"         = "-storage-nic"
+    "storage_subnet"      = "_storage-subnet"
+    "storage_subnet_nsg"  = "_storageSubnet-nsg"
+    "scs_alb"             = "scs-alb"
+    "scs_alb_bepool"      = "scsAlb-bePool"
+    "scs_alb_feip"        = "scsAlb-feip"
+    "scs_alb_hp"          = "scsAlb-hp"
+    "scs_alb_rule"        = "scsAlb-rule_"
+    "scs_avset"           = "scs-avset"
+    "scs_ers_feip"        = "scsErs-feip"
+    "scs_ers_hp"          = "scsErs-hp"
+    "scs_ers_rule"        = "scsErs-rule_"
+    "scs_scs_rule"        = "scsScs-rule_"
     "sdu_rg"              = ""
-    "scs_avset"           = "_scs-avset"
     "vm"                  = ""
     "vnet"                = "-vnet"
     "vnet_rg"             = "-INFRASTRUCTURE"
-    "web_alb"             = "_web-alb"
-    "web_alb_bepool"      = "_webAlb-bePool"
-    "web_alb_feip"        = "_webAlb-feip"
-    "web_alb_hp"          = "_webAlb-hp"
-    "web_alb_inrule"      = "_webAlb-inRule"
-    "web_avset"           = "_web-avset"
-    "web_subnet"          = "_web-subnet"
-    "web_subnet_nsg"      = "_webSubnet-nsg"
+    "web_alb"             = "web-alb"
+    "web_alb_bepool"      = "webAlb-bePool"
+    "web_alb_feip"        = "webAlb-feip"
+    "web_alb_hp"          = "webAlb-hp"
+    "web_alb_inrule"      = "webAlb-inRule"
+    "web_avset"           = "web-avset"
+    "web_subnet"          = "web-subnet"
+    "web_subnet_nsg"      = "webSubnet-nsg"
 
   }
 }
@@ -264,14 +267,19 @@ variable db_zones {
   default     = []
 }
 
+variable custom_prefix {
+  type        = string
+  description = "Custom prefix"
+  default     = ""
+}
 
 locals {
 
   location_short = upper(try(var.region_mapping[var.location], "unkn"))
 
   env_verified      = upper(substr(var.environment, 0, var.sapautomation_name_limits.environment_variable_length))
-  vnet_verified     = upper(substr(var.sap_vnet_name, 0, var.sapautomation_name_limits.sap_vnet_length))
-  dep_vnet_verified = upper(substr(var.management_vnet_name, 0, var.sapautomation_name_limits.sap_vnet_length))
+  vnet_verified     = upper(trim(substr(var.sap_vnet_name, 0, var.sapautomation_name_limits.sap_vnet_length), "-_"))
+  dep_vnet_verified = upper(trim(substr(var.management_vnet_name, 0, var.sapautomation_name_limits.sap_vnet_length), "-_"))
 
   random_id_verified    = upper(substr(var.random_id, 0, var.sapautomation_name_limits.random_id_length))
   random_id_vm_verified = lower(substr(var.random_id, 0, var.sapautomation_name_limits.random_id_length))

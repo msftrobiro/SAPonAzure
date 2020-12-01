@@ -1,5 +1,5 @@
 /*
-Description:
+  Description:
   Constraining provider versions
     =    (or no operator): exact version equality
     !=   version not equal
@@ -13,7 +13,6 @@ Description:
 */
 
 provider "azurerm" {
-  version = "~> 2.32.0"
   features {}
   subscription_id = local.spn.subscription_id
   client_id       = local.spn.client_id
@@ -22,26 +21,46 @@ provider "azurerm" {
 }
 
 provider "azurerm" {
-  version = "~> 2.32.0"
   features {}
   alias = "deployer"
 }
 
 provider "azuread" {
-  version = ">= 0.10.0"
-
   client_id     = local.spn.client_id
   client_secret = local.spn.client_secret
   tenant_id     = local.spn.tenant_id
 }
 
 terraform {
-  required_version = ">= 0.12"
+  required_version = ">= 0.13"
   required_providers {
-    external = { version = "~> 1.2" }
-    local    = { version = "~> 1.4" }
-    random   = { version = "~> 2.2" }
-    null     = { version = "~> 2.1" }
-    tls      = { version = "~> 2.2" }
+    external = {
+      source  = "hashicorp/external"
+      version = "~> 2.0.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.0.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.0.0"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 3.0.0"
+    }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 1.0.0"
+    }
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 2.35.0"
+    }
   }
 }

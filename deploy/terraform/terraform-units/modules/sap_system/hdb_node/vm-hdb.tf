@@ -22,12 +22,15 @@ resource "azurerm_network_interface" "nics_dbnodes_admin" {
   ip_configuration {
     name      = "ipconfig1"
     subnet_id = var.admin_subnet.id
-    private_ip_address = lookup(local.hdb_vms[count.index], "admin_nic_ip", false) != false ? (
-      local.hdb_vms[count.index].admin_nic_ip) : (
-      cidrhost(var.admin_subnet.address_prefixes[0], tonumber(count.index) + local.hdb_ip_offsets.hdb_admin_vm)
+    private_ip_address = local.use_DHCP ? (
+      null) : (
+      lookup(local.hdb_vms[count.index], "admin_nic_ip", false) != false ? (
+        local.hdb_vms[count.index].admin_nic_ip) : (
+        cidrhost(var.admin_subnet.address_prefixes[0], tonumber(count.index) + local.hdb_ip_offsets.hdb_admin_vm)
+      )
     )
 
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
   }
 }
 
@@ -43,18 +46,42 @@ resource "azurerm_network_interface" "nics_dbnodes_db" {
   ip_configuration {
     primary   = true
     name      = "ipconfig1"
-    subnet_id = local.sub_db_exists ? data.azurerm_subnet.sap_db[0].id : azurerm_subnet.sap_db[0].id
+    subnet_id = var.db_subnet.id
 
-    private_ip_address = try(local.hdb_vms[count.index].db_nic_ip, false) != false ? (
-      local.hdb_vms[count.index].db_nic_ip) : (
-      cidrhost((local.sub_db_exists ? (
-        data.azurerm_subnet.sap_db[0].address_prefixes[0]) : (
-        azurerm_subnet.sap_db[0].address_prefixes[0])
-      ), tonumber(count.index) + local.hdb_ip_offsets.hdb_db_vm)
+    private_ip_address = local.use_DHCP ? (
+      null) : (
+      try(local.hdb_vms[count.index].db_nic_ip, false) != false ? (
+        local.hdb_vms[count.index].db_nic_ip) : (
+        cidrhost(var.db_subnet.address_prefixes[0], tonumber(count.index) + local.hdb_ip_offsets.hdb_db_vm)
+      )
     )
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
   }
 }
+
+// Creates the NIC for Hana storage
+resource "azurerm_network_interface" "nics_dbnodes_storage" {
+  count = local.enable_deployment && local.enable_storage_subnet ? length(local.hdb_vms) : 0
+  name  = format("%s%s", local.hdb_vms[count.index].name, local.resource_suffixes.storage_nic)
+
+  location                      = var.resource_group[0].location
+  resource_group_name           = var.resource_group[0].name
+  enable_accelerated_networking = true
+
+  ip_configuration {
+    primary   = true
+    name      = "ipconfig1"
+    subnet_id = var.storage_subnet.id
+
+    private_ip_address = local.use_DHCP ? null : try(local.hdb_vms[count.index].scaleout_nic_ip, false) != false ? (
+      local.hdb_vms[count.index].scaleout_nic_ip) : (
+      cidrhost(var.storage_subnet[0].address_prefixes[0], tonumber(count.index) + local.hdb_ip_offsets.hdb_scaleout_vm)
+
+    )
+    private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
+  }
+}
+
 
 # LOAD BALANCER ===================================================================================================
 
@@ -64,25 +91,23 @@ Load balancer front IP address range: .4 - .9
 
 resource "azurerm_lb" "hdb" {
   count               = local.enable_deployment ? 1 : 0
-  name                = format("%s%s", local.prefix, local.resource_suffixes.db_alb)
+  name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb)
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
   sku                 = local.zonal_deployment ? "Standard" : "Basic"
 
   frontend_ip_configuration {
-    name                          = format("%s%s", local.prefix, local.resource_suffixes.db_alb_feip)
-    subnet_id                     = local.sub_db_exists ? data.azurerm_subnet.sap_db[0].id : azurerm_subnet.sap_db[0].id
-    private_ip_address_allocation = "Static"
-    private_ip_address = try(local.hana_database.loadbalancer.frontend_ip, (local.sub_db_exists ? (
-      cidrhost(data.azurerm_subnet.sap_db[0].address_prefixes[0], tonumber(count.index) + local.hdb_ip_offsets.hdb_lb)) : (
-      cidrhost(azurerm_subnet.sap_db[0].address_prefixes[0], tonumber(count.index) + local.hdb_ip_offsets.hdb_lb)))
-    )
+    name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_feip)
+    subnet_id                     = var.db_subnet.id
+    private_ip_address            = local.use_DHCP ? null : try(local.hana_database.loadbalancer.frontend_ip, cidrhost(var.db_subnet.address_prefixes[0], tonumber(count.index) + local.hdb_ip_offsets.hdb_lb))
+    private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
   }
+
 }
 
 resource "azurerm_lb_backend_address_pool" "hdb" {
   count               = local.enable_deployment ? 1 : 0
-  name                = format("%s%s", local.prefix, local.resource_suffixes.db_alb_bepool)
+  name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_bepool)
   resource_group_name = var.resource_group[0].name
   loadbalancer_id     = azurerm_lb.hdb[count.index].id
 
@@ -92,7 +117,7 @@ resource "azurerm_lb_probe" "hdb" {
   count               = local.enable_deployment ? 1 : 0
   resource_group_name = var.resource_group[0].name
   loadbalancer_id     = azurerm_lb.hdb[count.index].id
-  name                = format("%s%s", local.prefix, local.resource_suffixes.db_alb_hp)
+  name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_hp)
   port                = "625${local.hana_database.instance.instance_number}"
   protocol            = "Tcp"
   interval_in_seconds = 5
@@ -103,6 +128,7 @@ resource "azurerm_lb_probe" "hdb" {
 # Current behavior, it will try to add all VMs in the cluster into the backend pool, which would not work since we do not have availability sets created yet.
 # In a scale-out scenario, we need to rewrite this code according to the scale-out + HA reference architecture.
 resource "azurerm_network_interface_backend_address_pool_association" "hdb" {
+  depends_on              = [azurerm_network_interface.nics_dbnodes_db]
   count                   = local.enable_deployment ? length(local.hdb_vms) : 0
   network_interface_id    = azurerm_network_interface.nics_dbnodes_db[count.index].id
   ip_configuration_name   = azurerm_network_interface.nics_dbnodes_db[count.index].ip_configuration[0].name
@@ -113,11 +139,11 @@ resource "azurerm_lb_rule" "hdb" {
   count                          = local.enable_deployment ? length(local.loadbalancer_ports) : 0
   resource_group_name            = var.resource_group[0].name
   loadbalancer_id                = azurerm_lb.hdb[0].id
-  name                           = format("%s%s%05d-%02d", local.prefix, local.resource_suffixes.db_alb_rule, local.loadbalancer_ports[count.index].port, count.index)
+  name                           = format("%s%s%s%05d-%02d", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_rule, local.loadbalancer_ports[count.index].port, count.index)
   protocol                       = "Tcp"
   frontend_port                  = local.loadbalancer_ports[count.index].port
   backend_port                   = local.loadbalancer_ports[count.index].port
-  frontend_ip_configuration_name = format("%s%s", local.prefix, local.resource_suffixes.db_alb_feip)
+  frontend_ip_configuration_name = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_feip)
   backend_address_pool_id        = azurerm_lb_backend_address_pool.hdb[0].id
   probe_id                       = azurerm_lb_probe.hdb[0].id
   enable_floating_ip             = true
@@ -127,25 +153,34 @@ resource "azurerm_lb_rule" "hdb" {
 
 # Manages Linux Virtual Machine for HANA DB servers
 resource "azurerm_linux_virtual_machine" "vm_dbnode" {
+  depends_on          = [var.anchor_vm]
   count               = local.enable_deployment ? length(local.hdb_vms) : 0
   name                = local.hdb_vms[count.index].name
   computer_name       = local.hdb_vms[count.index].computername
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
 
-  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % local.db_zone_count].id : var.ppg[0].id
+  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % max(local.db_zone_count, 1)].id : var.ppg[0].id
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   //Ultra disk requires zonal deployment
   availability_set_id = local.enable_ultradisk ? null : (
-    local.zonal_deployment && local.db_server_count == local.db_zone_count ? null : azurerm_availability_set.hdb[count.index % local.db_zone_count].id
+    local.zonal_deployment && local.db_server_count == local.db_zone_count ? null : (
+      local.availabilitysets_exist ? (
+        data.azurerm_availability_set.hdb[count.index % max(local.db_zone_count, 1)].id) : (
+        azurerm_availability_set.hdb[count.index % max(local.db_zone_count, 1)].id
+      )
+    )
   )
 
-  zone = local.enable_ultradisk || local.db_server_count == local.db_zone_count ? local.zones[count.index % local.db_zone_count] : null
+  zone = local.enable_ultradisk || local.db_server_count == local.db_zone_count ? local.zones[count.index % max(local.db_zone_count, 1)] : null
 
-  network_interface_ids = [
+  network_interface_ids = local.enable_storage_subnet ? ([
     azurerm_network_interface.nics_dbnodes_admin[count.index].id,
-    azurerm_network_interface.nics_dbnodes_db[count.index].id
-  ]
+    azurerm_network_interface.nics_dbnodes_db[count.index].id,
+    azurerm_network_interface.nics_dbnodes_storage[count.index].id]) : ([
+    azurerm_network_interface.nics_dbnodes_admin[count.index].id,
+    azurerm_network_interface.nics_dbnodes_db[count.index].id]
+  )
   size                            = lookup(local.sizes, local.hdb_vms[count.index].size).compute.vm_size
   admin_username                  = local.sid_auth_username
   admin_password                  = local.sid_auth_password
@@ -190,6 +225,8 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   boot_diagnostics {
     storage_account_uri = var.storage_bootdiag.primary_blob_endpoint
   }
+
+  tags = local.tags
 }
 
 # Creates managed data disk

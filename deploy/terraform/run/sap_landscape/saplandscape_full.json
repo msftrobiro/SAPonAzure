@@ -1,18 +1,16 @@
 {
+    "tfstate_resource_id": "",
+    "deployer_tfstate_key": "",
     "infrastructure": {
         "environment": "np",
         "region": "eastus",
         "resource_group": {
-            "is_existing": "false",
             "arm_id": "",
             "name": "azure-test-saplandscape-rg"
         },
         "vnets": {
-            "management": {
-                "tfstate_resource_id": "",
-                "deployer_tfstate_key": ""
-            },
             "sap": {
+                "arm_id": "",
                 "address_space": "10.1.0.0/16",
                 "subnet_iscsi": {
                     "name": "global-eaus-sap0_iscsi-subnet",
@@ -21,8 +19,19 @@
             }
         },
         "iscsi": {
-            "iscsi_count": 3
+            "iscsi_count": 3,
+            "use_DHCP": false
         }
+    },
+    "key_vault": {
+        "kv_user_id": "",
+        "kv_prvt_id": "",
+        "kv_sid_sshkey_prvt" : "",
+        "kv_sid_sshkey_pub" : "",
+        "kv_iscsi_username": "",
+        "kv_iscsi_sshkey_prvt" : "",
+        "kv_iscsi_sshkey_pub" : "",
+        "kv_iscsi_pwd": ""
     },
     "sshkey": {},
     "options": {}

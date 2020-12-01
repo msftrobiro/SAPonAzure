@@ -1,9 +1,13 @@
+variable "anchor_vm" {
+  description = "Deployed anchor VM"
+}
+
 variable "resource_group" {
   description = "Details of the resource group"
 }
 
 variable "vnet_sap" {
-  description = "Details of the SAP VNet"
+  description = "Details of the SAP Vnet"
 }
 
 variable "storage_bootdiag" {
@@ -28,14 +32,24 @@ variable "admin_subnet" {
   description = "Information about SAP admin subnet"
 }
 
+variable "db_subnet" {
+  description = "Information about SAP db subnet"
+}
+
 variable "sid_kv_user" {
   description = "Details of the user keyvault for sap_system"
+}
+
+variable "landscape_tfstate" {
+  description = "Landscape remote tfstate file"
 }
 
 locals {
   // Imports database sizing information
 
   sizes = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/anydb_sizes.json"))
+
+  faults = jsondecode(file("${path.module}/../../../../../configs/max_fault_domain_count.json"))
 
   computer_names       = var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
   virtualmachine_names = var.naming.virtualmachine_names.ANYDB_VMNAME
@@ -50,48 +64,26 @@ locals {
   sap_sid   = upper(try(var.application.sid, ""))
   anydb_sid = (length(local.anydb_databases) > 0) ? try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3))) : lower(substr(local.anydb_platform, 0, 3))
   sid       = upper(try(var.application.sid, local.anydb_sid))
-  prefix    = try(var.infrastructure.resource_group.name, var.naming.prefix.SDU)
+  prefix    = try(var.infrastructure.resource_group.name, trimspace(var.naming.prefix.SDU))
   rg_name   = try(var.infrastructure.resource_group.name, format("%s%s", local.prefix, local.resource_suffixes.sdu_rg))
 
   // Zones
   zones            = try(local.anydb.zones, [])
   zonal_deployment = length(local.zones) > 0 ? true : false
-  db_zone_count    = try(length(local.zones), 1)
+  db_zone_count    = length(local.zones)
 
-  // SAP vnet
-  var_infra       = try(var.infrastructure, {})
-  var_vnet_sap    = try(local.var_infra.vnets.sap, {})
-  vnet_sap_arm_id = try(local.var_vnet_sap.arm_id, "")
-  vnet_sap_exists = length(local.vnet_sap_arm_id) > 0 ? true : false
-  vnet_sap_name   = local.vnet_sap_exists ? try(split("/", local.vnet_sap_arm_id)[8], "") : try(local.var_vnet_sap.name, "")
-  vnet_nr_parts   = length(split("-", local.vnet_sap_name))
-  // Default naming of vnet has multiple parts. Taking the second-last part as the name 
-  vnet_sap_name_prefix = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? (
-    split("-", local.vnet_sap_name)[(local.vnet_nr_parts - 2)]) : (
-    local.vnet_sap_name
-  )
+  // Availability Set 
+  availabilityset_arm_ids = try(local.anydb.avset_arm_ids, [])
+  availabilitysets_exist  = length(local.availabilityset_arm_ids) > 0 ? true : false
 
-  // DB subnet
-  var_sub_db    = try(var.infrastructure.vnets.sap.subnet_db, {})
-  sub_db_arm_id = try(local.var_sub_db.arm_id, "")
-  sub_db_exists = length(local.sub_db_arm_id) > 0 ? true : false
-  sub_db_name = local.sub_db_exists ? (
-    try(split("/", local.sub_db_arm_id)[10], "")) : (
-    try(local.var_sub_db.name, format("%s%s", local.prefix, local.resource_suffixes.db_subnet))
-  )
-  sub_db_prefix = try(local.var_sub_db.prefix, "")
+  // Return the max fault domain count for the region
+  faultdomain_count = try(tonumber(compact(
+    [for pair in local.faults :
+      upper(pair.Location) == upper(local.region) ? pair.MaximumFaultDomainCount : ""
+  ])[0]), 2)
 
-  // DB NSG
-  var_sub_db_nsg    = try(var.infrastructure.vnets.sap.subnet_db.nsg, {})
-  sub_db_nsg_arm_id = try(local.var_sub_db_nsg.arm_id, "")
-  sub_db_nsg_exists = length(local.sub_db_nsg_arm_id) > 0 ? true : false
-  sub_db_nsg_name = local.sub_db_nsg_exists ? (
-    try(split("/", local.sub_db_nsg_arm_id)[8], "")) : (
-    try(local.var_sub_db_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.db_subnet_nsg))
-  )
-
-  // PPG Information
-  ppgId = lookup(var.infrastructure, "ppg", false) != false ? (var.ppg[0].id) : ""
+  // Support dynamic addressing
+  use_DHCP = try(local.anydb.use_DHCP, false)
 
   anydb          = try(local.anydb_databases[0], {})
   anydb_platform = try(local.anydb.platform, "NONE")
@@ -110,13 +102,10 @@ locals {
   // Enable deployment based on length of local.anydb_databases
   enable_deployment = (length(local.anydb_databases) > 0) ? true : false
 
-  /* 
-     TODO: currently sap landscape and sap system haven't been decoupled. 
-     The key vault information of sap landscape will be obtained via input json.
-     At phase 2, the logic will be updated and the key vault information will be obtained from tfstate file of sap landscape.  
-  */
-  kv_landscape_id    = try(local.var_infra.landscape.key_vault_arm_id, "")
-  secret_sid_pk_name = try(local.var_infra.landscape.sid_public_key_secret_name, "")
+  // Retrieve information about Sap Landscape from tfstate file
+  landscape_tfstate  = var.landscape_tfstate
+  kv_landscape_id    = try(local.landscape_tfstate.landscape_key_vault_user_arm_id, "")
+  secret_sid_pk_name = try(local.landscape_tfstate.sid_public_key_secret_name, "")
 
   // Define this variable to make it easier when implementing existing kv.
   sid_kv_user = try(var.sid_kv_user[0], null)
@@ -146,6 +135,9 @@ locals {
   sid_auth_password    = local.enable_auth_password ? try(local.anydb.authentication.password, random_password.password[0].result) : ""
 
   db_systemdb_password = "db_systemdb_password"
+
+  // Tags
+  tags = try(local.anydb.tags, {})
 
   authentication = try(local.anydb.authentication,
     {
@@ -328,5 +320,9 @@ locals {
     for storage in local.storage_list :
     storage.disk_type == "UltraSSD_LRS" ? true : ""
   ])[0], false)
+
+  full_observer_names = flatten([for vm in local.observer_virtualmachine_names :
+    format("%s%s%s%s", local.prefix, var.naming.separator, vm, local.resource_suffixes.vm)]
+  )
 
 }

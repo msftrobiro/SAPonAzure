@@ -1,16 +1,15 @@
 locals {
 
-  db_oscode       = upper(var.db_ostype) == "LINUX" ? "l" : "w"
-  app_oscode      = upper(var.app_ostype) == "LINUX" ? "l" : "w"
-  anchor_oscode   = upper(var.anchor_ostype) == "LINUX" ? "l" : "w"
-  db_platformcode = substr(var.db_platform, 0, 3)
+  db_oscode     = upper(var.db_ostype) == "LINUX" ? "l" : "w"
+  app_oscode    = upper(var.app_ostype) == "LINUX" ? "l" : "w"
+  anchor_oscode = upper(var.anchor_ostype) == "LINUX" ? "l" : "w"
 
   anchor_computer_names = [for idx in range(length(local.zones)) :
-    format("%sanchorz%s%02d%s%s", lower(var.sap_sid), local.zones[idx % length(local.zones)], idx, local.anchor_oscode, local.random_id_vm_verified)
+    format("%sanchorz%s%02d%s%s", lower(var.sap_sid), local.zones[idx % max(length(local.zones), 1)], idx, local.anchor_oscode, local.random_id_vm_verified)
   ]
 
   anchor_vm_names = [for idx in range(length(local.zones)) :
-    format("%sanchor_z%s_%02d%s%s", lower(var.sap_sid), local.zones[idx % length(local.zones)], idx, local.anchor_oscode, local.random_id_vm_verified)
+    format("%sanchor_z%s_%02d%s%s", lower(var.sap_sid), local.zones[idx % max(length(local.zones), 1)], idx, local.anchor_oscode, local.random_id_vm_verified)
   ]
 
   deployer_vm_names = [for idx in range(var.deployer_vm_count) :
@@ -26,15 +25,15 @@ locals {
   ]
 
   anydb_vm_names = [for idx in range(var.db_server_count) :
-    local.zonal_deployment ? (
-      format("%sd%s%sz%s%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), local.separator, var.db_zones[idx % length(var.db_zones)], local.separator, idx, 0, local.random_id_vm_verified)) : (
+    length(var.db_zones) > 0 ? (
+      format("%sd%s%sz%s%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), local.separator, var.db_zones[idx % max(length(var.db_zones), 1)], local.separator, idx, 0, local.random_id_vm_verified)) : (
       format("%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx, 0, local.random_id_vm_verified)
     )
   ]
 
   anydb_vm_names_ha = [for idx in range(var.db_server_count) :
-    local.zonal_deployment ? (
-      format("%sd%s%sz%s%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), local.separator, var.db_zones[idx % length(var.db_zones)], local.separator, idx, 1, local.random_id_vm_verified)) : (
+    length(var.db_zones) > 0 ? (
+      format("%sd%s%sz%s%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), local.separator, var.db_zones[idx % max(length(var.db_zones), 1)], local.separator, idx, 1, local.random_id_vm_verified)) : (
       format("%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx, 1, local.random_id_vm_verified)
     )
   ]
@@ -44,8 +43,8 @@ locals {
   ]
 
   app_server_vm_names = [for idx in range(var.app_server_count) :
-    local.zonal_deployment ? (
-      format("%sapp%sz%s%s%02d%s%s", lower(var.sap_sid), local.separator, var.app_zones[idx % length(var.app_zones)], local.separator, idx, local.app_oscode, local.random_id_vm_verified)) : (
+    length(var.app_zones) > 0 ? (
+      format("%sapp%sz%s%s%02d%s%s", lower(var.sap_sid), local.separator, var.app_zones[idx % max(length(var.app_zones), 1)], local.separator, idx, local.app_oscode, local.random_id_vm_verified)) : (
       format("%sapp%02d%s%s", lower(var.sap_sid), idx, local.app_oscode, local.random_id_vm_verified)
     )
   ]
@@ -63,15 +62,15 @@ locals {
   ]
 
   hana_server_vm_names = [for idx in range(var.db_server_count) :
-    local.zonal_deployment ? (
-      format("%sd%s%sz%s%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), local.separator, var.db_zones[idx % length(var.db_zones)], local.separator, idx, 0, local.random_id_vm_verified)) : (
+    length(var.db_zones) > 0 ? (
+      format("%sd%s%sz%s%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), local.separator, var.db_zones[idx % max(length(var.db_zones), 1)], local.separator, idx, 0, local.random_id_vm_verified)) : (
       format("%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx, 0, local.random_id_vm_verified)
     )
   ]
 
   hana_server_vm_names_ha = [for idx in range(var.db_server_count) :
-    local.zonal_deployment ? (
-      format("%sd%s%sz%s%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), local.separator, var.db_zones[idx % length(var.db_zones)], local.separator, idx, 1, local.random_id_vm_verified)) : (
+    length(var.db_zones) > 0 ? (
+      format("%sd%s%sz%s%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), local.separator, var.db_zones[idx % max(length(var.db_zones), 1)], local.separator, idx, 1, local.random_id_vm_verified)) : (
       format("%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx, 1, local.random_id_vm_verified)
     )
   ]
@@ -81,8 +80,8 @@ locals {
   ]
 
   scs_server_vm_names = [for idx in range(var.scs_server_count) :
-    local.zonal_deployment ? (
-      format("%sscs%sz%s%s%02d%s%s", lower(var.sap_sid), local.separator, var.scs_zones[idx % length(var.scs_zones)], local.separator, idx, local.app_oscode, local.random_id_vm_verified)) : (
+    length(var.scs_zones) > 0 ? (
+      format("%sscs%sz%s%s%02d%s%s", lower(var.sap_sid), local.separator, var.scs_zones[idx % max(length(var.scs_zones), 1)], local.separator, idx, local.app_oscode, local.random_id_vm_verified)) : (
       format("%sscs%02d%s%s", lower(var.sap_sid), idx, local.app_oscode, local.random_id_vm_verified)
     )
   ]
@@ -91,22 +90,55 @@ locals {
     format("%sweb%02d%s%s", lower(var.sap_sid), idx, local.app_oscode, local.random_id_vm_verified)
   ]
 
-  web_server_vm_names = [for idx in range(var.scs_server_count) :
-    local.zonal_deployment ? (
-      format("%sweb%sz%s%s%02d%s%s", lower(var.sap_sid), local.separator, var.web_zones[idx % length(var.web_zones)], local.separator, idx, local.app_oscode, local.random_id_vm_verified)) : (
+  web_server_vm_names = [for idx in range(var.web_server_count) :
+    length(var.web_zones) > 0 ? (
+      format("%sweb%sz%s%s%02d%s%s", lower(var.sap_sid), local.separator, var.web_zones[idx % max(length(var.web_zones), 1)], local.separator, idx, local.app_oscode, local.random_id_vm_verified)) : (
       format("%sweb%02d%s%s", lower(var.sap_sid), idx, local.app_oscode, local.random_id_vm_verified)
     )
   ]
 
   observer_computer_names = [for idx in range(length(local.zones)) :
-    format("%sobserver%02d%s%s", lower(var.sap_sid), idx, local.db_platformcode, local.random_id_vm_verified)
+    format("%sobserver%02d%s%s", lower(var.sap_sid), idx, local.db_oscode, local.random_id_vm_verified)
   ]
 
   observer_vm_names = [for idx in range(length(local.zones)) :
     local.zonal_deployment ? (
-      format("%sobserver_z%s_%02d%s%s", lower(var.sap_sid), local.zones[idx % length(local.zones)], idx, local.db_platformcode, local.random_id_vm_verified)) : (
-      format("%sobserver%02d%s%s", lower(var.sap_sid), idx, local.db_platformcode, local.random_id_vm_verified)
+      format("%sobserver_z%s_%02d%s%s", lower(var.sap_sid), local.zones[idx % length(local.zones)], idx, local.db_oscode, local.random_id_vm_verified)) : (
+      format("%sobserver%02d%s%s", lower(var.sap_sid), idx, local.db_oscode, local.random_id_vm_verified)
     )
+  ]
+
+  //For customer who want to have an alternative name for the second IP address
+  app_secondary_dnsnames = [for idx in range(var.app_server_count) :
+    format("%sapp%02d%s%s", lower(var.sap_sid), idx, local.app_oscode, local.random_id_vm_verified)
+  ]
+
+  anchor_secondary_dnsnames = [for idx in range(length(local.zones)) :
+    format("%sanchorz%s%02d%s%s", lower(var.sap_sid), local.zones[idx % max(length(local.zones), 1)], idx, local.anchor_oscode, local.random_id_vm_verified)
+  ]
+
+  anydb_secondary_dnsnames = [for idx in range(var.db_server_count) :
+    format("%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx, 0, local.random_id_vm_verified)
+  ]
+
+  anydb_secondary_dnsnames_ha = [for idx in range(var.db_server_count) :
+    format("%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx, 1, local.random_id_vm_verified)
+  ]
+
+  hana_secondary_dnsnames = [for idx in range(var.db_server_count) :
+    format("%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx, 0, local.random_id_vm_verified)
+  ]
+
+  hana_secondary_dnsnames_ha = [for idx in range(var.db_server_count) :
+    format("%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx, 1, local.random_id_vm_verified)
+  ]
+
+  scs_secondary_dnsnames = [for idx in range(var.scs_server_count) :
+    format("%sscs%02d%s%s", lower(var.sap_sid), idx, local.app_oscode, local.random_id_vm_verified)
+  ]
+
+  web_secondary_dnsnames = [for idx in range(var.web_server_count) :
+    format("%sweb%02d%s%s", lower(var.sap_sid), idx, local.app_oscode, local.random_id_vm_verified)
   ]
 
 }

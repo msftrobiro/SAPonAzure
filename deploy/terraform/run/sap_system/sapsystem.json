@@ -1,6 +1,7 @@
 {
   "tfstate_resource_id": "",
   "deployer_tfstate_key": "",
+  "landscape_tfstate_key": "",
   "infrastructure": {
     "environment": "np",
     "region": "eastus",
@@ -8,24 +9,13 @@
       "is_existing": "false",
       "arm_id": ""
     },
-    "landscape": {
-      "key_vault_arm_id": "",
-      "sid_public_key_secret_name": ""
-    },
     "vnets": {
       "sap": {
-        "is_existing": "false",
-        "arm_id": "",
-        "name": "",
-        "address_space": "10.1.0.0/16",
         "subnet_admin": {
           "prefix": "10.1.1.0/24"
         },
         "subnet_db": {
           "prefix": "10.1.2.0/24"
-        },
-        "subnet_iscsi": {
-          "prefix": "10.1.3.0/24"
         },
         "subnet_app": {
           "prefix": "10.1.4.0/24"
@@ -43,8 +33,7 @@
         "publisher": "SUSE",
         "offer": "sles-sap-12-sp5",
         "sku": "gen1"
-      },
-      "zones": []
+      }
     }
   ],
   "application": {
@@ -55,9 +44,6 @@
     "scs_high_availability": false,
     "application_server_count": 1,
     "webdispatcher_count": 1,
-    "app_zones": [],
-    "scs_zones": [],
-    "web_zones": [],
     "authentication": {
       "type": "key",
       "username": "azureadm"

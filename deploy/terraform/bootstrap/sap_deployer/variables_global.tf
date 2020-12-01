@@ -28,3 +28,8 @@ variable "sshkey" {
   description = "Details of ssh key pair"
   default     = {}
 }
+
+variable "key_vault" {
+  description = "The user brings existing Azure Key Vaults"
+  default     = ""
+}

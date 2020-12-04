@@ -64,12 +64,12 @@ locals {
 
   resource_suffixes = var.naming.resource_suffixes
 
-  region  = try(var.infrastructure.region, "")
+  region = try(var.infrastructure.region, "")
 
   faultdomain_count = try(tonumber(compact(
-    [for pair in local.faults : 
+    [for pair in local.faults :
       upper(pair.Location) == upper(local.region) ? pair.MaximumFaultDomainCount : ""
-    ])[0]),2)
+  ])[0]), 2)
 
   sid     = upper(try(var.application.sid, ""))
   prefix  = try(var.infrastructure.resource_group.name, trimspace(var.naming.prefix.SDU))
@@ -214,11 +214,11 @@ locals {
     "version"         = try(var.application.scs_os.version, local.scs_custom_image ? "" : local.app_os.version)
   }
 
- // Tags
-  app_tags = try(var.application.app_tags,{})
-  scs_tags = try(var.application.scs_tags,{})
-  web_tags = try(var.application.web_tags,{})
-  
+  // Tags
+  app_tags = try(var.application.app_tags, {})
+  scs_tags = try(var.application.scs_tags, {})
+  web_tags = try(var.application.web_tags, {})
+
   application = merge(var.application,
     { authentication = local.authentication }
   )
@@ -253,11 +253,11 @@ locals {
   }
 
   // Default VM config should be merged with any the user passes in
-  app_sizing = lookup(local.sizes.app, local.vm_sizing, lookup(local.sizes.app, "Default"))
+  app_sizing = lookup(local.sizes.app, local.vm_sizing)
 
-  scs_sizing = lookup(local.sizes.scs, local.vm_sizing, lookup(local.sizes.scs, "Default"))
+  scs_sizing = lookup(local.sizes.scs, local.vm_sizing)
 
-  web_sizing = lookup(local.sizes.web, local.vm_sizing, lookup(local.sizes.web, "Default"))
+  web_sizing = lookup(local.sizes.web, local.vm_sizing)
 
   // Ports used for specific ASCS, ERS and Web dispatcher
   lb_ports = {

@@ -130,7 +130,7 @@ resource "azurerm_linux_virtual_machine" "app" {
   }
 
   tags = local.app_tags
-  
+
 }
 
 # Create the Windows Application VM(s)

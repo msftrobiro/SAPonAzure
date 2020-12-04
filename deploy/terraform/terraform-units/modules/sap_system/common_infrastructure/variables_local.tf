@@ -111,12 +111,6 @@ locals {
   enable_hdb_deployment = (length(local.hdb_list) > 0) ? true : false
 
   default_filepath = local.enable_hdb_deployment ? "${path.module}/../../../../../configs/hdb_sizes.json" : "${path.module}/../../../../../configs/anydb_sizes.json"
-  sizes            = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : local.default_filepath))
-  storage_list     = length(var.databases) > 0 ? lookup(local.sizes, var.databases[0].size).storage : []
-  enable_ultradisk = try(compact([
-    for storage in local.storage_list :
-    storage.disk_type == "UltraSSD_LRS" ? true : ""
-  ])[0], false)
 
   //Enable xDB deployment 
   xdb_list = [
@@ -133,6 +127,17 @@ locals {
   //Enable SID deployment
   enable_sid_deployment = local.enable_db_deployment || local.enable_app_deployment
 
+  sizes            = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : local.default_filepath))
+  db_sizing        = local.enable_db_deployment ? lookup(local.sizes, var.databases[0].size).storage : []
+
+  enable_ultradisk = try(
+    compact(
+      [
+        for storage in local.db_sizing : storage.disk_type == "UltraSSD_LRS" ? true : ""
+      ]
+    )[0],
+    false
+  )
   //ANF support
   use_ANF = try(local.db.use_ANF, false)
   //Scalout subnet is needed if ANF is used and there are more than one hana node 

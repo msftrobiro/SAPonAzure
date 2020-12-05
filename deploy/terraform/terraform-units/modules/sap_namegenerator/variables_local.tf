@@ -88,6 +88,11 @@ variable deployer_vm_count {
   default = 1
 }
 
+variable resource_offset {
+  type    = number
+  default = 0
+}
+
 //Todo: Add to documentation
 variable sapautomation_name_limits {
   description = "Name length for automation resources"

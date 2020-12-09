@@ -50,7 +50,7 @@ locals {
   ]
 
   iscsi_server_names = [for idx in range(var.iscsi_server_count) :
-    lower(format("%s%s%siscsi%02d", lower(local.env_verified), local.vnet_verified, local.location_short, idx))
+    lower(format("%s%s%siscsi%02d", lower(local.env_verified), local.sap_vnet_verified, local.location_short, idx))
   ]
 
   hana_computer_names = [for idx in range(var.db_server_count) :

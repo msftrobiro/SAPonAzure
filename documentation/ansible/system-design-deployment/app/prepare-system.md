@@ -1,5 +1,9 @@
 # App System Preparation
 
+:hand: The following process should be followed only when manually generating the Installation templates.
+
+It is not required to follow this process during the [Automated Application Deployment process](./deploy-sid.md).
+
 ## Prerequisites
 
 1. SAP Infrastructure deployed

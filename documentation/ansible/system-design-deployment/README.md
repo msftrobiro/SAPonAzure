@@ -31,7 +31,7 @@ Two other phases are involved in the overall end-to-end lifecycle, but these are
 
 ### Existing Ansible Configuration
 
-Prior to following any documentation below there is some existing configuration which should be run, however there is some overlap with it and the process documented below.
+Prior to following any Preparation or Deployment phase documentation below there is some existing configuration which should be run, however there is some overlap with it and the process documented below.
 
 The below assumes that the SAP System deployment has been run from the deployer, thus generating the folder: `Azure_SAP_Automated_Deployment/WORKSPACES/SAP_SYSTEM/XXXXX/ansible_config_files`
 

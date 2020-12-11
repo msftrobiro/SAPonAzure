@@ -6,4 +6,5 @@
     tier: scs
   roles:
     - role: ensure-bom
+    - role: sap-users
     - role: scs-install

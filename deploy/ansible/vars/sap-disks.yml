@@ -36,3 +36,11 @@ sap_filesystems:
     fstype: xfs
     dev: /dev/vg_sap/lv_usrsapinstall
     mount_path: /usr/sap/install
+
+sap_swap:
+  - tier: preparation
+    swap_file: "/swapfile"
+    swap_size_mb: "20480"
+  - tier: pas
+    swap_file: "/swapfile"
+    swap_size_mb: "20480"

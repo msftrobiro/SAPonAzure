@@ -6,6 +6,7 @@
     tier: preparation
   roles:
     - role: disk-setup
+    - role: swap-setup
     - role: ensure-bom
     - role: process_bom
     - role: nfs-server-setup

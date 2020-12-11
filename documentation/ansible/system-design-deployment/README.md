@@ -168,6 +168,10 @@ ansible-playbook -i hosts.yml ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/a
 1. **Acquisition**
    1. [Acquire Media](./hana/acquire-media.md)
 1. **Preparation**
+
+   :hand: The Preparation phase for SAP HANA should only be completed once for each version of SAP HANA used.
+   Once the installation media, Bill of Materials, and installation template are uploaded to the SAP Library proceed with the Deployment documentation.
+
    1. [Prepare Media](./hana/prepare-sap-library.md)
    1. [Prepare Bill of Materials](./hana/prepare-bom.md)
    1. [Validate the BoM](./bom-validation.md)
@@ -182,6 +186,10 @@ ansible-playbook -i hosts.yml ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/a
 1. **Acquisition**
    1. [Acquire Media](./app/acquire-media.md)
 1. **Preparation**
+
+   :hand: The Preparation phase for the SAP Application should only be completed once for each version of the specific SAP product used, e.g. S/4HANA 2020 ISS.
+   Once the installation media, Bill of Materials, and installation template for that product/version are uploaded to the SAP Library proceed with the Deployment documentation.
+
    1. [Prepare Media](./app/prepare-sap-library.md)
    1. [Prepare Bill of Materials](./app/prepare-bom.md)
    1. [Validate the BoM](./bom-validation.md)

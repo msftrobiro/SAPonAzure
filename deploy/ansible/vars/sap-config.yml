@@ -19,6 +19,7 @@ password_hana_system:
 password_master: "Passw0rd123"
 sap_fqdn:
 sapadm_uid: 2100
+sapinst_gid: 2001
 sapsys_gid: 2000
 scs_hostname: "{{ ansible_hostname }}"
 scs_instance_number: "00"

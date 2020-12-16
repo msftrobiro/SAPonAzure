@@ -9,7 +9,6 @@
 #
 # Limitations of generated BoM:
 # - Hard-coded HANA2 dependency which will need editing
-# - No provision for `version:` in media
 #
 # Instructions
 # - Run this script from the stackfiles folder on your workstation
@@ -126,10 +125,10 @@ BEGIN {
 
 END {
 
-  printf("---\n\nname: \"%s\"\ntarget: \"%s\"\nversion: \"001\"\n", product, targetname);
+  printf("---\n\nname: \"%s\"\ntarget: \"%s\"\n", product, targetname);
   printf("\ndefaults:\n  target_location: \"{{ target_media_location }}/download_basket\"\n");
   printf("\nproduct_ids:\n  scs:\n  db:\n  pas:\n  aas:\n  web:\n");
-  printf("\nmaterials:\n  dependencies:\n    - name: \"HANA2\"\n      version: \"001\"\n\n  media:\n");
+  printf("\nmaterials:\n  dependencies:\n    - name: \"HANA2  # <- edit as needed\"\n\n  media:\n");
 
   while ( getline < "tempworkfile" ) {
     seq = $1;

@@ -22,7 +22,7 @@
         reference: "bom"
         dict: "{{ bom }}"
         required: ['name', 'defaults', 'product_ids', 'materials']
-        optional: ['version', 'target']
+        optional: ['target']
       ignore_errors: true
 
     - name: "Check bom.defaults dict"
@@ -61,7 +61,7 @@
         reference: "bom.materials.dependencies"
         dict: "{{ dict_item }}"
         required: ['name']
-        optional: ['version']
+        optional: []
       when: bom.materials.dependencies is defined
       loop: "{{ bom.materials.dependencies | flatten(levels=1) }}"
       loop_control:
@@ -74,7 +74,7 @@
         reference: "bom.materials.templates"
         dict: "{{ dict_item }}"
         required: ['name', 'file']
-        optional: ['version', 'override_target_location', 'override_target_filename']
+        optional: ['override_target_location', 'override_target_filename']
       when: bom.materials.templates is defined
       loop: "{{ bom.materials.templates | flatten(levels=1) }}"
       loop_control:
@@ -87,7 +87,7 @@
         reference: "bom.materials.stackfiles"
         dict: "{{ dict_item }}"
         required: ['name', 'file']
-        optional: ['version', 'override_target_location', 'override_target_filename']
+        optional: ['override_target_location', 'override_target_filename']
       when: bom.materials.stackfiles is defined
       loop: "{{ bom.materials.stackfiles | flatten(levels=1) }}"
       loop_control:
@@ -100,7 +100,7 @@
         reference: "bom.materials.media"
         dict: "{{ dict_item }}"
         required: ['name', 'archive']
-        optional: ['version', 'sapurl', 'override_target_location', 'override_target_filename']
+        optional: ['sapurl', 'override_target_location', 'override_target_filename']
       when: bom.materials.media is defined
       loop: "{{ bom.materials.media | flatten(levels=1) }}"
       loop_control:

@@ -26,30 +26,6 @@
    cd ~/Azure_SAP_Automated_Deployment/WORKSPACES/SAP_SYSTEM/NP-CEUS-SAP0-X00/ansible_config_files
    ```
 
-1. Using the editor of your choice, update the SAP Config file located here: `~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/vars/sap-config.yml`
-
-   1. `sapbits_location_base_path` should be the URL to the `sapbits` container the SAP Library storage account.
-   1. `bom_base_name` should match the Bill of Materials file uploaded into the SAP Library storage account.
-   1. Values below `target_media_location` are particular to your system, and are defaulted to allow an SCS installation to complete. These can be changed to suit your deployment.
-
-1. Run Ansible playbook which processes the BoM file to obtain and prepare the correct Installation Media for the system, and makes it available on the SCS node. Also exports the required fileshares for other nodes to install from:
-
-   ```shell
-   ansible-playbook -i hosts.yml ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/playbook_process_bom.yml
-   ```
-
-   This playbook:
-
-   1. Configures LVM volumes
-   1. Configures generic SAP filesystem mounts
-      1. Configures directory structure (e.g. `/sapmnt`, `/usr/sap`, etc.)
-      1. Configures file systems (i.e. `/etc/fstab`)
-   1. Configures install directories (e.g. `/sapmnt/<SID>` and `/usr/sap/install`)
-   1. Iterates over BoM content to download (media, unattended install templates, etc.)
-   1. **Note:** Nested BoMs will also be iterated over, to ensure media which may be needed for the installation will also be downloaded and made available.
-   1. Downloads the Installation Media to a known location (`/usr/sap/install`) on the filesystem of a particular VM (SCS) and organised into directories where it benefits the automated process
-   1. Creates NFS export of downloaded/extracted media making available to other VMs in the system
-
 1. Run Ansible playbooks which deploy SAP product components (using SWPM, or for SAP HANA hdblcm):
 
    __Note *:__ Commands marked below do not yet have automated playbooks covering their installation. For manual installation instructions see the Prepare INI file documentation

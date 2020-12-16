@@ -1,4 +1,4 @@
-# System Definition
+# SAP System Definition
 
 This document describes the process to generate a configuration file for a particular SAP System.
 This file will contain the configuration required for the deployment of a system, and will be stored inthe Ansible Inventory folder.

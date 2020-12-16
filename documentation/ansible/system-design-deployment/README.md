@@ -29,38 +29,31 @@ Two other phases are involved in the overall end-to-end lifecycle, but these are
 
 ## Process Index
 
-### Database
+### Installation Media Aquisition
 
-#### SAP HANA
+1. **Database**
+   1. [SAP HANA](./hana/acquire-media.md)
+1. [Application](./app/acquire-media.md)
 
-1. **Acquisition**
-   1. [Acquire Media](./hana/acquire-media.md)
-1. **Preparation**
+### SAP Library Preparation
 
-   :hand: The Preparation phase for SAP HANA should only be completed once for each version of SAP HANA used.
-   Once the installation media, Bill of Materials, and installation template are uploaded to the SAP Library proceed with the **SAP Application** documentation.
+1. Upload Installation Media to the SAP Library
+   1. [Prepare SAP HANA Media](./hana/prepare-sap-library.md)
+   1. [Prepare Application Media](./app/prepare-sap-library.md)
+1. Prepare the Bill of Materials
+   1. [Prepare SAP HANA Bill of Materials](./hana/prepare-bom.md)
+   1. [Prepare SAP Application Bill of Materials](./app/prepare-bom.md)
+1. Template Generation
+   1. [Modify and Run the Existing Deployment Process](./interim-playbook-preparation.md)
+   1. [Define the SAP System Configuration](./common/system-definition.md)
+   1. [Process the Bill of Materials for SAP System Installation](./common/system-definition.md)
+   1. [Prepare SAP HANA Installation Template](./hana/prepare-ini.md)
+   1. [Prepare SAP Application Consolidated Installation Template](./app/prepare-ini.md)
 
-   1. [Prepare Media](./hana/prepare-sap-library.md)
-   1. [Prepare Bill of Materials](./hana/prepare-bom.md)
-   1. [Modify Existing Deployment Process](./interim-playbook-preparation.md)
-   1. [Prepare Installation Template](./hana/prepare-ini.md)
+### SAP System Deployment
 
-### SAP Application
-
-1. **Prepare System**:
-   1. [Prepare System](./app/prepare-system.md)
-1. **Acquisition**
-   1. [Acquire Media](./app/acquire-media.md)
-1. **Preparation**
-
-   :hand: The Preparation phase for the SAP Application should only be completed once for each version of the specific SAP product used, e.g. S/4HANA 2020 ISS. Once the installation media, Bill of Materials, and installation template for that product/version are uploaded to the SAP Library proceed with the **Deployment** documentation.
-
-   1. [Prepare Media](./app/prepare-sap-library.md)
-   1. [Prepare Bill of Materials](./app/prepare-bom.md)
-   1. [Prepare Installation Template](./app/prepare-ini.md)
-
-### Deployment
-
-1. [Modify Existing Deployment Process](./interim-playbook-preparation.md)
+1. [Modify and Run the Existing Deployment Process](./interim-playbook-preparation.md)
+1. [Define the SAP System Configuration](./common/system-definition.md)
+1. [Process the Bill of Materials for SAP System Installation](./common/system-definition.md)
 1. [Deploy SAP HANA SID](./hana/deploy-sid.md)
 1. [Deploy SAP Application SID](./app/deploy-sid.md)

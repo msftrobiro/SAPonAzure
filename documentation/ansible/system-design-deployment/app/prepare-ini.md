@@ -25,10 +25,6 @@
 
 1. Connect to your target VM as the `root` user;
 1. Set the root user password to a known value as this will be required to access SWPM;
-1. Mount the `sapbits` container to your target VM. This process is documented on the [Microsoft Azure Website](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-how-to-mount-container-linux);
-
-   **Note:** The following instructions assume you have mounted the container as `/mnt/sapbits`.
-
 1. Make and change to a temporary directory:
 
    `mkdir /tmp/workdir; cd $_`
@@ -37,22 +33,9 @@
 
    `mkdir /tmp/app_template/`
 
-1. Ensure `/usr/sap/install/` exists:
-
-   `mkdir /usr/sap/install/`
-
-1. Using the `media` entries in the BoM file, copy the required media from `sapbits` to `/usr/sap/install`:
-   1. For each entry in `media`:
-
-      `cp /mnt/sapbits/archive/<archive> /usr/sap/install`
-
-      Where `<archive>` is the filename in the `archive:` property of the entry in the BoM.
-
-      For example: `cp /mnt/sapbits/archive/SAPHOSTAGENT49_49-20009394.SAR /usr/sap/install`
-
 1. Update the permissions to make `SAPCAR` executable (SAPCAR version may change depending on your downloads):
 
-   `chmod +x /usr/sap/install/SAPCAR_1311-80000935.EXE`
+   `chmod +x /usr/sap/install/download_basket/SAPCAR_1311-80000935.EXE`
 
 1. Ensure `/usr/sap/install/SWPM/` exists:
 
@@ -60,13 +43,7 @@
 
 1. Extract `SWPM20SP07_0-80003424.SAR` via `SAPCAR.EXE`. For example:
 
-   `/usr/sap/install/SAPCAR_1311-80000935.EXE -xf /usr/sap/install/SWPM20SP07_0-80003424.SAR -R /usr/sap/install/SWPM/`
-
-1. Ensure `/usr/sap/install/config` exists and contains the XML Stack file downloaded from the SAP Maintenance Planner:
-
-   `mkdir -p /usr/sap/install/config && cp /mnt/sapbits/boms/S4HANA_2020_ISS_v001/stackfiles/<MP stack file>.xml /usr/sap/install/config`
-
-1. Follow the instructions below to generate each `inifile` template.
+   `/usr/sap/install/download_basket/SAPCAR_1311-80000935.EXE -xf /usr/sap/install/SWPM20SP07_0-80003424.SAR -R /usr/sap/install/SWPM/`
 
 ### Generating unattended installation `inifile` for ASCS
 

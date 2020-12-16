@@ -93,12 +93,13 @@ Any additional components are not required at this stage as they do not affect t
 
 1. Upload the generated template files to the SAP Library:
    1. In the Azure Portal navigate to the `sapbits` file share;
-   1. Create a new `templates` directory under `sapbits` if it does not already exist;
+   1. Navigate to `boms`;
+   1. Navigate to the correct BoM directory (`HANA_2_00_052_v001` in this example);
+   1. Create a new `templates` directory if it does not already exist;
    1. Click "Upload";
    1. In the panel on the right, click "Select a file";
    1. Navigate your workstation to the template generation directory `/tmp/hana_template`;
    1. Select the generated templates, e.g. `HANA_2_00_052_v001.params` and `HANA_2_00_052_v001.params.xml`;
-   1. Click "Advanced" to show the advanced options, and enter `templates` for the Upload Directory;
    1. Click "Upload".
 
 ### Manual HANA Installation Using Template

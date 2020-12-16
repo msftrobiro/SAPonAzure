@@ -39,7 +39,9 @@ A `bash` script is available in the `util` folder which may be used to generate 
 
 ### Example Partial BoM File
 
-An example of a small part of a BoM file for S/4HANA 1909 SP2. The `[x]` numbered sections are covered in the following documentation. Note that `v001` is a sequential number used to indicate the internal (non-SAP) version of the files included.
+An example of a small part of a BoM file for S/4HANA 1909 SP2 is shown, below. The `[x]` numbered sections are covered in the following documentation. Note that `v001` is a sequential number used to indicate the internal (non-SAP) version of the files included.
+
+Note that the `name` property is optional in `media`, `stackfiles` and `templates`. If provided, it will be used by the BoM validator to note entries having errors.
 
 Complete, usable BoM files are available in the [examples](../examples/) directory.
 

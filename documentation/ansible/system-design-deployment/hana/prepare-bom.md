@@ -13,7 +13,9 @@
 
 ## Example Partial BoM File
 
-An example of a small part of a BoM file for HANA2.0. The `[x]` numbered sections are covered in the following documentation. Note that `v001` is a sequential number used to indicate the internal (non-SAP) version of the files included.
+An example of a small part of a BoM file for HANA2.0 is shown, below. The `[x]` numbered sections are covered in the following documentation. Note that `v001` is a sequential number used to indicate the internal (non-SAP) version of the files included.
+
+Note that the `name` property is optional in `media`, `stackfiles` and `templates`. If provided, it will be used by the BoM validator to note entries having errors.
 
 Complete, usable BoM files are available in the [examples](../examples/) directory.
 

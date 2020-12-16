@@ -4,6 +4,8 @@
   become: yes
   vars:
     tier: preparation
+  vars_files:
+    - "{{ inventory_dir }}/sap_system_configuration.yml"
   roles:
     - role: disk-setup
     - role: swap-setup

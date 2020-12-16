@@ -1,8 +1,4 @@
 ---
 
-- name: "Ensure variables are available"
-  include_vars:
-    file: "../../../vars/sap-config.yml"
-
 - import_tasks: configure.yml
   become: true

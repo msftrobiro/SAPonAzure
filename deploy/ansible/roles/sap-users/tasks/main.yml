@@ -1,9 +1,5 @@
 ---
 
-- name: Ensure variables are available
-  include_vars:
-    file: "../../../vars/sap-config.yml"
-
 - name: Ensure SAP groups are created
   group:
     name: "{{ item.group }}"

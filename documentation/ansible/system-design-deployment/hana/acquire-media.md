@@ -27,7 +27,7 @@
    1. Ensure the search type at the top of the screen is set to Downloads;
    1. Enter `HANA PLATFORM` into the search bar and click the search button;
    1. Find the version of SAP HANA you wish to download, e.g. `SAP HANA PLATFORM EDITION 2.0`;
-   1. Click on the row with `Maintenance Product`;
+   1. To download the patch files select the `Maintenance Product`. Choosing the `Installation Platform` will download the cd realse (.zip), however this process uses the `Maintenance Product` patch file (.SAR);
    1. If prompted, click on the row with `SAP HANA DATABASE 2.0`;
 
       ![SAP HANA Database 2.0](../images/sap-hana-database-2.0.png)

@@ -94,7 +94,7 @@ Any additional components are not required at this stage as they do not affect t
 1. Upload the generated template files to the SAP Library:
    1. In the Azure Portal navigate to the `sapbits` file share;
    1. Navigate to `boms`;
-   1. Navigate to the correct BoM directory (`HANA_2_00_052_v001` in this example);
+   1. Navigate to the product folder for the BoM, e.g. `boms/HANA_2_00_052_v001`;
    1. Create a new `templates` directory if it does not already exist;
    1. Click "Upload";
    1. In the panel on the right, click "Select a file";

@@ -341,11 +341,7 @@ _**Note:** Steps prefixed with * may not be encountered in 2020 versions of SAP 
 `cp <path_to_inifile>/inifile.params /tmp/app_template/pas.2020.inifile.params`
 
 1. The inifiles can be used as the basis for unattended deployments
-1. Create a copy of the `inifile.params` to the `sapbits` container  to the `/templates/` directory and rename to `pas.inifile.params`:
-
-   `cp /tmp/app_template/pas.inifile.params /mnt/<sapbits fileshare path>/templates/`
-
-`cp <path_to_inifile>/inifile.params /tmp/app_template/pas.2020.inifile.params`
+1. Create a copy of the `inifile.params` as `pas.inifile.params` and download to your workstation.
 
 ### Manual PAS Installation Using Template
 
@@ -412,14 +408,12 @@ _**Note:** Steps prefixed with * may not be encountered in 2020 versions of SAP 
 1. On the AAS nodes, a copy of the `inifile.params` file is generated in the temporary SAP installation directory:
    1. AAS inifile path `/tmp/sapinst_instdir/S4HANA2020/CORE/HDB/INSTALL/AS/APPS/inifile.params`
 1. Click "Cancel" in SWPM, as the AAS installation can now be performed via the unattended method;
-1. Copy and rename `inifile.params` to `aas.2020.inifile.params` in `/tmp/app_template`:
+1. Copy and rename `inifile.params` to `aas.inifile.params` in `/tmp/app_template`:
 
-`cp <path_to_inifile>/inifile.params /tmp/app_template/aas.2020.inifile.params`
+`cp <path_to_inifile>/inifile.params /tmp/app_template/aas.inifile.params`
 
 1. The inifiles can be used as the basis for unattended deployments
-1. Create a copy of the `inifile.params` to the `sapbits` container  to the `/templates/` directory and rename to `aas.2020.inifile.params`:
-
-   `cp /tmp/app_template/aas.2020.inifile.params /mnt/<sapbits fileshare path>/templates/`
+1. Create a copy of the `inifile.params` as `aas.inifile.params` and download to your workstation.
 
 ### Manual AAS Installation Using Template
 
@@ -545,23 +539,25 @@ The file should be saved with a meaningful name relating to the SAP Product, e.g
       1. `storageBasedCopy.hdb.systemPassword                 = {{ password_hana_system }}`
 
 1. Upload the consolidated template file to the SAP Library:
-    1. In the Azure Portal navigate to the `sapbits` container
-    1. Click "Upload"
-    1. In the panel on the right, click Select a file
-    1. Select the generated template, e.g. `S4HANA_2020_ISS_v001.inifile.params`
-    1. Click "Upload"
-    1. Click "Advanced" to show the advanced options, and enter `templates` for the Upload Directory
+   1. In the Azure Portal navigate to the `sapbits` container:
+   1. Navigate to the product folder for the BoM, e.g. `boms/S4HANA_2020_ISS_v001`;
+   1. Create a new `templates` directory if it does not already exist;
+   1. Navigate into the `templates` directory;
+   1. Click "Upload"
+   1. In the panel on the right, click Select a file
+   1. Select the generated template, e.g. `S4HANA_2020_ISS_v001.inifile.params`
+   1. Click "Upload"
 
 1. Upload the updated BoM file to the SAP Library:
-    1. In the Azure Portal navigate to the `sapbits` container
-    1. Navigate to the product folder for the BoM, e.g. `boms/S4HANA_2020_ISS_v001`
-    1. Click "Upload"
-    1. In the panel on the right, click Select a file
-    1. Select the updated `bom.yml`
-    1. Click "Upload"
+   1. In the Azure Portal navigate to the `sapbits` container:
+   1. Navigate to the product folder for the BoM, e.g. `boms/S4HANA_2020_ISS_v001`;
+   1. Click "Upload"
+   1. In the panel on the right, click Select a file
+   1. Select the updated `bom.yml`
+   1. Click "Upload"
 
 ## Results and Outputs
 
 1. A Consolidated `inifile.params` which can be used for the unattended installation of ASCS, PAS and AAS
-1. Consolidated inifile uploaded to `templates` directory in the `sapbits` container
+1. Consolidated inifile uploaded to the appropriate BoM `templates` directory in the `sapbits` container
 1. BoM file updated to contain the Product IDs and uploaded to the `sapbits` container

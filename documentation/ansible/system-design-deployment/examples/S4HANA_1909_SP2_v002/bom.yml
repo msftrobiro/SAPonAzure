@@ -8,10 +8,10 @@ defaults:
   target_location: "{{ target_media_location }}/download_basket"
 
 product_ids:
-  scs:
-  db:
-  pas:
-  aas:
+  scs: "NW_ABAP_ASCS:S4HANA1909.CORE.HDB.ABAP"
+  db:  "NW_ABAP_DB:S4HANA1909.CORE.HDB.ABAP"
+  pas: "NW_ABAP_CI:S4HANA1909.CORE.HDB.ABAP"
+  aas: "NW_DI:S4HANA1909.CORE.HDB.PD"
   web:
 
 materials:
@@ -726,3 +726,4 @@ materials:
     - name: "Download Basket permalinks"
       file: "myDownloadBasketFiles.txt"
       override_target_location: "{{ target_media_location }}/config"
+...

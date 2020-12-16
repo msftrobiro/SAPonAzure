@@ -56,6 +56,7 @@ step|BoM Content
     |    - name: Download Basket permalinks
     |      file: myDownloadBasketFiles.txt
     |      override_target_location: "{{ target_media_location }}/config"
+    |...
 ```
 
 ## Process

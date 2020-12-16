@@ -26,7 +26,7 @@ step|BoM Content
 [2] |target:  'HANA 2.0'
     |
 [3] |defaults:
-    |  target_location: "{{ target_media_location }}/downloads/"
+    |  target_location: "{{ target_media_location }}/download_basket/"
     |
 [4] |materials:
 [5] |  media:

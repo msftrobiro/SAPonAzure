@@ -44,7 +44,7 @@ Two other phases are involved in the overall end-to-end lifecycle, but these are
    1. [Prepare SAP HANA Bill of Materials](./hana/prepare-bom.md)
    1. [Prepare SAP Application Bill of Materials](./app/prepare-bom.md)
 1. Template Generation
-   1. [Modify Existing Deployment Process](./interim-playbook-preparation.md)
+   1. [Modify and Run the Existing Deployment Process](./interim-playbook-preparation.md)
    1. [Define the SAP System Configuration](./common/system-definition.md)
    1. [Process the Bill of Materials for SAP System Installation](./common/system-definition.md)
    1. [Prepare SAP HANA Installation Template](./hana/prepare-ini.md)
@@ -52,7 +52,7 @@ Two other phases are involved in the overall end-to-end lifecycle, but these are
 
 ### SAP System Deployment
 
-1. [Modify Existing Deployment Process](./interim-playbook-preparation.md)
+1. [Modify and Run the Existing Deployment Process](./interim-playbook-preparation.md)
 1. [Define the SAP System Configuration](./common/system-definition.md)
 1. [Process the Bill of Materials for SAP System Installation](./common/system-definition.md)
 1. [Deploy SAP HANA SID](./hana/deploy-sid.md)

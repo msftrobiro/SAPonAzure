@@ -1,5 +1,7 @@
 # HANA BoM Preparation
 
+:hand: The Preparation phase for SAP HANA should only be completed once for each version of SAP HANA used. It is possible multiple SAP Application BoMs will reference the same SAP HANA BoM.
+
 ## Prerequisites
 
 1. An editor for creating the HANA BoM file.

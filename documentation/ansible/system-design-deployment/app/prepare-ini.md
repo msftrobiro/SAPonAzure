@@ -442,7 +442,7 @@ The overall process is to download the files to your workstation, extract the un
 
 The file should be saved with a meaningful name relating to the SAP Product, e.g `S4HANA_2020_ISS_v001.inifile.params` and uploaded to the Storage Account.
 
-1. Download all `inifile.params` files to your workstation, and make a backup of each file.
+1. Ensure all `inifile.params` files are downloaded to your workstation, and make a backup of each file.
 1. In **your editor** open each file.
 1. Create a new consolidation file named for the SAP Product, e.g. `S4HANA_2020_ISS_v001.inifile.params`.
 1. From the SCS inifile, copy the header into the consolidated file and format for readability, e.g.

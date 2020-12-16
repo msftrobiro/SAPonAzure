@@ -21,8 +21,8 @@
       vars:
         reference: "bom"
         dict: "{{ bom }}"
-        required: ['name', 'defaults', 'product_ids', 'materials']
-        optional: ['target']
+        required: ['name', 'defaults', 'materials']
+        optional: ['target', 'product_ids']
       ignore_errors: true
 
     - name: "Check bom.defaults dict"

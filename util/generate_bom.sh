@@ -128,7 +128,7 @@ END {
   printf("---\n\nname: \"%s\"\ntarget: \"%s\"\n", product, targetname);
   printf("\ndefaults:\n  target_location: \"{{ target_media_location }}/download_basket\"\n");
   printf("\nproduct_ids:\n  scs:\n  db:\n  pas:\n  aas:\n  web:\n");
-  printf("\nmaterials:\n  dependencies:\n    - name: \"HANA2  # <- edit as needed\"\n\n  media:\n");
+  printf("\nmaterials:\n  dependencies:\n    - name: \"HANA2\"  # <- edit as needed\n\n  media:\n");
 
   while ( getline < "tempworkfile" ) {
     seq = $1;
@@ -173,3 +173,5 @@ END {
   printf("\n    - name: \"Download Basket permalinks\"\n      file: \"myDownloadBasketFiles.txt\"\n      override_target_location: \"{{ target_media_location }}/config\"\n");
 }
 '
+
+rm -f tempworkfile

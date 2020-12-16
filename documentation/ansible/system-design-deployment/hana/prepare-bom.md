@@ -148,7 +148,7 @@ The order of entries in the `media` section does not matter. However, for improv
 
 ### Validate the BoM
 
-1. [Validate the BoM](./bom-validation.md)
+1. [Validate the BoM](../bom-validation.md)
 
 ### Upload Files to Archive Location
 

@@ -321,7 +321,7 @@ By default, files downloaded or shared from the archive space will be extracted 
 
 ### Validate the BoM
 
-1. [Validate the BoM](./bom-validation.md)
+1. [Validate the BoM](../bom-validation.md)
 
 ### Upload Files to Archive Location
 

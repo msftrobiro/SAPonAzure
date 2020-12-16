@@ -12,7 +12,7 @@
 1. Application servers should have swap space of greater than 256MB configured;
 1. Workstation has connectivity to SAP Infrastructure (e.g. SSH keys in place);
 1. Browser connectivity between workstation and target SAP VM;
-1. The [SAP Application Systems have been prepared](../prepate-system.md).
+1. The [SAP Application Systems have been prepared](./prepare-system.md).
 
 ## Inputs
 

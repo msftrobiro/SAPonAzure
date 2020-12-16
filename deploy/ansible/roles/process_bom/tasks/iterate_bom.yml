@@ -23,7 +23,7 @@
     - uri_location: archives
       property_name: archive
       media: "{{ bom.materials.media | flatten(levels=1) }}"
-    - uri_location: templates
+    - uri_location: "boms/{{ bom_base_name }}/templates"
       property_name: file
       media: "{{ bom.materials.templates | flatten(levels=1) }}"
     - uri_location: "boms/{{ bom_base_name }}/stackfiles"

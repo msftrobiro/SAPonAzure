@@ -67,6 +67,8 @@ Ensure you do this section **before** running SAP Download Manager.
 
 An example of a small part of a BoM file for S/4HANA 1909 SP2. The `[x]` numbered sections are covered in the following documentation. Note that `v001` is a sequential number used to indicate the internal (non-SAP) version of the files included.
 
+Complete, usable BoM files are available in the [examples](../examples/) directory.
+
 ```text
 step|BoM Content
     |

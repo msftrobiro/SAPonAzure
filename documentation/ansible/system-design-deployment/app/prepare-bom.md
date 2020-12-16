@@ -8,7 +8,7 @@ The process for generating a BoM which includes SAP "permalinks" is more complex
 
 The manual process to generate a "basic" BoM is very time consuming - perhaps around a day's work. However, the "full" BoM is likely to take twice as long because of the increased complexity and risk of error.
 
-A `bash` script is available in the `util` folder which may be used to generate a "full" BoM in less than a second, with a few, minor caveats. The use of this script is documented within the [Application Full BoM Preparation](prepare-app-full-bom.md) document.
+A `bash` script is available in the `util` folder which may be used to generate a "full" BoM in less than a second, with a few, minor caveats. The use of this script is documented within the [Application Full BoM Preparation](./prepare-full-app-bom.md) document.
 
 ## Prerequisites
 
@@ -40,6 +40,7 @@ A `bash` script is available in the `util` folder which may be used to generate 
 ### Example Partial BoM File
 
 An example of a small part of a BoM file for S/4HANA 1909 SP2. The `[x]` numbered sections are covered in the following documentation. Note that `v001` is a sequential number used to indicate the internal (non-SAP) version of the files included.
+Complete usable BoM files are avaible in the [examples](../examples/) directory.
 
 ```text
 step|BoM Content

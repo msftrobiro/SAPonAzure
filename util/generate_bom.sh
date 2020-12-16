@@ -12,18 +12,15 @@
 #
 # Instructions
 # - Run this script from the stackfiles folder on your workstation
-#   /path/to/generate_fullbom.sh archive_location [product] >path/to/bom.yml
+#   /path/to/generate_fullbom.sh [product] >path/to/bom.yml
 #   where:
-#   - `archive_location` is the Azure Storage Account path, e.g. "https://npweeusaplib9545.file.core.windows.net/sapbits/archives"
-#     If not supplied or blank, it will default to "https://npweeusaplib9545.file.core.windows.net/sapbits/archives"
 #   - `product` is the documented root BoM name, e.g. "SAP_S4HANA_1809_SP5_v001"
 #     If not supplied or blank, it will attempt to determine the name from the stack XML file.
 #   For example:
 #   cd stackfiles
-#   /path/to/util/generate_fullbom.sh "" "SAP_S4HANA_1809_SP5_v001" >../bom.yml
+#   /path/to/util/generate_fullbom.sh "SAP_S4HANA_1809_SP5_v001" >../bom.yml
 
-declare ARCHIVE=${1:-https://npweeusaplib9545.file.core.windows.net/sapbits/archives}
-declare PRODUCT=${2}
+declare PRODUCT=${1}
 
 declare ERR=0
 
@@ -109,7 +106,7 @@ END {
 ' /dev/null
 
 sed -e 's@\(</[^>][^>]*>\)@\1\n@g' ${XML_FILE[0]} | \
-awk -v "archive=${ARCHIVE}" -v "product=${PRODUCT}" -v "jsonfile=${JSON_FILE}" -v "xlsfile=${XLS_FILE}" -v "xmlfile=${XML_FILE}" '
+awk -v "product=${PRODUCT}" -v "jsonfile=${JSON_FILE}" -v "xlsfile=${XLS_FILE}" -v "xmlfile=${XML_FILE}" '
 BEGIN {
   phase = "";
   FS = ",";

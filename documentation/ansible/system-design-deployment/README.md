@@ -33,7 +33,8 @@ Two other phases are involved in the overall end-to-end lifecycle, but these are
 
 1. **Database**
    1. [SAP HANA](./hana/acquire-media.md)
-1. [Application](./app/acquire-media.md)
+1. **SAP Application**
+   1. [SAP Application](./app/acquire-media.md)
 
 ### SAP Library Preparation
 

@@ -1,4 +1,3 @@
 ---
 
-sapbits_location_base_path: ""
-bom_base_name: ""
+download_templates: true

@@ -3,4 +3,7 @@
 extends: default
 
 rules:
+  document-start:
+    present: true
   colons: disable
+  empty-lines: disable

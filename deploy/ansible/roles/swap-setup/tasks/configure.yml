@@ -1,17 +1,12 @@
 ---
 
-- name: Check if swapfile exists
-  stat:
-    path: /mnt/swapfile
-    get_checksum: false
-  register: chk_swapfile
-
-- name: Ensure Resource disk is formatted
+- name: Ensure Resource disk is mounted
   lineinfile:
     state: present
     dest: /etc/waagent.conf
     regexp: 'ResourceDisk.Format='
     line: 'ResourceDisk.Format=y'
+  register: conf_change
   when: not chk_swapfile.stat.exists
 
 - name: Ensure swap is enabled
@@ -20,6 +15,7 @@
     dest: /etc/waagent.conf
     regexp: 'ResourceDisk.EnableSwap='
     line: 'ResourceDisk.EnableSwap=y'
+  register: conf_change
   when: not chk_swapfile.stat.exists
 
 - name: Ensure swapfile size
@@ -28,9 +24,11 @@
     dest: /etc/waagent.conf
     regexp: 'ResourceDisk.SwapSizeMB='
     line: 'ResourceDisk.SwapSizeMB={{ item.swap_size_mb }}'
+  register: conf_change
   when: not chk_swapfile.stat.exists
 
 - name: Ensure waagent is restarted
   service:
     name: waagent
     state: restarted
+  when: conf_change.changed

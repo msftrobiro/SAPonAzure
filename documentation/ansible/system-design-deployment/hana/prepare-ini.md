@@ -25,27 +25,28 @@ Any additional components are not required at this stage as they do not affect t
 ## Process
 
 1. Connect to your target VM as the `root` user
-1. Mount the `sapbits` container to your target VM. This process is documented on the [Microsoft Azure Website](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-how-to-mount-container-linux).
+1. Ensure the mount point exists for the Installation Media:
+
+   `mkdir -p /usr/sap/install`
+
+1. Ensure the exported directories are mounted:
+
+   `mount <scs-vm-IP>:/usr/sap/install /usr/sap/install`
+
 1. Make and change to a temporary directory:
 
    `mkdir /tmp/hana_template; cd $_`
 
-1. Copy the required media from `sapbits/` to `/tmp/hana_template`:
-
-   `cp /mnt/<sapbits fileshare path> /tmp/hana_template`
-
-   **_Note_:** The files required for specific application installations can be found in the BoM file generated in the [prepare bom](prepare-bom) process listed under `media:`.
-
 1. Update the permissions to make `SAPCAR` executable (SAPCAR version may change depending on your downloads):
 
-   `chmod +x /tmp/hana_template/SAPCAR_1320-80000935.EXE`
+   `chmod +x /usr/sap/install/download_basket/SAPCAR_1320-80000935.EXE`
 
 1. Extract the HANA Server files (HANA Server SAR file version may change depending on your downloads):
 
    ```text
-   /tmp/hana_template/SAPCAR_1320-80000935.EXE     \
+   /usr/sap/install/download_basket/SAPCAR_1320-80000935.EXE     \
    -manifest SAP_HANA_DATABASE/SIGNATURE.SMF -xf   \
-   /tmp/hana_template/IMDB_SERVER20_052_0-80002031.SAR
+   /usr/sap/install/download_basket/IMDB_SERVER20_052_0-80002031.SAR
    ```
 
 1. Use the extracted `hdblcm` tool to generate an empty install template and password file.

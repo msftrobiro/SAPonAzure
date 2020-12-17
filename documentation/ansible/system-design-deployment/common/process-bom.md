@@ -22,7 +22,7 @@
    :warning: If you are running this as part of the template preparation (the templates do not yet exist), use:
 
    ```shell
-   ansible-playbook -i hosts.yml --extra-vars "download_templates:false" ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/playbook_process_bom.yml
+   ansible-playbook -i hosts.yml --extra-vars "download_templates=false" ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/playbook_process_bom.yml
    ```
 
    :warning: If you are running this as part of the deployment (the templates have been created and uploaded to the storage account), use:

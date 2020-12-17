@@ -29,32 +29,47 @@ Two other phases are involved in the overall end-to-end lifecycle, but these are
 
 ## Process Index
 
-### Installation Media Aquisition
+### Acquisition and Preparation
 
-1. **Database**
-   1. [SAP HANA](./hana/acquire-media.md)
-1. **SAP Application**
-   1. [SAP Application](./app/acquire-media.md)
+#### Database
 
-### SAP Library Preparation
+##### SAP HANA
 
-1. Upload Installation Media to the SAP Library
-   1. [Prepare SAP HANA Media](./hana/prepare-sap-library.md)
-   1. [Prepare Application Media](./app/prepare-sap-library.md)
-1. Prepare the Bill of Materials
-   1. [Prepare SAP HANA Bill of Materials](./hana/prepare-bom.md)
-   1. [Prepare SAP Application Bill of Materials](./app/prepare-bom.md)
-1. Template Generation
-   1. [Modify and Run the Existing Deployment Process](./interim-playbook-preparation.md)
-   1. [Define the SAP System Configuration](./common/system-definition.md)
-   1. [Process the Bill of Materials for SAP System Installation](./common/system-definition.md)
-   1. [Prepare SAP HANA Installation Template](./hana/prepare-ini.md)
-   1. [Prepare SAP Application Consolidated Installation Template](./app/prepare-ini.md)
+- [Acquire Media](./hana/acquire-media.md)
+- [Prepare Media](./hana/prepare-sap-library.md)
+- [Prepare BoM](./hana/prepare-bom.md)
+- Prepare Template
+   1. [Deploy System Infrastructure](./interim-playbook-preparation.md)
+   1. [Define SAP System](./common/system-definition.md)
+   1. [Prepare SAP System](./common/process-bom.md)
+   1. [Prepare SAP System Template](./hana/prepare-ini.md)
 
-### SAP System Deployment
+#### SAP Application
 
-1. [Modify and Run the Existing Deployment Process](./interim-playbook-preparation.md)
-1. [Define the SAP System Configuration](./common/system-definition.md)
-1. [Process the Bill of Materials for SAP System Installation](./common/system-definition.md)
-1. [Deploy SAP HANA SID](./hana/deploy-sid.md)
-1. [Deploy SAP Application SID](./app/deploy-sid.md)
+- [Acquire Media](./app/acquire-media.md)
+- [Prepare Media](./app/prepare-sap-library.md)
+- [Prepare BoM](./app/prepare-bom.md)
+- Prepare Template
+   1. [Deploy System Infrastructure](./interim-playbook-preparation.md)
+   1. [Define SAP System](./common/system-definition.md)
+   1. [Prepare SAP System](./common/process-bom.md)
+   1. [Prepare SAP System Template](./app/prepare-ini.md)
+### Deployment
+
+#### Database
+
+##### SAP HANA
+
+- Deploy System
+  1. [Deploy System Infrastructure](./interim-playbook-preparation.md)
+  1. [Define SAP System](./common/system-definition.md)
+  1. [Prepare SAP System](./common/process-bom.md)
+  1. [Deploy SAP System](./hana/deploy-sid.md)
+
+#### SAP Application
+
+- Deploy System
+  1. [Deploy System Infrastructure](./interim-playbook-preparation.md)
+  1. [Define SAP System](./common/system-definition.md)
+  1. [Prepare SAP System](./common/process-bom.md)
+  1. [Deploy SAP System](./app/deploy-sid.md)

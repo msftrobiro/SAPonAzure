@@ -27,7 +27,7 @@
         file_dest_target_name: "{{ download_iterator.override_target_filename is defined | ternary(download_iterator.override_target_filename, default_file_name) }}"
         file_dest: "{{ file_dest_target_location }}/{{ file_dest_target_name }}"
       uri:
-        url: "{{ file_source }}"
+        url: "{{ file_source }}{{ sapbits_sas_token }}"
         dest: "{{ file_dest }}"
         creates: "{{ file_dest }}"
       loop: "{{ bom_media | flatten(levels=1) }}"

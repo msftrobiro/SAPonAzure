@@ -29,6 +29,9 @@ For each new SAP System deployed, a SAP System Configuration file must be genera
    bom_base_name: ""
    target_media_location: "/usr/sap/install"
 
+   # SAS Token for downloading Media
+   sapbits_sas_token: ""
+
    # SAP Configuration for templates and install
    aas_hostname: ""
    aas_instance_number: ""
@@ -56,6 +59,7 @@ For each new SAP System deployed, a SAP System Configuration file must be genera
    | ---------------------------- | --------------------------------------------------------------------------------- |
    | `sapbits_location_base_path` | URL for the `sapbits` container from the Azure Portal.                            |
    | `bom_base_name`              | Matching the BoM upload directory in the SAP Library, e.g. `S4HANA_2020_ISS_v001` |
+   | `sapbits_sas_token`          | SAS Token for the SAP Library Storage Account from the Azure Portal, see below.   |
    | `aas_hostname`               | Hostname for the AAS VM                                                           |
    | `aas_instance_number`        | Instance number for the AAS Instance, e.g. `"12"`                                 |
    | `app_sid`                    | SID for the Application Tier, e.g. `"X00"`                                        |
@@ -73,3 +77,15 @@ For each new SAP System deployed, a SAP System Configuration file must be genera
    | `scs_hostname`               | Hostname for the SCS VM                                                           |
    | `scs_instance_number`        | Instance number for the SCS Instance, e.g. `"00"`                                 |
    | `sidadm_uid`                 | User ID for the `<SID>adm` user, e.g. `2100`                                      |
+
+1. Generate a SAS Token for Installation Media downloads:
+
+   1. Navigate to the SAP Library Storage Account in the [Azure Portal](https://portal.azure.com).
+   1. Select `Shared access signature` in the menu panel on the left.
+   1. For `Allowed services` ensure only `Blob` is selected.
+   1. For `Allowed resource types` ensure only `Container` is selected.
+   1. For `Allowed permissions` ensure only `Read` is selected.
+   1. Ensure `Enables deletion of versions` is not selected.
+   1. Set a large enough time frame for the SAS token is set to allow downloads to complete.
+   1. Click `Generate SAS and connection string`.
+   1. Copy the SAS token, and set in the above `sap-system-config.yml` file.

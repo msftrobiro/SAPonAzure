@@ -30,7 +30,7 @@
     line: 'ResourceDisk.SwapSizeMB={{ item.swap_size_mb }}'
   when: not chk_swapfile.stat.exists
 
-- name: Ensure swappiness is configured
+- name: Ensure waagent is restarted
   service:
     name: waagent
     state: restarted

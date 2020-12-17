@@ -2,30 +2,35 @@
 
 - name: Check if swapfile exists
   stat:
-    path: "{{ item.swap_file }}"
+    path: /mnt/swapfile
     get_checksum: false
   register: chk_swapfile
 
-- name: Ensure swapfile exists
-  command: "dd if=/dev/zero of={{ item.swap_file }} bs=1M count={{ item.swap_size_mb }}"
-  when: not chk_swapfile.stat.exists
-
-- name: Ensure the swapfile is useable as a swap
-  command: "mkswap {{ item.swap_file }}"
-  when: not chk_swapfile.stat.exists
-
-- name: Ensure the swapfile is in /etc/fstab
-  when: not chk_swapfile.stat.exists
+- name: Ensure Resource disk is formatted
   lineinfile:
-    regexp: "^{{ item.swap_file }}"
-    path: /etc/fstab
-    line: "{{ item.swap_file }} none swap sw 0 0"
     state: present
+    dest: /etc/waagent.conf
+    regexp: 'ResourceDisk.Format='
+    line: 'ResourceDisk.Format=y'
+  when: not chk_swapfile.stat.exists
 
 - name: Ensure swap is enabled
-  command: "swapon -a"
+  lineinfile:
+    state: present
+    dest: /etc/waagent.conf
+    regexp: 'ResourceDisk.EnableSwap='
+    line: 'ResourceDisk.EnableSwap=y'
+  when: not chk_swapfile.stat.exists
+
+- name: Ensure swapfile size
+  lineinfile:
+    state: present
+    dest: /etc/waagent.conf
+    regexp: 'ResourceDisk.SwapSizeMB='
+    line: 'ResourceDisk.SwapSizeMB={{ item.swap_size_mb }}'
+  when: not chk_swapfile.stat.exists
 
 - name: Ensure swappiness is configured
-  sysctl:
-    name: vm.swappiness
-    value: "1"
+  service:
+    name: waagent
+    state: restarted

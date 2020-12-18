@@ -527,7 +527,7 @@ The file should be saved with a meaningful name relating to the SAP Product, e.g
 
 ### Update the BoM with the Templates
 
-1. Open the `bom.yml` file and navigate to the `templates` section. Add the relevant templates, for example:
+1. Open the `bom.yml` file and navigate to the `templates` section. Add (or uncomment if following the scripted application BoM preparation) the relevant templates, for example:
 
    ```yaml
    templates:

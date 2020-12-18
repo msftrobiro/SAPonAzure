@@ -261,12 +261,13 @@ After downloading the stack files and Download Basket manifest `.json` file into
 
    ```
 
-   If following the Scripted Process, you should check the `file` and `override_target_location` values are as expected and correct if necessary.
+   If following the Scripted Process, you should check the `file` and `override_target_location` values are as expected, correct if necessary **and then comment out those lines**.
 
    ```text
    templates:
-     - name:     "S4HANA_2020_ISS_v001 ini file"
-       file:     S4HANA_2020_ISS_v001.inifile.params
+     # - name:     "S4HANA_2020_ISS_v001 ini file"
+     #   file:     S4HANA_2020_ISS_v001.inifile.params
+     #   override_target_location: "{{ target_media_location }}/config"
    ```
 
 #### Add/Check Stackfiles Section

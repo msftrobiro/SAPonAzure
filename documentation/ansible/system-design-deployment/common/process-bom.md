@@ -19,14 +19,6 @@
 
 1. Run Ansible playbook which processes the BoM file to obtain and prepare the correct Installation Media for the system, and makes it available on the SCS node. Also exports the required fileshares for other nodes to install from.
 
-   :warning: If you are running this as part of the template preparation (the templates do not yet exist), use:
-
-   ```shell
-   ansible-playbook -i hosts.yml --extra-vars "download_templates=false" ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/playbook_process_bom.yml
-   ```
-
-   :warning: If you are running this as part of the deployment (the templates have been created and uploaded to the storage account), use:
-
    ```shell
    ansible-playbook -i hosts.yml ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/playbook_process_bom.yml
    ```

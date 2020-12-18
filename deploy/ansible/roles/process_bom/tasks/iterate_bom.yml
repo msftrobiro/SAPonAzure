@@ -28,7 +28,7 @@
       media: "{{ bom.materials.stackfiles | flatten(levels=1) }}"
     - uri_location: "boms/{{ bom_base_name }}/templates"
       property_name: file
-      media: "{{ bom.materials.templates | flatten(levels=1) }}"
+      media: "{{ bom.materials.templates if (bom.materials.templates | type_debug == 'list') else [] | flatten(levels=1) }}"
   loop_control:
     loop_var: media_iterator
 

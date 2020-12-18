@@ -5,6 +5,17 @@
 # +-------------------------------------4--------------------------------------*/
 ---
 
+- hosts:        scs                                   # TODO: Replace this with new inventory group; Change to correct group
+  name:         DB Installation - HANA
+  remote_user:  azureadm                              # TODO: Replace with variable
+  become:       yes
+  become_user:  root
+
+
+  tasks:
+
+  - name: Test Connection                             # TODO: Temp place holder
+    ping:
 
 
 

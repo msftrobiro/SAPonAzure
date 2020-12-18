@@ -63,10 +63,37 @@
    1. Click `Export to Excel`.
 1. Navigate to the Download Basket from SAP Launchpad (you may need to refresh the page to see the new basket contents).
 1. Click the `T` icon above the table to download a file containing the URL hardlinks for the download basket and save to your workstation <sup>1</sup>.
+
+### Get the SAP Download Basket Manifest
+
+Complete this section only if you intend running the scripted Application BoM generation.
+
+:warning: Ensure you do this section **before** running SAP Download Manager.
+
+1. Start the `postman` utility and create a new `GET` request by clicking the :heavy_plus_sign: in the workspace tab.
+
+   ![Postman New Request](../images/postman-new-request.png)
+
+1. Ensure `GET` is selected and enter the request URL as `https://tech.support.sap.com:443/odata/svt/swdcuisrv/DownloadContentSet?_MODE=BASKET_CONTENT&_VERSION=3.1.2&$format=json`
+
+   ![Postman Set Request URL](../images/postman-set-request-url.png)
+
+1. Select the `Authorization` tab and choose `TYPE` as `Basic Auth` and enter your SAP user name and password in the appropriate fields.
+
+   ![Postman Configure Basic Auth](../images/postman-basic-auth.png)
+
+1. Click the blue `Send` button.
+
+1. Copy the Raw JSON response body and save it in your Stack Download Directory, created at the start of this document in "Process" step 1.
+
+   ![Postman Save Raw JSON](../images/postman-save-raw-json.png)
+
+### Download the SAP Media
+
 1. From your workstation:
    1. Run SAP Download Manager and login to access your SAP Download Basket;
    1. Set download directory to the Stack Download Directory created at the start of this document in "Process" step 1;
-   1. Download all files into the empty DIR on workstation.
+   1. Download all files into this directory on your workstation.
 
 **_Note:_**
 

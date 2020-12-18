@@ -63,7 +63,7 @@
 1. From your workstation:
    1. Run SAP Download Manager and login to access your SAP Download Basket;
    1. Set download directory to the Stack Download Directory created at the start of this document in "Process" step 1;
-   1. Download all files into empty DIR on workstation.
+   1. Download all files into this directory on your workstation.
 
 **_Note:_**
 

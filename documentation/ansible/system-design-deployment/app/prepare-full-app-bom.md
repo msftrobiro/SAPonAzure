@@ -20,42 +20,8 @@
 
    ```text
    .
-   ├── bom.yml      <-- BoM content will go in here
-   ├── MP_Excel_xxx.xls
-   ├── MP_Plan_xxx.pdf
-   ├── MP_Stack_xxx.txt
-   ├── MP_Stack_xxx.xml
-   └── myDownloadBasketFiles.txt
-   ```
-
-### Get the SAP Download Basket Manifest
-
-Ensure you do this section **before** running SAP Download Manager.
-
-1. Start the `postman` utility and create a new `GET` request by clicking the :heavy_plus_sign: in the workspace tab.
-
-   ![Postman New Request](../images/postman-new-request.png)
-
-1. Ensure `GET` is selected and enter the request URL as `https://tech.support.sap.com:443/odata/svt/swdcuisrv/DownloadContentSet?_MODE=BASKET_CONTENT&_VERSION=3.1.2&$format=json`
-
-   ![Postman Set Request URL](../images/postman-set-request-url.png)
-
-1. Select the `Authorization` tab and choose `TYPE` as `Basic Auth` and enter your SAP user name and password in the appropriate fields.
-
-   ![Postman Configure Basic Auth](../images/postman-basic-auth.png)
-
-1. Click the blue `Send` button.
-
-1. Copy the Raw JSON response body and save it in `DownloadBasket.json` in the `stackfiles/` folder on your workstation.
-
-   ![Postman Save Raw JSON](../images/postman-save-raw-json.png)
-
-1. Within the `S4HANA_2020_ISS_v001` folder, create an empty text file called `bom.yml`.
-
-   ```text
-   .
-   ├── bom.yml      <-- BoM content will go in here
-   ├── DownloadBasket.json
+   ├── bom.yml              <-- BoM content will go in here
+   ├── downloadBasket.json
    ├── MP_Excel_xxx.xls
    ├── MP_Plan_xxx.pdf
    ├── MP_Stack_xxx.txt

@@ -31,7 +31,7 @@
     - role: swap-setup
     # - role: ensure-bom                              # --> roles-sap/bom-fetch
     # - role: process_bom                             # --> roles-sap/bom-processing
-    - role: nfs-server-setup
+    # - role: nfs-server-setup
 
 #---------------------------
 #  END  : Centiq
@@ -49,6 +49,8 @@
   - include_role:
       name:     roles-sap/bom-processing
 
+  - include_role:
+      name:     nfs-server-setup                       # TODO: Centiq (rework)
 
 
 

@@ -4,6 +4,7 @@
 sapbits_location_base_path: ""
 bom_base_name: ""
 target_media_location: "/usr/sap/install"
+sapbits_sas_token: ""
 
 # SAP Configuration for templates and install
 aas_hostname: ""

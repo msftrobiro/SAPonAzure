@@ -254,7 +254,12 @@ After downloading the stack files and Download Basket manifest `.json` file into
 
 #### Add/Check Templates Section
 
-1. `[8]`: If following the Manual Process, create a `templates` section as shown, with the same filename prefix as the BoM `<stack_version>`.
+1. `[8]`: If following the Manual Process, create a blank `templates` section as shown below.
+
+   ```text
+     templates:
+
+   ```
 
    If following the Scripted Process, you should check the `file` and `override_target_location` values are as expected and correct if necessary.
 

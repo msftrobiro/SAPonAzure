@@ -525,13 +525,24 @@ The file should be saved with a meaningful name relating to the SAP Product, e.g
    1. Select the generated template, e.g. `S4HANA_2020_ISS_v001.inifile.params`
    1. Click "Upload"
 
+### Update the BoM with the Templates
+
+1. Open the `bom.yml` file and navigate to the `templates` section. Add the relevant templates, for example:
+
+   ```yaml
+   templates:
+     - name:     "S4HANA_2020_ISS_v001 ini file"
+       file:     S4HANA_2020_ISS_v001.inifile.params
+       override_target_location: "{{ target_media_location }}/config"
+   ```
+
 1. Upload the updated BoM file to the SAP Library:
-   1. In the Azure Portal navigate to the `sapbits` container:
+   1. From the correct Azure storage account, navigate to "File shares", then to "sapbits".
+   1. For the `boms` folder in sapbits:
    1. Navigate to the product folder for the BoM, e.g. `boms/S4HANA_2020_ISS_v001`;
-   1. Click "Upload"
-   1. In the panel on the right, click Select a file
-   1. Select the updated `bom.yml`
-   1. Click "Upload"
+   1. Click "Upload" and select the updated `bom.yml` file from your workstation for upload.
+   1. Ensure "Overwrite if files already exist" is checked.
+   1. Click "Upload".
 
 ## Results and Outputs
 

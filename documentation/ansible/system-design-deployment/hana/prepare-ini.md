@@ -96,11 +96,34 @@ Any additional components are not required at this stage as they do not affect t
    1. In the Azure Portal navigate to the `sapbits` file share;
    1. Navigate to `boms`;
    1. Navigate to the product folder for the BoM, e.g. `boms/HANA_2_00_052_v001`;
-   1. Create a new `templates` directory if it does not already exist;
    1. Click "Upload";
    1. In the panel on the right, click "Select a file";
    1. Navigate your workstation to the template generation directory `/tmp/hana_template`;
    1. Select the generated templates, e.g. `HANA_2_00_052_v001.params` and `HANA_2_00_052_v001.params.xml`;
+   1. Select "Advanced" and enter `templates` for the upload directory.
+   1. Click "Upload".
+
+### Update the BoM with the Templates
+
+   1. Open the `bom.yml` file and navigate to the `templates` section. Add the relevant templates, for example:
+
+      ```yaml
+      templates:
+        - name:     "HANA_2_00_052_v001 params"
+          file:     "HANA_2_00_052_v001.params"
+          override_target_location: "{{ target_media_location }}/config"
+
+        - name:     "HANA_2_00_052_v001 xml"
+          file:     "HANA_2_00_052_v001.params.xml"
+          override_target_location: "{{ target_media_location }}/config"
+      ```
+
+   1. Upload the modified `bom.yml` to the SAP Library:
+   1. From the correct Azure storage account, navigate to "File shares", then to "sapbits".
+   1. For the `boms` folder in sapbits:
+   1. Click the correct BoM folder name in the portal to open. In this example, that would be `HANA_2_00_052_v001`, then:
+   1. Click "Upload" and select the updated `bom.yml` file from your workstation for upload.
+   1. Ensure "Overwrite if files already exist" is checked.
    1. Click "Upload".
 
 ### Manual HANA Installation Using Template

@@ -163,12 +163,11 @@ step|BoM Content
 
 ### Add Template Name
 
-1. `[8]`: Create a `templates` section as shown, with the same filename prefix as the BoM `<stack_version>`.
+1. `[8]`: Create a blank `templates` section as shown below.
 
    ```text
      templates:
-       - name:     "S4HANA_2020_ISS_v001 ini file"
-         file:     "S4HANA_2020_ISS_v001.inifile.params"
+
    ```
 
 ### Add Stackfiles Section

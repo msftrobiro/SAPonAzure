@@ -104,15 +104,11 @@ step|BoM Content
 
 ### Add Templates Section
 
-1. `[6]`: Create a `templates` section as shown, with the same filename prefix as the BoM `<stack_version>`. Entries are needed for `.params` and `.params.xml` files.
+1. `[6]`: Create a blank `templates` section as shown below.
 
    ```text
      templates:
-       - name:     HANA params
-         file:     HANA_2_00_052_v001.params
 
-       - name:     HANA xml
-         file:     HANA_2_00_052_v001.params.xml
    ```
 
 ### Add Stackfiles Section

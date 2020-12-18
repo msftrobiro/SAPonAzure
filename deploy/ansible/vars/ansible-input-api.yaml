@@ -1,0 +1,26 @@
+---
+
+# BoM Processing variables
+sapbits_location_base_path: ""
+bom_base_name: ""
+target_media_location: "/usr/sap/install"
+
+# SAP Configuration for templates and install
+aas_hostname: ""
+aas_instance_number: ""
+app_sid: ""
+download_basket_dir: "{{ target_media_location }}/download_basket"
+hdb_hostname: ""
+hdb_instance_number: ""
+hdb_sid: ""
+pas_hostname: ""
+pas_instance_number: ""
+password_hana_system: ""
+password_master: ""
+sap_fqdn: ""
+sapadm_uid: 2100
+sapinst_gid: 2001
+sapsys_gid: 2000
+scs_hostname: ""
+scs_instance_number: ""
+sidadm_uid: 2000

@@ -54,6 +54,7 @@ Two other phases are involved in the overall end-to-end lifecycle, but these are
    1. [Define SAP System](./common/system-definition.md)
    1. [Prepare SAP System](./common/process-bom.md)
    1. [Prepare SAP System Template](./app/prepare-ini.md)
+
 ### Deployment
 
 #### Database

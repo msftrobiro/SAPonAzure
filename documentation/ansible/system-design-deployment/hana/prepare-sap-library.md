@@ -33,6 +33,7 @@
       1. Click Advanced to show the advanced options, and enter `boms/<Stack_Version>/stackfiles` for the Upload Directory.
 
          _Note: `<Stack_Version>` should consist of Product type (e.g. `HANA_2`), Product Release (e.g. `00_052`, and a version of the Stack (e.g. `v001`). For example: `HANA_2_00_052_v001`_
+   1. Note that BoM `templates` are uploaded as part of the "Prepare System Template" phases later in the process.
 
 ### Example SAP Library file structure
 
@@ -48,18 +49,26 @@ sapbits
 |   |-- <tool>_<id>.EXE
 |
 |-- boms/
-|   |-- HANA_2_00_052_v001/
+|   |-- S4HANA_2020_ISS_v001/
 |   |   |-- bom.yml
 |   |   |-- stackfiles/
-|   |   |   |-- myDownloadBasketFiles.txt
+|   |       |-- MP_Excel_1001034051_20200921_SWC.xls
+|   |       |-- MP_Plan_1001034051_20200921_.pdf
+|   |       |-- MP_Stack_1001034051_20200921_.txt
+|   |       |-- MP_Stack_1001034051_20200921_.xml
+|   |       |-- myDownloadBasketFiles.txt
+|   |       |-- downloadBasket.json
+|   |       |-- templates
+|   |           |-- S4HANA_2020_ISS_v001.inifile.params
 |   |
 |   |-- S4HANA_2020_ISS_v001/
-|       |-- ...
+|       |-- bom.yml
+|       |-- stackfiles
+|           |-- myDownloadBasketFiles.txt
+|       |-- templates
+|           |-- HANA_2_00_052_v001.params
+|           |-- HANA_2_00_052_v001.params.xml
 |
-|-- templates/
-    |-- HANA_2_00_052_v001.params
-    |-- HANA_2_00_052_v001.params.xml
-    |-- S4HANA_2020_ISS_v001.ini
 ```
 
 **_Notes:_**

@@ -62,7 +62,7 @@
 1. Click the `T` icon above the table to download a file containing the URL hardlinks for the download basket and save to your workstation <sup>1</sup>.
 1. From your workstation:
    1. Run SAP Download Manager and login to access your SAP Download Basket;
-   1. Set download directory to Stack Download Directory created in Phase 1b, step 1;
+   1. Set download directory to the Stack Download Directory created at the start of this document in "Process" step 1;
    1. Download all files into empty DIR on workstation.
 
 **_Note:_**

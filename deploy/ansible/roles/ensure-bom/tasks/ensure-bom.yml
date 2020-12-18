@@ -2,7 +2,7 @@
 
 - name: "Ensure {{ bom_base_name }} is available"
   get_url:
-    url: "{{ sapbits_location_base_path }}/boms/{{ bom_base_name }}/bom.yml"
+    url: "{{ sapbits_location_base_path }}/boms/{{ bom_base_name }}/bom.yml{{ sapbits_sas_token }}"
     dest: "{{ inventory_dir }}/{{ bom_base_name }}_bom.yml"
   delegate_to: localhost
 

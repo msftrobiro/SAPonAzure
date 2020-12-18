@@ -83,7 +83,7 @@ For each new SAP System deployed, a SAP System Configuration file must be genera
    1. Navigate to the SAP Library Storage Account in the [Azure Portal](https://portal.azure.com).
    1. Select `Shared access signature` in the menu panel on the left.
    1. For `Allowed services` ensure only `Blob` is selected.
-   1. For `Allowed resource types` ensure only `Container` is selected.
+   1. For `Allowed resource types` ensure only `Object` is selected.
    1. For `Allowed permissions` ensure only `Read` is selected.
    1. Ensure `Enables deletion of versions` is not selected.
    1. Set a large enough time frame for the SAS token is set to allow downloads to complete.

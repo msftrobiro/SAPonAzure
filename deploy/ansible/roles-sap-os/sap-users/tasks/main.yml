@@ -21,9 +21,9 @@
     create_home:  yes
     home:         "{{ item.home }}"
   loop:
-    - { tier: 'all',         user: 'sapadm',                   uid: '{{ sapadm_uid }}', group: 'sapsys', home: '/home/sapadm',                comment: 'SAP Host Agent' }
-#   - { tier: 'scs',         user: '{{ app_sid | lower }}adm', uid: '{{ sidadm_uid }}', group: 'sapsys', home: '/home/{{ sapSid|lower }}adm', comment: 'SAP {{ sapSid|upper }} Admin' }
-    - { tier: 'preparation', user: '{{ app_sid | lower }}adm', uid: '{{ sidadm_uid }}', group: 'sapsys', home: '/home/{{ sapSid|lower }}adm', comment: 'SAP {{ sapSid|upper }} Admin' }
-    - { tier: 'web',         user: 'webadm',                   uid: '32002',            group: 'sapsys', home: '/home/webadm',                comment: 'SAP WebDisp Admin' }
+    - { tier: 'all',         user: 'sapadm',                   uid: '{{ sapadm_uid }}', group: 'sapsys', home: '/home/sapadm',                 comment: 'SAP Host Agent' }
+#   - { tier: 'scs',         user: '{{ app_sid | lower }}adm', uid: '{{ sidadm_uid }}', group: 'sapsys', home: '/home/{{ app_sid|lower }}adm', comment: 'SAP {{ sapSid|upper }} Admin' }
+    - { tier: 'preparation', user: '{{ app_sid | lower }}adm', uid: '{{ sidadm_uid }}', group: 'sapsys', home: '/home/{{ app_sid|lower }}adm', comment: 'SAP {{ sapSid|upper }} Admin' }
+    - { tier: 'web',         user: 'webadm',                   uid: '32002',            group: 'sapsys', home: '/home/webadm',                 comment: 'SAP WebDisp Admin' }
   when:     item.tier == "all" or
             item.tier == tier

@@ -158,7 +158,11 @@ resource "random_password" "deployer" {
     && ! local.pwd_exist
     && local.input_pwd == null
   ) ? 1 : 0
-  length           = 16
+  
+  length           = 32
+  min_upper        = 2
+  min_lower        = 2
+  min_numeric      = 2
   special          = true
   override_special = "_%@"
 }

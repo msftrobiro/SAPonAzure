@@ -114,7 +114,11 @@ resource "random_password" "iscsi_password" {
     && local.enable_iscsi_auth_password
     && ! local.iscsi_pwd_exist
   && try(local.var_iscsi.authentication.password, null) == null) ? 1 : 0
-  length           = 16
+
+  length           = 32
+  min_upper        = 2
+  min_lower        = 2
+  min_numeric      = 2
   special          = true
   override_special = "_%@"
 }

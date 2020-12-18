@@ -30,7 +30,7 @@
       - uri_location: "boms/{{ bom_base_name }}/templates"
         property_name: file
         media: "{{ bom.materials.templates | flatten(levels=1) }}"
-  loop: "{{ download_categories + (templates_category if download_templates) else [] }}"
+  loop: "{{ download_categories + (templates_category if download_templates else []) }}"
   loop_control:
     loop_var: media_iterator
 

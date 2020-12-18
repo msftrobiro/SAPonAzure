@@ -31,7 +31,7 @@
     - role: swap-setup
     # - role: ensure-bom                              # --> roles-sap/bom-fetch
     # - role: process_bom                             # --> roles-sap/bom-processing
-    # - role: nfs-server-setup
+    # - role: nfs-server-setup                        # --> roles-sap-os/nfs-server-setup
 
 #---------------------------
 #  END  : Centiq
@@ -44,13 +44,16 @@
       tier:     preparation
 
   - include_role:
-      name:     roles-sap/bom-fetch
+      name:     roles-sap/bom-fetch                             # TODO: Centiq copy (rework)
 
   - include_role:
-      name:     roles-sap/bom-processing
+      name:     roles-sap/bom-processing                        # TODO: Centiq copy (rework)
 
   - include_role:
-      name:     nfs-server-setup                       # TODO: Centiq (rework)
+      name:     sap-users                                       # TODO: Centiq copy (rework)
+
+  - include_role:
+      name:     roles-sap-os/nfs-server-setup                   # TODO: Centiq copy (rework)
 
 
 

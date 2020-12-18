@@ -13,16 +13,16 @@ data azurerm_client_config "current" {}
 resource "azurerm_public_ip" "deployer" {
   count               = local.enable_deployer_public_ip ? length(local.deployers) : 0
   name                = format("%s%s%s%s", local.prefix, var.naming.separator, local.deployers[count.index].name, local.resource_suffixes.pip)
-  location            = azurerm_resource_group.deployer[0].location
-  resource_group_name = azurerm_resource_group.deployer[0].name
+  resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
+  location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   allocation_method   = "Static"
 }
 
 resource "azurerm_network_interface" "deployer" {
   count               = length(local.deployers)
   name                = format("%s%s%s%s", local.prefix, var.naming.separator, local.deployers[count.index].name, local.resource_suffixes.nic)
-  location            = azurerm_resource_group.deployer[0].location
-  resource_group_name = azurerm_resource_group.deployer[0].name
+  resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
+  location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
 
   ip_configuration {
     name                          = "ipconfig1"
@@ -35,8 +35,8 @@ resource "azurerm_network_interface" "deployer" {
 
 // User defined identity for all Deployer, assign contributor to the current subscription
 resource "azurerm_user_assigned_identity" "deployer" {
-  resource_group_name = azurerm_resource_group.deployer[0].name
-  location            = azurerm_resource_group.deployer[0].location
+  resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
+  location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   name                = format("%s-msi", local.prefix)
 }
 
@@ -52,8 +52,8 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   count                           = length(local.deployers)
   name                            = format("%s%s%s%s", local.prefix, var.naming.separator, local.deployers[count.index].name, local.resource_suffixes.vm)
   computer_name                   = local.deployers[count.index].name
-  location                        = azurerm_resource_group.deployer[0].location
-  resource_group_name             = azurerm_resource_group.deployer[0].name
+  resource_group_name             = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
+  location                        = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   network_interface_ids           = [azurerm_network_interface.deployer[count.index].id]
   size                            = local.deployers[count.index].size
   admin_username                  = local.deployers[count.index].authentication.username

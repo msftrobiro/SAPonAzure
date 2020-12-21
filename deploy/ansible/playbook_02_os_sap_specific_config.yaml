@@ -5,7 +5,13 @@
 # +-------------------------------------4--------------------------------------*/
 ---
 
-- hosts:        scs                                   # TODO: Replace this with new inventory group; Change to correct group
+# - hosts:        scs                                   # TODO: Replace this with new inventory group; Change to correct group
+- hosts:        "{{ sapSid|upper }}.SCS"
+# - hosts:        "{{ sapSid|upper }}.HDB :
+#                  {{ sapSid|upper }}_SCS :
+#                  {{ sapSid|upper }}_PAS :
+#                  {{ sapSid|upper }}_APP :
+#                  {{ sapSid|upper }}_WEB"
   name:         SAP specific OS configuration
   remote_user:  azureadm                              # TODO: Replace with variable
   become:       yes

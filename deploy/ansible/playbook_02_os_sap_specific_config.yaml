@@ -6,7 +6,7 @@
 ---
 
 # - hosts:        scs                                   # TODO: Replace this with new inventory group; Change to correct group
-- hosts:        "{{ app_sid|upper }}.HDB :
+- hosts:        "all.{{ app_sid|upper }}.DB  :
                  {{ app_sid|upper }}.SCS :
                  {{ app_sid|upper }}.PAS :
                  {{ app_sid|upper }}.APP :

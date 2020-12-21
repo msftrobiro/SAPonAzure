@@ -105,3 +105,7 @@ Complete this section only if you intend running the scripted Application BoM ge
 1. Application Download Basket URL hardlinks file;
 1. Application Installation Media;
 1. Stack Download Directory path containing Application Installation Media.
+
+## Follow on Process
+
+[APP Media Preperation](./prepare-sap-library.md)

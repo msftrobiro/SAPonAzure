@@ -164,3 +164,7 @@ The order of entries in the `media` section does not matter. However, for improv
 ## Results and Outputs
 
 1. A `bom.yml` file present in the Storage Account in the correct location. In this example, `sapbits/boms/HANA_2_00_052_v001/bom.yml`.
+
+## Follow on Process
+
+[Deploy System Infrastructure](../deploy-system-infrastructure.md)

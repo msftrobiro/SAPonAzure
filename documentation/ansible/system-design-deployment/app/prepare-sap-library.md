@@ -82,3 +82,7 @@ sapbits
 
 - SAP Media has been stored in SAP Library
 - SAP Library file path defined in Ansible inventory or passed in as a parameter to a playbook.
+
+## Follow on Process
+
+[HANA BoM Preperation](./prepare-bom.md)

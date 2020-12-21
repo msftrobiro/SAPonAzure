@@ -34,3 +34,13 @@
    1. **Note:** Nested BoMs will also be iterated over, to ensure media which may be needed for the installation will also be downloaded and made available.
    1. Downloads the Installation Media to a known location (`/usr/sap/install`) on the filesystem of a particular VM (SCS) and organised into directories where it benefits the automated process
    1. Creates NFS export of downloaded/extracted media making available to other VMs in the system
+
+## Follow on Process
+
+For ini file generation:
+[HANA ini file generation](../hana/prepare-ini.md)
+[Applicaion ini file generation](../app/prepae-ini.md)
+
+For SID deployment:
+[Deploying HANA SID](../hana/deploy-sid.md)
+[Deploying APP SID](../app/deploy-sid.md)

@@ -310,3 +310,8 @@ By default, files downloaded or shared from the archive space will be extracted 
 ## Results and Outputs
 
 1. A `bom.yml` file present in the Storage Account in the correct location. In this example, `sapbits/boms/S4HANA_2020_ISS_v001/bom.yml`.
+
+
+## Follow on Process
+
+[Deploy System Infrastructure](../deploy-system-infrastructure.md)

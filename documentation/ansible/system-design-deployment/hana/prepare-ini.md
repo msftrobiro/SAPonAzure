@@ -161,3 +161,7 @@ Any additional components are not required at this stage as they do not affect t
 
 1. A completed `inifile.params` template uploaded to SAP library for SAP HANA install
 1. A working HANA instance ready for use in [Preparing App tier inifile](../app/prepare-ini.md)
+
+## Follow on Process
+
+[Deploy System Infrastructure](../deploy-system-infrastructure.md)

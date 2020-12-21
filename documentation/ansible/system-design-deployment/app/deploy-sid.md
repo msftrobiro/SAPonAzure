@@ -28,7 +28,7 @@
 
 1. Run Ansible playbooks which deploy SAP product components (using SWPM, or for SAP HANA hdblcm):
 
-   __Note *:__ Commands marked below do not yet have automated playbooks covering their installation. For manual installation instructions see the Prepare INI file documentation
+   __Note *:__ Commands marked below do not yet have automated playbooks covering their installation. For manual installation instructions see the Template Generation documentation
 
    1. Install the SCS:
 

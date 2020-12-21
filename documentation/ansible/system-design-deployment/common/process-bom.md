@@ -37,12 +37,12 @@
 
 ## Follow on Process
 
-For ini file generation:
+For ini file template generation:
 
-- [HANA ini file generation](../hana/prepare-ini.md)
-- [Application ini file generation](../app/prepare-ini.md)
+- [HANA Template generation](../hana/prepare-ini.md)
+- [Application Template Generation](../app/prepare-ini.md)
 
 For SID deployment:
 
-- [Deploying HANA SID](../hana/deploy-sid.md)
-- [Deploying APP SID](../app/deploy-sid.md)
+- [HANA Deployment](../hana/deploy-sid.md)
+- [APP Deployment](../app/deploy-sid.md)

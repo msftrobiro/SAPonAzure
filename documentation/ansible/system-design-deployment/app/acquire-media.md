@@ -108,4 +108,4 @@ Complete this section only if you intend running the scripted Application BoM ge
 
 ## Follow on Process
 
-[APP Media Preperation](./prepare-sap-library.md)
+- [APP Media Preperation](./prepare-sap-library.md)

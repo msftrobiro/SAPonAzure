@@ -164,4 +164,4 @@ Any additional components are not required at this stage as they do not affect t
 
 ## Follow on Process
 
-[Deploy System Infrastructure](../deploy-system-infrastructure.md)
+- [Deploy System Infrastructure](../deploy-system-infrastructure.md)

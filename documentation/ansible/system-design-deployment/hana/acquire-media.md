@@ -77,4 +77,4 @@
 
 ## Follow on Process
 
-[HANA Media Preperation](./prepare-sap-library.md)
+- [HANA Media Preperation](./prepare-sap-library.md)

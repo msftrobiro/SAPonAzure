@@ -85,4 +85,4 @@ sapbits
 
 ## Follow on Process
 
-[HANA BoM Preperation](./prepare-bom.md)
+- [HANA BoM Preperation](./prepare-bom.md)

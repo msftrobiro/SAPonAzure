@@ -552,4 +552,4 @@ The file should be saved with a meaningful name relating to the SAP Product, e.g
 
 ## Follow on Process
 
-[Deploy System Infrastructure](../deploy-system-infrastructure.md)
+- [Deploy System Infrastructure](../deploy-system-infrastructure.md)

@@ -92,4 +92,4 @@ For each new SAP System deployed, a SAP System Configuration file must be genera
 
 ## Follow on Process
 
-[BoM Processing](./process-bom.md)
+- [BoM Processing](./process-bom.md)

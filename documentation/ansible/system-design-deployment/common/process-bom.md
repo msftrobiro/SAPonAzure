@@ -38,9 +38,11 @@
 ## Follow on Process
 
 For ini file generation:
-[HANA ini file generation](../hana/prepare-ini.md)
-[Applicaion ini file generation](../app/prepae-ini.md)
+
+- [HANA ini file generation](../hana/prepare-ini.md)
+- [Applicaion ini file generation](../app/prepare-ini.md)
 
 For SID deployment:
-[Deploying HANA SID](../hana/deploy-sid.md)
-[Deploying APP SID](../app/deploy-sid.md)
+
+- [Deploying HANA SID](../hana/deploy-sid.md)
+- [Deploying APP SID](../app/deploy-sid.md)

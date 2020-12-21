@@ -167,4 +167,4 @@ The order of entries in the `media` section does not matter. However, for improv
 
 ## Follow on Process
 
-[Deploy System Infrastructure](../deploy-system-infrastructure.md)
+- [Deploy System Infrastructure](../deploy-system-infrastructure.md)

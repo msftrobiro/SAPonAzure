@@ -147,6 +147,8 @@ resource "null_resource" "prepare-deployer" {
       "sudo sh -c \"echo export ARM_SUBSCRIPTION_ID=${data.azurerm_subscription.primary.subscription_id} >> /etc/profile.d/deploy_server.sh\"",
       "sudo sh -c \"echo export ARM_TENANT_ID=${data.azurerm_subscription.primary.tenant_id} >> /etc/profile.d/deploy_server.sh\"",
       "sudo sh -c \"echo az login --identity --output none >> /etc/profile.d/deploy_server.sh\"",
+      // Set env for ansible
+      "sudo sh -c \"echo export ANSIBLE_HOST_KEY_CHECKING=False >> /etc/profile.d/deploy_server.sh\"",
       // Install az cli
       "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash",
       // Install Git
@@ -159,7 +161,11 @@ resource "null_resource" "prepare-deployer" {
       // Installs Ansible
       "sudo -H pip3 install \"ansible>=2.8,<2.9\"",
       // Install pywinrm
-      "sudo -H pip3 install \"pywinrm>=0.3.0\""
+      "sudo -H pip3 install \"pywinrm>=0.3.0\"",
+      // Install yamllint
+      "sudo -H pip3 install \"yamllint==1.25.0\"",
+      // Install ansible-lint
+      "sudo -H pip3 install \"ansible-lint==4.3.7\""
     ]
   }
 }

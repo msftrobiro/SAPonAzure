@@ -5,7 +5,11 @@
 # +-------------------------------------4--------------------------------------*/
 ---
 
-- hosts:        scs                                   # TODO: Replace this with new inventory group; Change to correct group
+- hosts:        "{{ app_sid|upper }}_DB  :
+                 {{ app_sid|upper }}_SCS :
+                 {{ app_sid|upper }}_PAS :
+                 {{ app_sid|upper }}_APP :
+                 {{ app_sid|upper }}_WEB"
   name:         OS Base Configuration
   remote_user:  azureadm                              # TODO: Replace with variable
   become:       yes

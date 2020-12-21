@@ -40,7 +40,7 @@
 For ini file generation:
 
 - [HANA ini file generation](../hana/prepare-ini.md)
-- [Applicaion ini file generation](../app/prepare-ini.md)
+- [Application ini file generation](../app/prepare-ini.md)
 
 For SID deployment:
 

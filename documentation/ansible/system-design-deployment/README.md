@@ -72,5 +72,5 @@ Two other phases are involved in the overall end-to-end lifecycle, but these are
 - Deploy System
   1. [Deploy System Infrastructure](./deploy-system-infrastructure.md)
   1. [Define SAP System](./common/define-sap-system.md)
-  1. [Process BoM](./common/process-bom.md))
+  1. [Process BoM](./common/process-bom.md)
   1. [Deploy SAP System](./app/deploy-sid.md)

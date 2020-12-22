@@ -140,8 +140,7 @@ The directories to be exported for this process are:
 1. `/usr/sap/<SID>/SYS` - Where `<SID>` is replaced with the SID from Step 7 of the [Generating unattended installation parameter `inifile` for ASCS](#generating-unattended-installation-inifile-for-ascs)
 1. `/usr/sap/install`
 1. `/tmp/app_template`
-1. `/sapmnt/<SID>/global`
-1. `/sapmnt/<SID>/profile`
+1. `/sapmnt/<SID>/`
 
 ### Mounting SAP FileSystems on Application (PAS and AAS) VMs
 

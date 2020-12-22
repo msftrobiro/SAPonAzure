@@ -1,5 +1,10 @@
 # HANA Deployment
 
+The following illustrates an example of this process for manually deploying HANA:
+
+![Recording of Manual HANA Deployment](../demos/manual_hana_deployment.svg)
+
+
 ## Prerequisites
 
 1. Bootstrap infrastructure has been deployed;
@@ -23,34 +28,33 @@
 The existing HANA SID deployment is handled manully via `HDBLCM`.
 
 1. Install the HANA Database *:
+   1. Ensure the mount point exists for the Installation Media:
 
-      1. Ensure the mount point exists for the Installation Media:
+      `mkdir -p /usr/sap/install`
 
-         `mkdir -p /usr/sap/install`
+   1. Ensure the exported Installation Media directory is mounted:
 
-      1. Ensure the exported Installation Media directory is mounted:
+      `mount <scs-vm-IP>:/usr/sap/install /usr/sap/install`
 
-         `mount <scs-vm-IP>:/usr/sap/install /usr/sap/install`
+   1. Make and change to a temporary directory:
 
-      1. Make and change to a temporary directory:
+      `mkdir /tmp/hana_install; cd $_`
 
-         `mkdir /tmp/hana_install; cd $_`
+   1. Ensure HDBLCM is available (adjust SERVER SAR filename to match your media):
 
-      1. Ensure HDBLCM is available (adjust SERVER SAR filename to match your media):
+      `/usr/sap/install/download_basket/SAPCAR.EXE -manifest SAP_HANA_DATABASE/SIGNATURE.SMF -xf /usr/sap/install/download_basket/IMDB_SERVER20_052_0-80002031.SAR`
 
-         `/usr/sap/install/download_basket/SAPCAR.EXE -manifest SAP_HANA_DATABASE/SIGNATURE.SMF -xf /usr/sap/install/download_basket/IMDB_SERVER20_052_0-80002031.SAR`
+   1. Update the HANA Installation template `/usr/sap/install/config/<BoM_Name>.params` file (where `BoM_Name` matches the HANA version to be installed, e.g. `HANA_2_00_052_v001`) and replace variables:
+      1. Update `components` to `all`
+      1. Update `hostname` to `<hana-vm-hostname>` for example: `hostname=hd1-hanadb-vm`
+      1. Update `sid` to `<HANA SID>` for example: `sid=HD1`
+      1. Update `number` to `<Instance Number>` for example: `number=00`
 
-      1. Update the HANA Installation template `/usr/sap/install/config/<BoM_Name>.params` file (where `BoM_Name` matches the HANA version to be installed, e.g. `HANA_2_00_052_v001`) and replace variables:
-         1. Update `components` to `all`
-         1. Update `hostname` to `<hana-vm-hostname>` for example: `hostname=hd1-hanadb-vm`
-         1. Update `sid` to `<HANA SID>` for example: `sid=HD1`
-         1. Update `number` to `<Instance Number>` for example: `number=00`
+   1. Update the HANA Password file `/usr/sap/install/config/<BoM_Name>.params.xml` file, replacing all the ansible variables (e.g. `{{ db_root_password }}`) with a single suitable password for installation.
 
-      1. Update the HANA Password file `/usr/sap/install/config/<BoM_Name>.params.xml` file, replacing all the ansible variables (e.g. `{{ db_root_password }}`) with a single suitable password for installation.
+   1. Run the HANA installation:
 
-      1. Run the HANA installation:
-
-         `cat /usr/sap/install/config/HANA_2_00_052_v001.params.xml | SAP_HANA_DATABASE/hdblcm --read_password_from_stdin=xml -b --configfile=/usr/sap/install/config/HANA_2_00_052_v001.params`
+      `cat /usr/sap/install/config/HANA_2_00_052_v001.params.xml | SAP_HANA_DATABASE/hdblcm --read_password_from_stdin=xml -b --configfile=/usr/sap/install/config/HANA_2_00_052_v001.params`
 
 ## Process
 

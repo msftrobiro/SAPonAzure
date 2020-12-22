@@ -5,11 +5,13 @@
 # +-------------------------------------4--------------------------------------*/
 ---
 
-- hosts:        scs                                   # TODO: Replace this with new inventory group; Change to correct group
+- hosts:        "{{ app_sid|upper }}_PAS"
   name:         SAP Installation - DB Load
   remote_user:  azureadm                              # TODO: Replace with variable
   become:       yes
   become_user:  root
+  vars_files:
+    - vars/ansible-input-api.yaml                     # DONE: move this back into Repo Structure as an API template
 
 
   tasks:

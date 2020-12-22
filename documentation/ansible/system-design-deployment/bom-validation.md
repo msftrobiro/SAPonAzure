@@ -25,7 +25,7 @@ Switch to the `util` directory and execute the `check_bom.sh` passing the full l
 
    The following illustrates an example of this validation succeeding:
 
-   [![asciicast](https://asciinema.org/a/380534.svg)](https://asciinema.org/a/380534)
+   ![Recording of BoM Generation and Validation](demos/bom_generation_and_validation.svg)
 
 1. `./check_bom.sh ../documentation/ansible/system-design-deployment/examples/S4HANA_2020_ISS_v001/bom_with_errors.yml`
 

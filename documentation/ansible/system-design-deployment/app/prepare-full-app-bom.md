@@ -214,6 +214,10 @@ After downloading the stack files and Download Basket manifest `.json` file into
 
    This example makes assumptions about the Storage Account location and the product name. The BoM file `bom.yml` will be written to the parent directory of the `stackfiles/` folder.
 
+   The following illustrates an example of this generation process (and later validation):
+
+   ![Recording of BoM Generation and Validation](../demos/bom_generation_and_validation.svg)
+
 1. The script accepts parameters to specify the Storage Account location and the product name. See the [comment block](https://github.com/Azure/sap-hana/blob/5576bd29ea7e25fc8d879093e40e88ae192df656/util/generate_bom.sh#L3-L25) at the start of the script for more information.
 
 ### Finalize the Content

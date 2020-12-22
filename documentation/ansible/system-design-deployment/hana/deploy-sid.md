@@ -4,7 +4,6 @@ The following illustrates an example of this process for manually deploying HANA
 
 ![Recording of Manual HANA Deployment](../demos/manual_hana_deployment.svg)
 
-
 ## Prerequisites
 
 1. Bootstrap infrastructure has been deployed;
@@ -27,7 +26,8 @@ The following illustrates an example of this process for manually deploying HANA
 
 The existing HANA SID deployment is handled manully via `HDBLCM`.
 
-1. Install the HANA Database *:
+1. Install the HANA Database \*:
+
    1. Ensure the mount point exists for the Installation Media:
 
       `mkdir -p /usr/sap/install`
@@ -57,7 +57,6 @@ The existing HANA SID deployment is handled manully via `HDBLCM`.
       `cat /usr/sap/install/config/HANA_2_00_052_v001.params.xml | SAP_HANA_DATABASE/hdblcm --read_password_from_stdin=xml -b --configfile=/usr/sap/install/config/HANA_2_00_052_v001.params`
 
 ## Process
-
 
 1. Run Ansible playbook which configures base-level OS
 1. Run Ansible playbook which configures base-level SAP OS

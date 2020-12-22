@@ -2,7 +2,7 @@
 
 The following illustrates an example of this process for deploying the system infrastructure:
 
-![Recording of System Infrastructure Deployment](demos/deploy_system_infrastructure.svg)
+![Recording of System Infrastructure Deployment](demos/system_deployment.svg)
 
 ## Notes
 

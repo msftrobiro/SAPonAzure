@@ -133,4 +133,4 @@ With the above sections commented out, the Ansible to configure the servers can 
 
 ## Follow on Process
 
-[Define SAP System](./common/define-sap-system.md)
+[SAP System Definition](./common/define-sap-system.md)

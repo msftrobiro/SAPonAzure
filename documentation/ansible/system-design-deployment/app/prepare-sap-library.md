@@ -1,4 +1,4 @@
-# Application Library Preparation
+# Application Media Preparation
 
 ## Prerequistes
 
@@ -85,4 +85,4 @@ sapbits
 
 ## Follow on Process
 
-- [HANA BoM Preperation](./prepare-bom.md)
+- [Application BoM Preparation](./prepare-bom.md)

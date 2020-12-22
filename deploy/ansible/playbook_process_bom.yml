@@ -12,4 +12,5 @@
     - role: swap-setup
     - role: ensure-bom
     - role: process_bom
+    - role: sap-users
     - role: nfs-server-setup

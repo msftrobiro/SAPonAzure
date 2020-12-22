@@ -1,4 +1,4 @@
-# Modify Existing Deployment Process
+# Deploy System Infrastructure
 
 ## Notes
 
@@ -127,5 +127,10 @@ With the above sections commented out, the Ansible to configure the servers can 
 1. Run the modified Ansible playbook:
 
    ```text
+   export ANSIBLE_HOST_KEY_CHECKING=False
    ansible-playbook -i hosts.yml ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/sap_playbook.yml
    ```
+
+## Follow on Process
+
+[SAP System Definition](./common/define-sap-system.md)

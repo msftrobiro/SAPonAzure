@@ -8,5 +8,4 @@
     - "{{ inventory_dir }}/sap-system-config.yml"
   roles:
     - role: ensure-bom
-    - role: sap-users
     - role: scs-install

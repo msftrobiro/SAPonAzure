@@ -28,7 +28,7 @@
 
 1. Run Ansible playbooks which deploy SAP product components (using SWPM, or for SAP HANA hdblcm):
 
-   __Note *:__ Commands marked below do not yet have automated playbooks covering their installation. For manual installation instructions see the Prepare INI file documentation
+   __Note *:__ Commands marked below do not yet have automated playbooks covering their installation. For manual installation instructions see the Template Generation documentation
 
    1. Install the SCS:
 
@@ -49,6 +49,10 @@
       1. Make and change to a temporary directory:
 
          `mkdir /tmp/hana_install; cd $_`
+
+      1. Ensure HDBLCM is available (adjust SERVER SAR filename to match your media):
+
+         `/usr/sap/install/download_basket/SAPCAR.EXE -manifest SAP_HANA_DATABASE/SIGNATURE.SMF -xf /usr/sap/install/download_basket/IMDB_SERVER20_052_0-80002031.SAR`
 
       1. Update the HANA Installation template `/usr/sap/install/config/<BoM_Name>.params` file (where `BoM_Name` matches the HANA version to be installed, e.g. `HANA_2_00_052_v001`) and replace variables:
          1. Update `components` to `all`

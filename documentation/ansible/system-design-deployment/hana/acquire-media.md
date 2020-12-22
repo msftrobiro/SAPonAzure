@@ -74,3 +74,7 @@
 1. HANA Database Download Basket URL hardlinks file;
 1. HANA Database Installation Media;
 1. Stack Download Directory path containing HANA Database Installation Media.
+
+## Follow on Process
+
+- [HANA Media Preperation](./prepare-sap-library.md)

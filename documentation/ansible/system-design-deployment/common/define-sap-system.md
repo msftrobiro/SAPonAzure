@@ -89,3 +89,7 @@ For each new SAP System deployed, a SAP System Configuration file must be genera
    1. Set a large enough time frame for the SAS token is set to allow downloads to complete.
    1. Click `Generate SAS and connection string`.
    1. Copy the SAS token, and set in the above `sap-system-config.yml` file.
+
+## Follow on Process
+
+- [BoM Processing](./process-bom.md)

@@ -21,7 +21,7 @@
       name: sapadm
       uid: "{{ sapadm_uid }}"
       group: "sapsys"
-    - tier: scs
+    - tier: preparation
       name: "{{ app_sid | lower }}adm"
       uid: "{{ sidadm_uid }}"
       group: "sapsys"

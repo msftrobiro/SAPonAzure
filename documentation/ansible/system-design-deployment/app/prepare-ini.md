@@ -12,7 +12,7 @@
 1. Application servers should have swap space of greater than 256MB configured;
 1. Workstation has connectivity to SAP Infrastructure (e.g. SSH keys in place);
 1. Browser connectivity between workstation and target SAP VM;
-1. The [SAP Application Systems have been prepared](./prepare-system.md).
+1. The [SAP Application Systems have been prepared](../common/process-bom.md).
 
 ## Inputs
 
@@ -140,8 +140,7 @@ The directories to be exported for this process are:
 1. `/usr/sap/<SID>/SYS` - Where `<SID>` is replaced with the SID from Step 7 of the [Generating unattended installation parameter `inifile` for ASCS](#generating-unattended-installation-inifile-for-ascs)
 1. `/usr/sap/install`
 1. `/tmp/app_template`
-1. `/sapmnt/<SID>/global`
-1. `/sapmnt/<SID>/profile`
+1. `/sapmnt/<SID>/`
 
 ### Mounting SAP FileSystems on Application (PAS and AAS) VMs
 
@@ -549,3 +548,9 @@ The file should be saved with a meaningful name relating to the SAP Product, e.g
 1. A Consolidated `inifile.params` which can be used for the unattended installation of ASCS, PAS and AAS
 1. Consolidated inifile uploaded to the appropriate BoM `templates` directory in the `sapbits` container
 1. BoM file updated to contain the Product IDs and uploaded to the `sapbits` container
+
+:hand: The infrastructure used in this process should be destroyed when all ini files have been generated. Production SAP systems should always be deployed to newly provisioned infrastructure using the SAP automated installation, rather than the temporary systems built to generate these templates. :hand:
+
+## Follow on Process
+
+- [Deploy System Infrastructure](../deploy-system-infrastructure.md)

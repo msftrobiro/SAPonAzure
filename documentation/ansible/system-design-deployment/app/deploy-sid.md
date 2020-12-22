@@ -1,9 +1,5 @@
 # Application Deployment
 
-The following illustrates an example of this process for deploying the SCS:
-
-![Recording of SCS Deployment](../demos/scs_deployment.svg)
-
 ## Prerequisites
 
 1. Bootstrap infrastructure has been deployed;
@@ -39,6 +35,11 @@ The following illustrates an example of this process for deploying the SCS:
       ```shell
       ansible-playbook -i hosts ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/playbook_install_scs.yml
       ```
+
+      The following illustrates an example of this process for deploying the SCS:
+
+      ![Recording of SCS Deployment](../demos/scs_deployment.svg)
+
 
    1. If the HANA Database has not yet been installed, install the HANA Database \*:
 

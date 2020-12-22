@@ -1,5 +1,9 @@
 # Processing the Bill of Materials for SAP System Installation
 
+The following illustrates an example of this process for processing the BoM:
+
+![Recording of BoM Processing](../demos/bom_processing.svg)
+
 ## Prerequisites
 
 - Deployer has been provisioned

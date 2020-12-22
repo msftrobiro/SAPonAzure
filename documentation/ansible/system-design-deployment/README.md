@@ -39,7 +39,7 @@ Two other phases are involved in the overall end-to-end lifecycle, but these are
 - [Prepare Media](./hana/prepare-sap-library.md)
 - [Prepare BoM](./hana/prepare-bom.md)
 - Prepare Template
-   1. [Deploy System Infrastructure](./interim-playbook-preparation.md)
+   1. [Deploy System Infrastructure](./deploy-system-infrastructure.md)
    1. [Define SAP System](./common/define-sap-system.md)
    1. [Process BoM](./common/process-bom.md)
    1. [Prepare SAP System Template](./hana/prepare-ini.md)
@@ -50,7 +50,7 @@ Two other phases are involved in the overall end-to-end lifecycle, but these are
 - [Prepare Media](./app/prepare-sap-library.md)
 - [Prepare BoM](./app/prepare-bom.md)
 - Prepare Template
-   1. [Deploy System Infrastructure](./interim-playbook-preparation.md)
+   1. [Deploy System Infrastructure](./deploy-system-infrastructure.md)
    1. [Define SAP System](./common/define-sap-system.md)
    1. [Process BoM](./common/process-bom.md)
    1. [Prepare SAP System Template](./app/prepare-ini.md)
@@ -62,7 +62,7 @@ Two other phases are involved in the overall end-to-end lifecycle, but these are
 ##### SAP HANA
 
 - Deploy System
-  1. [Deploy System Infrastructure](./interim-playbook-preparation.md)
+  1. [Deploy System Infrastructure](./deploy-system-infrastructure.md)
   1. [Define SAP System](./common/define-sap-system.md)
   1. [Process BoM](./common/process-bom.md)
   1. [Deploy SAP System](./hana/deploy-sid.md)
@@ -70,7 +70,7 @@ Two other phases are involved in the overall end-to-end lifecycle, but these are
 #### SAP Application
 
 - Deploy System
-  1. [Deploy System Infrastructure](./interim-playbook-preparation.md)
+  1. [Deploy System Infrastructure](./deploy-system-infrastructure.md)
   1. [Define SAP System](./common/define-sap-system.md)
   1. [Process BoM](./common/process-bom.md))
   1. [Deploy SAP System](./app/deploy-sid.md)

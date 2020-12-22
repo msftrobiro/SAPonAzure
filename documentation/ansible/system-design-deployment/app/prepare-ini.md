@@ -549,6 +549,8 @@ The file should be saved with a meaningful name relating to the SAP Product, e.g
 1. Consolidated inifile uploaded to the appropriate BoM `templates` directory in the `sapbits` container
 1. BoM file updated to contain the Product IDs and uploaded to the `sapbits` container
 
+:hand: The infrastructure used in this process should be destroyed when all ini files have been generated. Production SAP systems should always be deployed to newly provisioned infrastructure using the SAP automated installation, rather than the temporary systems built to generate these templates. :hand:
+
 ## Follow on Process
 
 - [Deploy System Infrastructure](../deploy-system-infrastructure.md)

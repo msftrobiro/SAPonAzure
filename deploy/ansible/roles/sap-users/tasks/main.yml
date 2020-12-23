@@ -22,7 +22,7 @@
       uid: "{{ sapadm_uid }}"
       group: "sapsys"
     - tier: preparation
-      name: "{{ app_sid | lower }}adm"
+      name: "{{ sap_sid | lower }}adm"
       uid: "{{ sidadm_uid }}"
       group: "sapsys"
   when: item.tier == "all" or item.tier == tier

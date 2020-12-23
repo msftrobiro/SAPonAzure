@@ -9,7 +9,7 @@ sapbits_sas_token:            ""
 # SAP Configuration for templates and install
 aas_hostname:                 ""
 aas_instance_number:          ""
-app_sid:                      ""
+sap_sid:                      ""
 download_basket_dir:          "{{ target_media_location }}/download_basket"
 hdb_hostname:                 ""
 hdb_instance_number:          ""

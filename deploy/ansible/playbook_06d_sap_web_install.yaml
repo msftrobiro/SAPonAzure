@@ -5,7 +5,7 @@
 # +-------------------------------------4--------------------------------------*/
 ---
 
-- hosts:        "{{ app_sid|upper }}_WEB"
+- hosts:        "{{ sap_sid|upper }}_WEB"
   name:         SAP Installation - WEB
   remote_user:  azureadm                              # TODO: Replace with variable
   become:       yes

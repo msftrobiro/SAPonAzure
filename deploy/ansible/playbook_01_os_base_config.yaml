@@ -5,24 +5,26 @@
 # +-------------------------------------4--------------------------------------*/
 ---
 
-- hosts:        "{{ app_sid|upper }}_DB  :
-                 {{ app_sid|upper }}_SCS :
-                 {{ app_sid|upper }}_PAS :
-                 {{ app_sid|upper }}_APP :
-                 {{ app_sid|upper }}_WEB"
+- hosts:        "{{ sap_sid|upper }}_DB  :
+                 {{ sap_sid|upper }}_SCS :
+                 {{ sap_sid|upper }}_PAS :
+                 {{ sap_sid|upper }}_APP :
+                 {{ sap_sid|upper }}_WEB"
   name:         OS Base Configuration
-  remote_user:  azureadm                              # TODO: Replace with variable
+  remote_user:  azureadm                                        # TODO: Replace with variable
   become:       yes
   become_user:  root
   vars_files:
-    - vars/ansible-input-api.yaml                     # DONE: move this back into Repo Structure as an API template
+    - vars/ansible-input-api.yaml                               # DONE: move this back into Repo Structure as an API template
 
 
   tasks:
 
-  - name: Test Connection                             # TODO: Temp place holder
+  - name: Test Connection                                       # TODO: Temp place holder
     ping:
 
+  - include_role:
+      name:     roles-os/os-swap                                # TODO: Centiq copy (rework needed)
 
 
 

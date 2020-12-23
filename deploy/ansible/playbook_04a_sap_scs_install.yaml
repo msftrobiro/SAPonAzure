@@ -5,7 +5,7 @@
 # +-------------------------------------4--------------------------------------*/
 ---
 
-- hosts:        "{{ app_sid|upper }}_SCS"
+- hosts:        "{{ sap_sid|upper }}_SCS"
   name:         SAP Installation - SCS
   remote_user:  azureadm                              # TODO: Replace with variable
   become:       yes

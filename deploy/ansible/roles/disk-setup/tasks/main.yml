@@ -22,7 +22,7 @@
     state: present
     shrink: no
     resizefs: no
-  loop: "{{ sap_volumes }}"
+  loop: "{{ sap_logical_volumes }}"
   when: item.tier == "all" or item.tier == tier
 
 - name: "Ensure Filesystem(s) are present"

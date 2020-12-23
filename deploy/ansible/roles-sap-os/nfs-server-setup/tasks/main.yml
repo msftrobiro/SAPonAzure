@@ -1,4 +1,0 @@
----
-
-- import_tasks: configure.yml
-  become: true

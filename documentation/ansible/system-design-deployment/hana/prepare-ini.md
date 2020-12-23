@@ -162,6 +162,8 @@ Any additional components are not required at this stage as they do not affect t
 1. A completed `inifile.params` template uploaded to SAP library for SAP HANA install
 1. A working HANA instance ready for use in [Preparing App tier inifile](../app/prepare-ini.md)
 
+:hand: The infrastructure used in this process should be destroyed when all ini files have been generated. Production SAP systems should always be deployed to newly provisioned infrastructure using the SAP automated installation, rather than the temporary systems built to generate these templates. :hand:
+
 ## Follow on Process
 
 - [Deploy System Infrastructure](../deploy-system-infrastructure.md)

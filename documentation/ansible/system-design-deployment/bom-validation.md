@@ -4,7 +4,7 @@ Much of the successful deployment of a SAP Application relies on a correctly str
 
 ## Prerequisites
 
-1. The check must be run on a system with the ability to run Linux type commands, for Windows this would require WSL (Windows Subsystem for Linux). Alternatively the BoM validation can be carried out on the deployer (RTI), as long it has a local copy of the BoM needing to be checked. This can be achieved by copying the bom.yml file from your workstation/jumpbox onto the RTI.
+1. The check must be run on a system with the ability to run Linux type commands, for Windows this would require WSL (Windows Subsystem for Linux). Alternatively the BoM validation can be carried out on the deployer (RTI), as long it has a local copy of the BoM needing to be checked. This can be achieved by copying the `bom.yml` file from your workstation/jumpbox onto the RTI.
 :hand: There is no provision for running the validation script on a BoM in the Storage Account.
 1. You will require the `yamllint` and `ansible-lint` commands to be installed. If these are not present, the script will remind you and will run without linting checks.
 1. You may use the supplied [example](./examples/) BoM files to familiarize yourself with the process.
@@ -22,6 +22,10 @@ Switch to the `util` directory and execute the `check_bom.sh` passing the full l
      ... ansible-lint [ok]
      ... bom structure [ok]
      ```
+
+   The following illustrates an example of this validation succeeding:
+
+   ![Recording of BoM Generation and Validation](demos/bom_generation_and_validation.svg)
 
 1. `./check_bom.sh ../documentation/ansible/system-design-deployment/examples/S4HANA_2020_ISS_v001/bom_with_errors.yml`
 

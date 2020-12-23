@@ -1,5 +1,9 @@
 # Deploy System Infrastructure
 
+The following illustrates an example of this process for deploying the system infrastructure:
+
+![Recording of System Infrastructure Deployment](demos/system_deployment.svg)
+
 ## Notes
 
 1. Prior to following HANA Installation Template Preparation or any Deployment, there is some existing configuration which should be run. However, the existing and new processes overlap, which will break the deployment, unless the existing playbook is changed as documented below.

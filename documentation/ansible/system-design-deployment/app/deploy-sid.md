@@ -36,7 +36,12 @@
       ansible-playbook -i hosts ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/playbook_install_scs.yml
       ```
 
-   1. If the HANA Database has not yet been installed, install the HANA Database *:
+      The following illustrates an example of this process for deploying the SCS:
+
+      ![Recording of SCS Deployment](../demos/scs_deployment.svg)
+
+
+   1. If the HANA Database has not yet been installed, install the HANA Database \*:
 
       1. Ensure the mount point exists for the Installation Media:
 
@@ -72,25 +77,25 @@
       ansible-playbook -i hosts ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/playbook_install_hana.yml
       ```
 
-   1. Install the Database Content *:
+   1. Install the Database Content \*:
 
       ```shell
       ansible-playbook -i hosts ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/playbook_install_db.yml
       ```
 
-   1. Install the Primary Application Server *:
+   1. Install the Primary Application Server \*:
 
       ```shell
       ansible-playbook -i hosts ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/playbook_install_pas.yml
       ```
 
-   1. Install the Additional Application Server(s) *:
+   1. Install the Additional Application Server(s) \*:
 
       ```shell
       ansible-playbook -i hosts ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/playbook_install_aas.yml
       ```
 
-   1. Install the Web Dispatcher Server(s) *:
+   1. Install the Web Dispatcher Server(s) \*:
 
       ```shell
       ansible-playbook -i hosts ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/playbook_install_web.yml

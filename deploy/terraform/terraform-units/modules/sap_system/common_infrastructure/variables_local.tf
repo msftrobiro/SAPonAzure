@@ -154,7 +154,7 @@ locals {
   anchor_authentication       = try(local.anchor.authentication, local.db_auth)
   anchor_auth_type            = try(local.anchor.authentication.type, "key")
   enable_anchor_auth_password = local.deploy_anchor && local.anchor_auth_type == "password"
-  enable_anchor_auth_key      = local.deploy_anchor && local.anchor_auth_type == "key"
+  enable_anchor_auth_key      = !local.enable_anchor_auth_password
 
   //If the db uses ultra disks ensure that the anchore sets the ultradisk flag but only for the zones that will contain db servers
   enable_anchor_ultra = [
@@ -272,6 +272,8 @@ locals {
 
   prvt_kv_name    = local.prvt_kv_exist ? split("/", local.prvt_key_vault_id)[8] : local.sid_keyvault_names.private_access
   prvt_kv_rg_name = local.prvt_kv_exist ? split("/", local.prvt_key_vault_id)[4] : ""
+
+  sid_public_key      = data.azurerm_key_vault_secret.sid_pk[0].value
 
   //---- Update infrastructure with defaults ----//
   infrastructure = {

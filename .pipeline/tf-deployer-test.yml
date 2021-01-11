@@ -1,0 +1,41 @@
+trigger: none
+pr:
+  branches:
+    include:
+    - feature/*
+  paths:
+    include:
+    - deploy/terraform/bootstrap/sap_deployer/*
+    - deploy/terraform/run/sap_deployer/*
+    - deploy/terraform/terraform-units/modules/sap_deployer/*
+variables:
+  - group: azure-config-variables
+  - group: azure-sap-hana-pipeline-secrets
+  - template: templates/variables.yaml
+stages:
+- stage:
+  pool:
+    vmImage: "ubuntu-18.04"
+  jobs:
+  - job: deployerTest
+    timeoutInMinutes: 30
+    steps:
+      - template: templates/util/prepare-agent.yml
+      - template: templates/deployer/create-deployer-steps.yml
+        parameters:
+          branch_name: $(targetBranchName)
+          deployer_env: "$(Build.BuildId)"
+      - template: templates/deployer/validate-deployer-steps.yml
+        parameters:
+          deployer_env: "$(Build.BuildId)"
+      - template: templates/deployer/create-deployer-steps.yml
+        parameters:
+          branch_name: $(sourceBranchName)
+          deployer_env: "$(Build.BuildId)"
+      - template: templates/deployer/delete-deployer-steps.yml
+        parameters:
+          branch_name: $(sourceBranchName)
+          deployer_env: "$(Build.BuildId)"
+      - template: templates/util/remove-agent-from-deployer-nsg.yml
+        parameters:
+          deployer_env: "UNIT"

@@ -1,0 +1,9 @@
+variables:
+  ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
+    sourceBranchName: $[ replace(variables['Build.SourceBranch'], 'refs/heads/', '') ]
+  ${{ if startsWith(variables['Build.SourceBranch'], 'refs/pull/') }}:
+    sourceBranchName: $[ replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '') ]
+  ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+    targetBranchName: $[ variables['System.PullRequest.TargetBranch'] ]
+  ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    targetBranchName: $[ replace(variables['Build.SourceBranch'], 'refs/heads/', '') ]

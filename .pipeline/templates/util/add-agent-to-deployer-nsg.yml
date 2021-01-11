@@ -1,0 +1,41 @@
+steps:
+  - script: |
+      echo "=== Get agent IP ==="
+      echo '##vso[task.setvariable variable=agent_ip]$(curl -s https://ipinfo.io/json | jq -r .ip)'
+    displayName: "Get agent IP"
+  - script: |
+      az login --service-principal --user $(hana-pipeline-spn-id) --password $(hana-pipeline-spn-pw) --tenant $(landscape-tenant) --output none
+
+      # Modify environment value so it starts with u and with length of 5
+      deployer_env=${{parameters.deployer_env}}
+      buildId=$(Build.BuildId)
+      isRelease=${deployer_env%%$buildId*}
+      if [ -z "${isRelease}" ]
+      then 
+        deployer_prefix="U$(echo $(Build.BuildId) | rev | cut -c1-4 | rev)"
+      else
+        deployer_prefix=${deployer_env}
+      fi
+
+      rg_name="${deployer_prefix}-EAUS-DEP00-INFRASTRUCTURE"
+
+      vnet_name=$(az network vnet list --resource-group ${rg_name} | jq -r .[].name)
+      subnet_name=$(az network vnet list --resource-group ${rg_name} | jq -r .[].subnets[].name)
+      nsg_name=$(az network nsg list --resource-group ${rg_name} | jq -r --arg vnet_name "${vnet_name}" '.[] | select(.name | contains($vnet_name) | not) | .name')
+     
+      echo "=== Update deployer NSG source address with agent IP ==="
+      prefix_list=$(az network nsg rule show  -g ${rg_name} --nsg-name ${nsg_name} -n ssh | jq -r '.sourceAddressPrefix, (.sourceAddressPrefixes | join(" ")) | select(.!=null)')
+      # this command always return success in case the pip is already assigned in the NSG.
+      az network nsg rule update -g ${rg_name} --nsg-name ${nsg_name} -n ssh --source-address-prefixes $(agent_ip) ${prefix_list} --output none || true
+ 
+      echo "=== Assgin ${nsg_name} to deployer ${subnet_name} to avoid NRMS ==="
+      az network vnet subnet update -g ${rg_name} -n ${subnet_name} --vnet-name ${vnet_name} --network-security-group ${nsg_name} --output none
+
+      echo "=== Wait 1 minute for the new NSG to take effective ==="
+      sleep 1m
+    displayName: "Add agent IP to deployer NSG"
+    env:
+      ARM_CLIENT_ID: $(hana-pipeline-spn-id)
+      ARM_CLIENT_SECRET: $(hana-pipeline-spn-pw)
+      ARM_TENANT_ID: $(landscape-tenant)
+      ARM_SUBSCRIPTION_ID: $(landscape-subscription)

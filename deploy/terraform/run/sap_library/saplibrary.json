@@ -1,0 +1,12 @@
+{
+    "infrastructure": {
+        "region": "eastus",
+        "environment": "np"
+    },
+    "deployer": {
+        "environment": "np",
+        "region": "eastus",
+        "vnet": "DEP00"
+    },
+    "tfstate_resource_id": ""
+}

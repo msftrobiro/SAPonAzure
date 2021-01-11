@@ -1,0 +1,108 @@
+{
+  "tfstate_resource_id": "",
+  "deployer_tfstate_key": "",
+  "landscape_tfstate_key": "",
+  "infrastructure": {
+    "region": "eastus",
+    "environment": "NP",
+    "resource_group": {
+      "is_existing": "false",
+      "arm_id": ""
+    },
+    "anchor_vms": {
+      "sku": "Standard_D4s_v4",
+      "authentication": {
+        "type": "key",
+        "username": "azureadm"
+      },
+      "accelerated_networking": true,
+      "os": {
+        "publisher": "SUSE",
+        "offer": "sles-sap-12-sp5",
+        "sku": "gen1"
+      },
+      "nic_ips": ["", "", ""],
+      "use_DHCP" : false
+    },
+    "vnets": {
+      "sap": {
+        "is_existing": "false",
+        "arm_id": "",
+        "name": "",
+        "address_space": "10.1.0.0/16",
+        "subnet_admin": {
+          "prefix": "10.1.1.0/24"
+        },
+        "subnet_db": {
+          "prefix": "10.1.2.0/24"
+        },
+        "subnet_app": {
+          "prefix": "10.1.4.0/24"
+        }
+      }
+    }
+  },
+  "key_vault": {
+    "kv_user_id": "",
+    "kv_prvt_id": ""
+  },
+  "databases": [
+    {
+      "platform": "HANA",
+      "high_availability": false,
+      "db_version": "2.00.050",
+      "size": "Default",
+      "os": {
+        "publisher": "SUSE",
+        "offer": "sles-sap-12-sp5",
+        "sku": "gen1"
+      },
+      "zones": ["1"],
+      "avset_arm_ids": [
+        "/subscriptions/xxxx/resourceGroups/yyyy/providers/Microsoft.Compute/availabilitySets/PROTO-SID_db_avset"
+      ],
+      "use_DHCP": false,
+      "dbnodes": [
+        {
+          "name": "hdb1",
+          "role": "worker"
+        },
+        {
+          "name": "hdb2",
+          "role": "worker"
+        },
+        {
+          "name": "hdb3",
+          "role": "standby"
+        }
+      ]
+    }
+  ],
+  "application": {
+    "enable_deployment": true,
+    "sid": "PRD",
+    "scs_instance_number": "01",
+    "ers_instance_number": "02",
+    "scs_high_availability": false,
+    "application_server_count": 2,
+    "webdispatcher_count": 1,
+    "app_zones": ["1", "2"],
+    "scs_zones": ["1"],
+    "web_zones": ["1"],
+    "use_DHCP": false,
+    "authentication": {
+      "type": "key",
+      "username": "azureadm"
+    }
+  },
+  "sshkey": {
+    "path_to_public_key": "sshkey.pub",
+    "path_to_private_key": "sshkey"
+  },
+  "options": {
+    "enable_secure_transfer": true,
+    "enable_prometheus": true,
+    "resource_offset" : 0,
+    "disk_encryption_set_id" : ""
+  }
+}

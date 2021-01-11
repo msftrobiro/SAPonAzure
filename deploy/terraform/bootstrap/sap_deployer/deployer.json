@@ -1,0 +1,14 @@
+{
+  "infrastructure": {
+    "region": "eastus",
+    "environment": "np",
+    "vnets": {
+      "management": {
+        "address_space": "10.0.0.0/26",
+        "subnet_mgmt": {
+          "prefix": "10.0.0.16/28"
+        }
+      }
+    }
+  }
+}

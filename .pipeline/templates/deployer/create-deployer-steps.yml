@@ -1,0 +1,63 @@
+steps:
+  - script: |
+      repo_path=$(pwd)
+
+      # Modify environment value so it starts with u and with length of 5
+      deployer_env=${{parameters.deployer_env}}
+      buildId=$(Build.BuildId)
+      isRelease=${deployer_env%%$buildId*}
+      if [ -z "${isRelease}" ]
+      then 
+        deployer_prefix="U$(echo $(Build.BuildId) | rev | cut -c1-4 | rev)"
+      else
+        deployer_prefix=${deployer_env}
+      fi
+
+      deployer_rg="${deployer_prefix}-EAUS-DEP00-INFRASTRUCTURE"
+      ws_dir=$(Agent.BuildDirectory)/Azure_SAP_Automated_Deployment/WORKSPACES/LOCAL/${deployer_rg}
+      input=${ws_dir}/${deployer_rg}.json
+
+      #Only private IP addresses can be added to NSG due to S360 requirement
+      prefix="10.0.0.16/28"
+
+      git checkout ${{parameters.branch_name}}
+
+      mkdir -p ${ws_dir}; cd $_
+      cp $HOME/.ssh/id_rsa sshkey
+      cp $HOME/.ssh/id_rsa.pub sshkey.pub
+
+      cp ${repo_path}/deploy/terraform/bootstrap/sap_deployer/deployer.json deployer.json
+
+      [[ -f ${input} ]] ||
+      cat deployer.json \
+      | jq --arg environment "${deployer_prefix}" .infrastructure.environment\ =\ \$environment \
+      | jq --arg prefix "${prefix}" --arg agent_ip "$(agent_ip)" '.infrastructure.vnets.management.subnet_mgmt += {
+        nsg: {
+          allowed_ips: [$prefix, $agent_ip]
+        }
+      }' \
+      | jq '. += {
+        sshkey: {
+          path_to_public_key: "sshkey.pub",
+          path_to_private_key: "sshkey"
+        }
+      }' \
+      | jq '. += {
+        options: {
+          enable_deployer_public_ip: true
+        }
+      }'> ${input}
+
+      cat ${input}
+      
+      echo "=== Start terraform apply for new deployer ==="
+      terraform -version
+      terraform init -upgrade=true ${repo_path}/deploy/terraform/bootstrap/sap_deployer/
+      terraform apply -auto-approve -var-file=${input} ${repo_path}/deploy/terraform/bootstrap/sap_deployer/
+    displayName: "Deploy deployer bootstrap: Branch ${{parameters.branch_name}}"
+    condition: or(succeededOrFailed(), always())
+    env:
+      ARM_CLIENT_ID: $(hana-pipeline-spn-id)
+      ARM_CLIENT_SECRET: $(hana-pipeline-spn-pw)
+      ARM_TENANT_ID: $(landscape-tenant)
+      ARM_SUBSCRIPTION_ID: $(landscape-subscription)

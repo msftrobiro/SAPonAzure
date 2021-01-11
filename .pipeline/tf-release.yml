@@ -1,0 +1,192 @@
+trigger:
+  branches:
+    include:
+    - master
+    - beta/*
+  paths:
+    include:
+    - deploy/terraform/*
+pr: none
+variables:
+  - group: azure-config-variables
+  - group: azure-sap-hana-pipeline-secrets
+  - template: templates/variables.yaml
+stages:
+- stage:
+  pool:
+    vmImage: "ubuntu-18.04"
+  variables:
+    ssh_timeout_s: 120
+  jobs:
+  - job: deleteAll
+    steps:
+      - script: |
+          az login --service-principal --user $(hana-pipeline-spn-id) --password $(hana-pipeline-spn-pw) --tenant $(landscape-tenant) --output none
+          sapsystem_rg="SLES-EAUS-SAP-PRD"
+          echo "=== Mark and try to delete rg $sapsystem_rg ==="
+          az group update --resource-group $sapsystem_rg --set tags.Delete=True
+          az group delete -n $sapsystem_rg -y
+
+          sapsystem_rg="RHEL-EAUS-SAP-PRD"
+          echo "=== Mark and try to delete rg $sapsystem_rg ==="
+          az group update --resource-group $sapsystem_rg --set tags.Delete=True
+          az group delete -n $sapsystem_rg -y
+
+          saplandscape_rg="UNIT-EAUS-SAP0-INFRASTRUCTURE"
+          echo "=== Mark and try to delete rg $saplandscape_rg ==="
+          az group update --resource-group $saplandscape_rg --set tags.Delete=True
+          az group delete -n $saplandscape_rg -y
+
+          saplib_rg="UNIT-EAUS-SAP_LIBRARY"
+          echo "=== Mark and try to delete rg $saplib_rg ==="
+          az group update --resource-group $saplib_rg --set tags.Delete=True
+          az group delete -n $saplib_rg -y
+
+          deployer_rg="UNIT-EAUS-DEP00-INFRASTRUCTURE"
+          echo "=== Mark and try to delete rg $deployer_rg ==="
+          az group update --resource-group $deployer_rg --set tags.Delete=True
+          az group delete -n $deployer_rg -y
+          exit 0
+        displayName: "Clean up"
+        env:
+          ARM_CLIENT_ID: $(hana-pipeline-spn-id)
+          ARM_CLIENT_SECRET: $(hana-pipeline-spn-pw)
+          ARM_TENANT_ID: $(landscape-tenant)
+          ARM_SUBSCRIPTION_ID: $(landscape-subscription)
+  - job: createDeployer
+    dependsOn: deleteAll
+    timeoutInMinutes: 30
+    steps:
+      - template: templates/util/prepare-agent.yml
+      - template: templates/deployer/create-deployer-steps.yml
+        parameters:
+          branch_name: $(sourceBranchName)
+          deployer_env: "UNIT"
+      - template: templates/util/collect-deployer-info.yml
+        parameters:
+          deployer_env: "UNIT"
+      - template: templates/util/add-agent-to-deployer-nsg.yml
+        parameters:
+          deployer_env: "UNIT"
+      - template: templates/deployer/post-deployer-steps.yml
+        parameters:
+          deployer_env: "UNIT"
+      - template: templates/util/remove-agent-from-deployer-nsg.yml
+        parameters:
+          deployer_env: "UNIT"
+  - job: createSAPLib
+    dependsOn: createDeployer
+    timeoutInMinutes: 30
+    steps:
+      - template: templates/util/prepare-agent.yml
+      - template: templates/util/collect-deployer-info.yml
+        parameters:
+          deployer_env: "UNIT"
+      - template: templates/util/add-agent-to-deployer-nsg.yml
+        parameters:
+          deployer_env: "UNIT"
+      - template: templates/saplib/create-saplib-steps.yml
+        parameters:
+          branch_name: $(sourceBranchName)
+          deployer_env: "UNIT"
+          saplib_env: "UNIT"
+      - template: templates/util/add-agent-to-deployer-nsg.yml
+        parameters:
+          deployer_env: "UNIT"
+      - template: templates/saplib/post-saplib-steps.yml
+        parameters:
+          deployer_env: "UNIT"
+          saplib_env: "UNIT"
+      - template: templates/util/remove-agent-from-deployer-nsg.yml
+        parameters:
+          deployer_env: "UNIT"
+  - job: createSAPLandscape
+    dependsOn: createSAPLib
+    timeoutInMinutes: 30
+    steps:
+      - template: templates/util/prepare-agent.yml
+      - template: templates/util/collect-deployer-info.yml
+        parameters:
+          deployer_env: "UNIT"
+      - template: templates/util/add-agent-to-deployer-nsg.yml
+        parameters:
+          deployer_env: "UNIT"
+      - template: templates/saplandscape/create-saplandscape-steps.yml
+        parameters:
+          branch_name: $(sourceBranchName)
+          deployer_env: "UNIT"
+          saplib_env: "UNIT"
+          saplandscape_env: "UNIT"
+      - template: templates/util/remove-agent-from-deployer-nsg.yml
+        parameters:
+          deployer_env: "UNIT"
+  - job: createSAPSystemSLES
+    dependsOn: createSAPLandscape
+    timeoutInMinutes: 30
+    steps:
+      - template: templates/util/prepare-agent.yml
+      - template: templates/util/collect-deployer-info.yml
+        parameters:
+          deployer_env: "UNIT"
+      - template: templates/util/add-agent-to-deployer-nsg.yml
+        parameters:
+          deployer_env: "UNIT"
+      - template: templates/sapsystem/create-sapsystem-steps.yml
+        parameters:
+          branch_name: $(sourceBranchName)
+          deployer_env: "UNIT"
+          saplib_env: "UNIT"
+          saplandscape_env: "UNIT"
+          sapsystem_env: "SLES"
+          osImage_offer: "sles-sap-12-sp5"
+          osImage_publisher: "SUSE"
+          osImage_sku: "gen1"
+      - template: templates/util/remove-agent-from-deployer-nsg.yml
+        parameters:
+          deployer_env: "UNIT"
+  - job: createSAPSystemRHEL
+    dependsOn: createSAPLandscape
+    timeoutInMinutes: 30
+    steps:
+      - script: |
+          sleep 5m
+      - template: templates/util/prepare-agent.yml
+      - template: templates/util/collect-deployer-info.yml
+        parameters:
+          deployer_env: "UNIT"
+      - template: templates/util/add-agent-to-deployer-nsg.yml
+        parameters:
+          deployer_env: "UNIT"
+      - template: templates/sapsystem/create-sapsystem-steps.yml
+        parameters:
+          branch_name: $(sourceBranchName)
+          deployer_env: "UNIT"
+          saplib_env: "UNIT"
+          saplandscape_env: "UNIT"
+          sapsystem_env: "RHEL"
+          osImage_offer: "RHEL-SAP-HA"
+          osImage_publisher: "RedHat"
+          osImage_sku: "7.6"
+      - template: templates/util/remove-agent-from-deployer-nsg.yml
+        parameters:
+          deployer_env: "UNIT"
+  - job: runAnsibleSLES
+    timeoutInMinutes: 120
+    dependsOn: createSAPSystemSLES
+    steps:
+      - template: templates/util/prepare-agent.yml
+      - template: templates/util/collect-deployer-info.yml
+        parameters:
+          deployer_env: "UNIT"
+      - template: templates/util/add-agent-to-deployer-nsg.yml
+        parameters:
+          deployer_env: "UNIT"
+      - template: templates/ansible/ansible-playbook-steps.yml
+        parameters:
+          branch_name: $(sourceBranchName)
+          saplib_rg_name: "UNIT-EAUS-SAP_LIBRARY"
+          saplandscape_rg_name: "UNIT-EAUS-SAP0-INFRASTRUCTURE"
+          sapsystem_rg_name: "SLES-EAUS-SAP-PRD"
+      - template: templates/util/remove-agent-from-deployer-nsg.yml
+        parameters:
+          deployer_env: "UNIT"

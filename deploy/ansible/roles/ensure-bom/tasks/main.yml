@@ -1,0 +1,5 @@
+---
+
+- include_tasks: pre_checks.yml
+
+- include_tasks: ensure-bom.yml

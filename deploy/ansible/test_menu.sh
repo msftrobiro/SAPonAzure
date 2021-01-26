@@ -31,19 +31,14 @@ do
                 7)      playbook=playbook_06a_sap_dbload.yaml;;
                 8)      playbook=playbook_06b_sap_pas_install.yaml;;
                 9)      playbook=playbook_06c_sap_app_install.yaml;;
-                10)     playbook=playbook_06d_sap_web_install.yam;;
+                10)     playbook=playbook_06d_sap_web_install.yaml;;
                 11)     break;;
         esac
         ansible-playbook                                                                                                \
           --inventory   new-hosts.yaml                                                                                  \
           --user        azureadm                                                                                        \
           --private-key sshkey                                                                                          \
-          --extra-vars="{                                                                                               \
-                          \"bom_base_name\":                \"HANA_2_00_053_v001\",                                     \
-                          \"download_templates\":           \"false\",                                                  \
-                          \"sapbits_location_base_path\":   \"https://npeus2saplib4b2.blob.core.windows.net/sapbits\",  \
-                          \"target_media_location\":        \"/usr/sap/install\"                                        \
-                        }"                                                                                              \
+          --extra-vars="@sap-parameters.yaml"                                                                           \
           ~/Azure_SAP_Automated_Deployment/centiq-sap-hana/deploy/ansible/${playbook}
           break
 done

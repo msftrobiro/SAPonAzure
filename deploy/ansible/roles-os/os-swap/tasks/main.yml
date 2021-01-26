@@ -5,6 +5,6 @@
     file: "../../../vars/sap-disks.yaml"
 
 # TODO: Rewrite - This is written wrong. it serializes work incorrectly. Tasks should not be in seperate file in a loop.
-- include_tasks: configure.yml
+- include_tasks: configure.yaml
   loop: "{{ sap_swap }}"
   when: item.tier == "all" or item.tier == tier

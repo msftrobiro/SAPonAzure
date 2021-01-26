@@ -1,6 +1,6 @@
 # Process Bill of Materials
 
-This role recursively travels BoM files (`bom.yml`) and copies files from the "sapbits" archive Storage Account, `sapbits_location_base_path` to the given `target_media_location`. The initial BoM is specified by the `bom_base_name` variable.
+This role recursively travels BoM files (`bom.yaml`) and copies files from the "sapbits" archive Storage Account, `sapbits_location_base_path` to the given `target_media_location`. The initial BoM is specified by the `bom_base_name` variable.
 
 Optionally, a `test_mode` variable may be used and set to `true`, which will recursively travel the BoM files and report files to be copied, without actually copying them.
 

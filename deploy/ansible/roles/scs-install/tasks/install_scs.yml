@@ -2,7 +2,7 @@
 
 - name: "Ensure {{ bom_base_name }} data is available"
   include_vars:
-    file: "{{ inventory_dir }}/{{ bom_base_name }}_bom.yml"
+    file: "{{ inventory_dir }}/{{ bom_base_name }}_bom.yaml"
     name: bom
 
 - name: Determine Stack XML file name

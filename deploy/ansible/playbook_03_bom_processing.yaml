@@ -24,7 +24,7 @@
 #   vars:
 #     tier: preparation
 #   vars_files:
-#     - "{{ inventory_dir }}/sap-system-config.yml"
+#     - "{{ inventory_dir }}/sap-system-config.yaml"
 #   roles:
 #     - role: dependencies-install                    # --> roles-sap/sap-packages        (playbook_02_os_sap_specific_config)
 #     - role: disk-setup                              # --> roles-sap/sap-disk-setup      (playbook_02_os_sap_specific_config)

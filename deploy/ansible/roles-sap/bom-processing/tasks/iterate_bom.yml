@@ -2,13 +2,13 @@
 
 - name: "Ensure {{ bom_base_name }} is used"
   include_vars:
-    file: "{{ inventory_dir }}/{{ bom_base_name }}_bom.yml"
+    file: "{{ inventory_dir }}/{{ bom_base_name }}_bom.yaml"
     name: bom
   delegate_to: localhost
 
 - name: "Ensure {{ bom_base_name }} is absent"
   file:
-    path: "{{ inventory_dir }}/{{ bom_base_name }}_bom.yml"
+    path: "{{ inventory_dir }}/{{ bom_base_name }}_bom.yaml"
     state: absent
   delegate_to: localhost
 
@@ -19,7 +19,7 @@
   check_mode: "{{ test_mode is defined and test_mode }}"
 
 - name: "Ensure current property is iterated"
-  include_tasks: download_media.yml
+  include_tasks: download_media.yaml
   vars:
     default_location: "{{ bom.defaults.target_location | regex_replace('/$', '') }}"
     bom_media: "{{ media_iterator.media }}"

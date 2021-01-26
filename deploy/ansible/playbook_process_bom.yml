@@ -5,7 +5,7 @@
   vars:
     tier: preparation
   vars_files:
-    - "{{ inventory_dir }}/sap-system-config.yml"
+    - "{{ inventory_dir }}/sap-system-config.yaml"
   roles:
     - role: dependencies-install
     - role: disk-setup

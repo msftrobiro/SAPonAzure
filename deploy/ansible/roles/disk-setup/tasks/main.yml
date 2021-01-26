@@ -2,7 +2,7 @@
 
 - name: "Ensure variables are included"
   include_vars:
-    file: "../../../vars/sap-disks.yml"
+    file: "../../../vars/sap-disks.yaml"
 
 - name: "Ensure Volume Group(s) are present"
   lvg:

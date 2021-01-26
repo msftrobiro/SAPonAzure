@@ -12,15 +12,10 @@ export           ANSIBLE_HOST_KEY_CHECKING=False
 
 
 ansible-playbook                                                                                                \
-  --inventory   hosts.yaml                                                                                      \
+  --inventory   new-hosts.yaml                                                                                  \
   --user        azureadm                                                                                        \
   --private-key sshkey                                                                                          \
-  --extra-vars="{                                                                                               \
-                  \"bom_base_name\":                \"HANA_2_00_053_v001\",                                     \
-                  \"download_templates\":           \"false\",                                                  \
-                  \"sapbits_location_base_path\":   \"https://npeus2saplib4b2.blob.core.windows.net/sapbits\",  \
-                  \"target_media_location\":        \"/usr/sap/install\"                                        \
-                }"                                                                                              \
+  --extra-vars="@sap-parameters.yaml"                                                                           \
 playbook_00_transition_start_for_sap_install.yaml                                                               \
 playbook_01_os_base_config.yaml                                                                                 \
 playbook_02_os_sap_specific_config.yaml                                                                         \

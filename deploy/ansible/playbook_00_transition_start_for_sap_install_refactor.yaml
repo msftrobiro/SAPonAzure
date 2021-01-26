@@ -15,15 +15,20 @@
       loop: "{{ output.databases|flatten(levels=1) }}"
       when: item.platform == 'HANA'
 
+# --> BEGIN SKIP 20200126
+# TODO: Temporary Skip
 # Inventory validation for HANA VMs
 # - hosts: hanadbnodes
-- hosts: X00_DB
-  become: true
-  become_user: root
-  roles:
-    - role: inventory-validation
-      when:
-        - hana_database.size != "LargeInstance"
+
+# - hosts: X00_DB
+#   become: true
+#   become_user: root
+#   roles:
+#     - role: inventory-validation
+#       when:
+#         - hana_database.size != "LargeInstance"
+
+# --> END SKIP 20200126
 
 # Prepare os, disks and mount points on Hana Database servers
 # - hosts: hanadbnodes

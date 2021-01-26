@@ -1,19 +1,58 @@
 ---
 
-- hosts: localhost
-  become: true
-  become_user: root
-  pre_tasks:
-    - name: Include output JSON
-      include_vars:
-        file: "{{ inventory_dir }}/output.json"
-        name: output
+# Flow of old sap_playbook
+#   HOST: localhost
+#     Include output JSON
+#     Create dictionary with HANA database inforamtion from output.JSON
+#   
+#   HOST: X00_DB
+#     role: inventory-validation
+#     role: os-preparation
+#     role: os-disk-setup
+#     role: enable-prometheus
+#   
+#   
+#   HOST: ISCSI
+#     role: iscsi-target-install
+#   
+#   
+#   
+#   
+#   
 
-    - name: Create dictionary with HANA database inforamtion from output.JSON
-      set_fact:
-        hana_database: "{{ item }}"
-      loop: "{{ output.databases|flatten(levels=1) }}"
-      when: item.platform == 'HANA'
+
+#----------------------------------------
+# BEGIN
+#
+# TODO: Depracate - Move parameters to yaml
+#----------------------------------------
+
+# - hosts: localhost
+#   become: true
+#   become_user: root
+#   pre_tasks:
+#     - name: Include output JSON
+#       include_vars:
+#         file: "{{ inventory_dir }}/output.json"
+#         name: output
+
+#     - name: Create dictionary with HANA database inforamtion from output.JSON
+#       set_fact:
+#         hana_database: "{{ item }}"
+#       loop: "{{ output.databases|flatten(levels=1) }}"
+#       when: item.platform == 'HANA'
+
+#----------------------------------------
+# END
+#----------------------------------------
+
+
+
+#----------------------------------------
+# BEGIN
+#
+# TODO: evaluate and refactor. move to os_base_config
+#----------------------------------------
 
 # --> BEGIN SKIP 20200126
 # TODO: Temporary Skip
@@ -30,28 +69,45 @@
 
 # --> END SKIP 20200126
 
-# Prepare os, disks and mount points on Hana Database servers
-# - hosts: hanadbnodes
-- hosts: X00_DB
-  become: true
-  become_user: root
-  vars_files:
-    - "vars/packages.yaml"
-  pre_tasks:
-    - name: Include SAP HANA DB sizes
-      include_vars:
-        file: "{{ configs_path }}/hdb_sizes.json"
-        name: hdb_sizes
-  max_fail_percentage: 0
-  roles:
-    - role: os-preparation
-    - role: os-disk-setup
-    - role: enable-prometheus
-      when:
-        - output.options.enable_prometheus == True
-        - ansible_facts['distribution_file_variety'] == 'SUSE'
-        - ansible_facts['distribution_version'] is regex("(12\.[3-5]|15\.\d)")
-        - hana_database.size != "LargeInstance"
+#----------------------------------------
+# END
+#----------------------------------------
+
+
+
+#----------------------------------------
+# BEGIN
+#
+# TODO: evaluate and refactor. move to os_base_config and os_sap_config
+#----------------------------------------
+
+
+# # Prepare os, disks and mount points on Hana Database servers
+# # - hosts: hanadbnodes
+# - hosts: X00_DB
+#   become: true
+#   become_user: root
+#   vars_files:
+#     - "vars/packages.yaml"
+#   pre_tasks:
+#     - name: Include SAP HANA DB sizes
+#       include_vars:
+#         file: "{{ configs_path }}/hdb_sizes.json"
+#         name: hdb_sizes
+#   max_fail_percentage: 0
+#   roles:
+#     - role: os-preparation
+#     - role: os-disk-setup
+#     - role: enable-prometheus
+#       when:
+#         - output.options.enable_prometheus == True
+#         - ansible_facts['distribution_file_variety'] == 'SUSE'
+#         - ansible_facts['distribution_version'] is regex("(12\.[3-5]|15\.\d)")
+#         - hana_database.size != "LargeInstance"
+
+#----------------------------------------
+# END
+#----------------------------------------
 
 
 # --------------------------------------+---------------------------------------8
@@ -63,6 +119,8 @@
 #----------------------------------------
 # BEGIN: Commented Section to enable BOM
 #        Process
+#
+# TODO: evaluate and refactor. Depracate
 #----------------------------------------
 
 # # Mount Azure File share on all linux jumpboxes including rti
@@ -104,21 +162,36 @@
 #----------------------------------------
 
 
-# Only SLES support SBD fencing
-- hosts: iscsi
-  become: true
-  become_user: root
-  roles:
-   - role: iscsi-target-install
-     when:
-       - hana_database.size != "LargeInstance"
-       - hana_database.high_availability
-       - hostvars[hana_database.nodes[0].ip_admin_nic].ansible_os_family == 'Suse'
+
+#----------------------------------------
+# BEGIN
+#
+# TODO: Port to general pacemaker section
+#----------------------------------------
+
+# # Only SLES support SBD fencing
+# - hosts: iscsi
+#   become: true
+#   become_user: root
+#   roles:
+#    - role: iscsi-target-install
+#      when:
+#        - hana_database.size != "LargeInstance"
+#        - hana_database.high_availability
+#        - hostvars[hana_database.nodes[0].ip_admin_nic].ansible_os_family == 'Suse'
+
+#----------------------------------------
+# END
+#----------------------------------------
+
+
 
 
 #----------------------------------------
 # BEGIN: Commented Section to enable BOM
 #        Process
+#
+# TODO: evaluate and refactor. DB install, HSR, HA
 #----------------------------------------
 
 # # Hana DB components install

@@ -9,7 +9,7 @@ sap_volume_groups:
 
 sap_logical_volumes:
   - { tier: 'all', lv: 'lv_usrsap',        vg: 'vg_sap', size: '64g',      opts: '' }
-  - { tier: 'SCS', lv: 'lv_sapmnt',        vg: 'vg_sap', size: '128gv',    opts: '' }
+  - { tier: 'SCS', lv: 'lv_sapmnt',        vg: 'vg_sap', size: '128gb',    opts: '' }
   - { tier: 'SCS', lv: 'lv_usrsapinstall', vg: 'vg_sap', size: '100%FREE', opts: '' }
   - { tier: 'WEB', lv: 'lv_sapmnt',        vg: 'vg_sap', size: '1g',       opts: '' }
 

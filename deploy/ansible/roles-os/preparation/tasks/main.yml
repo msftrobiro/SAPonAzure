@@ -57,13 +57,16 @@
   command:    grub2-mkconfig -o /boot/grub2/grub.cfg
 
 
+- name:   Include variable file
+  include_vars:   
+    - ../../../vars/packages.yaml
+
+
 # Currently we only support RHEL-7 or SLES-12
 - name:     Manual preparation for RedHat
   include_tasks:    "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version }}-os_config.yml"
   when:     ansible_os_family|upper == "REDHAT" or
             ansible_os_family|upper == "SUSE"
-  vars_files:
-    - "../../../vars/packages.yaml"
 
 
 

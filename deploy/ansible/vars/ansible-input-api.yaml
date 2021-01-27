@@ -1,5 +1,15 @@
 ---
-# API Input Parameter Defaults
+# API Input template with defaults
+
+# Example of passing input YAML to ansible-playbook
+#
+#         ansible-playbook                                                                                                \
+#           --inventory   new-hosts.yaml                                                                                  \
+#           --user        azureadm                                                                                        \
+#           --private-key sshkey                                                                                          \
+#           --extra-vars="@sap-parameters.yaml"                                                                           \
+#           ~/Azure_SAP_Automated_Deployment/centiq-sap-hana/deploy/ansible/${playbook}
+
 
 # BoM Processing variables
 sapbits_location_base_path:   ""
@@ -26,3 +36,13 @@ sapsys_gid:                   2000
 scs_hostname:                 ""
 scs_instance_number:          ""
 sidadm_uid:                   2000
+
+
+password_cockpit_admin:       ""
+password_db_systemdb:         ""
+password_ha_db_cluster:       ""
+password_os_sapadm:           ""
+password_os_sidadm:           ""
+password_db_xsa_admin:        ""
+
+...

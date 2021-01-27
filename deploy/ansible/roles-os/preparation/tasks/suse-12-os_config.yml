@@ -5,12 +5,14 @@
 #   - SUSE Linux Enterprise Server 12.x for SAP Applications &onʦJuUDtLon Guide for SAP HANA x86_64 and POWER Architectures
 #   - SAP Notes for RHEL OS recommendations
 
-- name: Install OS packages
-  package:
-    name: "{{ item }}"
-    state: present
-  loop: "{{ packages[ansible_os_family|lower] }}"
+# - name: Install OS packages
+#   package:
+#     name: "{{ item }}"
+#     state: present
+#   loop: "{{ packages[ansible_os_family|lower] }}"
 
+
+# TODO:
 # - name: SAP Note 2593824 - Linux Running SAP applications compiled with GCC 7.x
 #   package:
 #     name: "{{ item }}"

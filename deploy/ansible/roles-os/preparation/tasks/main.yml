@@ -44,6 +44,7 @@
 # RHEL-3.10 Disable Transparent Hugepages (THP)
 # RHEL-3.12 Configure Processor C-States (not relevant for IBM Power LE (ppc64le))
 # SAP Note 2205917 - SAP HANA DB Recommended OS settings for SLES 12 / SLES for SAP Applications 12
+# TODO: when tier = HANA
 - name:     Task Disable Transparent Hugepages & Configure Processor C-States 1
   command:    "echo never > /sys/kernel/mm/transparent_hugepage/enabled"
 
@@ -57,8 +58,10 @@
   command:    grub2-mkconfig -o /boot/grub2/grub.cfg
 
 
-- name:     Include variable file
-  include_vars:   ../../../vars/packages.yaml
+- name:     "Task 3.2 - Installing OS packages: {{ ansible_os_family|upper }}-{{ ansible_distribution_major_version }}"
+  include_tasks:    task-3.2.yaml
+  when:     ansible_os_family|upper == "REDHAT" or
+            ansible_os_family|upper == "SUSE"
 
 
 # Currently we only support RHEL-7 or SLES-12

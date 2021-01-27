@@ -1,0 +1,14 @@
+---
+
+- name:     Include variable file
+  include_vars:   ../../../vars/packages.yaml
+
+- name: Task 3.2 - Installing OS package
+  package:
+    name: "{{ item }}" 
+    state: present
+  loop: 
+    - "{{ packages[ansible_os_family|lower] }}"
+
+
+...

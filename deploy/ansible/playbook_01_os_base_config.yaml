@@ -41,7 +41,7 @@
       name:     roles-os/preparation                            # TODO: Review and Refactoring Needed
 
   - debug:
-      vars: hostvars
+      var: hostvars
 
 #----------------------------------------
 # BEGIN

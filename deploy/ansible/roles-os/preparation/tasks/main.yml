@@ -57,9 +57,8 @@
   command:    grub2-mkconfig -o /boot/grub2/grub.cfg
 
 
-- name:   Include variable file
-  include_vars:   
-    - ../../../vars/packages.yaml
+- name:     Include variable file
+  include_vars:   ../../../vars/packages.yaml
 
 
 # Currently we only support RHEL-7 or SLES-12

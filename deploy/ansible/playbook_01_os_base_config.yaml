@@ -41,7 +41,7 @@
       name:     roles-os/preparation                            # TODO: Review and Refactoring Needed
 
   - debug:
-      var: hostvars['x99scs00l373']
+      var: hostvars['x00scs00l373']
 
 #----------------------------------------
 # BEGIN

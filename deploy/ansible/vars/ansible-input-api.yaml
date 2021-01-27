@@ -13,6 +13,7 @@
 
 # BoM Processing variables
 sapbits_location_base_path:   ""
+sapbits_bom_files:            "sapfiles"
 bom_base_name:                ""
 target_media_location:        "/usr/sap/install"
 sapbits_sas_token:            ""
@@ -45,5 +46,8 @@ password_ha_db_cluster:       ""
 password_os_sapadm:           ""
 password_os_sidadm:           ""
 password_db_xsa_admin:        ""
+
+download_templates:           false
+
 
 ...

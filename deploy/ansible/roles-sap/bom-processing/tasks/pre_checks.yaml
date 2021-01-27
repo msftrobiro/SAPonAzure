@@ -5,7 +5,12 @@
     that:
       - "sapbits_location_base_path is defined"
       - "sapbits_location_base_path | trim | length != 0"
+
+      - "sapbits_bom_files is defined"
+      - "sapbits_bom_files | trim | length != 0"
+
       - "bom_base_name is defined"
       - "bom_base_name | trim | length != 0"
+
       - "target_media_location is defined"
       - "target_media_location | trim | length != 0"

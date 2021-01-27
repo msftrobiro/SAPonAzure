@@ -4,6 +4,7 @@
   get_url:
     url: "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/bom.yaml{{ sapbits_sas_token }}"
     dest: "{{ inventory_dir }}/{{ bom_base_name }}_bom.yaml"
+# TODO: Investigate this delegate_to
   delegate_to: localhost
 
 - name: "Ensure {{ bom_base_name }} is available"

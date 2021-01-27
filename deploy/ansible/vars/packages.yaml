@@ -1,7 +1,7 @@
 ---
 
 packages:
-    RedHat:
+    redhat:
       - "@base"
       - gtk2
       - libicu
@@ -39,7 +39,7 @@ packages:
       - cifs-utils
       - compat-sap-c++-5
 
-    Suse: 
+    suse: 
       - libyui-qt-pkg7
       - sapconf
       - saptune

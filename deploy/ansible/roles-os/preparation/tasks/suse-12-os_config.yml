@@ -9,7 +9,7 @@
   package:
     name: "{{ item }}"
     state: present
-  loop: "{{ packages[ansible_os_family] }}"
+  loop: "{{ packages[ansible_os_family|lower] }}"
 
 # - name: SAP Note 2593824 - Linux Running SAP applications compiled with GCC 7.x
 #   package:

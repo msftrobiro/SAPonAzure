@@ -37,6 +37,7 @@ scs_hostname:                 ""
 scs_instance_number:          ""
 sidadm_uid:                   2000
 
+orchestration_ansible_user:   azureadm
 
 password_cockpit_admin:       ""
 password_db_systemdb:         ""

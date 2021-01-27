@@ -11,7 +11,8 @@
                  {{ sap_sid|upper }}_APP :
                  {{ sap_sid|upper }}_WEB"
   name:         OS Base Configuration
-  remote_user:  azureadm                                        # TODO: Replace with variable
+  # remote_user:  azureadm                                        # TODO: Replace with variable
+  remote_user:  "{{ orchestration_ansible_user }}"                                        # TODO: Replace with variable
   become:       yes
   become_user:  root
   vars_files:
@@ -23,8 +24,12 @@
   - name: Test Connection                                       # TODO: Temp place holder
     ping:
 
+# TODO: sudoers Config
+
   - include_role:
       name:     roles-os/os-swap                                # TODO: Centiq copy (rework needed)
+
+
 
 
 

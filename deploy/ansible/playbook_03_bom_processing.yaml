@@ -5,14 +5,15 @@
 # +-------------------------------------4--------------------------------------*/
 ---
 
-- hosts:        "{{ sap_sid|upper }}_SCS"
-  name:         BOM Processing
-  remote_user:  azureadm                              # TODO: Replace with variable
-  become:       yes
-  become_user:  root
-  gather_facts: true
+- hosts:          "{{ sap_sid|upper }}_SCS"
+
+  name:           BOM Processing
+  remote_user:    "{{ orchestration_ansible_user }}"                
+  become:         yes
+  become_user:    root
+  gather_facts:   true
   vars_files:
-    - vars/ansible-input-api.yaml                     # DONE: move this back into Repo Structure as an API template
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
 
 
 #---------------------------
@@ -43,6 +44,9 @@
 
   - set_fact:
       tier:     preparation
+
+  # - name: Test Connection                                     # Simple connection test for troubleshooting
+  #   ping:
 
   - include_role:
       name:     roles-sap-os/sap-exports                        # TODO: Centiq copy (rework needed)

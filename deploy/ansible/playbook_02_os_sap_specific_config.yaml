@@ -5,22 +5,24 @@
 # +-------------------------------------4--------------------------------------*/
 ---
 
-- hosts:        "{{ sap_sid|upper }}_DB  :
-                 {{ sap_sid|upper }}_SCS :
-                 {{ sap_sid|upper }}_PAS :
-                 {{ sap_sid|upper }}_APP :
-                 {{ sap_sid|upper }}_WEB"
-  name:         SAP specific OS configuration
-  remote_user:  azureadm                                        # TODO: Replace with variable
-  become:       yes
-  become_user:  root
+- hosts:          "{{ sap_sid|upper }}_DB  :
+                   {{ sap_sid|upper }}_SCS :
+                   {{ sap_sid|upper }}_PAS :
+                   {{ sap_sid|upper }}_APP :
+                   {{ sap_sid|upper }}_WEB"
+
+  name:           OS - SAP specific configuration
+  remote_user:    "{{ orchestration_ansible_user }}"                
+  become:         yes
+  become_user:    root
+  gather_facts:   true
   vars_files:
-    - vars/ansible-input-api.yaml                               # DONE: move this back into Repo Structure as an API template
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
 
 
   tasks:
 
-  # - name: Test Connection                                     # TODO: Temp place holder
+  # - name: Test Connection                                     # Simple connection test for troubleshooting
   #   ping:
 
 # - role: dependencies-install                                  # --> roles-sap/sap-packages (playbook_02_os_sap_specific_config)

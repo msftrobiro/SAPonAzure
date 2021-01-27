@@ -95,6 +95,71 @@
 #---------------------------
 
 
+#----------------------------------------
+# BEGIN
+#
+# TODO: evaluate for inclusion and refactor.
+# SOURCE: sap-playbook
+#----------------------------------------
+
+# --------------------------------------+---------------------------------------8
+#
+# <Comment Header> 
+#
+# --------------------------------------+---------------------------------------8
+
+
+
+#----------------------------------------
+# BEGIN: Commented Section to enable BOM
+#        Process
+#
+# TODO: evaluate and refactor. Depracate
+#----------------------------------------
+
+# # Mount Azure File share on all linux jumpboxes including rti
+# - hosts: localhost:jumpboxes_linux
+#   become: true
+#   become_user: root
+#   roles:
+#     - role: mount-azure-files
+#       when: output.software.storage_account_sapbits.file_share_name != ""
+
+# # Mount Azure File share on all hanadbnodes. When the scenario is Large Instance, this task will be skipped
+# - hosts: hanadbnodes
+#   become: true
+#   become_user: root
+#   roles:
+#     - role: mount-azure-files
+#       when:
+#         - output.software.storage_account_sapbits.file_share_name != ""
+#         - hana_database.size != "LargeInstance"
+
+# # Download SAP Media on Azure File Share
+# - hosts: localhost
+#   become: true
+#   become_user: root
+#   roles:
+#     - role: sap-media-download
+
+# - hosts: hanadbnodes
+#   become: true
+#   become_user: root
+#   roles:
+#     - role: sap-media-transfer
+#       when: hana_database.size == "LargeInstance"
+#     - role: large-instance-environment-setup
+#       when: hana_database.size == "LargeInstance"
+
+#----------------------------------------
+# END
+#----------------------------------------
+
+
+
+
+
+
 ...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |

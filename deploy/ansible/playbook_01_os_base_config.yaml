@@ -28,6 +28,80 @@
 
 
 
+#----------------------------------------
+# BEGIN
+#
+# TODO: evaluate for inclusion and refactor.
+# SOURCE: sap-playbook
+#----------------------------------------
+
+# --------------------------------------+---------------------------------------8
+#
+# <Comment Header> 
+#
+# --------------------------------------+---------------------------------------8
+
+
+#----------------------------------------
+# BEGIN
+#
+# TODO: evaluate and refactor. move to os_base_config
+#----------------------------------------
+
+# --> BEGIN SKIP 20200126
+# TODO: Temporary Skip
+# Inventory validation for HANA VMs
+# - hosts: hanadbnodes
+
+# - hosts: X00_DB
+#   become: true
+#   become_user: root
+#   roles:
+#     - role: inventory-validation
+#       when:
+#         - hana_database.size != "LargeInstance"
+
+# --> END SKIP 20200126
+
+#----------------------------------------
+# END
+#----------------------------------------
+
+#----------------------------------------
+# BEGIN
+#
+# TODO: evaluate and refactor. move to os_base_config and os_sap_config
+#----------------------------------------
+
+
+# # Prepare os, disks and mount points on Hana Database servers
+# # - hosts: hanadbnodes
+# - hosts: X00_DB
+#   become: true
+#   become_user: root
+#   vars_files:
+#     - "vars/packages.yaml"
+#   pre_tasks:
+#     - name: Include SAP HANA DB sizes
+#       include_vars:
+#         file: "{{ configs_path }}/hdb_sizes.json"
+#         name: hdb_sizes
+#   max_fail_percentage: 0
+#   roles:
+#     - role: os-preparation
+#     - role: os-disk-setup
+#     - role: enable-prometheus
+#       when:
+#         - output.options.enable_prometheus == True
+#         - ansible_facts['distribution_file_variety'] == 'SUSE'
+#         - ansible_facts['distribution_version'] is regex("(12\.[3-5]|15\.\d)")
+#         - hana_database.size != "LargeInstance"
+
+#----------------------------------------
+# END
+#----------------------------------------
+
+
 
 
 

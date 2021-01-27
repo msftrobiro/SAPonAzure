@@ -22,9 +22,7 @@
 
 
 #----------------------------------------
-# BEGIN
-#
-# TODO: Depracate - Move parameters to yaml
+# BEGIN DEPRECATED
 #----------------------------------------
 
 # - hosts: localhost
@@ -49,7 +47,7 @@
 
 
 #----------------------------------------
-# BEGIN
+# BEGIN - MOVED
 #
 # TODO: evaluate and refactor. move to os_base_config
 #----------------------------------------
@@ -76,7 +74,7 @@
 
 
 #----------------------------------------
-# BEGIN
+# BEGIN - MOVED
 #
 # TODO: evaluate and refactor. move to os_base_config and os_sap_config
 #----------------------------------------
@@ -118,7 +116,7 @@
 
 #----------------------------------------
 # BEGIN: Commented Section to enable BOM
-#        Process
+#        Process - MOVED
 #
 # TODO: evaluate and refactor. Depracate
 #----------------------------------------
@@ -164,7 +162,7 @@
 
 
 #----------------------------------------
-# BEGIN
+# BEGIN - MOVED
 #
 # TODO: Port to general pacemaker section
 #----------------------------------------
@@ -189,7 +187,7 @@
 
 #----------------------------------------
 # BEGIN: Commented Section to enable BOM
-#        Process
+#        Process - MOVED
 #
 # TODO: evaluate and refactor. DB install, HSR, HA
 #----------------------------------------

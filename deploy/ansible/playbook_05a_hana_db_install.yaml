@@ -22,6 +22,46 @@
 
 
 
+#----------------------------------------
+# BEGIN
+#
+# TODO: evaluate for inclusion and refactor.
+# SOURCE: sap-playbook
+#----------------------------------------
+
+# --------------------------------------+---------------------------------------8
+#
+# <Comment Header> 
+#
+# --------------------------------------+---------------------------------------8
+
+
+#----------------------------------------
+# BEGIN: Commented Section to enable BOM
+#        Process
+#
+# TODO: evaluate and refactor. DB install, HSR, HA
+#----------------------------------------
+
+# # Hana DB components install
+# - hosts: hanadbnodes
+#   become: true
+#   become_user: root
+#   any_errors_fatal: true
+#   vars_files:
+#     - "vars/ha-packages.yaml"
+#   pre_tasks:
+#     - name: Include SAP HANA DB sizes
+#       include_vars:
+#         file: "{{ configs_path }}/hdb_sizes.json"
+#         name: hdb_sizes
+#   roles:
+#     - role: hdb-server-install
+
+#----------------------------------------
+# END
+#----------------------------------------
+
 
 
 

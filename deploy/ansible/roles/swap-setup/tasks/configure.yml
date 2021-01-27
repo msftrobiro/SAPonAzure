@@ -1,4 +1,10 @@
 ---
+#----------------------------------------
+# BEGIN
+#
+# TODO: Review and Refactoring Needed.
+#       Validate Relivancy for this Task.
+#----------------------------------------
 
 - name: Ensure Resource disk is mounted
   lineinfile:
@@ -29,3 +35,10 @@
     name: waagent
     state: restarted
   when: conf_change.changed
+
+#----------------------------------------
+# END
+#
+# TODO: Review and Refactoring Needed.
+#       Validate Relivancy for this Task.
+#----------------------------------------

@@ -1,7 +1,88 @@
 ---
+# --------------------------------------+---------------------------------------8
+#
+# <Comment Header> 
+#
+# --------------------------------------+---------------------------------------8
+# TODO: 20210127 Review
 
-- name: Check configurations on HANA VMs
-  any_errors_fatal: true
+#----------------------------------------
+# BEGIN - OLD CODE
+#----------------------------------------
+
+# - name: Check configurations on HANA VMs
+#   any_errors_fatal: true
+#   block:
+#     - import_tasks: hostname_validation.yml
+#     - import_tasks: repo_validation.yml
+
+#----------------------------------------
+# END - OLD CODE
+#----------------------------------------
+
+
+#----------------------------------------
+# BEGIN
+#
+# TODO: 20210127 - This only takes into account pay-as-you-go deployments.
+#                  Need to support BYOL with SUSE Manager Registrations.
+#----------------------------------------
+
+- name:     Ensure zypper repo is configured on HANA VMs for SLES
   block:
-    - import_tasks: hostname_validation.yml
-    - import_tasks: repo_validation.yml
+    - name:     Check zypper repo on HANA VMs
+      command:    zypper lr
+
+  when:     ansible_os_family|upper == 'SUSE'
+
+  rescue:
+    # Attempt to configure the repo by re-register SLE
+    - name:     Ensure to re-register SLE instance against the Public Cloud Update Infrastructure servers
+      shell:      |
+                  rm /etc/SUSEConnect
+                  rm -f /etc/zypp/{repos,services,credentials}.d/*
+                  rm -f /usr/lib/zypp/plugins/services/*
+                  sed -i '/^# Added by SMT reg/,+1d' /etc/hosts
+                  export PYTHONWARNINGS="ignore:Unverified HTTPS request"
+                  /usr/sbin/registercloudguest --force-new
+
+      register:     reg_result
+      # registercloudguest rc == 1 when successful
+      failed_when: reg_result.rc > 1
+
+    - name: Check if zypper repo is configured on HANA VMs post re-register SLE instance
+      command: zypper lr
+
+#----------------------------------------
+# END
+#
+# TODO: 20210127 - This only takes into account pay-as-you-go deployments.
+#                  Need to support BYOL with SUSE Manager Registrations.
+#----------------------------------------
+
+
+
+
+#----------------------------------------
+# BEGIN
+#
+# TODO: 20210127 - This only takes into account pay-as-you-go deployments.
+#                  Need to support BYOL with RHEL satellite Registrations.
+#----------------------------------------
+
+- name:     Ensure zypper repo is configured on HANA VMs for RedHat
+  block:
+    - name:     Check yum repo on HANA VMs
+      command:    yum repolist
+
+  when:     ansible_os_family == 'RedHat'
+
+#----------------------------------------
+# END
+#
+# TODO: 20210127 - This only takes into account pay-as-you-go deployments.
+#                  Need to support BYOL with RHEL satellite Registrations.
+#----------------------------------------
+
+
+...

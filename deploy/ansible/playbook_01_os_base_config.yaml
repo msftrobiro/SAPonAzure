@@ -32,11 +32,10 @@
       name:     roles-os/os-swap                                # TODO: Centiq copy (rework needed)
 
   - include_role:
-      name:     roles-os/hostname                               # TODO: 
+      name:     roles-os/hostname                               # TODO: Review and Refactoring Needed
 
-  # - include_role:
-  #     name:               roles-os/repository                   # TODO: 
-  #     any_errors_fatal:   true
+  - include_role:
+      name:     roles-os/repository                             # TODO: Review and Refactoring Needed
 
 
 

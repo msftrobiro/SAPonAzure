@@ -40,8 +40,8 @@
   - include_role:
       name:     roles-os/preparation                            # TODO: Review and Refactoring Needed
 
-  - debug:
-      var: hostvars['x00scs00l373']
+  # - debug:
+  #     var: hostvars['x00scs00l373']
 
 #----------------------------------------
 # BEGIN

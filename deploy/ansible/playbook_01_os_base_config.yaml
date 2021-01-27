@@ -32,7 +32,7 @@
 
   - include_role:
       name:               roles-os/hostname                     # TODO: 
-      any_errors_fatal:   true
+      # any_errors_fatal:   true
 
   # - include_role:
   #     name:               roles-os/repository                   # TODO: 

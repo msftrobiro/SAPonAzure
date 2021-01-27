@@ -37,8 +37,11 @@
   - include_role:
       name:     roles-os/repository                             # TODO: Review and Refactoring Needed
 
+  - include_role:
+      name:     roles-os/preparation                            # TODO: Review and Refactoring Needed
 
-
+  - debug:
+      vars: hostvars
 
 #----------------------------------------
 # BEGIN

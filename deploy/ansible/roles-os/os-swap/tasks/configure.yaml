@@ -29,3 +29,38 @@
     name:       waagent
     state:      restarted
   when: conf_change.changed
+
+#----------------------------------------
+# BEGIN
+#
+# TODO: 20210127 Moved in from OS Preparation
+#       Reconcile
+#----------------------------------------
+
+# # If current host is LargeInstance, creating swap will be skipped. 
+# - name: Prepare SWAP
+#   when: hana_database.size != "LargeInstance"
+#   block:
+  
+#   - name: Configure SWAP space
+#     lineinfile:
+#       dest: /etc/waagent.conf
+#       regexp: "^{{ item.prop }}="
+#       line: "{{ item.prop }}={{ item.value }}"
+#     loop:
+#       - { prop: "ResourceDisk.Format", value: "y" }
+#       - { prop: "ResourceDisk.EnableSwap", value: "y" }
+#       - { prop: "ResourceDisk.SwapSizeMB", value: "{{ (hdb_sizes[hana_database.size].compute.swap_size_gb) * 1024|int }}" }
+
+#   - name: Restart waagent
+#     service:
+#       name: waagent 
+#       state: restarted
+
+#----------------------------------------
+# END
+#
+# TODO: 20210127 Moved in from OS Preparation
+#       Reconcile
+#----------------------------------------
+...

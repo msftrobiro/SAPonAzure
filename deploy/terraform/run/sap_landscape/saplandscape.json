@@ -17,9 +17,12 @@
             "iscsi_count": 3
         }
     },
-    "authentication": {
-        "username": "azureadm",
-        "password": ""
+    "sshkey": {
+        "username": "azureadm"
     },
+    "authentication": {
+        "username": "azureadm"
+    },
+
     "options": {}
 }

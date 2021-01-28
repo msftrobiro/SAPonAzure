@@ -57,7 +57,7 @@
 #       - hana_database.size != "LargeInstance"
 
   - include_role:
-      name:     roles-os/os-disk-setup                          # TODO: Review and Refactoring Needed
+      name:     roles-os/1.5-disk-setup                         # TODO: Review and Refactoring Needed
 
 
 

@@ -91,9 +91,9 @@ locals {
   vnet_sap_addr   = local.vnet_sap_exists ? "" : try(local.var_vnet_sap.address_space, "")
 
   // By default, Ansible ssh key for SID uses generated public key. Provide sshkey.path_to_public_key and path_to_private_key overides it
-  enable_landscape_kv = true
-  sid_public_key      = local.enable_landscape_kv ? (local.sid_key_exist ? data.azurerm_key_vault_secret.sid_pk[0].value : try(file(var.authentication.path_to_public_key), tls_private_key.sid[0].public_key_openssh)) : null
-  sid_private_key     = local.enable_landscape_kv ? (local.sid_key_exist ? data.azurerm_key_vault_secret.sid_ppk[0].value : try(file(var.authentication.path_to_private_key), tls_private_key.sid[0].private_key_pem)) : null
+  
+  sid_public_key      = local.sid_key_exist ? data.azurerm_key_vault_secret.sid_pk[0].value : try(file(var.authentication.path_to_public_key), tls_private_key.sid[0].public_key_openssh) 
+  sid_private_key     = local.sid_key_exist ? data.azurerm_key_vault_secret.sid_ppk[0].value : try(file(var.authentication.path_to_private_key), tls_private_key.sid[0].private_key_pem) 
 
   // iSCSI subnet
   var_sub_iscsi    = try(local.var_vnet_sap.subnet_iscsi, null)

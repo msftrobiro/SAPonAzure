@@ -28,11 +28,6 @@ variable "options" {
   default     = {}
 }
 
-variable "ssh-timeout" {
-  description = "Timeout for connection that is used by provisioner"
-  default     = "30s"
-}
-
 variable "authentication" {
   description = "Details of ssh key pair"
   default = {
@@ -61,9 +56,3 @@ variable "key_vault" {
   }
 }
 
-variable "diagnostics_storage_account" {
-  description = "Storage account information for diagnostics account"
-  default     = {
-    arm_id = ""
-  }
-}

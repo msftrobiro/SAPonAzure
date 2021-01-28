@@ -50,9 +50,13 @@
       name:     roles-os/prometheus                             # TODO: Review and Refactoring Needed
     # when:   prometheus
     when:
-      - prometheus == True
-      - ansible_facts['distribution_file_variety'] == 'SUSE'
+      - prometheus == true
+      - ansible_os_family|upper == "SUSE"
       - ansible_facts['distribution_version'] is regex("(12\.[3-5]|15\.\d)")
+# TODO: convert when clase to using an/or logic and consistent parameters
+        # "ansible_distribution_major_version": "12",
+        # "ansible_distribution_release": "5",
+# TODO: detect large instance
 #       - hana_database.size != "LargeInstance"
 
   # - debug:
@@ -75,26 +79,26 @@
 
 # # Prepare os, disks and mount points on Hana Database servers
 # # - hosts: hanadbnodes
-# - hosts: X00_DB
-#   become: true
-#   become_user: root
-#   vars_files:
-#     - "vars/packages.yaml"
-#   pre_tasks:
-#     - name: Include SAP HANA DB sizes
-#       include_vars:
-#         file: "{{ configs_path }}/hdb_sizes.json"
-#         name: hdb_sizes
-#   max_fail_percentage: 0
-#   roles:
-#     - role: os-preparation
+# √- hosts: X00_DB
+# √  become: true
+# √  become_user: root
+# √  vars_files:
+# √    - "vars/packages.yaml"
+# √  pre_tasks:
+# √    - name: Include SAP HANA DB sizes
+# √      include_vars:
+# √        file: "{{ configs_path }}/hdb_sizes.json"
+# √        name: hdb_sizes
+# √  max_fail_percentage: 0
+# √  roles:
+# √    - role: os-preparation
 #     - role: os-disk-setup
-#     - role: enable-prometheus
-#       when:
-#         - output.options.enable_prometheus == True
-#         - ansible_facts['distribution_file_variety'] == 'SUSE'
-#         - ansible_facts['distribution_version'] is regex("(12\.[3-5]|15\.\d)")
-#         - hana_database.size != "LargeInstance"
+# √    - role: enable-prometheus
+# √      when:
+# √        - output.options.enable_prometheus == True
+# √        - ansible_facts['distribution_file_variety'] == 'SUSE'
+# √        - ansible_facts['distribution_version'] is regex("(12\.[3-5]|15\.\d)")
+# √        - hana_database.size != "LargeInstance"
 
 #----------------------------------------
 # END

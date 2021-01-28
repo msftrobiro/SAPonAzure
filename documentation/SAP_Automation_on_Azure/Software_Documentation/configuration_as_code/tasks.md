@@ -19,8 +19,8 @@
 |------|----------------- |--------|----|---------------|-----------|
 |*1.0  | sudoers          |        |    |               |           |
 | 1.1  | swap             |        |    |               |           |
-| 1.2  |                  |        |    |               |           |
-| 1.3  |                  |        |    |               |           |
+| 1.2  | hostname         |        |    |               |           |
+| 1.3  | repository       |        |    |               |           |
 | 1.4  |                  |        |    |               |           |
 | 1.5  | os-disk-setup    |        |    |               |           |
 | 1.6  | Install Packages |        |    | RHEL<br/>SLES | Install Packages |
@@ -32,7 +32,7 @@
 | 2.0  | sap-disk-setup   |        |    |               |           |
 
 
-- hostname
-- repository
+- 
+- 
 - 
 - 

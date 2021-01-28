@@ -48,16 +48,28 @@
 
   - include_role:
       name:     roles-os/prometheus                             # TODO: Review and Refactoring Needed
-    # when:   prometheus
-    when:
-      - prometheus == true
-      - ansible_os_family|upper == "SUSE"
-      - ansible_facts['distribution_version'] is regex("(12\.[3-5]|15\.\d)")
+    when:       prometheus
+            and ansible_os_family|upper == "SUSE"
+            and (     (     ansible_distribution_major_version == 12 and
+                        and ansible_distribution_release is search('[3-5]') )
+                  or  (     ansible_distribution_major_version == 15) )
+
+    # when:
+    #   - prometheus == true
+    #   - ansible_os_family|upper == "SUSE"
+    #   - ansible_facts['distribution_version'] is regex("(12\.[3-5]|15\.\d)")
 # TODO: convert when clase to using an/or logic and consistent parameters
         # "ansible_distribution_major_version": "12",
         # "ansible_distribution_release": "5",
 # TODO: detect large instance
 #       - hana_database.size != "LargeInstance"
+
+  when:           not (    (item.dest is undefined)
+                        or (item.dest is none)
+                        or (item.dest == '') )
+
+
+
 
   # - debug:
   #     var: hostvars['x00scs00l373']

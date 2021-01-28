@@ -35,7 +35,7 @@
 # TODO: sudoers Config
 
   - include_role:
-      name:     roles-os/os-swap                                # TODO: Centiq copy (rework needed)
+      name:     roles-os/1.1-swap                               # TODO: Centiq copy (rework needed)
 
   - include_role:
       name:     roles-os/hostname                               # TODO: Review and Refactoring Needed
@@ -72,11 +72,7 @@
 #----------------------------------------
 
 
-#----------------------------------------
-# BEGIN
-#
 # TODO: evaluate and refactor. move to os_base_config and os_sap_config
-#----------------------------------------
 
 
 # # Prepare os, disks and mount points on Hana Database servers
@@ -94,21 +90,13 @@
 # √  max_fail_percentage: 0
 # √  roles:
 # √    - role: os-preparation
-#     - role: os-disk-setup
+# √    - role: os-disk-setup
 # √    - role: enable-prometheus
 # √      when:
 # √        - output.options.enable_prometheus == True
 # √        - ansible_facts['distribution_file_variety'] == 'SUSE'
 # √        - ansible_facts['distribution_version'] is regex("(12\.[3-5]|15\.\d)")
 # √        - hana_database.size != "LargeInstance"
-
-#----------------------------------------
-# END
-#----------------------------------------
-
-
-
-
 
 
 ...

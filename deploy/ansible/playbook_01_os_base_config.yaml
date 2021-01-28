@@ -48,7 +48,12 @@
 
   - include_role:
       name:     roles-os/prometheus                             # TODO: Review and Refactoring Needed
-    when:   prometheus
+    # when:   prometheus
+    when:
+      - prometheus == True
+      - ansible_facts['distribution_file_variety'] == 'SUSE'
+      - ansible_facts['distribution_version'] is regex("(12\.[3-5]|15\.\d)")
+#       - hana_database.size != "LargeInstance"
 
   # - debug:
   #     var: hostvars['x00scs00l373']

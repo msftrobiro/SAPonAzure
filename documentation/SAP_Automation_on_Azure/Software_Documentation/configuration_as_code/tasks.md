@@ -17,14 +17,23 @@
 
 |Task #|Description Short |Playbook|role|OS             |Description|
 |------|----------------- |--------|----|---------------|-----------|
+| 1.0  | sudoers          |        |    |               |           |
+| 1.1  | swap             |        |    |               |           |
+| 1.2  |                  |        |    |               |           |
+| 1.3  |                  |        |    |               |           |
+| 1.4  |                  |        |    |               |           |
+| 1.5  | os-disk-setup    |        |    |               |           |
+| 1.6  |                  |        |    |               |           |
+| 1.7  |                  |        |    |               |           |
+| 1.8  |                  |        |    |               |           |
+| 1.9  |                  |        |    |               |           |
+| 1.10 |                  |        |    |               |           |
 |?3.2  | Install Packages |        |    | RHEL<br/>SLES | Install Packages |
 | 1.30 | Prometheus       |        |    |               |           |
+| 2.0  | sap-disk-setup   |        |    |               |           |
 
 
-- sudoers
-- swap
 - hostname
 - repository
-- disk setup
 - 
 - 

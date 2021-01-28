@@ -1,5 +1,7 @@
 ---
 
+# TODO: Rewrite
+
 - name: Create physical volume group
   lvg: 
     vg: "vg_{{ item.key }}"

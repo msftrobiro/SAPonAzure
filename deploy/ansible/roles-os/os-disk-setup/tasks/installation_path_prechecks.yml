@@ -1,5 +1,7 @@
 ---
 
+# TODO: Rewrite
+
 # Check if installation paths are correct. 
 - name: Pre-check installation path
   stat:

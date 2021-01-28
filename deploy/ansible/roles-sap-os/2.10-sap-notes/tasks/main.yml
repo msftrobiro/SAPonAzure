@@ -1,14 +1,12 @@
-```yaml
 # /*----------------------------------------------------------------------------8
 # |                                                                             |
-# |                                                                             |
+# |                          SAP Notes and Recomendations                       |
 # |                                                                             |
 # +-------------------------------------4--------------------------------------*/
 ---
-
 # --------------------------------------+---------------------------------------8
 #
-# Task: 1.30    - Prometheus
+# Task: 2.10    - SAP Notes and Recomendations
 #
 # --------------------------------------+---------------------------------------8
 
@@ -19,17 +17,28 @@
 #
 # --------------------------------------+---------------------------------------8
 
-#----------------------------------------
-# BEGIN
-#----------------------------------------
+
+# Implement manual preparation steps for all OS
+# The tasks' name follows:
+#   - SAP Notes for RHEL OS recommendations
 
 #----------------------------------------
-# END
+# RHEL-3.10 Disable Transparent Hugepages (THP)
+# RHEL-3.12 Configure Processor C-States (not relevant for IBM Power LE (ppc64le))
+# SAP Note 2205917 - SAP HANA DB Recommended OS settings for SLES 12 / SLES for SAP Applications 12
+
+- name:     2.10.0 - >
+            RHEL-3.10 Disable Transparent Hugepages (THP)
+            RHEL-3.12 Configure Processor C-States (not relevant for IBM Power LE (ppc64le))
+            SAP Note 2205917 - SAP HANA DB Recommended OS settings for SLES 12 / SLES for SAP Applications 12
+
+  include_tasks:    "2.10.0.yml"
 #----------------------------------------
+
+
+
 
 ...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
 # +-------------------------------------4--------------------------------------*/
-
-```

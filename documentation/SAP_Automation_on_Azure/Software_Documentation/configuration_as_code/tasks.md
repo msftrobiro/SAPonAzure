@@ -15,21 +15,22 @@
 - SAP Notes Task 7.x
 
 
-|Task #|Description Short |Playbook|role|OS             |Description|
-|------|----------------- |--------|----|---------------|-----------|
-|*1.0  | sudoers          |        |    |               |           |
-| 1.1  | swap             |        |    |               |           |
-| 1.2  | hostname         |        |    |               |           |
-| 1.3  | repository       |        |    |               |           |
-| 1.4  |                  |        |    |               |           |
-| 1.5  | os-disk-setup    |        |    |               |           |
-| 1.6  | Install Packages |        |    | RHEL<br/>SLES | Install Packages |
-| 1.7  |                  |        |    |               |           |
-| 1.8  |                  |        |    |               |           |
-| 1.9  |                  |        |    |               |           |
-| 1.10 |                  |        |    |               |           |
-| 1.20 | Prometheus       |        |    |               |           |
-| 2.0  | sap-disk-setup   |        |    |               |           |
+|Task #  |Description Short |Playbook|role|OS             |Description|
+|--------|----------------- |--------|----|---------------|-----------|
+|*1.0    | sudoers          |        |    |               |           |
+| 1.1    | swap             |        |    |               |           |
+| 1.2    | hostname         |        |    |               |           |
+| 1.3    | repository       |        |    |               |           |
+| 1.4    |                  |        |    |               |           |
+| 1.5    | os-disk-setup    |        |    |               |           |
+| 1.6    | Install Packages |        |    | RHEL<br/>SLES | Install Packages |
+| 1.7    |                   |        |    |               |           |
+| 1.8    |                   |        |    |               |           |
+| 1.9    |                   |        |    |               |           |
+| 1.10   |                  |        |    |               |           |
+| 1.20   | Prometheus       |        |    |               |           |
+| 2.0    | sap-disk-setup   |        |    |               |           |
+| 2.10.0 |    |        |    |               |           |
 
 
 - 

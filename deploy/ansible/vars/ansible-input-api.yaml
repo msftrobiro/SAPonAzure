@@ -48,6 +48,7 @@ password_os_sidadm:           ""
 password_db_xsa_admin:        ""
 
 download_templates:           false
+prometheus:                   true                                                      # default: false
 
 
 ...

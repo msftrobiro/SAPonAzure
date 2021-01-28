@@ -64,10 +64,6 @@
 # TODO: detect large instance
 #       - hana_database.size != "LargeInstance"
 
-  when:           not (    (item.dest is undefined)
-                        or (item.dest is none)
-                        or (item.dest == '') )
-
 
 
 

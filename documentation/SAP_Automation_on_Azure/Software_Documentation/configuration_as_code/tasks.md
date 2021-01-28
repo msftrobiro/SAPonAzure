@@ -21,7 +21,7 @@
 | 1.1    | swap             |        |    |               |           |
 | 1.2    | hostname         |        |    |               |           |
 | 1.3    | repository       |        |    |               |           |
-| 1.4    |                  |        |    |               |           |
+| 1.4    | packages         |        |    |               |           |
 | 1.5    | os-disk-setup    |        |    |               |           |
 | 1.6    | Install Packages |        |    | RHEL<br/>SLES | Install Packages |
 | 1.7    |                  |        |    |               |           |
@@ -30,7 +30,8 @@
 | 1.10   |                  |        |    |               |           |
 | 1.20   | Prometheus       |        |    |               |           |
 | 2.0    | sap-disk-setup   |        |    |               |           |
-| 2.10.0 |    |        |    |               |           |
+| 2.1    | packages         |        |    |               |           |
+| 2.10.0 | SAP Notes        |        |    |               |           |
 
 
 - 

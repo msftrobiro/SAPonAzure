@@ -1,0 +1,50 @@
+# /*----------------------------------------------------------------------------8
+# |                                                                             |
+# |                            Package Installation                             |
+# |                                                                             |
+# +-------------------------------------4--------------------------------------*/
+---
+# --------------------------------------+---------------------------------------8
+#
+# Task: 1.4       - Package Installation for OS
+#
+# TODO: split between OS and sap playbooks
+
+# - name:             "1.4 - Installing OS packages: {{ ansible_os_family|upper }}-{{ ansible_distribution_major_version }}"
+#   include_tasks:    1.4.yaml
+#   when:             ansible_os_family|upper == "REDHAT" or
+#                     ansible_os_family|upper == "SUSE"
+
+- name:             1.4 - Import package list
+  include_vars:     packages.yaml
+
+- name:             "1.4 - Install OS packages: {{ ansible_os_family|upper }}-{{ ansible_distribution_major_version }}"
+  package:
+    name:           "{{ item }}" 
+    state:          present
+  # loop:             "{{ packages[ansible_os_family|lower] }}"
+  loop:             packages[ansible_os_family|lower]
+
+# --------------------------------------+---------------------------------------8
+
+
+
+# --------------------------------------+---------------------------------------8
+# 
+# Task: 1..0    - SAP Note 2205917 - SAP HANA DB Recommended OS settings for
+#                   SLES 12 / SLES for SAP Applications 12
+#
+# TODO: 20210128 review the RHEL stuff and the SAP Note
+# RHEL-3.10 Disable Transparent Hugepages (THP)
+# RHEL-3.12 Configure Processor C-States (not relevant for IBM Power LE (ppc64le))
+
+- name:             2.10.0 - SAP Note 2205917
+  include_tasks:    2.10.0.yaml
+  when:             tier == 'HANA'
+# --------------------------------------+---------------------------------------8
+
+
+...
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +-------------------------------------4--------------------------------------*/

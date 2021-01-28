@@ -5,6 +5,12 @@
 # +-------------------------------------4--------------------------------------*/
 ---
 
+# --------------------------------------+---------------------------------------8
+#
+# <Comment Header> 
+#
+# --------------------------------------+---------------------------------------8
+
 - hosts:              "{{ sap_sid|upper }}_DB  :
                        {{ sap_sid|upper }}_SCS :
                        {{ sap_sid|upper }}_PAS :
@@ -40,6 +46,10 @@
   - include_role:
       name:     roles-os/preparation                            # TODO: Review and Refactoring Needed
 
+  - include_role:
+      name:     roles-os/prometheus                             # TODO: Review and Refactoring Needed
+    when:   prometheus
+
   # - debug:
   #     var: hostvars['x00scs00l373']
 
@@ -49,12 +59,6 @@
 # TODO: evaluate for inclusion and refactor.
 # SOURCE: sap-playbook
 #----------------------------------------
-
-# --------------------------------------+---------------------------------------8
-#
-# <Comment Header> 
-#
-# --------------------------------------+---------------------------------------8
 
 
 #----------------------------------------

@@ -1,4 +1,5 @@
 ---
+# TODO: rewrite like Task 3.2
 
 # Implement manual preparation steps for SLES-12
 # The tasks' name follows:
@@ -12,15 +13,15 @@
 #   loop: "{{ packages[ansible_os_family|lower] }}"
 
 
-# TODO:
-# - name: SAP Note 2593824 - Linux Running SAP applications compiled with GCC 7.x
-#   package:
-#     name: "{{ item }}"
-#     state: present
-#   loop:
-#     - libgcc_s1
-#     - libstdc++6
-#     - libatomic1
+# TODO: fix when clause
+- name: SAP Note 2593824 - Linux Running SAP applications compiled with GCC 7.x
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - libgcc_s1
+    - libstdc++6
+    - libatomic1
 #   when: hana_database.db_version is regex("2.\d{2}.0([4-9]\d|[0-9]\d{2,})")
 
 - name: Task 3.10 - Tweak the Default System Settings for SAP HANA 1 

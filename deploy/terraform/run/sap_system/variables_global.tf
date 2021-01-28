@@ -86,6 +86,7 @@ variable "ssh-timeout" {
   default     = "30s"
 }
 
+
 variable "key_vault" {
   description = "Details of keyvault"
   default     = {}

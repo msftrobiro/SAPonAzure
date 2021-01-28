@@ -67,8 +67,13 @@ locals {
   // Retrieve information about Deployer from tfstate file
   deployer_tfstate = var.deployer_tfstate
 
-  storageaccount_name    = try(var.landscape_tfstate.storageaccount_name, "")
-  storageaccount_rg_name = try(var.landscape_tfstate.storageaccount_rg_name, "")
+  // Retrieve information about Sap Landscape from tfstate file
+  landscape_tfstate = var.landscape_tfstate
+
+  iscsi_private_ip = try(local.landscape_tfstate.iscsi_private_ip, [])
+
+  storageaccount_name    = try(local.landscape_tfstate.storageaccount_name, "")
+  storageaccount_rg_name = try(local.landscape_tfstate.storageaccount_rg_name, "")
 
   //Filter the list of databases to only HANA platform entries
   databases = [
@@ -254,8 +259,13 @@ locals {
   sub_storage_nsg_name   = local.sub_storage_nsg_exists ? try(split("/", local.sub_storage_nsg_arm_id)[8], "") : try(local.sub_storage_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.storage_subnet_nsg))
 
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of using the landscape key vault
+<<<<<<< HEAD
   user_key_vault_id = try(var.key_vault.kv_user_id, var.landscape_tfstate.landscape_key_vault_user_arm_id)
   prvt_key_vault_id = try(var.key_vault.kv_prvt_id, var.landscape_tfstate.landscape_key_vault_private_arm_id)
+=======
+  user_key_vault_id = try(var.key_vault.kv_user_id, local.landscape_tfstate.landscape_key_vault_user_arm_id)
+  prvt_key_vault_id = try(var.key_vault.kv_prvt_id, local.landscape_tfstate.landscape_key_vault_private_arm_id)
+>>>>>>> Renaming sshkey block to authentication AB#137 (#1047)
 
   //Override 
   user_kv_override = length(try(var.key_vault.kv_user_id, "")) > 0
@@ -268,6 +278,7 @@ locals {
   prvt_kv_name    = local.prvt_kv_override ? split("/", local.prvt_key_vault_id)[8] : local.sid_keyvault_names.private_access
   prvt_kv_rg_name = local.prvt_kv_override ? split("/", local.prvt_key_vault_id)[4] : ""
 
+<<<<<<< HEAD
   use_local_credentials = length(var.authentication) > 0
 
   // If local credentials are used then try the parameter file.
@@ -285,6 +296,13 @@ locals {
 
   sid_public_key    = local.use_local_credentials ? try(file(var.authentication.path_to_public_key), tls_private_key.sdu[0].public_key_openssh) : data.azurerm_key_vault_secret.sid_pk[0].value
   sid_private_key   = local.use_local_credentials ? try(file(var.authentication.path_to_private_key), tls_private_key.sdu[0].private_key_pem) : ""
+=======
+  //ToDo change ssh key block
+  use_local_credentials = length(var.authentication) > 0
+
+  sid_public_key  = local.use_local_credentials ? try(file(var.authentication.path_to_public_key), tls_private_key.sdu[0].public_key_openssh) : data.azurerm_key_vault_secret.sid_pk[0].value
+  sid_private_key = local.use_local_credentials ? try(file(var.authentication.path_to_private_key), tls_private_key.sdu[0].private_key_pem) : ""
+>>>>>>> Renaming sshkey block to authentication AB#137 (#1047)
 
   //---- Update infrastructure with defaults ----//
   infrastructure = {

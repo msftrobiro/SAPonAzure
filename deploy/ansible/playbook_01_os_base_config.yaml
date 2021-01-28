@@ -47,6 +47,9 @@
       name:     roles-os/1.3-repository                         # TODO: Review and Refactoring Needed
 
   - include_role:
+      name:     roles-os/1.4-packages                           # TODO: Review and Refactoring Needed
+
+  - include_role:
       name:     roles-os/preparation                            # TODO: Review and Refactoring Needed
 
   - include_role:

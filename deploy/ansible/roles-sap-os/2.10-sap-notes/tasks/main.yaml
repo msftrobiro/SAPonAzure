@@ -28,7 +28,7 @@
 # SAP Note 2205917 - SAP HANA DB Recommended OS settings for SLES 12 / SLES for SAP Applications 12
 
 - name:     2.10.0 - >
-            RHEL-3.10 Disable Transparent Hugepages (THP)
+            RHEL-3.10 Disable Transparent Hugepages (THP)\n
             RHEL-3.12 Configure Processor C-States (not relevant for IBM Power LE (ppc64le))
             SAP Note 2205917 - SAP HANA DB Recommended OS settings for SLES 12 / SLES for SAP Applications 12
 

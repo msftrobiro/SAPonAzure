@@ -24,9 +24,9 @@
 | 1.4    |                  |        |    |               |           |
 | 1.5    | os-disk-setup    |        |    |               |           |
 | 1.6    | Install Packages |        |    | RHEL<br/>SLES | Install Packages |
-| 1.7    |                   |        |    |               |           |
-| 1.8    |                   |        |    |               |           |
-| 1.9    |                   |        |    |               |           |
+| 1.7    |                  |        |    |               |           |
+| 1.8    |                  |        |    |               |           |
+| 1.9    |                  |        |    |               |           |
 | 1.10   |                  |        |    |               |           |
 | 1.20   | Prometheus       |        |    |               |           |
 | 2.0    | sap-disk-setup   |        |    |               |           |

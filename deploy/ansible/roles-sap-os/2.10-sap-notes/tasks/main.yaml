@@ -8,32 +8,24 @@
 #
 # Task: 2.10    - SAP Notes and Recomendations
 #
-# --------------------------------------+---------------------------------------8
-
-
-# --------------------------------------+---------------------------------------8
-#
-# <Comment Header> 
-#
-# --------------------------------------+---------------------------------------8
-
-
 # Implement manual preparation steps for all OS
 # The tasks' name follows:
 #   - SAP Notes for RHEL OS recommendations
+#
+# --------------------------------------+---------------------------------------8
 
-#----------------------------------------
+
+# --------------------------------------+---------------------------------------8
+# TODO: 20210128 review the RHEL stuff and the SAP Note
 # RHEL-3.10 Disable Transparent Hugepages (THP)
 # RHEL-3.12 Configure Processor C-States (not relevant for IBM Power LE (ppc64le))
 # SAP Note 2205917 - SAP HANA DB Recommended OS settings for SLES 12 / SLES for SAP Applications 12
 
-- name:     2.10.0 - >
-            RHEL-3.10 Disable Transparent Hugepages (THP)\n
-            RHEL-3.12 Configure Processor C-States (not relevant for IBM Power LE (ppc64le))
-            SAP Note 2205917 - SAP HANA DB Recommended OS settings for SLES 12 / SLES for SAP Applications 12
+- name:     2.10.0 - SAP Note 2205917
 
   include_tasks:    2.10.0.yaml
-#----------------------------------------
+  when:   tier == 'HANA'
+# --------------------------------------+---------------------------------------8
 
 
 

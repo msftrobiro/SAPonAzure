@@ -18,7 +18,7 @@
 |Task #|Description Short |Playbook|role|OS             |Description|
 |------|----------------- |--------|----|---------------|-----------|
 |?3.2  | Install Packages |        |    | RHEL<br/>SLES | Install Packages |
-
+| 1.30 | Prometheus       |        |    |               |           |
 
 
 - sudoers
@@ -26,5 +26,5 @@
 - hostname
 - repository
 - disk setup
-- prometheus
+- 
 - 

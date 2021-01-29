@@ -34,15 +34,11 @@ packages:
       - sg3_utils
       - lvm2
       - ntpdate
-      - tuned-profiles-sap-hana
       - numad
       - cifs-utils
-      - compat-sap-c++-5
 
     suse: 
       - libyui-qt-pkg7
-      - sapconf
-      - saptune
       - glibc
       - systemd
       - tuned

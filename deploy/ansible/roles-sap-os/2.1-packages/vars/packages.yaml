@@ -1,0 +1,10 @@
+---
+
+packages:
+    redhat:
+      - tuned-profiles-sap-hana
+      - compat-sap-c++-5
+
+    suse: 
+      - sapconf
+      - saptune

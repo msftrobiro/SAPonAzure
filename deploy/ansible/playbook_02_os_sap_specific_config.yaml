@@ -27,7 +27,7 @@
 
 # - role: dependencies-install                                  # --> roles-sap/sap-packages (playbook_02_os_sap_specific_config)
   - include_role:
-      name:     roles-os/1.4-packages                           # TODO: Review and Refactoring Needed
+      name:     roles-os/2.1-packages                           # TODO: Review and Refactoring Needed
 
 
   - include_role:

@@ -10,10 +10,6 @@
 #
 # TODO: split between OS and sap playbooks
 
-# - name:             "1.4 - Installing OS packages: {{ ansible_os_family|upper }}-{{ ansible_distribution_major_version }}"
-#   include_tasks:    1.4.yaml
-#   when:             ansible_os_family|upper == "REDHAT" or
-#                     ansible_os_family|upper == "SUSE"
 
 - name:             1.4 - Import package list
   include_vars:     packages.yaml
@@ -26,6 +22,12 @@
 
 # --------------------------------------+---------------------------------------8
 
+
+
+# - name:             "1.4 - Installing OS packages: {{ ansible_os_family|upper }}-{{ ansible_distribution_major_version }}"
+#   include_tasks:    1.4.yaml
+#   when:             ansible_os_family|upper == "REDHAT" or
+#                     ansible_os_family|upper == "SUSE"
 
 ...
 # /*----------------------------------------------------------------------------8

@@ -1,6 +1,0 @@
----
-
-dependencies:
-  - "libgcc_s1"
-  - "libstdc++6"
-  - "libatomic1"

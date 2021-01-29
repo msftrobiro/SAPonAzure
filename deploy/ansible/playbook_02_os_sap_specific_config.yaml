@@ -27,7 +27,7 @@
 
 # - role: dependencies-install                                  # --> roles-sap/sap-packages (playbook_02_os_sap_specific_config)
   - include_role:
-      name:     roles-sap-os/sap-packages                       # TODO: Centiq copy (rework done)
+      name:     roles-os/1.4-packages                           # TODO: Review and Refactoring Needed
 
 
   - include_role:

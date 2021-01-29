@@ -3,8 +3,13 @@
 packages:
     redhat:
       - tuned-profiles-sap-hana
-      - compat-sap-c++-5
+      - compat-sap-c++-5                # TODO:
+      - compat-sap-c++-9                # TODO:
+      - libatomic                       # TODO:
 
     suse: 
       - sapconf
       - saptune
+      - libgcc_s1                       # TODO:
+      - libstdc++6                      # TODO:
+      - libatomic1                      # TODO:

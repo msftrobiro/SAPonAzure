@@ -12,7 +12,7 @@
 
 
 - name:             1.4 - Import package list
-  include_vars:     packages.yaml
+  include_vars:     os-packages.yaml
 
 - name:             "1.4 - Install OS packages: {{ ansible_os_family|upper }}-{{ ansible_distribution_major_version }}"
   package:

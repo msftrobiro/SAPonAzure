@@ -54,7 +54,7 @@ module "hdb_node" {
   sshkey                     = var.sshkey
   resource_group             = module.common_infrastructure.resource_group
   vnet_sap                   = module.common_infrastructure.vnet_sap
-  storage_bootdiag           = module.common_infrastructure.storage_bootdiag
+  storage_bootdiag_endpoint  = module.common_infrastructure.storage_bootdiag_endpoint
   ppg                        = module.common_infrastructure.ppg
   sid_kv_user_id             = module.common_infrastructure.sid_kv_user_id
   naming                     = module.sap_namegenerator.naming
@@ -79,7 +79,7 @@ module "app_tier" {
   sshkey                     = var.sshkey
   resource_group             = module.common_infrastructure.resource_group
   vnet_sap                   = module.common_infrastructure.vnet_sap
-  storage_bootdiag           = module.common_infrastructure.storage_bootdiag
+  storage_bootdiag_endpoint  = module.common_infrastructure.storage_bootdiag_endpoint
   ppg                        = module.common_infrastructure.ppg
   sid_kv_user_id             = module.common_infrastructure.sid_kv_user_id
   naming                     = module.sap_namegenerator.naming
@@ -103,7 +103,7 @@ module "anydb_node" {
   sshkey                     = var.sshkey
   resource_group             = module.common_infrastructure.resource_group
   vnet_sap                   = module.common_infrastructure.vnet_sap
-  storage_bootdiag           = module.common_infrastructure.storage_bootdiag
+  storage_bootdiag_endpoint  = module.common_infrastructure.storage_bootdiag_endpoint
   ppg                        = module.common_infrastructure.ppg
   sid_kv_user_id             = module.common_infrastructure.sid_kv_user_id
   naming                     = module.sap_namegenerator.naming

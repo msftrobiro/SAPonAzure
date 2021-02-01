@@ -10,8 +10,8 @@ output "vnet_sap" {
   value = local.vnet_sap
 }
 
-output "storage_bootdiag" {
-  value = data.azurerm_storage_account.storage_bootdiag
+output "storage_bootdiag_endpoint" {
+  value = data.azurerm_storage_account.storage_bootdiag.primary_blob_endpoint
 }
 
 output "random_id" {

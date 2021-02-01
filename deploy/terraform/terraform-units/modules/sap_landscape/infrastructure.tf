@@ -55,10 +55,17 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
 
 // Creates boot diagnostics storage account
 resource "azurerm_storage_account" "storage_bootdiag" {
+  count                     = length(var.diagnostics_storage_account.arm_id) > 0 ? 0 : 1
   name                      = local.storageaccount_name
   resource_group_name       = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   location                  = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
   account_replication_type  = "LRS"
   account_tier              = "Standard"
   enable_https_traffic_only = var.options.enable_secure_transfer == "" ? true : var.options.enable_secure_transfer
+}
+
+data "azurerm_storage_account" "storage_bootdiag" {
+  count               = length(var.diagnostics_storage_account.arm_id) > 0 ? 1 : 0
+  name                = split("/", var.diagnostics_storage_account.arm_id)[8]
+  resource_group_name = split("/", var.diagnostics_storage_account.arm_id)[4]
 }

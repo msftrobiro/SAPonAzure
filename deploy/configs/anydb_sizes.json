@@ -16,7 +16,7 @@
           "name": "data",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 255,
+          "size_gb": 256,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/data"
@@ -25,7 +25,7 @@
           "name": "log",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 127,
+          "size_gb": 128,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/log"
@@ -49,7 +49,7 @@
           "name": "data",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 255,
+          "size_gb": 256,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/data"
@@ -58,7 +58,7 @@
           "name": "log",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 127,
+          "size_gb": 128,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/log"
@@ -82,7 +82,7 @@
           "name": "data",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 511,
+          "size_gb": 512,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/data"
@@ -91,7 +91,7 @@
           "name": "log",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 255,
+          "size_gb": 256,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/log"
@@ -108,14 +108,14 @@
           "name": "os",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 127,
+          "size_gb": 128,
           "caching": "ReadWrite"
         },
         {
           "name": "data",
           "count": 2,
           "disk_type": "Premium_LRS",
-          "size_gb": 511,
+          "size_gb": 512,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/data"
@@ -124,7 +124,7 @@
           "name": "log",
           "count": 2,
           "disk_type": "Premium_LRS",
-          "size_gb": 255,
+          "size_gb": 256,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/log"
@@ -141,14 +141,14 @@
           "name": "os",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 127,
+          "size_gb": 128,
           "caching": "ReadWrite"
         },
         {
           "name": "data",
           "count": 2,
           "disk_type": "Premium_LRS",
-          "size_gb": 1023,
+          "size_gb": 1024,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/data"
@@ -157,7 +157,7 @@
           "name": "log",
           "count": 2,
           "disk_type": "Premium_LRS",
-          "size_gb": 511,
+          "size_gb": 512,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/log"
@@ -174,14 +174,14 @@
           "name": "os",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 127,
+          "size_gb": 128,
           "caching": "ReadWrite"
         },
         {
           "name": "data",
           "count": 5,
           "disk_type": "Premium_LRS",
-          "size_gb": 1023,
+          "size_gb": 1024,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/data"
@@ -190,7 +190,7 @@
           "name": "log",
           "count": 2,
           "disk_type": "Premium_LRS",
-          "size_gb": 511,
+          "size_gb": 512,
           "caching": "None",
           "write_accelerator": true,
           "mount_point": "/log"
@@ -207,14 +207,14 @@
           "name": "os",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 127,
+          "size_gb": 128,
           "caching": "ReadWrite"
         },
         {
           "name": "data",
           "count": 5,
           "disk_type": "Premium_LRS",
-          "size_gb": 2047,
+          "size_gb": 2048,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/data"
@@ -223,7 +223,7 @@
           "name": "log",
           "count": 2,
           "disk_type": "Premium_LRS",
-          "size_gb": 511,
+          "size_gb": 512,
           "caching": "None",
           "write_accelerator": true,
           "mount_point": "/log"
@@ -240,14 +240,14 @@
           "name": "os",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 127,
+          "size_gb": 128,
           "caching": "ReadWrite"
         },
         {
           "name": "data",
           "count": 4,
           "disk_type": "Premium_LRS",
-          "size_gb": 4095,
+          "size_gb": 4096,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/data"
@@ -256,7 +256,7 @@
           "name": "log",
           "count": 2,
           "disk_type": "Premium_LRS",
-          "size_gb": 511,
+          "size_gb": 512,
           "caching": "None",
           "write_accelerator": true,
           "mount_point": "/log"
@@ -273,14 +273,14 @@
           "name": "os",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 127,
+          "size_gb": 128,
           "caching": "ReadWrite"
         },
         {
           "name": "data",
           "count": 5,
           "disk_type": "Premium_LRS",
-          "size_gb": 4095,
+          "size_gb": 4096,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/data"
@@ -289,7 +289,7 @@
           "name": "log",
           "count": 2,
           "disk_type": "Premium_LRS",
-          "size_gb": 511,
+          "size_gb": 512,
           "caching": "None",
           "write_accelerator": true,
           "mount_point": "/log"
@@ -306,14 +306,14 @@
           "name": "os",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 127,
+          "size_gb": 128,
           "caching": "ReadWrite"
         },
         {
           "name": "data",
           "count": 8,
           "disk_type": "Premium_LRS",
-          "size_gb": 4095,
+          "size_gb": 4096,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/data"
@@ -322,7 +322,7 @@
           "name": "log",
           "count": 2,
           "disk_type": "Premium_LRS",
-          "size_gb": 2047,
+          "size_gb": 2048,
           "caching": "None",
           "write_accelerator": true,
           "mount_point": "/log"
@@ -339,14 +339,14 @@
           "name": "os",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 127,
+          "size_gb": 128,
           "caching": "ReadWrite"
         },
         {
           "name": "data",
           "count": 10,
           "disk_type": "Premium_LRS",
-          "size_gb": 4095,
+          "size_gb": 4096,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/data"
@@ -355,7 +355,7 @@
           "name": "log",
           "count": 2,
           "disk_type": "Premium_LRS",
-          "size_gb": 2047,
+          "size_gb": 2048,
           "caching": "None",
           "write_accelerator": true,
           "mount_point": "/log"
@@ -372,14 +372,14 @@
           "name": "os",
           "count": 1,
           "disk_type": "Premium_LRS",
-          "size_gb": 127,
+          "size_gb": 128,
           "caching": "ReadWrite"
         },
         {
           "name": "data",
           "count": 13,
           "disk_type": "Premium_LRS",
-          "size_gb": 4095,
+          "size_gb": 4096,
           "caching": "None",
           "write_accelerator": false,
           "mount_point": "/data"
@@ -388,7 +388,7 @@
           "name": "log",
           "count": 3,
           "disk_type": "Premium_LRS",
-          "size_gb": 2047,
+          "size_gb": 2048,
           "caching": "None",
           "write_accelerator": true,
           "mount_point": "/log"

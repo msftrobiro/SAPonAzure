@@ -136,12 +136,6 @@ locals {
   sid_auth_type        = try(local.anydb.authentication.type, "key")
   enable_auth_password = local.enable_deployment && local.sid_auth_type == "password"
   enable_auth_key      = local.enable_deployment && local.sid_auth_type == "key"
-  sid_auth_username    = try(local.anydb.authentication.username, "azureadm")
-  sid_auth_password    = local.enable_auth_password ? try(local.anydb.authentication.password, random_password.password[0].result) : ""
-
-  use_local_credentials = length(var.authentication) > 0
-
-  db_systemdb_password = "db_systemdb_password"
 
   // Tags
   tags = try(local.anydb.tags, {})

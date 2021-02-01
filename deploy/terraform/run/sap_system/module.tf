@@ -10,8 +10,7 @@ module "common_infrastructure" {
   databases                  = var.databases
   infrastructure             = var.infrastructure
   options                    = local.options
-  ssh-timeout                = var.ssh-timeout
-  authentication             = var.authentication
+  key_vault                  = var.key_vault
   naming                     = module.sap_namegenerator.naming
   service_principal          = local.service_principal
   deployer_tfstate           = data.terraform_remote_state.deployer.outputs
@@ -49,11 +48,8 @@ module "hdb_node" {
   databases                  = var.databases
   infrastructure             = var.infrastructure
   options                    = local.options
-<<<<<<< HEAD
-=======
   ssh-timeout                = var.ssh-timeout
   authentication             = var.authentication
->>>>>>> Renaming sshkey block to authentication AB#137 (#1047)
   resource_group             = module.common_infrastructure.resource_group
   vnet_sap                   = module.common_infrastructure.vnet_sap
   storage_bootdiag_endpoint  = module.common_infrastructure.storage_bootdiag_endpoint
@@ -77,11 +73,8 @@ module "app_tier" {
   application                = var.application
   infrastructure             = var.infrastructure
   options                    = local.options
-<<<<<<< HEAD
-=======
   ssh-timeout                = var.ssh-timeout
   authentication             = var.authentication
->>>>>>> Renaming sshkey block to authentication AB#137 (#1047)
   resource_group             = module.common_infrastructure.resource_group
   vnet_sap                   = module.common_infrastructure.vnet_sap
   storage_bootdiag_endpoint  = module.common_infrastructure.storage_bootdiag_endpoint
@@ -105,11 +98,8 @@ module "anydb_node" {
   databases                  = var.databases
   infrastructure             = var.infrastructure
   options                    = var.options
-<<<<<<< HEAD
-=======
   ssh-timeout                = var.ssh-timeout
   authentication             = var.authentication
->>>>>>> Renaming sshkey block to authentication AB#137 (#1047)
   resource_group             = module.common_infrastructure.resource_group
   vnet_sap                   = module.common_infrastructure.vnet_sap
   storage_bootdiag_endpoint  = module.common_infrastructure.storage_bootdiag_endpoint

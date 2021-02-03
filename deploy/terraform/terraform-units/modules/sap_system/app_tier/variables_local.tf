@@ -14,7 +14,7 @@ variable "vnet_sap" {
   description = "Details of the SAP Vnet"
 }
 
-variable "storage_bootdiag" {
+variable "storage_bootdiag_endpoint" {
   description = "Details of the boot diagnostic storage device"
 }
 
@@ -225,7 +225,7 @@ locals {
   web_ostype       = try(var.application.web_os.os_type, local.app_ostype)
 
   web_os = {
-    "source_image_id" = local.web_custom_image ? var.application.web_os.source_image_id : ""
+    "source_image_id" = try(var.application.web_os.source_image_id, local.web_custom_image ? local.app_os.source_image_id : null)
     "publisher"       = try(var.application.web_os.publisher, local.web_custom_image ? "" : local.app_os.publisher)
     "offer"           = try(var.application.web_os.offer, local.web_custom_image ? "" : local.app_os.offer)
     "sku"             = try(var.application.web_os.sku, local.web_custom_image ? "" : local.app_os.sku)

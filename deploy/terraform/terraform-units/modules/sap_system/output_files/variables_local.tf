@@ -85,8 +85,12 @@ variable "tfstate_resource_id" {
   description = "Resource ID for tf state file"
 }
 
-variable naming {
+variable "naming" {
   description = "Defines the names for the resources"
+}
+
+variable "app_tier_os_types" {
+  description = "Defines the app tier os types"
 }
 
 locals {

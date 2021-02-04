@@ -4,6 +4,7 @@ ${sid}_DB:
 %{~ for idx,ips_dbnode in ips_dbnodes }
     ${dbnodes[idx].name}:
       ansible_host:  ${ips_dbnode}
+      ansible_connection: ${dbconnection} 
 %{~ endfor }
   vars:
     tier: ${platform}
@@ -13,6 +14,7 @@ ${sid}_SCS:
 %{~ for idx,ip_scs in ips_scs }
     ${scsservers[idx]}:
       ansible_host: ${ip_scs}
+      ansible_connection: ${scsconnection} 
 %{~ endfor }
   vars:
     tier: SCS
@@ -22,6 +24,7 @@ ${sid}_PAS:
 %{~ for idx,ip_pas in ips_pas }
     ${passervers[idx]}:
       ansible_host: ${ip_pas}
+      ansible_connection: ${scsconnection} 
 %{~ endfor }
   vars:
     tier: PAS
@@ -31,6 +34,7 @@ ${sid}_APP:
 %{~ for idx,ip_app in ips_app }
     ${appservers[idx]}:
       ansible_host: ${ip_app}
+      ansible_connection: ${appconnection} 
 %{~ endfor }
   vars:
     tier: APP
@@ -38,8 +42,9 @@ ${sid}_APP:
 ${sid}_WEB:
   hosts:
 %{~ for idx,ip_web in ips_web }
-    {$webservers[idx]}:
+    ${webservers[idx]}:
       ansible_host: ${ip_web}:
+      ansible_connection: ${webconnection} 
 %{~ endfor }
   vars:
     tier: WEB

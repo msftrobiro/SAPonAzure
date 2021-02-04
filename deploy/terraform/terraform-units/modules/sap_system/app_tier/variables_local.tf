@@ -198,6 +198,7 @@ locals {
   app_ostype       = try(var.application.os.os_type, "Linux")
 
   app_os = {
+    "os_type"         = local.app_ostype
     "source_image_id" = local.app_custom_image ? var.application.os.source_image_id : ""
     "publisher"       = try(var.application.os.publisher, local.app_custom_image ? "" : "suse")
     "offer"           = try(var.application.os.offer, local.app_custom_image ? "" : "sles-sap-12-sp5")
@@ -212,6 +213,7 @@ locals {
   scs_ostype       = try(var.application.scs_os.os_type, local.app_ostype)
 
   scs_os = {
+    "os_type"         = local.scs_ostype
     "source_image_id" = local.scs_custom_image ? try(var.application.scs_os.source_image_id, var.application.os.source_image_id) : ""
     "publisher"       = try(var.application.scs_os.publisher, local.scs_custom_image ? "" : local.app_os.publisher)
     "offer"           = try(var.application.scs_os.offer, local.scs_custom_image ? "" : local.app_os.offer)
@@ -235,6 +237,7 @@ locals {
   web_ostype       = try(var.application.web_os.os_type, local.app_ostype)
 
   web_os = {
+    "os_type"         = local.web_ostype
     "source_image_id" = try(var.application.web_os.source_image_id, local.web_custom_image ? local.app_os.source_image_id : null)
     "publisher"       = try(var.application.web_os.publisher, local.web_custom_image ? "" : local.app_os.publisher)
     "offer"           = try(var.application.web_os.offer, local.web_custom_image ? "" : local.app_os.offer)

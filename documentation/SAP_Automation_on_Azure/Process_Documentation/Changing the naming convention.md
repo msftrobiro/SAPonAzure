@@ -1,0 +1,1 @@
+Implementing custom naming for the SAP on Azure Automation solution

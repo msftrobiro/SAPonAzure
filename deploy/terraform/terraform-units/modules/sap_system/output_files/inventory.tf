@@ -123,21 +123,25 @@ resource "local_file" "ansible_inventory_yml" {
 
 resource "local_file" "ansible_inventory_new_yml" {
   content = templatefile("${path.module}/ansible_inventory_new.yml.tmpl", {
-    ips_dbnodes = length(local.hdb_vms) > 0 ? local.ips_dbnodes_admin : local.ips_anydbnodes,
-    dbnodes     = length(local.hdb_vms) > 0 ? local.hdb_vms : local.anydb_vms
-    application = var.application,
-    ips_scs     = local.ips_scs,
-    ips_pas     = length(local.ips_app) > 0 ? slice(local.ips_app, 0, 1) : [],
-    ips_app     = length(local.ips_app) > 1 ? slice(local.ips_app, 1, length(local.ips_app) - 1) : []
-    ips_web     = local.ips_web,
-    sid         = var.hdb_sid,
-    passervers  = length(local.ips_app) > 0 ? slice(var.naming.virtualmachine_names.APP_VMNAME, 0, 1) : [],
-    appservers  = length(local.ips_app) > 1 ? slice(var.naming.virtualmachine_names.APP_VMNAME, 1, length(local.ips_app)) : [],
-    scsservers  = length(local.ips_scs) > 0 ? var.naming.virtualmachine_names.SCS_VMNAME : [],
-    webservers  = length(local.ips_web) > 0 ? var.naming.virtualmachine_names.WEB_VMNAME : [],
-    prefix      = var.naming.prefix.SDU,
-    separator   = var.naming.separator,
-    platform    = length(local.hdb_vms) > 0 ? "HANA" : local.anydb_vms[0].platform
+    ips_dbnodes   = length(local.hdb_vms) > 0 ? local.ips_dbnodes_admin : local.ips_anydbnodes,
+    dbnodes       = length(local.hdb_vms) > 0 ? local.hdb_vms : local.anydb_vms
+    application   = var.application,
+    ips_scs       = local.ips_scs,
+    ips_pas       = length(local.ips_app) > 0 ? slice(local.ips_app, 0, 1) : [],
+    ips_app       = length(local.ips_app) > 1 ? slice(local.ips_app, 1, length(local.ips_app) - 1) : []
+    ips_web       = length(local.ips_web) > 0 ? local.ips_web : [],
+    sid           = var.hdb_sid,
+    passervers    = length(local.ips_app) > 0 ? slice(var.naming.virtualmachine_names.APP_VMNAME, 0, 1) : [],
+    appservers    = length(local.ips_app) > 1 ? slice(var.naming.virtualmachine_names.APP_VMNAME, 1, length(local.ips_app)) : [],
+    scsservers    = length(local.ips_scs) > 0 ? var.naming.virtualmachine_names.SCS_VMNAME : [],
+    webservers    = length(local.ips_web) > 0 ? var.naming.virtualmachine_names.WEB_VMNAME : [],
+    prefix        = var.naming.prefix.SDU,
+    separator     = var.naming.separator,
+    platform      = length(local.hdb_vms) > 0 ? "HANA" : local.anydb_vms[0].platform
+    dbconnection  = length(local.hdb_vms) > 0 ? "ssh" : upper(local.anydb_vms[0].os.os_type) == "LINUX" ? "ssh" : "winrm"
+    scsconnection = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
+    appconnection = upper(var.app_tier_os_types["app"]) == "LINUX" ? "ssh" : "winrm"
+    webconnection = upper(var.app_tier_os_types["web"]) == "LINUX" ? "ssh" : "winrm"
     }
   )
   filename             = "${path.cwd}/ansible_config_files/${var.hdb_sid}_hosts.yml"

@@ -69,6 +69,17 @@ locals {
 
   storageaccount_name    = try(var.landscape_tfstate.storageaccount_name, "")
   storageaccount_rg_name = try(var.landscape_tfstate.storageaccount_rg_name, "")
+  // Retrieve information about Sap Landscape from tfstate file
+  landscape_tfstate = var.landscape_tfstate
+
+  iscsi_private_ip = try(local.landscape_tfstate.iscsi_private_ip, [])
+
+  // Firewall routing logic
+  // If the environment deployment created a route table use it to populate a route
+
+  route_table_id = try(var.landscape_tfstate.route_table_id, "")
+
+  firewall_id = try(var.deployer_tfstate.firewall_ip, "")
 
   //Filter the list of databases to only HANA platform entries
   databases = [
@@ -254,8 +265,13 @@ locals {
   sub_storage_nsg_name   = local.sub_storage_nsg_exists ? try(split("/", local.sub_storage_nsg_arm_id)[8], "") : try(local.sub_storage_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.storage_subnet_nsg))
 
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of using the landscape key vault
+<<<<<<< HEAD
   user_key_vault_id = try(var.key_vault.kv_user_id, var.landscape_tfstate.landscape_key_vault_user_arm_id)
   prvt_key_vault_id = try(var.key_vault.kv_prvt_id, var.landscape_tfstate.landscape_key_vault_private_arm_id)
+=======
+  user_key_vault_id = try(var.key_vault.kv_user_id, local.landscape_tfstate.landscape_key_vault_user_arm_id)
+  prvt_key_vault_id = try(var.key_vault.kv_prvt_id, local.landscape_tfstate.landscape_key_vault_private_arm_id)
+>>>>>>> Add a route to the firewall environment AB#136  (#1063)
 
   //Override 
   user_kv_override = length(try(var.key_vault.kv_user_id, "")) > 0
@@ -283,8 +299,13 @@ locals {
     try(data.azurerm_key_vault_secret.sid_password[0].value, local.use_local_credentials ? random_password.password[0].result : "")
   )
 
+<<<<<<< HEAD
   sid_public_key    = local.use_local_credentials ? try(file(var.authentication.path_to_public_key), tls_private_key.sdu[0].public_key_openssh) : data.azurerm_key_vault_secret.sid_pk[0].value
   sid_private_key   = local.use_local_credentials ? try(file(var.authentication.path_to_private_key), tls_private_key.sdu[0].private_key_pem) : ""
+=======
+  sid_public_key  = local.use_local_credentials ? try(file(var.sshkey.path_to_public_key), tls_private_key.sdu[0].public_key_openssh) : data.azurerm_key_vault_secret.sid_pk[0].value
+  sid_private_key = local.use_local_credentials ? try(file(var.sshkey.path_to_private_key), tls_private_key.sdu[0].private_key_pem) : ""
+>>>>>>> Add a route to the firewall environment AB#136  (#1063)
 
   //---- Update infrastructure with defaults ----//
   infrastructure = {

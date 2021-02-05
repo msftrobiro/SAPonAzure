@@ -39,11 +39,15 @@ output "db_subnet" {
 }
 
 output "sid_kv_user_id" {
-  value = local.enable_sid_deployment && !local.user_kv_override ? azurerm_key_vault.sid_kv_user[0].id : data.azurerm_key_vault.sid_kv_user[0].id
+  value = local.enable_sid_deployment && local.use_local_credentials ? (
+    azurerm_key_vault.sid_kv_user[0].id) : (
+  local.user_key_vault_id)
 }
 
 output "sid_kv_prvt_id" {
-  value = local.enable_sid_deployment && !local.user_kv_override ? azurerm_key_vault.sid_kv_prvt[0].id : data.azurerm_key_vault.sid_kv_prvt[0].id
+  value = local.enable_sid_deployment && local.use_local_credentials ? (
+    azurerm_key_vault.sid_kv_prvt[0].id) : (
+  local.prvt_key_vault_id)
 }
 
 output "storage_subnet" {
@@ -67,4 +71,12 @@ output "sid_username" {
 //Output the SDU specific SSH key
 output "sdu_public_key" {
   value = local.sid_public_key
+}
+
+output "route_table_id" {
+  value = local.route_table_id
+}
+
+output "firewall_id" {
+  value = local.firewall_id
 }

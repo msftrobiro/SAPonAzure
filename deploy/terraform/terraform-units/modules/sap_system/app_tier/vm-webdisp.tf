@@ -121,7 +121,7 @@ resource "azurerm_linux_virtual_machine" "web" {
   }
 
   boot_diagnostics {
-    storage_account_uri = var.storage_bootdiag.primary_blob_endpoint
+    storage_account_uri = var.storage_bootdiag_endpoint
   }
 
   tags = local.web_tags
@@ -198,7 +198,7 @@ resource "azurerm_windows_virtual_machine" "web" {
   }
 
   boot_diagnostics {
-    storage_account_uri = var.storage_bootdiag.primary_blob_endpoint
+    storage_account_uri = var.storage_bootdiag_endpoint
   }
 
   tags = local.web_tags

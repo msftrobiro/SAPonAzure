@@ -10,7 +10,7 @@ We separate the test into two types to reduce failure points as well as runtime 
 - **release pipeline**: CI trigger against master and beta -> takes longer, to re-create persist resources used in unit test.
 
 ## Tests Included
-https://dev.azure.com/azuresaphana/Azure-SAP-HANA/_build?definitionScope=%5CRemoteStatePipeline
+https://dev.azure.com/azurecat-sapdeploy/sap_deployment_automation/_build
 
 ### Teraform Unit Test
 - tf-deployer-test.yml

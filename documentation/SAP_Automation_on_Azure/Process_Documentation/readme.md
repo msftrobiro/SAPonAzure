@@ -2,6 +2,10 @@
 
 This document describes the overall process flow and the design activities needed to prepare and deploy an SAP estate to Azure.
 
+## Architectural overview ##
+
+[SAP Estate](./assets/SAP_estate.jpg)
+
 ## Preparing the environment ##
 
 Before we can deploy the SAP Systems to Azure we need to prepare the environments in Azure that they will be deployed to.

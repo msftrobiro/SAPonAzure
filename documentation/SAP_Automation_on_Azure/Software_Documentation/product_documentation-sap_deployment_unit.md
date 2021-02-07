@@ -162,6 +162,8 @@ The size parameter mapps to the following disk configuration.
 | M416s_v2  | Standard_M416s_v2   | P10 (128 GB)  | 4 P40 (2048 GB)  | 3 P15 (256 GB)   | P30 (1024 GB)  | P6 (64 GB) | 3 P40 (2048 GB) |
 | M416ms_v2 | Standard_M416m_v2   | P10 (128 GB)  | 4 P50 (4096 GB)  | 3 P15 (256 GB)   | P30 (1024 GB)  | P6 (64 GB) | 4 P50 (4096 GB) |
 
+Table: Hana default disk sizing
+
 ### Any DB sizing ###
 
 | Size    | VM SKU           | OS disk     | Data disks       | Log disks       |
@@ -179,38 +181,9 @@ The size parameter mapps to the following disk configuration.
 | 40  TB  | Standard_M128s   | P10(128 GB) | 10 P50 (4096 GB) | 2 P40 (2048 GB) |
 | 50  TB  | Standard_M128s   | P10(128 GB) | 13 P50 (4096 GB) | 2 P40 (2048 GB) |
 
+Table: AnyDB default disk sizing
+
 ### Providing custom disk configuration ###
 
-The disk sizing can be changed by providing a custom json file to the deployment by specifying the following parameter ```db_disk_sizes_filename : "[PATH to json file]"``` in the parameter file. For more information see [Changing the disk configuration](./../Using_custom_disk_sizing.md)
+The disk sizing can be changed by providing a custom json file to the deployment by specifying the following parameter ```db_disk_sizes_filename : "[PATH to json file]"``` in the parameter file. For more information see [Using_custom_disk_sizing.md](../Process_Documentation/Using_custom_disk_sizing.md)
 
-An example of the format of the json file is provided below:
-
-```json
-{
-  "web": {
-    "Default": {
-      "compute": {
-        "vm_size": "Standard_D4s_v3",
-        "accelerated_networking": false
-      },
-      "storage": [
-        {
-          "count": 1,
-          "name": "os",
-          "disk_type": "Premium_LRS",
-          "size_gb": 30,
-          "caching": "ReadWrite",
-          "write_accelerator": false
-        },
-        {
-          "count": 1,
-          "name": "data",
-          "disk_type": "Premium_LRS",
-          "size_gb": 512,
-          "caching": "None",
-          "write_accelerator": false
-        }
-      ]
-    }
-  },
-```

@@ -34,7 +34,9 @@ The structure of the disk layout file is shown below:
 }
 ```
 
-The first node with the name "os" is mandatory and it defines the size of the operating disk. It is possible to add multiple nodes in the structure to meet the business requirements. For example the json below consists of 3 data disks and a log disk using the Ultra SKU and a backup disk using Standard SSDN
+The first node with the name "os" is mandatory and it defines the size of the operating disk. The top level value ("Default" in the sample below) is the key that is referred to by the automation. The parameter files need to have a corresponding value in the database section in the parameter file ```"size" : "Default"```
+
+It is possible to add multiple nodes in the structure to create additional disks to meet the business requirements. For example the json below consists of 3 data disks and a log disk using the Ultra SKU and a backup disk using Standard SSDN
 
 ```json
 {
@@ -82,4 +84,3 @@ The first node with the name "os" is mandatory and it defines the size of the op
   }
 }
 ```
-

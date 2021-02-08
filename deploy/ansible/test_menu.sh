@@ -70,7 +70,7 @@ do
         esac
 
         ansible-playbook                                                                                                \
-          --inventory   new-hosts2.yaml                                                                                 \
+          --inventory   X00_hosts.yml                                                                                   \
           --user        azureadm                                                                                        \
           --private-key sshkey                                                                                          \
           --extra-vars="@sap-parameters.yaml"                                                                           \

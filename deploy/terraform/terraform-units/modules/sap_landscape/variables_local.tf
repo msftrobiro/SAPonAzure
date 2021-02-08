@@ -32,11 +32,9 @@ locals {
   region = try(local.var_infra.region, "")
   prefix = try(var.infrastructure.resource_group.name, var.naming.prefix.VNET)
 
-  // Retrieve information about Deployer from tfstate file
-  deployer_tfstate = var.deployer_tfstate
-  vnet_mgmt        = local.deployer_tfstate.vnet_mgmt
-  subnet_mgmt      = local.deployer_tfstate.subnet_mgmt
-  nsg_mgmt         = local.deployer_tfstate.nsg_mgmt
+// Retrieve information about Deployer from tfstate file
+  use_deployer     = length(var.deployer_tfstate) > 0
+  vnet_mgmt        = local.use_deployer ? var.deployer_tfstate.vnet_mgmt : {}
 
   // Resource group
   var_rg    = try(local.var_infra.resource_group, {})

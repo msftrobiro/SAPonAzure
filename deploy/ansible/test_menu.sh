@@ -74,6 +74,6 @@ do
           --user        azureadm                                                                                        \
           --private-key sshkey                                                                                          \
           --extra-vars="@sap-parameters.yaml"                                                                           \
-          ~/Azure_SAP_Automated_Deployment/centiq-sap-hana/deploy/ansible/${playbook}
+          ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/${playbook}
           break
 done

@@ -10,6 +10,10 @@ This document describes the overall process flow and the design activities neede
 
 Before we can deploy the SAP Systems to Azure we need to prepare the environments in Azure that they will be deployed to.
 
+## Technical details needed before starting the SAP infrastructure deployment ##
+
+the following information should be available before starting the deployment
+
 ## Customizing the deployment ##
 
 It is possible to customize some of the deployment aspects. 

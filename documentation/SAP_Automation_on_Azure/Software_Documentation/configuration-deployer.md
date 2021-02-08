@@ -5,7 +5,8 @@ deploy/terraform/bootstrap/sap_deployer/deployer.json
 deploy/terraform/run/sap_deployer/deployer_full.json
 deploy/terraform/run/sap_deployer/deployer.json
 -->
-# [SAP Deployment Automation Framework]("../../assets/images/UnicornSAPBlack256x256.png") #
+### [SAP Deployment Automation Framework](<img src="../assets/images/UnicornSAPBlack256x256.png" width="64px">  <!-- omit in toc -->
+<br/><br/>
 
 # Configuration - Deployer with Public IP <!-- omit in toc -->
 

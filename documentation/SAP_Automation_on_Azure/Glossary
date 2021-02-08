@@ -1,0 +1,18 @@
+## Glossary
+
+|Term|Description|
+| :- | :- |
+|System|An instance of an SAP application identified by a system ID (SID). Consists of one or more Virtual Machines and their supporting artifacts deployed to Azure to a resource group.|
+|Landscape|A collection of instances of the same SAP Application, for instance a development instance, a quality assurance instance and the production instance. Consists of multiple systems each in their own resource group|
+|Environment|<p>changed to "tiered sytem landscape", provides a way to partition the SAP Applications in an SAP Landscape, for instance development-, quality assurance- and production environment. The environment deployment will provide shared resources to all the systems in the environment, for example virtual network, key vaults.</p><p>changed to "tiered sytem landscape", provides a way to partition the SAP Applications in an SAP Landscape, for instance development-, quality assurance- and production environment. The environment deployment will provide shared resources to all the systems in the environment, for example virtual network, key vaults.</p>|
+##
+## Deployment Artifacts
+
+
+|Term|Description|Scope|
+| :- | :- | :- |
+|Deployer|The Deployer is a Virtual Machine that can be used to execute Terraform and Ansible commands. It is deployed to a Virtual Network (new or existing) that will be peered to the SAP Virtual Network|Environment|
+|Library|This will provide storage for the Terraform state files and the SAP Installation Media|Region|
+|Landscape/Environment|<p>The environment will contain the Virtual Network into which the SAP Systems will be deployed. </p><p></p><p>It will also contain Key Vault which will contain the credentials for the systems in the environment: deployer and systems(s)</p><p></p><p></p>|Environment|
+|System|The system is the deployment unit for the SAP Application (SID). It will contain the Virtual Machines and the supporting infrastructure artifacts (load balancers, availability sets etc)|Environment|
+##

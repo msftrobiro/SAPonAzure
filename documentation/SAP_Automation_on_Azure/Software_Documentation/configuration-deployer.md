@@ -6,10 +6,11 @@ deploy/terraform/run/sap_deployer/deployer_full.json
 deploy/terraform/run/sap_deployer/deployer.json
 -->
 
-![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework**
-# Configuration - Deployer with Public IP <!-- omit in toc -->
+# ![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework** #
 
-## Table of Contents <!-- omit in toc -->
+## Configuration - Deployer with Public IP <!-- omit in toc --> ##
+
+## Table of Contents <!-- omit in toc --> ##
 
 - [Parameter file construction](#parameter-file-construction)
 - [Examples](#examples)

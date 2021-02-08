@@ -1,4 +1,7 @@
-# Key Vault usage #
+
+# ![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework** #
+
+## Key Vault usage ##
 
 The automation leverages Azure Key Vault to store the credentials for the
 

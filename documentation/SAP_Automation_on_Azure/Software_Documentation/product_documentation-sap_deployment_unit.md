@@ -1,4 +1,6 @@
-# The SAP System Deployment #
+# ![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework** #
+
+## The SAP System Deployment ##
 
 The SAP System deployment will deploy the Virtual Machines and the supporting artifacts needed for the SAP Application.
 
@@ -9,11 +11,11 @@ The SAP System deploys the:
 3. Web dispatcher tie
 4. The database tier (HANA or AnyDB)
 
-## Application tier ##
+### Application tier ###
 
 The application tier consist of the Virtual machines and their disks.
 
-### Application tier sizing ###
+#### Application tier sizing ####
 
 The default application deployment deploys a customer defined number of Virtual machines of size Standard_D4s_v3 with an 30 GB operating system disk and a 512 GB data disk.
 
@@ -53,7 +55,7 @@ An example of the format of the json file is provided below:
   },
 ```
 
-## Central Services tier ##
+### Central Services tier ###
 
 The Central Services deployment deploys a customer defined number of Virtual machines of size Standard_D4s_v3 with an 30 GB operating system disk and a 512 GB data disk. The deployment also deploys an Azure Standard Load Balancer.
 
@@ -93,7 +95,7 @@ An example of the format of the json file is provided below:
   },
 ```
 
-## Web Dispatcher tier ##
+### Web Dispatcher tier ###
 
 The Central Services deployment deploys a customer defined number of Virtual machines of size Standard_D4s_v3 with an 30 GB operating system disk and a 512 GB data disk. The deployment will also deploy a Azure Standard Load Balancer.
 
@@ -133,7 +135,7 @@ An example of the format of the json file is provided below:
   },
 ```
 
-## Database tier ##
+### Database tier ###
 
 The database tier deployment deploys the Virtual machines and their disks. It also deploys an Standard Azure Load Balancer.
 

@@ -86,12 +86,13 @@ variable "ssh-timeout" {
   default     = "30s"
 }
 
-variable "sshkey" {
-  description = "Details of ssh key pair"
-  default     = {}
-}
-
 variable "key_vault" {
   description = "Details of keyvault"
   default     = {}
+}
+
+variable "authentication" {
+  description = "Defining the SDU credentials"
+  default = {
+  }
 }

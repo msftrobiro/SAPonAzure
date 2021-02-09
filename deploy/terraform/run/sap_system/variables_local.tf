@@ -98,9 +98,6 @@ locals {
   anchor        = try(var.infrastructure.anchor_vms, {})
   anchor_ostype = upper(try(local.anchor.os.os_type, "LINUX"))
 
-  // Import deployer information for ansible.tf
-  import_deployer = data.terraform_remote_state.deployer[0].outputs.deployer
-
   // Locate the tfstate storage account
   tfstate_resource_id          = try(var.tfstate_resource_id, "")
   saplib_subscription_id       = split("/", local.tfstate_resource_id)[2]

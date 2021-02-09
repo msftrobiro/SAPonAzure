@@ -14,7 +14,7 @@ module "common_infrastructure" {
   sshkey                     = var.sshkey
   naming                     = module.sap_namegenerator.naming
   service_principal          = local.service_principal
-  deployer_tfstate           = data.terraform_remote_state.deployer.outputs
+  deployer_tfstate           = length(local.deployer_tfstate_key) > 0 && length(trimspace(try(var.key_vault.kv_spn_id, ""))) == 0 ? data.terraform_remote_state.deployer[0].outputs : []
   landscape_tfstate          = data.terraform_remote_state.landscape.outputs
   custom_disk_sizes_filename = var.db_disk_sizes_filename
   key_vault                  = var.key_vault

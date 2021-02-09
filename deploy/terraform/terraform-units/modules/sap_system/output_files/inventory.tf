@@ -144,7 +144,7 @@ resource "local_file" "ansible_inventory_new_yml" {
     webconnection = upper(var.app_tier_os_types["web"]) == "LINUX" ? "ssh" : "winrm"
     }
   )
-  filename             = "${path.cwd}/ansible_config_files/${var.hdb_sid}_hosts.yml"
+  filename             = "${path.cwd}/ansible_config_files/${var.hdb_sid}_hosts.yaml"
   file_permission      = "0660"
   directory_permission = "0770"
 }

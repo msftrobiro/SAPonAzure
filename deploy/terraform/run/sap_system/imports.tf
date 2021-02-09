@@ -29,25 +29,25 @@ data "terraform_remote_state" "landscape" {
 data "azurerm_key_vault_secret" "subscription_id" {
   provider     = azurerm.deployer
   name         = format("%s-subscription-id", local.environment)
-  key_vault_id = local.deployer_key_vault_arm_id
+  key_vault_id = local.spn_key_vault_arm_id
 }
 
 data "azurerm_key_vault_secret" "client_id" {
   provider     = azurerm.deployer
   name         = format("%s-client-id", local.environment)
-  key_vault_id = local.deployer_key_vault_arm_id
+  key_vault_id = local.spn_key_vault_arm_id
 }
 
 data "azurerm_key_vault_secret" "client_secret" {
   provider     = azurerm.deployer
   name         = format("%s-client-secret", local.environment)
-  key_vault_id = local.deployer_key_vault_arm_id
+  key_vault_id = local.spn_key_vault_arm_id
 }
 
 data "azurerm_key_vault_secret" "tenant_id" {
   provider     = azurerm.deployer
   name         = format("%s-tenant-id", local.environment)
-  key_vault_id = local.deployer_key_vault_arm_id
+  key_vault_id = local.spn_key_vault_arm_id
 }
 
 // Import current service principal

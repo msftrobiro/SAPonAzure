@@ -52,7 +52,7 @@ variable "ssh-timeout" {
   default     = "30s"
 }
 
-variable "sshkey" {
+variable "authentication" {
   description = "Details of ssh key pair"
   default     = {}
 }

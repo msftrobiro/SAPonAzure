@@ -43,7 +43,7 @@ ${sid}_WEB:
   hosts:
 %{~ for idx,ip_web in ips_web }
     ${webservers[idx]}:
-      ansible_host: ${ip_web}:
+      ansible_host: ${ip_web}
       ansible_connection: ${webconnection} 
 %{~ endfor }
   vars:

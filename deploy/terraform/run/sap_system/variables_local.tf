@@ -38,9 +38,10 @@ variable "landscape_tfstate_key" {
 locals {
 
   // The environment of sap landscape and sap system
-  environment = upper(try(var.infrastructure.environment, ""))
+  environment     = upper(try(var.infrastructure.environment, ""))
+  vnet_sap_arm_id = data.terraform_remote_state.landscape.outputs.vnet_sap_arm_id
 
-  vnet_sap_name = local.vnet_sap_exists ? try(split("/", local.vnet_sap_arm_id)[8], "") : try(local.var_vnet_sap.name, "sap")
+  vnet_sap_name = try(split("/", local.vnet_sap_arm_id)[8], "")
   vnet_nr_parts = length(split("-", local.vnet_sap_name))
   // Default naming of vnet has multiple parts. Taking the second-last part as the name 
   vnet_sap_name_part = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? substr(split("-", local.vnet_sap_name)[(local.vnet_nr_parts - 2)], 0, 7) : local.vnet_sap_name
@@ -58,12 +59,6 @@ locals {
   file_hosts     = fileexists("${terraform.workspace}/ansible_config_files/hosts") ? file("${terraform.workspace}/ansible_config_files/hosts") : ""
   file_hosts_yml = fileexists("${terraform.workspace}/ansible_config_files/hosts.yml") ? file("${terraform.workspace}/ansible_config_files/hosts.yml") : ""
   file_output    = fileexists("${terraform.workspace}/ansible_config_files/output.json") ? file("${terraform.workspace}/ansible_config_files/output.json") : ""
-
-  // SAP vnet
-  var_infra       = try(var.infrastructure, {})
-  var_vnet_sap    = try(local.var_infra.vnets.sap, {})
-  vnet_sap_arm_id = try(local.var_vnet_sap.arm_id, "")
-  vnet_sap_exists = length(local.vnet_sap_arm_id) > 0 ? true : false
 
   //SID determination
 

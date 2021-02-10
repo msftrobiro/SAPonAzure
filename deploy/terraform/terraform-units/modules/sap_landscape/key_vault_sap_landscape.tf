@@ -152,7 +152,6 @@ data "azurerm_key_vault_secret" "iscsi_username" {
 resource "tls_private_key" "sid" {
   count = (
     try(file(var.authentication.path_to_public_key), null) == null
-    
   ) ? 1 : 0
   algorithm = "RSA"
   rsa_bits  = 2048

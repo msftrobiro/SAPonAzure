@@ -9,8 +9,8 @@ data "terraform_remote_state" "deployer" {
   config = {
     resource_group_name  = local.saplib_resource_group_name
     storage_account_name = local.tfstate_storage_account_name
-    container_name       = local.tfstate_container_name
-    key                  = "tfstate"
+    container_name       = "tfstate"
+    key                  = local.deployer_tfstate_key
     subscription_id      = local.saplib_subscription_id
   }
 }

@@ -5,7 +5,7 @@ Load balancer front IP address range: .4 - .9
 resource "azurerm_lb" "anydb" {
   count = local.enable_deployment ? 1 : 0
   name  = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb)
-  sku   = local.zonal_deployment ? "Standard" : "Basic"
+  sku   = "Standard"
 
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
@@ -41,6 +41,22 @@ resource "azurerm_lb_probe" "anydb" {
   interval_in_seconds = 5
   number_of_probes    = 2
 }
+
+# Create the Load Balancer Rules
+resource "azurerm_lb_rule" "anydb" {
+  count                          = local.enable_deployment && local.db_server_count > 0 ? 1 : 0
+  resource_group_name            = var.resource_group[0].name
+  loadbalancer_id                = azurerm_lb.anydb[0].id
+  name                           = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_rule)
+  protocol                       = "All"
+  frontend_port                  = 0
+  backend_port                   = 0
+  frontend_ip_configuration_name = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_feip)
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.anydb[0].id
+  probe_id                       = azurerm_lb_probe.anydb[0].id
+  enable_floating_ip             = true
+}
+
 
 resource "azurerm_network_interface_backend_address_pool_association" "anydb" {
   count                   = local.enable_deployment ? local.db_server_count : 0

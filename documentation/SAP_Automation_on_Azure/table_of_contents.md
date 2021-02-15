@@ -11,7 +11,10 @@
 <br/>
 
 1. [Overview](overview.md)
-2. [Product Documentation](Software_Documentation/product_documentation.md)
+2. [Process Documentation](readme.md)
+    1. [Glossary](glossary.md)
+    2. [customer requirements](customer_requirements.md)
+3. [Product Documentation](Software_Documentation/product_documentation.md)
    1. [Capabilities](Software_Documentation/product_documentation-capabilities.md)
    2. [Deployer](Software_Documentation/product_documentation-deployer.md)
    3. [SAP Library](Software_Documentation/product_documentation-sap_library.md)
@@ -19,19 +22,19 @@
    5. [SAP Deployment Unit (SDU)](Software_Documentation/product_documentation-sap_deployment_unit.md)
    6. [Features](Software_Documentation/product_documentation-features.md)
       1. [Detail 1]()
-3. [Configuration](Software_Documentation/configuration.md)
+4. [Configuration](Software_Documentation/configuration.md)
    1. [Deployer](Software_Documentation/configuration-deployer.md)
    2. [SAP Library](Software_Documentation/configuration-sap_library.md)
-   3. [SAP Landscape](Software_Documentation/configuration-sap_landscape.md)
+   3. [SAP Workload VNET](Software_Documentation/configuration-sap_workload_vnet.md)
    4. [SAP Deployment Unit (SDU)](Software_Documentation/configuration-sap_deployment_unit.md)
-4. [Execution]
+5. [Execution]
    1. [Terraform]
    2. [Ansible]
-5. [Operations]
+6. [Operations]
    1. [Terraform]
    2. [Ansible]
-6. [Workshops](Software_Documentation/workshops/workshops.md)
-7. Appendix
+7. [Workshops](Software_Documentation/workshops/workshops.md)
+8. Appendix
    1. Standards
       1. [Naming Standards](Software_Documentation/standards-naming.md)
    2. [FAQ](Software_Documentation/appendix-faq.md)

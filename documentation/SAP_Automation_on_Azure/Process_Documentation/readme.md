@@ -29,4 +29,3 @@ Using marketplace images or custom images
 ### Changing disk sizing ###
 
  [Using_custom_disk_sizing.md](./Using_custom_disk_sizing.md)
-

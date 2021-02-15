@@ -188,4 +188,3 @@ Table: AnyDB default disk sizing
 ### Providing custom disk configuration ###
 
 The disk sizing can be changed by providing a custom json file to the deployment by specifying the following parameter ```db_disk_sizes_filename : "[PATH to json file]"``` in the parameter file. For more information see [Using_custom_disk_sizing.md](../Process_Documentation/Using_custom_disk_sizing.md)
-

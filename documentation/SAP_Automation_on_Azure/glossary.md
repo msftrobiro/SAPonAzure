@@ -27,4 +27,4 @@ The environment will contain resources which are shared amongst all the systems,
 
 Will use environment specific deployments and contain those resources needed for the specific realization of the SAP landscape including the systems 
 
-![glossary](../assets/SAP_estate.jpg)
+![glossary](../assets/images/SAP_estate.jpg)

@@ -5,7 +5,7 @@
     "vnets": {
       "management": {
         "name"                            : "DEP01",
-        "address_space"                   : "<RESOURCE_ID_FOR_MGMT_VNET>",
+        "arm_id"                          : "<RESOURCE_ID_FOR_MGMT_VNET>",
         "subnet_mgmt": {
           "arm_id"                        : "<RESOURCE_ID_FOR_MGMT_SUBNET>"
         }

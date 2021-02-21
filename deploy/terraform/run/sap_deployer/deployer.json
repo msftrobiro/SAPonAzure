@@ -1,6 +1,6 @@
 {
   "infrastructure": {
-    "region": "eastus",
+    "region": "westeurope",
     "environment": "np",
     "vnets": {
       "management": {

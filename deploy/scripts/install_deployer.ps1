@@ -59,7 +59,7 @@ Licensed under the MIT license.
     }
 
     if ($null -eq $repo -or "" -eq $repo) {
-        $repo = Read-Host -Prompt "Please enter the subscription"
+        $repo = Read-Host -Prompt "Please enter the path to the repository"
         $iniContent["Common"]["repo"] = $repo
         $changed = $true
     }
@@ -69,6 +69,16 @@ Licensed under the MIT license.
     }
 
     $terraform_module_directory = $repo + "\deploy\terraform\bootstrap\sap_deployer"
+
+    if (-not (Test-Path $terraform_module_directory) )
+    {
+        Write-Host -ForegroundColor Red "The repository path: $repo is incorrect!"
+        $iniContent["Common"]["repo"] =""
+        $iniContent | Out-IniFile -Force $filePath
+        throw "The repository path: $repo is incorrect!"
+        return
+
+    }
 
     Write-Host -ForegroundColor green "Initializing Terraform"
 

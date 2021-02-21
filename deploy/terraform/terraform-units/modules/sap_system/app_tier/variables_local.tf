@@ -14,7 +14,7 @@ variable "vnet_sap" {
   description = "Details of the SAP Vnet"
 }
 
-variable "storage_bootdiag" {
+variable "storage_bootdiag_endpoint" {
   description = "Details of the boot diagnostic storage device"
 }
 
@@ -55,6 +55,18 @@ variable "route_table_id" {
 
 variable "firewall_id" {
   description = "Firewall (if any) id"
+}
+
+variable "sid_password" {
+  description = "SDU password"
+}
+
+variable "sid_username" {
+  description = "SDU username"
+}
+
+variable "sap_sid" {
+  description = "The SID of the application"
 }
 
 locals {
@@ -102,16 +114,12 @@ locals {
   sid_auth_type        = try(var.application.authentication.type, upper(local.app_ostype) == "LINUX" ? "key" : "password")
   enable_auth_password = local.enable_deployment && local.sid_auth_type == "password"
   enable_auth_key      = local.enable_deployment && local.sid_auth_type == "key"
-  sid_auth_username    = try(var.application.authentication.username, "azureadm")
-  sid_auth_password    = local.enable_auth_password ? try(var.application.authentication.password, random_password.password[0].result) : ""
 
   authentication = {
     "type"     = local.sid_auth_type
-    "username" = local.sid_auth_username
-    "password" = local.sid_auth_password
+    "username" = var.sid_username
+    "password" = var.sid_password
   }
-
-  use_local_keyvault = try(var.sshkey.ssh_for_sid, false)
 
   // SAP vnet
   vnet_sap                     = try(var.vnet_sap, {})
@@ -235,7 +243,7 @@ locals {
   web_ostype       = try(var.application.web_os.os_type, local.app_ostype)
 
   web_os = {
-    "source_image_id" = local.web_custom_image ? var.application.web_os.source_image_id : ""
+    "source_image_id" = try(var.application.web_os.source_image_id, local.web_custom_image ? local.app_os.source_image_id : null)
     "publisher"       = try(var.application.web_os.publisher, local.web_custom_image ? "" : local.app_os.publisher)
     "offer"           = try(var.application.web_os.offer, local.web_custom_image ? "" : local.app_os.offer)
     "sku"             = try(var.application.web_os.sku, local.web_custom_image ? "" : local.app_os.sku)
@@ -384,7 +392,7 @@ locals {
 
   scs_data_disks = flatten([
     for vm_counter in range(local.scs_server_count) : [
-      for idx, datadisk in local.app_data_disk_per_dbnode : {
+      for idx, datadisk in local.scs_data_disk_per_dbnode : {
         suffix                    = datadisk.suffix
         vm_index                  = vm_counter
         caching                   = datadisk.caching

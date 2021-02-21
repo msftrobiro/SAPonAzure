@@ -7,11 +7,21 @@ Function Set-Secrets {
     .DESCRIPTION
         Sets the secrets in Azure Keyvault that are required for the deployment automation
 
-    .PARAMETER VirtualMachineName
-        This is the name of the Virtual Machine.
+    .PARAMETER Environment
+        This is the name of the environment.
 
-    .PARAMETER ResourceGroupName
-        This is the name of the resource group .
+    .PARAMETER VAultNAme
+        This is the name of the keyvault
+
+    .PARAMETER Client_id
+        This is the SPN Application ID
+
+    .PARAMETER Client_secret
+        This is the SAP Application password
+
+    .PARAMETER Tenant
+        This is the Tenant ID for the SPN
+        
 
     .EXAMPLE 
 
@@ -19,7 +29,7 @@ Function Set-Secrets {
     #
     # Import the module
     Import-Module "SAPDeploymentUtilities.psd1"
-    Set-Secrets -Environment PROD -Client_id <appId> -VaultName <vaultname> -Client_secret <clientsecret> -Tenant <TenantID> 
+    Set-Secrets -Environment PROD -VaultName <vaultname> -Client_id <appId> -Client_secret <clientsecret> -Tenant <TenantID> 
 
     
 .LINK

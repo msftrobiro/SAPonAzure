@@ -1,11 +1,11 @@
 {
     "infrastructure": {
-        "region": "eastus",
+        "region": "westeurope",
         "environment": "np"
     },
     "deployer": {
         "environment": "np",
-        "region": "eastus",
+        "region": "westeurope",
         "vnet": "DEP00"
     }
 }

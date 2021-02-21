@@ -10,7 +10,7 @@ variable "vnet_sap" {
   description = "Details of the SAP Vnet"
 }
 
-variable "storage_bootdiag" {
+variable "storage_bootdiag_endpoint" {
   description = "Details of the boot diagnostics storage account"
 }
 
@@ -43,6 +43,18 @@ variable "sdu_public_key" {
   description = "Public key used for authentication"
 }
 
+variable "sid_password" {
+  description = "SDU password"
+}
+
+variable "sid_username" {
+  description = "SDU username"
+}
+
+variable "sap_sid" {
+  description = "The SID of the application"
+}
+
 locals {
   // Imports database sizing information
 
@@ -60,9 +72,8 @@ locals {
   resource_suffixes    = var.naming.resource_suffixes
 
   region    = try(var.infrastructure.region, "")
-  sap_sid   = upper(try(var.application.sid, ""))
   anydb_sid = (length(local.anydb_databases) > 0) ? try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3))) : lower(substr(local.anydb_platform, 0, 3))
-  sid       = upper(try(var.application.sid, local.anydb_sid))
+  sid       = length(var.sap_sid) > 0 ? var.sap_sid : local.anydb_sid
   prefix    = try(var.infrastructure.resource_group.name, trimspace(var.naming.prefix.SDU))
   rg_name   = try(var.infrastructure.resource_group.name, format("%s%s", local.prefix, local.resource_suffixes.sdu_rg))
 
@@ -104,7 +115,7 @@ locals {
   // Enable deployment based on length of local.anydb_databases
   enable_deployment = (length(local.anydb_databases) > 0) ? true : false
 
- // If custom image is used, we do not overwrite os reference with default value
+  // If custom image is used, we do not overwrite os reference with default value
   anydb_custom_image = try(local.anydb.os.source_image_id, "") != "" ? true : false
 
   anydb_ostype = try(local.anydb.os.os_type, "Linux")
@@ -125,22 +136,15 @@ locals {
   sid_auth_type        = try(local.anydb.authentication.type, "key")
   enable_auth_password = local.enable_deployment && local.sid_auth_type == "password"
   enable_auth_key      = local.enable_deployment && local.sid_auth_type == "key"
-  sid_auth_username    = try(local.anydb.authentication.username, "azureadm")
-  sid_auth_password    = local.enable_auth_password ? try(local.anydb.authentication.password, random_password.password[0].result) : ""
-
-  use_local_credentials = length(var.sshkey) > 0
-
-  db_systemdb_password = "db_systemdb_password"
 
   // Tags
   tags = try(local.anydb.tags, {})
 
-  authentication = try(local.anydb.authentication,
-    {
-      "type"     = local.sid_auth_type
-      "username" = local.sid_auth_username
-      "password" = "anydb_vm_password"
-  })
+  authentication = {
+    "type"     = local.sid_auth_type
+    "username" = var.sid_username
+    "password" = var.sid_password
+  }
 
   // Default values in case not provided
   os_defaults = {
@@ -203,7 +207,7 @@ locals {
     { high_availability = local.anydb_ha },
     { authentication = local.authentication },
     { credentials = {
-      db_systemdb_password = local.db_systemdb_password
+      db_systemdb_password = "obsolete"
       }
     },
     { dbnodes = local.dbnodes },
@@ -215,27 +219,27 @@ locals {
     flatten([for idx, dbnode in try(local.anydb.dbnodes, [{}]) :
       [
         {
-          name           = try("${dbnode.name}-0", format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[idx], local.resource_suffixes.vm))
-          computername   = try("${dbnode.name}-0", local.computer_names[idx], local.resource_suffixes.vm)
-          role           = try(dbnode.role, "db")
-          admin_nic_ip   = lookup(dbnode, "admin_nic_ips", ["false", "false"])[0]
-          db_nic_ip      = lookup(dbnode, "db_nic_ips", ["false", "false"])[0]
+          name         = try("${dbnode.name}-0", format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[idx], local.resource_suffixes.vm))
+          computername = try("${dbnode.name}-0", local.computer_names[idx], local.resource_suffixes.vm)
+          role         = try(dbnode.role, "db")
+          admin_nic_ip = lookup(dbnode, "admin_nic_ips", ["false", "false"])[0]
+          db_nic_ip    = lookup(dbnode, "db_nic_ips", ["false", "false"])[0]
         },
         {
-          name           = try("${dbnode.name}-1", format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[idx + local.node_count], local.resource_suffixes.vm))
-          computername   = try("${dbnode.name}-1", local.computer_names[idx + local.node_count])
-          role           = try(dbnode.role, "db")
-          admin_nic_ip   = lookup(dbnode, "admin_nic_ips", ["false", "false"])[1]
-          db_nic_ip      = lookup(dbnode, "db_nic_ips", ["false", "false"])[1]
+          name         = try("${dbnode.name}-1", format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[idx + local.node_count], local.resource_suffixes.vm))
+          computername = try("${dbnode.name}-1", local.computer_names[idx + local.node_count])
+          role         = try(dbnode.role, "db")
+          admin_nic_ip = lookup(dbnode, "admin_nic_ips", ["false", "false"])[1]
+          db_nic_ip    = lookup(dbnode, "db_nic_ips", ["false", "false"])[1]
         }
       ]
     ])) : (
     flatten([for idx, dbnode in try(local.anydb.dbnodes, [{}]) : {
-      name           = try("${dbnode.name}-0", format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[idx], local.resource_suffixes.vm))
-      computername   = try("${dbnode.name}-0", local.computer_names[idx], local.resource_suffixes.vm)
-      role           = try(dbnode.role, "db")
-      admin_nic_ip   = lookup(dbnode, "admin_nic_ips", ["false", "false"])[0]
-      db_nic_ip      = lookup(dbnode, "db_nic_ips", ["false", "false"])[0]
+      name         = try("${dbnode.name}-0", format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[idx], local.resource_suffixes.vm))
+      computername = try("${dbnode.name}-0", local.computer_names[idx], local.resource_suffixes.vm)
+      role         = try(dbnode.role, "db")
+      admin_nic_ip = lookup(dbnode, "admin_nic_ips", ["false", "false"])[0]
+      db_nic_ip    = lookup(dbnode, "db_nic_ips", ["false", "false"])[0]
       }]
     )
   )
@@ -251,7 +255,7 @@ locals {
       size           = local.anydb_sku
       os             = local.anydb_ostype,
       authentication = local.authentication
-      sid            = local.sap_sid
+      sid            = var.sap_sid
     }
   ]
 

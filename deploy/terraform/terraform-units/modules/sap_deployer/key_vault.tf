@@ -115,7 +115,7 @@ resource "tls_private_key" "deployer" {
     local.enable_deployers
     && local.enable_key
     && ! local.key_exist
-    && (try(file(var.sshkey.path_to_public_key), "") == "")
+    && (try(file(var.authentication.path_to_public_key), "") == "")
   ) ? 1 : 0
   algorithm = "RSA"
   rsa_bits  = 2048

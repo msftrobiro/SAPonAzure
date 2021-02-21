@@ -46,7 +46,7 @@ resource "azurerm_linux_virtual_machine" "observer" {
     azurerm_network_interface.observer[count.index].id
   ]
   size                            = local.observer_size
-  admin_username                  = local.observer_authentication.username
+  admin_username                  = var.sid_username
   disable_password_authentication = true
 
   os_disk {
@@ -69,12 +69,12 @@ resource "azurerm_linux_virtual_machine" "observer" {
   }
 
   admin_ssh_key {
-    username   = local.observer_authentication.username
+    username   = var.sid_username
     public_key = var.sdu_public_key
   }
 
   boot_diagnostics {
-    storage_account_uri = var.storage_bootdiag.primary_blob_endpoint
+    storage_account_uri = var.storage_bootdiag_endpoint
   }
 
   tags = local.tags
@@ -105,8 +105,8 @@ resource "azurerm_windows_virtual_machine" "observer" {
   ]
 
   size           = local.observer_size
-  admin_username = local.observer_authentication.username
-  admin_password = local.observer_authentication.password
+  admin_username = var.sid_username
+  admin_password = var.sid_password
 
   os_disk {
     name                 = format("%s%s%s%s", local.prefix, var.naming.separator, local.observer_virtualmachine_names[count.index], local.resource_suffixes.osdisk)
@@ -127,7 +127,7 @@ resource "azurerm_windows_virtual_machine" "observer" {
   }
 
   boot_diagnostics {
-    storage_account_uri = var.storage_bootdiag.primary_blob_endpoint
+    storage_account_uri = var.storage_bootdiag_endpoint
   }
 
   tags = local.tags

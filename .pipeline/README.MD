@@ -32,11 +32,11 @@ https://dev.azure.com/azurecat-sapdeploy/sap_deployment_automation/_build
 1. Shared SSH key pair among all pipelines (this is to make it possible to access persist resources).
 1. Set terraform output to sensitive so it does not show in the log.
 1. Persist resources and naming (following naming convention document)
-    - deployer (rg: `UNIT-EAUS-DEP00-INFRASTRUCTURE`)
-    - SAP library (rg: `UNIT-EAUS-SAP_LIBRARY`)
-    - SAP landscapes  (rg: `UNIT-EAUS-SAP0-INFRASTRUCTURE`)
-    - SAP systems (rg: `SLES/RHEL-EAUS-SAP-PRD`)
+    - deployer (rg: `UNIT-WEEU-DEP00-INFRASTRUCTURE`)
+    - SAP library (rg: `UNIT-WEEU-SAP_LIBRARY`)
+    - SAP landscapes  (rg: `UNIT-WEEU-SAP0-INFRASTRUCTURE`)
+    - SAP systems (rg: `SLES/RHEL-WEEU-SAP-PRD`)
 1. Disposable resources naming
-    - deployer (rg: `<buildId>-EAUS-DEP00-INFRASTRUCTURE`)
-    - sap library (rg: `<buildId>-EAUS-SAP_LIBRARY`)
-    - sap landscape/system (rg: `<buildId>-EAUS-SAP-PRD`)
+    - deployer (rg: `<buildId>-WEEU-DEP00-INFRASTRUCTURE`)
+    - sap library (rg: `<buildId>-WEEU-SAP_LIBRARY`)
+    - sap landscape/system (rg: `<buildId>-WEEU-SAP-PRD`)

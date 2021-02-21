@@ -4,7 +4,7 @@
   "landscape_tfstate_key": "",
   "infrastructure": {
     "environment": "np",
-    "region": "eastus",
+    "region": "westeurope",
     "resource_group": {
       "is_existing": "false",
       "arm_id": ""

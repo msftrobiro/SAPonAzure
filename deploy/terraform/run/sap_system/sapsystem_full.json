@@ -3,7 +3,7 @@
   "deployer_tfstate_key": "",
   "landscape_tfstate_key": "",
   "infrastructure": {
-    "region": "eastus",
+    "region": "westeurope",
     "environment": "NP",
     "resource_group": {
       "arm_id": ""

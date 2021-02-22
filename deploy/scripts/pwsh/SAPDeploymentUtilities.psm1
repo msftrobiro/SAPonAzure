@@ -3,3 +3,4 @@
 . .\install_library.ps1
 . .\installer.ps1
 . .\set_secrets.ps1
+. .\helper_functions.ps1

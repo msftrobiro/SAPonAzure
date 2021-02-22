@@ -51,11 +51,11 @@ output "web_lb_ip" {
 }
 
 output "scs_lb_ip" {
-  value = local.enable_deployment ? azurerm_lb.scs[0].frontend_ip_configuration[0].private_ip_address : ""
+  value = local.enable_deployment && local.scs_server_count > 0 ? azurerm_lb.scs[0].frontend_ip_configuration[0].private_ip_address : ""
 }
 
 output "ers_lb_ip" {
-  value = local.enable_deployment ? azurerm_lb.scs[0].frontend_ip_configuration[1].private_ip_address : ""
+  value = local.enable_deployment && local.scs_server_count > 0 ? azurerm_lb.scs[0].frontend_ip_configuration[1].private_ip_address : ""
 }
 
 output "application" {

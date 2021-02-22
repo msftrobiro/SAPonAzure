@@ -84,7 +84,7 @@ Licensed under the MIT license.
     }
 
     if ($changed) {
-        $iniContent | Out-IniFile -Force $filePath
+        Out-IniFile -InputObject $iniContent -FilePath $filePath
     }
 
     $terraform_module_directory = $repo + "\deploy\terraform\run\" + $Type

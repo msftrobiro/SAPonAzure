@@ -52,11 +52,11 @@ Licensed under the MIT license.
         #Keyvault name
         [Parameter(Mandatory = $true)][string]$VaultName,
         # #SPN App ID
-        [Parameter(Mandatory = $true)][string]$Client_id,
+        [Parameter(Mandatory = $true)][string]$Client_id="",
         #SPN App secret
         [Parameter(Mandatory = $true)][string]$Client_secret,
         #Tenant
-        [Parameter(Mandatory = $true)][string]$Tenant
+        [Parameter(Mandatory = $true)][string]$Tenant=""
     )
 
     Write-Host -ForegroundColor green ""
@@ -92,10 +92,12 @@ Licensed under the MIT license.
     if ($Client_id -eq "") {
         if ($spnid -eq "" -or $null -eq $spnid) {
             $spnid = Read-Host -Prompt 'SPN App ID:'
+            $iniContent[$Environment]["Client_id"]=$spnid 
         }
     }
     else {
         $spnid = $Client_id
+        $iniContent[$Environment]["Client_id"]=$Client_id
     }
 
     # Read Tenant
@@ -104,10 +106,12 @@ Licensed under the MIT license.
     if ($Tenant -eq "") {
         if ($t -eq "" -or $null -eq $t) {
             $t = Read-Host -Prompt 'Tenant:'
+            $iniContent[$Environment]["Tenant"] = $t 
         }
     }
     else {
         $t = $Tenant
+        $iniContent[$Environment]["Tenant"] = $Tenant
     }
 
     if ($Client_secret -eq "") {
@@ -117,10 +121,7 @@ Licensed under the MIT license.
         $spnpwd = $Client_secret
     }
 
-    $Category1 = @{"Vault" = $v ; "Client_id" = $spnid ; "Tenant" = $t; "Subscription" = $sub }
-    $iniContent[$Environment] = $Category1
-
-    $iniContent | Out-IniFile -Force $filePath
+    Out-IniFile -InputObject $iniContent -FilePath $filePath
 
     $Secret = ConvertTo-SecureString -String $sub -AsPlainText -Force
     $Secret_name = $Environment + "-subscription-id"

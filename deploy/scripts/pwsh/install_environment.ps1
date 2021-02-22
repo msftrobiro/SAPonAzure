@@ -51,17 +51,12 @@ Licensed under the MIT license.
     Write-Host -ForegroundColor green ""
     Write-Host -ForegroundColor green "Deploying the Full Environment"
 
-    $mydocuments = [environment]::getfolderpath("mydocuments")
-    $filePath = $mydocuments + "\sap_deployment_automation.ini"
-    $iniContent = Get-IniContent $filePath
-
     $curDir = Get-Location 
     [IO.DirectoryInfo] $dirInfo = $curDir.ToString()
 
     $fileDir = $dirInfo.ToString() + $EnvironmentParameterfile
     [IO.FileInfo] $fInfo = $fileDir
     $envkey = $fInfo.Name.replace(".json", ".terraform.tfstate")
-
 
     $fileDir = $dirInfo.ToString() + $DeployerParameterfile
     [IO.FileInfo] $fInfo = $fileDir
@@ -72,29 +67,43 @@ Licensed under the MIT license.
     $region = ($fInfo.Name -split "-")[1]
     $combined = $Environment + $region
 
-    Write-Host $combined
+    $mydocuments = [environment]::getfolderpath("mydocuments")
+    $filePath = $mydocuments + "\sap_deployment_automation.ini"
+
+    if ( -not (Test-Path -Path $FilePath)) {
+        New-Item -Path $mydocuments -Name "sap_deployment_automation.ini" -ItemType "file" -Value "[Common]`nrepo=`nsubscription=`n[$combined]`nDeployer=`nLandscape=`n[$Environment]`nDeployer=" -Force
+    }
+
+    $iniContent = Get-IniContent $filePath
 
     $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
     
-    $Category1 = @{"Deployer" = $key ;"Landscape" = $envkey}
+    $iniContent[$combined]["Landscape"] = $envkey
+    $iniContent[$combined]["Deployer"] = $key
 
-    $iniContent[$combined] = $Category1
-    
-    $iniContent | Out-IniFile -Force $filePath
+    if ($null -ne $iniContent[$Environment]["Client_id"]) {
+        Write-Host "null"
+        $spnid = $iniContent[$Environment]["Client_id"]
+    }
+    else {
+        Write-Host "not null"
+        $spnid = ""
+    }
+
+    Out-IniFile -InputObject $iniContent -FilePath $filePath
 
     Set-Location -Path $fInfo.Directory.FullName
     
     New-Deployer -Parameterfile $fInfo.Name 
 
-    # Re-read the ini file
+    # Re-read ini file
     $iniContent = Get-IniContent $filePath
 
     $ans = Read-Host -Prompt "Do you want to enter the Keyvault secrets Y/N?"
     if ("Y" -eq $ans) {
         $vault = $iniContent[$Environment]["Vault"]
-        $spnid = $iniContent[$Environment]["Client_id"]
-        $Tenant = $iniContent[$Environment]["Tenant"]
-        Set-Secrets -Environment $Environment -VaultName $vault -Client_id $spnid -Tenant $Tenant
+        Set-Secrets -Environment $Environment -VaultName $vault
+        
     }
 
     $fileDir = $dirInfo.ToString() + $LibraryParameterfile

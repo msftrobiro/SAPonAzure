@@ -66,7 +66,7 @@ Licensed under the MIT license.
     }
 
     if ($changed) {
-        $iniContent | Out-IniFile -Force $filePath
+         Out-IniFile -InputObject $iniContent -FilePath $filePath
     }
 
     $terraform_module_directory = $repo + "\deploy\terraform\bootstrap\sap_deployer"
@@ -75,7 +75,7 @@ Licensed under the MIT license.
     {
         Write-Host -ForegroundColor Red "The repository path: $repo is incorrect!"
         $iniContent["Common"]["repo"] =""
-        $iniContent | Out-IniFile -Force $filePath
+        Out-IniFile -InputObject $iniContent -FilePath $filePath
         throw "The repository path: $repo is incorrect!"
         return
 
@@ -155,7 +155,7 @@ Licensed under the MIT license.
 
     Write-Host $kvName.Replace("""", "")
     $iniContent[$Environment]["Vault"] = $kvName.Replace("""", "")
-    $iniContent | Out-IniFile -Force $filePath
+    Out-IniFile -InputObject $iniContent -FilePath $filePath
 
     if (Test-Path ".\backend.tf" -PathType Leaf) {
         Remove-Item -Path ".\backend.tf" -Force 

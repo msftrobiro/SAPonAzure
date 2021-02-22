@@ -71,7 +71,7 @@ Licensed under the MIT license.
     }
 
     if ($changed) {
-        $iniContent | Out-IniFile -Force $filePath
+        Out-IniFile -InputObject $iniContent -FilePath $filePath
     }
 
     $terraform_module_directory = $repo + "\deploy\terraform\bootstrap\sap_library"
@@ -174,7 +174,7 @@ Licensed under the MIT license.
     $iniContent[$environmentname]["tfstate_resource_id"] = $tfstate_resource_id
 
 
-    $iniContent | Out-IniFile -Force $filePath
+    Out-IniFile -InputObject $iniContent -FilePath $filePath
 
     if (Test-Path ".\backend.tf" -PathType Leaf) {
         Remove-Item -Path ".\backend.tf" -Force 

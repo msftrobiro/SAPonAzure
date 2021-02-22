@@ -66,3 +66,7 @@ output "saplibrary_subscription_id" {
 output "tfstate_resource_id" {
   value = module.sap_library.tfstate_resource_id
 }
+
+output "automation_version" {
+  value = local.version_label
+}

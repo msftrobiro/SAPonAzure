@@ -4,8 +4,14 @@ variable "tfstate_resource_id" {
   default     = ""
 }
 
-locals {
+variable "deployer_tfstate_key" {
+  description = "The key of deployer's remote tfstate file"
+  default=""
+}
 
+locals {
+  
+  version_label   = trimspace(file("${path.module}/../../../configs/version.txt"))
   deployer_prefix = module.sap_namegenerator.naming.prefix.DEPLOYER
   // If custom names are used for deployer, providing resource_group_name and msi_name will override the naming convention
   deployer_rg_name = try(var.deployer.resource_group_name, format("%s%s", local.deployer_prefix, module.sap_namegenerator.naming.resource_suffixes.deployer_rg))
@@ -19,7 +25,7 @@ locals {
   saplib_resource_group_name   = split("/", local.tfstate_resource_id)[4]
   tfstate_storage_account_name = split("/", local.tfstate_resource_id)[8]
   tfstate_container_name       = module.sap_namegenerator.naming.resource_suffixes.tfstate
-  deployer_tfstate_key         = format("%s%s", local.deployer_rg_name, ".terraform.tfstate")
+  deployer_tfstate_key         = length(var.deployer_tfstate_key) > 0 ? var.deployer_tfstate_key : format("%s%s", local.deployer_rg_name, ".terraform.tfstate")
 
   spn = {
     subscription_id = data.azurerm_key_vault_secret.subscription_id.value,

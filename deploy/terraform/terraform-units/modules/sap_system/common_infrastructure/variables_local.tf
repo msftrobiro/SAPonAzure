@@ -81,6 +81,13 @@ locals {
 
   firewall_id = try(var.deployer_tfstate.firewall_ip, "")
 
+  // Firewall routing logic
+  // If the environment deployment created a route table use it to populate a route
+
+  route_table_id = try(var.landscape_tfstate.route_table_id, "")
+
+  firewall_id = try(var.deployer_tfstate.firewall_ip, "")
+
   //Filter the list of databases to only HANA platform entries
   databases = [
     for database in var.databases : database

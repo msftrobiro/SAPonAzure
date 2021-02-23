@@ -49,6 +49,14 @@ variable "sdu_public_key" {
   description = "Public key used for authentication"
 }
 
+variable "route_table_id" {
+  description = "Route table (if any) id"
+}
+
+variable "firewall_id" {
+  description = "Firewall (if any) id"
+}
+
 variable "sid_password" {
   description = "SDU password"
 }

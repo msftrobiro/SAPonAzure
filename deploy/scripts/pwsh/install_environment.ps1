@@ -81,20 +81,11 @@ Licensed under the MIT license.
     $iniContent[$combined]["Landscape"] = $envkey
     $iniContent[$combined]["Deployer"] = $key
 
-    if ($null -ne $iniContent[$Environment]["Client_id"]) {
-        Write-Host "null"
-        $spnid = $iniContent[$Environment]["Client_id"]
-    }
-    else {
-        Write-Host "not null"
-        $spnid = ""
-    }
-
     Out-IniFile -InputObject $iniContent -FilePath $filePath
 
     Set-Location -Path $fInfo.Directory.FullName
-    
     New-Deployer -Parameterfile $fInfo.Name 
+    Set-Location -Path $curDir
 
     # Re-read ini file
     $iniContent = Get-IniContent $filePath
@@ -109,32 +100,25 @@ Licensed under the MIT license.
     $fileDir = $dirInfo.ToString() + $LibraryParameterfile
     [IO.FileInfo] $fInfo = $fileDir
     Set-Location -Path $fInfo.Directory.FullName
-
     New-Library -Parameterfile $fInfo.Name -DeployerFolderRelativePath $DeployerRelativePath
-
     Set-Location -Path $curDir
+
     $fileDir = $dirInfo.ToString() + $DeployerParameterfile
     [IO.FileInfo] $fInfo = $fileDir
     Set-Location -Path $fInfo.Directory.FullName
-
     New-System -Parameterfile $fInfo.Name -Type "sap_deployer"
-
     Set-Location -Path $curDir
 
     $fileDir = $dirInfo.ToString() + $LibraryParameterfile
     [IO.FileInfo] $fInfo = $fileDir
     Set-Location -Path $fInfo.Directory.FullName
-
     New-System -Parameterfile $fInfo.Name -Type "sap_library"
-
     Set-Location -Path $curDir
 
     $fileDir = $dirInfo.ToString() + $EnvironmentParameterfile
     [IO.FileInfo] $fInfo = $fileDir
     Set-Location -Path $fInfo.Directory.FullName
-
     New-System -Parameterfile $fInfo.Name -Type "sap_landscape"
-
     Set-Location -Path $curDir
 
 

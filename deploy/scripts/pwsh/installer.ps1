@@ -90,24 +90,22 @@ Licensed under the MIT license.
     $terraform_module_directory = $repo + "\deploy\terraform\run\" + $Type
 
     Write-Host -ForegroundColor green "Initializing Terraform"
+
+    $Command = " init -upgrade=true -force-copy -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$key"" " +  $terraform_module_directory
+
     if (Test-Path ".terraform" -PathType Container) {
 
         $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
 
         if ("azurerm" -eq $jsonData.backend.type) {
+            $Command = " init -upgrade=true"
+
             $ans = Read-Host -Prompt ".terraform already exists, do you want to continue Y/N?"
             if ("Y" -ne $ans) {
                 return
             }
         }
     } 
-
-    $Command = " init -upgrade=true -force-copy --backend-config ""subscription_id=" + $sub + """" +
-    "--backend-config ""resource_group_name=" + $rgName + """" +
-    "--backend-config ""storage_account_name=" + $saName + """" +
-    "--backend-config ""container_name=tfstate""" +
-    "--backend-config ""key=" + $key + """ " +
-    $terraform_module_directory
 
     $Cmd = "terraform $Command"
     & ([ScriptBlock]::Create($Cmd)) 
@@ -117,6 +115,13 @@ Licensed under the MIT license.
 
     if ($Type -ne "sap_deployer") {
         $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
+    }
+    else {
+        # Removing the bootsrap shell script
+        if (Test-Path ".\post_deployment.sh" -PathType Leaf) {
+            Remove-Item -Path ".\post_deployment.sh"  -Force 
+        }
+        
     }
 
     if ($Type -eq "sap_landscape") {

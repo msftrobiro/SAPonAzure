@@ -155,7 +155,7 @@ Licensed under the MIT license.
     if ($LASTEXITCODE -ne 0) {
         throw "Error executing command: $Cmd"
     }
-    $iniContent[$environmentname]["REMOTE_STATE_RG"] = $rgName
+    $iniContent[$environmentname]["REMOTE_STATE_RG"] = $rgName.Replace("""","")
 
     $Command = " output remote_state_storage_account_name"
     $Cmd = "terraform $Command"
@@ -163,7 +163,7 @@ Licensed under the MIT license.
     if ($LASTEXITCODE -ne 0) {
         throw "Error executing command: $Cmd"
     }
-    $iniContent[$environmentname]["REMOTE_STATE_SA"] = $saName
+    $iniContent[$environmentname]["REMOTE_STATE_SA"] = $saName.Replace("""","")
 
     $Command = " output tfstate_resource_id"
     $Cmd = "terraform $Command"

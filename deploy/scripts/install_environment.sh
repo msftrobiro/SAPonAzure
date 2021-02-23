@@ -130,7 +130,7 @@ if [ ! -n "$DEPLOYMENT_REPO_PATH" ]; then
 fi
 
 # Check terraform
-tf=`terraform -version | grep Terraform`
+tf=$(terraform -version | grep Terraform)
 if [ ! -n "$tf" ]; then 
     echo ""
     echo "#########################################################################################"
@@ -142,8 +142,8 @@ if [ ! -n "$tf" ]; then
     exit -1
 fi
 
-az=`az version | grep azure-cli`
-if [ ! -n "$az" ]; then 
+az=$(az version | grep azure-cli)
+if [ ! -n "${az}" ]; then 
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #" 
@@ -159,30 +159,30 @@ fi
 automation_config_directory=~/.sap_deployment_automation/
 
 
-deployer_dirname=`dirname $deployer_parameter_file`
-deployer_file_parametername=`basename $deployer_parameter_file`
-deployer_key=`echo $deployer_file_parametername | cut -d. -f1`
-deployer_config_information=${automation_config_directory}${deployer_key}
+deployer_dirname=$(dirname "${deployer_parameter_file}")
+deployer_file_parametername=$(basename "${deployer_parameter_file}")
+deployer_key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
+deployer_config_information="${automation_config_directory}""${deployer_key}"
 
-library_dirname=`dirname $library_parameter_file`
-library_file_parametername=`basename $library_parameter_file`
+library_dirname=$(dirname "${library_parameter_file}")
+library_file_parametername=$(basename "${library_parameter_file}")
 
-environment_dirname=`dirname $environment_parameter_file`
-environment_file_parametername=`basename $environment_parameter_file`
+environment_dirname=$(dirname "${environment_parameter_file}")
+environment_file_parametername=$(basename "${environment_parameter_file}")
 
 #Calculate the depth of the library json folder relative to the root folder from which the code is called
-readarray -d '/' -t levels<<<$library_dirname
+readarray -d '/' -t levels<<<"${library_dirname}"
 top=${#levels[@]}
 relative_path=""
 
 for (( c=1; c<=$top; c++ ))
 do  
-   relative_path="../"$relative_path
+   relative_path="../""${relative_path}"
 done
 
 # Checking for valid az session
 az account show > stdout.az 2>&1
-temp=`grep "az login" stdout.az`
+temp=$(grep "az login" stdout.az)
 if [ -n "$temp" ]; then 
     echo ""
     echo "#########################################################################################"
@@ -197,7 +197,7 @@ else
     rm stdout.az
 fi
 
-curdir=`pwd`
+curdir=$(pwd)
 
 echo ""
 echo "#########################################################################################"
@@ -207,26 +207,26 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-cd $deployer_dirname
-${DEPLOYMENT_REPO_PATH}deploy/scripts/install_deployer.sh -p $deployer_file_parametername -i true
+cd "${deployer_dirname}"
+"${DEPLOYMENT_REPO_PATH}"deploy/scripts/install_deployer.sh -p $deployer_file_parametername -i true
 if [ $? -eq 255 ]
     then
     exit $?
 fi 
-cd $curdir
+cd "${curdir}"
 
 read -p "Do you want to specify the keyvault secrets Y/N?"  ans
 answer=${ans^^}
 if [ $answer == 'Y' ]; then
-    temp=`grep "keyvault=" $deployer_config_information`
+    temp=$(grep "keyvault=" $deployer_config_information)
     if [ ! -z $temp ]
     then
         # Key vault was specified in ~/.sap_deployment_automation in the deployer file
-        keyvault_name=`echo $temp | cut -d= -f2`
+        keyvault_name=$(echo $temp | cut -d= -f2)
         keyvault_param='-v $keyvault_name'
     fi    
 
-    ${DEPLOYMENT_REPO_PATH}deploy/scripts/set_secrets.sh -i -d $deployer_file_parametername $keyvault_param
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh -i -d $deployer_file_parametername $keyvault_param
     if [ $? -eq 255 ]
         then
         exit $?
@@ -241,13 +241,13 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-cd $library_dirname
-${DEPLOYMENT_REPO_PATH}deploy/scripts/install_library.sh -p $library_file_parametername -i true -d $relative_path$deployer_dirname
+cd "${library_dirname}"
+"${DEPLOYMENT_REPO_PATH}"deploy/scripts/install_library.sh -p $library_file_parametername -i true -d $relative_path$deployer_dirname
 if [ $? -eq 255 ]
     then
     exit $?
 fi 
-cd $curdir
+cd "${curdir}"
 
 echo ""
 echo "#########################################################################################"
@@ -257,13 +257,13 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-cd $deployer_dirname
-${DEPLOYMENT_REPO_PATH}deploy/scripts/installer.sh -p $deployer_file_parametername -i true -t sap_deployer
+cd "${deployer_dirname}"
+"${DEPLOYMENT_REPO_PATH}"deploy/scripts/installer.sh -p $deployer_file_parametername -i true -t sap_deployer
 if [ $? -eq 255 ]
     then
     exit $?
 fi 
-cd $curdir
+cd "${curdir}"
 
 echo ""
 
@@ -274,13 +274,13 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-cd $library_dirname
-${DEPLOYMENT_REPO_PATH}deploy/scripts/installer.sh -p $library_file_parametername  -i true -t sap_library
+cd "${library_dirname}"
+"${DEPLOYMENT_REPO_PATH}"deploy/scripts/installer.sh -p $library_file_parametername  -i true -t sap_library
 if [ $? -eq 255 ]
     then
     exit $?
 fi 
-cd $curdir
+cd "${curdir}"
 
 echo "#########################################################################################"
 echo "#                                                                                       #" 
@@ -289,11 +289,11 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-cd $environment_dirname
-${DEPLOYMENT_REPO_PATH}deploy/scripts/installer.sh -p $environment_file_parametername  -i true -t sap_landscape
+cd "${environment_dirname}"
+"${DEPLOYMENT_REPO_PATH}"deploy/scripts/installer.sh -p $environment_file_parametername  -i true -t sap_landscape
 if [ $? -eq 255 ]
     then
     exit $?
 fi 
-cd $curdir
+cd "${curdir}"
 

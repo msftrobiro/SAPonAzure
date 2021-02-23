@@ -46,10 +46,10 @@ done
 deployment_system=sap_deployer
 
 # Read environment
-readarray -d '-' -t environment<<<"$parameterfile"
-key=`echo $parameterfile | cut -d. -f1`
+readarray -d '-' -t environment<<<"${parameterfile}"
+key=$(echo "${parameterfile}" | cut -d. -f1)
 
-if [ ! -f ${parameterfile} ]
+if [ ! -f "${parameterfile}" ]
 then
     echo ""
     echo "#########################################################################################"
@@ -63,19 +63,19 @@ fi
 
 #Persisting the parameters across executions
 automation_config_directory=~/.sap_deployment_automation/
-generic_config_information=${automation_config_directory}config
-deployer_config_information=${automation_config_directory}${key}
+generic_config_information="${automation_config_directory}"config
+deployer_config_information="${automation_config_directory}""${key}"
 
 arm_config_stored=false
 config_stored=false
 
-if [ ! -d ${automation_config_directory} ]
+if [ ! -d "${automation_config_directory}" ]
 then
     # No configuration directory exists
-    mkdir $automation_config_directory
-    if [ -n "$DEPLOYMENT_REPO_PATH" ]; then
+    mkdir "${automation_config_directory}"
+    if [ -n "${DEPLOYMENT_REPO_PATH}" ]; then
         # Store repo path in ~/.sap_deployment_automation/config
-        echo "DEPLOYMENT_REPO_PATH=${DEPLOYMENT_REPO_PATH}" >> $generic_config_information
+        echo "DEPLOYMENT_REPO_PATH=${DEPLOYMENT_REPO_PATH}" >> "${generic_config_information}"
         config_stored=true
     fi
     if [ -n "$ARM_SUBSCRIPTION_ID" ]; then
@@ -85,16 +85,16 @@ then
     fi
 
 else
-    temp=`grep "DEPLOYMENT_REPO_PATH" $generic_config_information`
+    temp=$(grep "DEPLOYMENT_REPO_PATH" "${generic_config_information}")
     if [ $temp ]
     then
         # Repo path was specified in ~/.sap_deployment_automation/config
-        DEPLOYMENT_REPO_PATH=`echo $temp | cut -d= -f2`
+        DEPLOYMENT_REPO_PATH=$(echo "${temp}" | cut -d= -f2)
         config_stored=true
     fi
 fi
 
-if [ ! -n "$DEPLOYMENT_REPO_PATH" ]; then
+if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #" 
@@ -113,15 +113,15 @@ else
     fi
 fi
 
-temp=`grep "ARM_SUBSCRIPTION_ID" $deployer_config_information | cut -d= -f2`
-templen=`echo $temp | wc -c`
+temp=$(grep "ARM_SUBSCRIPTION_ID" $deployer_config_information | cut -d= -f2)
+templen=$(echo $temp | wc -c)
 # Subscription length is 37
 
 if [ 37 == $templen ] 
 then
     echo "Reading the configuration"
     # ARM_SUBSCRIPTION_ID was specified in ~/.sap_deployment_automation/configuration file for deployer
-    ARM_SUBSCRIPTION_ID=$temp
+    ARM_SUBSCRIPTION_ID="${temp}"
     arm_config_stored=true
 else    
     arm_config_stored=false
@@ -143,14 +143,14 @@ else
     if [  $arm_config_stored  == false ]
     then
         echo "Storing the configuration"
-        sed -i /ARM_SUBSCRIPTION_ID/d  $deployer_config_information
-        echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> ${deployer_config_information}
+        sed -i /ARM_SUBSCRIPTION_ID/d  "${deployer_config_information}"
+        echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> "${deployer_config_information}"
     fi
 fi
 
-terraform_module_directory=${DEPLOYMENT_REPO_PATH}deploy/terraform/bootstrap/${deployment_system}/
+terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/bootstrap/"${deployment_system}"/
 
-if [ ! -d ${terraform_module_directory} ]
+if [ ! -d "${terraform_module_directory}" ]
 then
     echo "#########################################################################################"
     echo "#                                                                                       #" 
@@ -173,7 +173,7 @@ new_deployment=false
     echo "#                                   New deployment                                      #"
     echo "#                                                                                       #" 
     echo "#########################################################################################"
-    terraform init -upgrade=true  $terraform_module_directory
+    terraform init -upgrade=true "${terraform_module_directory}"
 else
     echo "#########################################################################################"
     echo "#                                                                                       #" 
@@ -195,8 +195,8 @@ else
             fi
         fi
         
-        terraform init -upgrade=true -reconfigure $terraform_module_directory
-        terraform refresh -var-file=${parameterfile} $terraform_module_directory
+        terraform init -upgrade=true -reconfigure "${terraform_module_directory}"
+        terraform refresh -var-file="${parameterfile}" "${terraform_module_directory}"
     else
         exit 0
     fi
@@ -209,7 +209,7 @@ echo "#                             Running Terraform plan                      
 echo "#                                                                                       #" 
 echo "#########################################################################################"
 echo ""
-terraform plan -var-file=${parameterfile} $terraform_module_directory 
+terraform plan -var-file="${parameterfile}" "$terraform_module_directory"
 
 echo ""
 echo "#########################################################################################"
@@ -219,7 +219,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform apply ${approve} -var-file=${parameterfile} $terraform_module_directory
+terraform apply ${approve} -var-file="${parameterfile}" "${terraform_module_directory}"
 
 cat <<EOF > backend.tf
 ####################################################
@@ -230,16 +230,16 @@ terraform {
 }
 EOF
 
-kv_name=`terraform output deployer_kv_user_name | tr -d \"` 
+kv_name=$(terraform output deployer_kv_user_name | tr -d \") 
 
-temp=`echo $kv_name | grep "Warning"`
-if [ -z $temp ]
+temp=$(echo "${kv_name}" | grep "Warning")
+if [ -z "${temp}" ]
 then
-    temp=`echo $kv_name | grep "Backend reinitialization required"`
-    if [ -z $temp ]
+    temp=$(echo "${kv_name}" | grep "Backend reinitialization required")
+    if [ -z "${temp}" ]
     then
-        sed -i /keyvault/d  $deployer_config_information
-        echo "keyvault=${kv_name}" >> ${deployer_config_information}
+        sed -i /keyvault/d  "${deployer_config_information}"
+        echo "keyvault=${kv_name}" >> "${deployer_config_information}"
     fi
 fi
 

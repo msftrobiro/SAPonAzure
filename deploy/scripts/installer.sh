@@ -72,11 +72,11 @@ landscape_tfstate_key_exists=false
 
 
 # Read environment
-readarray -d '-' -t environment<<<"$parameterfile"
-readarray -d '-' -t -s 1 region<<<"$parameterfile"
-key=`echo $parameterfile | cut -d. -f1`
+readarray -d '-' -t environment<<<"${parameterfile}"
+readarray -d '-' -t -s 1 region<<<"${parameterfile}"
+key=$(echo "${parameterfile}" | cut -d. -f1)
 
-if [ ! -f ${parameterfile} ]
+if [ ! -f "${parameterfile}" ]
 then
     echo "#########################################################################################"
     echo "#                                                                                       #" 
@@ -89,66 +89,66 @@ fi
 #Persisting the parameters across executions
 
 automation_config_directory=~/.sap_deployment_automation/
-generic_config_information=${automation_config_directory}config
-library_config_information=${automation_config_directory}${environment}-${region}
+generic_config_information="${automation_config_directory}"config
+library_config_information="${automation_config_directory}""${environment}"-"${region}"
 
 if [ ! -d ${automation_config_directory} ]
 then
     # No configuration directory exists
     mkdir $automation_config_directory
-    if [ -n "$DEPLOYMENT_REPO_PATH" ]; then
+    if [ -n "${DEPLOYMENT_REPO_PATH}" ]; then
         # Store repo path in ~/.sap_deployment_automation/config
-        echo "DEPLOYMENT_REPO_PATH=${DEPLOYMENT_REPO_PATH}" >> $generic_config_information
+        echo "DEPLOYMENT_REPO_PATH=${DEPLOYMENT_REPO_PATH}" >> "${generic_config_information}"
         config_stored=1
     fi
     if [ -n "$ARM_SUBSCRIPTION_ID" ]; then
         # Store ARM Subscription info in ~/.sap_deployment_automation
-        echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> $library_config_information
+        echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> "${library_config_information}"
         arm_config_stored=1
     fi
 else
-    temp=`grep "DEPLOYMENT_REPO_PATH" $generic_config_information`
-    if [ ! -z $temp ]
+    temp=$(grep "DEPLOYMENT_REPO_PATH" "${generic_config_information}")
+    if [ ! -z "${temp}" ]
     then
         # Repo path was specified in ~/.sap_deployment_automation/config
-        DEPLOYMENT_REPO_PATH=`echo $temp | cut -d= -f2`
+        DEPLOYMENT_REPO_PATH=$(echo "${temp}" | cut -d= -f2)
         
         config_stored=1
     else
         config_stored=0
     fi
 
-    temp=`grep "REMOTE_STATE_RG" $library_config_information`
-    if [ ! -z $temp ]
+    temp=$(grep "REMOTE_STATE_RG" "${library_config_information}")
+    if [ ! -z "${temp}" ]
     then
         # Remote state storage group was specified in ~/.sap_deployment_automation library config
-        REMOTE_STATE_RG=`echo $temp | cut -d= -f2`
+        REMOTE_STATE_RG=$(echo "${temp}" | cut -d= -f2)
     fi
 
-    temp=`grep "REMOTE_STATE_SA" $library_config_information`
-    if [ ! -z $temp ]
+    temp=$(grep "REMOTE_STATE_SA" "${library_config_information}")
+    if [ ! -z "${temp}" ]
     then
         # Remmote state storage group was specified in ~/.sap_deployment_automation library config
-        REMOTE_STATE_SA=`echo $temp | cut -d= -f2`
+        REMOTE_STATE_SA=$(echo "${temp}" | cut -d= -f2)
     fi
 
-    temp=`grep "tfstate_resource_id" $library_config_information`
-    if [ ! -z $temp ]
+    temp=$(grep "tfstate_resource_id" "${library_config_information}")
+    if [ ! -z "${temp}" ]
     then
         echo "tfstate_resource_id specified"
-        tfstate_resource_id=`echo $temp | cut -d= -f2`
-        if [ $deployment_system != sap_deployer ]
+        tfstate_resource_id=$(echo "${temp}" | cut -d= -f2)
+        if [ "${deployment_system}" != sap_deployer ]
         then
             tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
         fi
     fi
 
-    temp=`grep "deployer_tfstate_key" $library_config_information`
-    if [ ! -z $temp ]
+    temp=$(grep "deployer_tfstate_key" "${library_config_information}")
+    if [ ! -z "${temp}" ]
     then
         # Deployer state was specified in ~/.sap_deployment_automation library config
-        deployer_tfstate_key=`echo $temp | cut -d= -f2`
-        if [ $deployment_system != sap_deployer ]
+        deployer_tfstate_key=$(echo "${temp}" | cut -d= -f2)
+        if [ "${deployment_system}" != sap_deployer ]
         then
             deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
         fi
@@ -156,11 +156,11 @@ else
 
     fi
 
-    temp=`grep "landscape_tfstate_key" $library_config_information`
-    if [ ! -z $temp ]
+    temp=$(grep "landscape_tfstate_key" "${library_config_information}")
+    if [ ! -z "${temp}" ]
     then
         # Landscape state was specified in ~/.sap_deployment_automation library config
-        landscape_tfstate_key=`echo $temp | cut -d= -f2`
+        landscape_tfstate_key=$(echo "${temp}" | cut -d= -f2)
 
         if [ $deployment_system == sap_system ]
         then
@@ -170,33 +170,33 @@ else
     fi
 fi
 
-if [ ! -n "$DEPLOYMENT_REPO_PATH" ]; then
-    option='$DEPLOYMENT_REPO_PATH'
+if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
+    option="${DEPLOYMENT_REPO_PATH}"
     missing
     exit -1
 fi
 
-if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
-    option='$ARM_SUBSCRIPTION_ID'
+if [ ! -n "${ARM_SUBSCRIPTION_ID}" ]; then
+    option="${ARM_SUBSCRIPTION_ID}"
     missing
     exit -1
 fi
 
-if [ ! -n "$REMOTE_STATE_RG" ]; then
-    option='$REMOTE_STATE_RG'
+if [ ! -n "${REMOTE_STATE_RG}" ]; then
+    option="${REMOTE_STATE_RG}"
     missing
     exit -1
 fi
 
-if [ ! -n "$REMOTE_STATE_SA" ]; then
-    option='$REMOTE_STATE_SA'
+if [ ! -n "${REMOTE_STATE_SA}" ]; then
+    option="${REMOTE_STATE_SA}"
     missing
     exit -1
 fi
 
-terraform_module_directory=${DEPLOYMENT_REPO_PATH}deploy/terraform/run/${deployment_system}/
+terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
 
-if [ ! -d ${terraform_module_directory} ]
+if [ ! -d "${terraform_module_directory}" ]
 then
     echo "#########################################################################################"
     echo "#                                                                                       #" 
@@ -223,8 +223,8 @@ fi
 
 # Checking for valid az session
 az account show > stdout.az 2>&1
-temp=`grep "az login" stdout.az`
-if [ -n "$temp" ]; then 
+temp=$(grep "az login" stdout.az)
+if [ -n "${temp}" ]; then 
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #" 
@@ -255,8 +255,8 @@ terraform {
 
 EOF
 
-outputs=`terraform output`
-if echo $outputs | grep "No outputs"; then
+outputs=$(terraform output)
+if echo "${outputs}" | grep "No outputs"; then
     ok_to_proceed=true
     new_deployment=true
     echo "#########################################################################################"
@@ -273,8 +273,8 @@ else
     echo "#########################################################################################"
     echo ""
 
-    deployed_using_version=`terraform output automation_version`
-    if [ ! -n "$deployed_using_version" ]; then
+    deployed_using_version=$(terraform output automation_version)
+    if [ ! -n "${deployed_using_version}" ]; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #" 

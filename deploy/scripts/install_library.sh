@@ -46,12 +46,12 @@ while getopts ":p:i:d:h" option; do
 done
 
 # Read environment
-readarray -d '-' -t environment<<<"$parameterfile"
-readarray -d '-' -t -s 1 region<<<"$parameterfile"
-key=`echo $parameterfile | cut -d. -f1`
+readarray -d '-' -t environment<<<"${parameterfile}"
+readarray -d '-' -t -s 1 region<<<"${parameterfile}"
+key=$(echo "${parameterfile}" | cut -d. -f1)
 deployment_system=sap_library
 
-if [ ! -f ${parameterfile} ]
+if [ ! -f "${parameterfile}" ]
 then
     echo ""
     echo "#########################################################################################"
@@ -64,18 +64,18 @@ fi
 
 #Persisting the parameters across executions
 automation_config_directory=~/.sap_deployment_automation/
-generic_config_information=${automation_config_directory}config
-library_config_information=${automation_config_directory}${environment}-${region}
+generic_config_information="${automation_config_directory}"config
+library_config_information="${automation_config_directory}""${environment}"-"${region}"
 
 arm_config_stored=false
 config_stored=false
 
-if [ ! -d ${automation_config_directory} ]
+if [ ! -d "${automation_config_directory}" ]
 then
     # No configuration directory exists
-    mkdir $automation_config_directory
+    mkdir "$automation_config_directory"
 
-    if [ -n "$DEPLOYMENT_REPO_PATH" ]; then
+    if [ -n "${DEPLOYMENT_REPO_PATH}" ]; then
         # Store repo path in ~/.sap_deployment_automation/config
         echo "DEPLOYMENT_REPO_PATH=${DEPLOYMENT_REPO_PATH}" >> $generic_config_information
         config_stored=1
@@ -83,7 +83,7 @@ then
         config_stored=0
     fi
 
-    if [ -n "$ARM_SUBSCRIPTION_ID" ]; then
+    if [ -n "${ARM_SUBSCRIPTION_ID}" ]; then
         # Store ARM Subscription info in ~/.sap_deployment_automation
         echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> $library_config_information
         arm_config_stored=1
@@ -92,18 +92,18 @@ then
     fi
 
 else
-    temp=`grep "DEPLOYMENT_REPO_PATH" $generic_config_information`
+    temp=$(grep "DEPLOYMENT_REPO_PATH" "${generic_config_information}")
     if [ ! -z $temp ]
     then
         # Repo path was specified in ~/.sap_deployment_automation/config
-        DEPLOYMENT_REPO_PATH=`echo $temp| cut -d= -f2`
+        DEPLOYMENT_REPO_PATH=$(echo "${temp}" | cut -d= -f2)
         config_stored=1
     else
         config_stored=0
     fi
 fi
 
-if [ ! -n "$DEPLOYMENT_REPO_PATH" ]; then
+if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #" 
@@ -122,19 +122,19 @@ else
     fi
 fi
 
-temp=`grep "ARM_SUBSCRIPTION_ID" $library_config_information`
+temp=$(grep "ARM_SUBSCRIPTION_ID" $library_config_information)
 if [ ! -z $temp ]
 then
     echo "Reading the configuration"
     # ARM_SUBSCRIPTION_ID was specified in ~/.sap_deployment_automation/configuration file for library
-    ARM_SUBSCRIPTION_ID=`echo $temp | cut -d= -f2`
+    ARM_SUBSCRIPTION_ID=$(echo "${temp}" | cut -d= -f2)
     arm_config_stored=1
 else    
     echo "No configuration"
     arm_config_stored=0
 fi
 
-if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
+if [ ! -n "${ARM_SUBSCRIPTION_ID}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #" 
@@ -158,7 +158,7 @@ if [ $interactive == false ]; then
     approve="--auto-approve"
 fi
 
-terraform_module_directory=${DEPLOYMENT_REPO_PATH}deploy/terraform/bootstrap/${deployment_system}/
+terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/bootstrap/"${deployment_system}"/
 
 if [ ! -d ${terraform_module_directory} ]
 then
@@ -180,7 +180,7 @@ new_deployment=false
 reinitialized=0
 if [ -f ./backend-config.tfvars ]
 then
-    terraform_module_directory=${DEPLOYMENT_REPO_PATH}deploy/terraform/run/${deployment_system}/
+    terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
 
     echo "#########################################################################################"
     echo "#                                                                                       #" 
@@ -196,7 +196,7 @@ if [ ! -d ./.terraform/ ]; then
     echo "#                                   New deployment                                      #"
     echo "#                                                                                       #" 
     echo "#########################################################################################"
-    terraform init -upgrade=true  $terraform_module_directory
+    terraform init -upgrade=true "${terraform_module_directory}"
 else
     if [ $reinitialized -eq 0 ]
     then
@@ -219,7 +219,7 @@ else
                 fi
             fi
 
-            terraform init -upgrade=true $terraform_module_directory
+            terraform init -upgrade=true "{$terraform_module_directory}"
         else
             exit -1
         fi
@@ -235,11 +235,11 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-if [ -n "$deployer_statefile_foldername" ]; then
-    echo "Deployer folder specified: "$deployer_statefile_foldername
-    terraform plan -var-file=${parameterfile} -var deployer_statefile_foldername=${deployer_statefile_foldername} ${terraform_module_directory} 
+if [ -n "${deployer_statefile_foldername}" ]; then
+    echo "Deployer folder specified: "${deployer_statefile_foldername}
+    terraform plan -var-file="${parameterfile}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${terraform_module_directory}" 
 else
-    terraform plan -var-file=${parameterfile} $terraform_module_directory
+    terraform plan -var-file="${parameterfile}" "${terraform_module_directory}"
 fi
 
 echo ""
@@ -250,10 +250,10 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-if [ -n "$deployer_statefile_foldername" ]; then
-    terraform apply ${approve} -var-file=${parameterfile} -var deployer_statefile_foldername=${deployer_statefile_foldername} $terraform_module_directory
+if [ -n "${deployer_statefile_foldername}" ]; then
+    terraform apply ${approve} -var-file="${parameterfile}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${terraform_module_directory}"
 else
-    terraform apply ${approve} -var-file=${parameterfile} $terraform_module_directory
+    terraform apply ${approve} -var-file="${parameterfile}" "${terraform_module_directory}"
 fi
 
 cat <<EOF > backend.tf
@@ -265,39 +265,39 @@ terraform {
 }
 EOF
 
-REMOTE_STATE_RG=`terraform output remote_state_resource_group_name | tr -d \"` 
-temp=`echo $REMOTE_STATE_RG | grep "Warning"`
-if [ -z $temp ]
+REMOTE_STATE_RG=$(terraform output remote_state_resource_group_name | tr -d \")
+temp=$(echo "${REMOTE_STATE_RG}" | grep "Warning")
+if [ -z "${temp}" ]
 then
-    temp=`echo $REMOTE_STATE_RG | grep "Backend reinitialization required"`
-    if [ -z $temp ]
+    temp=$(echo "${REMOTE_STATE_RG}" | grep "Backend reinitialization required")
+    if [ -z "${temp}" ]
     then
-        sed -i /REMOTE_STATE_RG/d  $library_config_information
-        echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> ${library_config_information}
+        sed -i /REMOTE_STATE_RG/d  "${library_config_information}"
+        echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${library_config_information}"
     fi
 fi
 
-REMOTE_STATE_SA=`terraform output remote_state_storage_account_name| tr -d \"`
-temp=`echo $REMOTE_STATE_SA | grep "Warning"`
-if [ -z $temp ]
+REMOTE_STATE_SA=$(terraform output remote_state_storage_account_name| tr -d \")
+temp=$(echo "${REMOTE_STATE_SA}" | grep "Warning")
+if [ -z "${temp}" ]
 then
-    temp=`echo $REMOTE_STATE_SA | grep "Backend reinitialization required"`
-    if [ -z $temp ]
+    temp=$(echo "${REMOTE_STATE_SA}" | grep "Backend reinitialization required")
+    if [ -z "${temp}" ]
     then
-        sed -i /REMOTE_STATE_SA/d  $library_config_information
+        sed -i /REMOTE_STATE_SA/d  "${library_config_information}"
         echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> ${library_config_information}
     fi
 fi
 
-tfstate_resource_id=`terraform output tfstate_resource_id| tr -d \"`
-temp=`echo $tfstate_resource_id | grep "Warning"`
-if [ -z $temp ]
+tfstate_resource_id=$(terraform output tfstate_resource_id| tr -d \")
+temp=$(echo "${tfstate_resource_id}" | grep "Warning")
+if [ -z "${temp}" ]
 then
-    temp=`echo $tfstate_resource_id | grep "Backend reinitialization required"`
+    temp=$(echo $tfstate_resource_id | grep "Backend reinitialization required")
     if [ -z $temp ]
     then
-        sed -i /tfstate_resource_id/d  $library_config_information
-        echo "tfstate_resource_id=${tfstate_resource_id}" >> ${library_config_information}
+        sed -i /tfstate_resource_id/d  "${library_config_information}"
+        echo "tfstate_resource_id=${tfstate_resource_id}" >> "${library_config_information}"
     fi
 fi
 

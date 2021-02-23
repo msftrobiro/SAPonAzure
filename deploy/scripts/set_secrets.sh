@@ -50,45 +50,45 @@ while getopts ":e:c:s:t:h:v:x:d:i" option; do
 done
 
 if [ -n "$deployer_paramfile" ]; then
-    key=`echo $deployer_paramfile | cut -d. -f1`
+    key=$(echo "$deployer_paramfile" | cut -d. -f1)
     automation_config_directory=~/.sap_deployment_automation/
-    deployer_config_information=${automation_config_directory}${key}
-    if [ ! -d ${automation_config_directory} ]
+    deployer_config_information="${automation_config_directory}""${key}"
+    if [ ! -d "${automation_config_directory}" ]
     then
         # No configuration directory exists
-        mkdir $automation_config_directory
+        mkdir "${automation_config_directory}"
     else
-        temp=`grep "Environment" $deployer_config_information`
-        if [ ! -z $temp ]
+        temp=$(grep "Environment" "${deployer_config_information}")
+        if [ ! -z "${temp}" ]
         then
-            environment=`echo $temp | cut -d= -f2`
+            environment=$(echo "${temp}" | cut -d= -f2)
             environment_exists=1
         else
             environment_exists=0
         fi
         
-        temp=`grep "keyvault" $deployer_config_information`
-        if [ ! -z $temp ]
+        temp=$(grep "keyvault" "${deployer_config_information}")
+        if [ ! -z "${temp}" ]
         then
-            vaultname=`echo $temp | cut -d= -f2`
+            vaultname=$(echo "${temp}" | cut -d= -f2)
             vaultname_exists=1
         else
             vaultname_exists=0
         fi
         
-        temp=`grep "SPNAppID" $deployer_config_information`
-        if [ ! -z $temp ]
+        temp=$(grep "SPNAppID" "${deployer_config_information}")
+        if [ ! -z "${temp}" ]
         then
-            client_id=`echo $temp | cut -d= -f2`
+            client_id=$(echo "${temp}" | cut -d= -f2)
             client_id_exists=1
         else
             client_id_exists=0
         fi
         
-        temp=`grep "Tenant" $deployer_config_information`
-        if [ ! -z $temp ]
+        temp=$(grep "Tenant" "${deployer_config_information}")
+        if [ ! -z "${temp}" ]
         then
-            tenant=`echo $temp | cut -d= -f2`
+            tenant=$(echo "${temp}" | cut -d= -f2)
             tenant_exists=1
         else
             tenant_exists=0
@@ -98,7 +98,7 @@ fi
 
 
 if [ $interactive == true ]; then
-    if [ ! -n "$environment" ]; then
+    if [ ! -n "${environment}" ]; then
         read -p "Environment name:"  environment
     fi
 
@@ -112,13 +112,13 @@ if [ $interactive == true ]; then
 
     read -p "SPN App Password:"  client_secret
     
-    if [ ! -n "$tenant" ]; then
+    if [ ! -n "${tenant}" ]; then
         read -p "SPN Tenant ID:"  tenant
     fi 
         
 fi
 
-if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
+if [ ! -n "{$ARM_SUBSCRIPTION_ID}" ]; then
     echo ""
     echo "####################################################################################"
     echo "# Missing environment variables (ARM_SUBSCRIPTION_ID)!!!                           #"
@@ -128,17 +128,17 @@ if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
     exit 1
 fi
 
-if [ ! -n "$environment" ]; then
+if [ ! -n "${environment}" ]; then
     showhelp
     exit -1
 fi
 
-if [ ! -n "$vaultname" ]; then
+if [ ! -n "${vaultname}" ]; then
     showhelp
     exit -1
 fi
 
-if [ ! -n "$client_id" ]; then
+if [ ! -n "${client_id}" ]; then
     showhelp
     exit -1
 fi
@@ -148,7 +148,7 @@ if [ ! -n "$client_secret" ]; then
     exit -1
 fi
 
-if [ ! -n "$tenant" ]; then
+if [ ! -n "${tenant}" ]; then
     showhelp
     exit -1
 fi
@@ -162,34 +162,34 @@ echo ""
 
 if [ $environment_exists  -eq 0 ]
     then
-    sed -i /Environment/d  $deployer_config_information
-    echo "Environment=${environment}" >> ${deployer_config_information}
+    sed -i /Environment/d  "${deployer_config_information}"
+    echo "Environment=${environment} >> ${deployer_config_information}"
 fi
 
 if [ $vaultname_exists -eq 0 ]
     then
-    sed -i /keyvault/d  $deployer_config_information
+    sed -i /keyvault/d  "{$deployer_config_information}"
     echo "keyvault=${vaultname}" >> ${deployer_config_information}
 fi
 
 if [ $client_id_exists -eq 0 ]
     then
-    sed -i /SPNAppID/d  $deployer_config_information
+    sed -i /SPNAppID/d  "{$deployer_config_information}"
     echo "SPNAppID=${client_id}" >> ${deployer_config_information}
 fi
 
 if [ $tenant_exists -eq 0 ]
     then
-    sed -i /Tenant/d  $deployer_config_information
+    sed -i /Tenant/d  "{$deployer_config_information}"
     echo "Tenant=${tenant}" >> ${deployer_config_information}
 fi
 
-result=`az keyvault secret set --name "${environment}-subscription-id" --vault-name "${vaultname}" --value $ARM_SUBSCRIPTION_ID | grep "The user, group or application"`
+result=$(az keyvault secret set --name "${environment}-subscription-id" --vault-name "${vaultname}" --value $ARM_SUBSCRIPTION_ID | grep "The user, group or application")
 
 if [ ! -n $result ]; then 
     echo "#########################################################################################"
     echo "#                                                                                       #" 
-    echo "#          No access to add the secrets in the" ${vaultname} "keyvault            #"
+    echo "#          No access to add the secrets in the" "${vaultname}" "keyvault            #"
     echo "#            Please add an access policy for your account you use                       #" 
     echo "#                                                                                       #" 
     echo "#########################################################################################"

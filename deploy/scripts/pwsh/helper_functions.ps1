@@ -23,7 +23,7 @@ function Get-IniContent {
             $ini[$section] = @{}
             $CommentCount = 0
         }
-        "^(;.*)$" {
+        "^\s(0,)(;.*)$" {
             # Comment
             $value = $matches[1]
             $CommentCount = $CommentCount + 1

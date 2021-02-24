@@ -30,6 +30,7 @@ function showhelp {
     echo "#########################################################################################"
 }
 
+interactive=true
 
 while getopts ":p:i:d:h" option; do
     case "${option}" in
@@ -147,7 +148,7 @@ if [ ! -n "${ARM_SUBSCRIPTION_ID}" ]; then
     echo "#########################################################################################"
     exit -1
 else
-    if [ $arm_config_stored  -eq 0 ]
+    if [ $arm_config_stored -eq 0 ]
     then
         echo "Storing the configuration"
         echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> ${library_config_information}
@@ -177,6 +178,8 @@ fi
 k_to_proceed=false
 new_deployment=false
 
+rm backend.tf
+
 reinitialized=0
 if [ -f ./backend-config.tfvars ]
 then
@@ -187,7 +190,9 @@ then
     echo "#                          The bootstrapping has already been done!                     #"
     echo "#                                                                                       #" 
     echo "#########################################################################################"
-    exit 0
+else
+    sed -i /REMOTE_STATE_RG/d  "${library_config_information}"
+    sed -i /REMOTE_STATE_SA/d  "${library_config_information}"
 fi
 
 if [ ! -d ./.terraform/ ]; then
@@ -197,6 +202,9 @@ if [ ! -d ./.terraform/ ]; then
     echo "#                                                                                       #" 
     echo "#########################################################################################"
     terraform init -upgrade=true "${terraform_module_directory}"
+    sed -i /REMOTE_STATE_RG/d  "${library_config_information}"
+    sed -i /REMOTE_STATE_SA/d  "${library_config_information}"
+
 else
     if [ $reinitialized -eq 0 ]
     then
@@ -302,5 +310,4 @@ then
 fi
 
 rm backend.tf
-
 exit 0

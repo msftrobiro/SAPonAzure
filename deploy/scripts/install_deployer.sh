@@ -209,6 +209,7 @@ echo "#                             Running Terraform plan                      
 echo "#                                                                                       #" 
 echo "#########################################################################################"
 echo ""
+
 terraform plan -var-file="${parameterfile}" "$terraform_module_directory"
 
 echo ""
@@ -242,5 +243,7 @@ then
         echo "keyvault=${kv_name}" >> "${deployer_config_information}"
     fi
 fi
+
+rm backend.tf
 
 exit 0

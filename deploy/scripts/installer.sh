@@ -3,28 +3,28 @@ function showhelp {
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#                                                                                       #" 
-    echo "#   This file contains the logic to deploy the different systems                        #" 
-    echo "#   The script experts the following exports:                                           #" 
-    echo "#                                                                                       #" 
-    echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #" 
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-hana        #" 
-    echo "#                                                                                       #" 
-    echo "#   The script will persist the parameters needed between the executions in the         #" 
-    echo "#   ~/.sap_deployment_automation folder                                                 #" 
-    echo "#                                                                                       #" 
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
+    echo "#   This file contains the logic to deploy the different systems                        #"
+    echo "#   The script experts the following exports:                                           #"
+    echo "#                                                                                       #"
+    echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
+    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-hana        #"
+    echo "#                                                                                       #"
+    echo "#   The script will persist the parameters needed between the executions in the         #"
+    echo "#   ~/.sap_deployment_automation folder                                                 #"
+    echo "#                                                                                       #"
+    echo "#                                                                                       #"
     echo "#   Usage: installer.sh                                                                 #"
     echo "#    -p parameter file                                                                  #"
     echo "#    -i interactive true/false setting the value to false will not prompt before apply  #"
     echo "#    -h Show help                                                                       #"
-    echo "#                                                                                       #" 
-    echo "#   Example:                                                                            #" 
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
+    echo "#   Example:                                                                            #"
+    echo "#                                                                                       #"
     echo "#   [REPO-ROOT]deploy/scripts/install_deployer.sh \                                     #"
-	echo "#      -p PROD-WEEU-DEP00-INFRASTRUCTURE.json \                                         #"
-	echo "#      -i true                                                                          #" 
-    echo "#                                                                                       #" 
+    echo "#      -p PROD-WEEU-DEP00-INFRASTRUCTURE.json \                                         #"
+    echo "#      -i true                                                                          #"
+    echo "#                                                                                       #"
     echo "#########################################################################################"
 }
 
@@ -32,15 +32,15 @@ function missing {
     echo ""
     echo ""
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#   Missing environment variables ("${option} " )!!!                         #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
     echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-hana))                        #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#      REMOTE_STATE_RG (resource group name for storage account containing state files) #"
     echo "#      REMOTE_STATE_SA (storage account for state file)                                 #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
 }
 
@@ -52,11 +52,11 @@ while getopts ":p:t:i:d:h" option; do
         t) deployment_system=${OPTARG};;
         i) approve="--auto-approve";;
         h) showhelp
-           exit 3
-           ;;
+            exit 3
+        ;;
         ?) echo "Invalid option: -${OPTARG}."
-           exit 2
-           ;; 
+            exit 2
+        ;;
     esac
 done
 
@@ -79,9 +79,9 @@ key=$(echo "${parameterfile}" | cut -d. -f1)
 if [ ! -f "${parameterfile}" ]
 then
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#                  Parameter file" ${parameterfile} " does not exist!!! #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     exit
 fi
@@ -112,7 +112,7 @@ else
     then
         # Repo path was specified in ~/.sap_deployment_automation/config
         DEPLOYMENT_REPO_PATH=$(echo "${temp}" | cut -d= -f2)
-        
+
         config_stored=1
     else
         config_stored=0
@@ -148,10 +148,14 @@ else
     then
         # Deployer state was specified in ~/.sap_deployment_automation library config
         deployer_tfstate_key=$(echo "${temp}" | cut -d= -f2)
+        
         if [ "${deployment_system}" != sap_deployer ]
         then
             deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+        else
+            rm post_deployment.sh
         fi
+
         deployer_tfstate_key_exists=true
 
     fi
@@ -199,15 +203,15 @@ terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${depl
 if [ ! -d "${terraform_module_directory}" ]
 then
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#   Incorrect system deployment type specified :" ${deployment_system} "       #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#     Valid options are:                                                                #"
     echo "#       sap_deployer                                                                    #"
     echo "#       sap_library                                                                     #"
     echo "#       sap_landscape                                                                   #"
     echo "#       sap_system                                                                      #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
     exit -1
@@ -224,12 +228,12 @@ fi
 # Checking for valid az session
 az account show > stdout.az 2>&1
 temp=$(grep "az login" stdout.az)
-if [ -n "${temp}" ]; then 
+if [ -n "${temp}" ]; then
     echo ""
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#                           Please login using az login                                 #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
     rm stdout.az
@@ -238,79 +242,93 @@ else
     rm stdout.az
 fi
 
-terraform init -upgrade=true -reconfigure --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
---backend-config "resource_group_name=${REMOTE_STATE_RG}" \
---backend-config "storage_account_name=${REMOTE_STATE_SA}" \
---backend-config "container_name=tfstate" \
---backend-config "key=${key}.terraform.tfstate" \
-$terraform_module_directory
+check_output=0
 
-cat <<EOF > backend.tf
-####################################################
-# To overcome terraform issue                      #
-####################################################
-terraform {
-    backend "azurerm" {}
-}
-
-EOF
-
-outputs=$(terraform output)
-if echo "${outputs}" | grep "No outputs"; then
-    ok_to_proceed=true
-    new_deployment=true
-    echo "#########################################################################################"
-    echo "#                                                                                       #" 
-    echo "#                                   New deployment                                      #"
-    echo "#                                                                                       #" 
-    echo "#########################################################################################"
+if [ ! -d ./.terraform/ ]; 
+then
+    terraform init -upgrade=true -force-copy --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
+    --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+    --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+    --backend-config "container_name=tfstate" \
+    --backend-config "key=${key}.terraform.tfstate" \
+    $terraform_module_directory
 else
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #" 
-    echo "#                           Existing deployment was detected                            #"
-    echo "#                                                                                       #" 
-    echo "#########################################################################################"
-    echo ""
-
-    deployed_using_version=$(terraform output automation_version)
-    if [ ! -n "${deployed_using_version}" ]; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #" 
-        echo "#    The environment was deployed using an older version of the Terrafrom templates     #"
-        echo "#                                                                                       #" 
-        echo "#                               !!! Risk for Data loss !!!                              #"
-        echo "#                                                                                       #" 
-        echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-        echo "#                                                                                       #" 
-        echo "#########################################################################################"
-
-        read -p "Do you want to continue Y/N?"  ans
-        answer=${ans^^}
-        if [ $answer == 'Y' ]; then
-            ok_to_proceed=true
-        else
-            exit 1
-        fi
+    temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
+    if [ ! -z "${temp}" ]
+    then
+        echo "${REMOTE_STATE_SA}"
+        terraform init -upgrade=true -force-copy --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
+        --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+        --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+        --backend-config "container_name=tfstate" \
+        --backend-config "key=${key}.terraform.tfstate" \
+        $terraform_module_directory
     else
-        
+        terraform init -upgrade=true
+        check_output=1
+    fi
+
+fi
+
+if [ 1 == $check_output ]
+then
+    outputs=$(terraform output)
+    if echo "${outputs}" | grep "No outputs"; then
+        ok_to_proceed=true
+        new_deployment=true
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo "#                                   New deployment                                      #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+    else
         echo ""
         echo "#########################################################################################"
-        echo "#                                                                                       #" 
-        echo "# Terraform templates version:" $deployed_using_version "were used in the deployment "
-        echo "#                                                                                       #" 
+        echo "#                                                                                       #"
+        echo "#                           Existing deployment was detected                            #"
+        echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
-        #Add version logic here
+
+        deployed_using_version=$(terraform output automation_version)
+        if [ ! -n "${deployed_using_version}" ]; then
+            echo ""
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo "#    The environment was deployed using an older version of the Terrafrom templates     #"
+            echo "#                                                                                       #"
+            echo "#                               !!! Risk for Data loss !!!                              #"
+            echo "#                                                                                       #"
+            echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+
+            read -p "Do you want to continue Y/N?"  ans
+            answer=${ans^^}
+            if [ $answer == 'Y' ]; then
+                ok_to_proceed=true
+            else
+                exit 1
+            fi
+        else
+
+            echo ""
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo "# Terraform templates version:" $deployed_using_version "were used in the deployment "
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            echo ""
+            #Add version logic here
+        fi
     fi
 fi
 
 echo ""
 echo "#########################################################################################"
-echo "#                                                                                       #" 
+echo "#                                                                                       #"
 echo "#                             Running Terraform plan                                    #"
-echo "#                                                                                       #" 
+echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
 
@@ -320,13 +338,13 @@ if ! $new_deployment; then
     if grep "No changes" plan_output.log ; then
         echo ""
         echo "#########################################################################################"
-        echo "#                                                                                       #" 
+        echo "#                                                                                       #"
         echo "#                           Infrastructure is up to date                                #"
-        echo "#                                                                                       #" 
+        echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
         rm plan_output.log
-        
+
         if [ $deployment_system == sap_deployer ]
         then
             if [ $deployer_tfstate_key_exists == false ]
@@ -349,11 +367,11 @@ if ! $new_deployment; then
     if ! grep "0 to change, 0 to destroy" plan_output.log ; then
         echo ""
         echo "#########################################################################################"
-        echo "#                                                                                       #" 
+        echo "#                                                                                       #"
         echo "#                               !!! Risk for Data loss !!!                              #"
-        echo "#                                                                                       #" 
+        echo "#                                                                                       #"
         echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-        echo "#                                                                                       #" 
+        echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
         read -n 1 -r -s -p $'Press enter to continue...\n'
@@ -377,9 +395,9 @@ if [ $ok_to_proceed ]; then
 
     echo ""
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#                             Running Terraform apply                                   #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
 

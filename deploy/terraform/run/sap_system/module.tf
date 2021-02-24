@@ -89,9 +89,6 @@ module "app_tier" {
   // Comment out code with users.object_id for the time being.  
   // deployer_user    = module.deployer.deployer_user
   sap_sid                    = local.sap_sid
-
-  route_table_id             = module.common_infrastructure.route_table_id
-  firewall_id                = module.common_infrastructure.firewall_id
   // Comment out code with users.object_id for the time being.  
   // deployer_user    = module.deployer.deployer_user
 }

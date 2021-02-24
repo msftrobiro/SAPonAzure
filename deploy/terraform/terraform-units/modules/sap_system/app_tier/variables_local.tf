@@ -69,14 +69,6 @@ variable "sap_sid" {
   description = "The SID of the application"
 }
 
-variable "route_table_id" {
-  description = "Route table (if any) id"
-}
-
-variable "firewall_id" {
-  description = "Firewall (if any) id"
-}
-
 locals {
   // Imports Disk sizing sizing information
   sizes = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/app_sizes.json"))

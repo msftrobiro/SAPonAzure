@@ -54,10 +54,11 @@ deployment_system=sap_library
 
 if [ ! -f "${parameterfile}" ]
 then
+    printf -v val %-40.40s "$parameterfile"
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #" 
-    echo "#                  Parameter file" ${parameterfile} " does not exist!!! #"
+    echo "#               Parameter file does not exist: ${val} #"
     echo "#                                                                                       #" 
     echo "#########################################################################################"
     exit

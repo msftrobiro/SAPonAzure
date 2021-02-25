@@ -52,10 +52,11 @@ function showhelp {
 }
 
 function missing {
-        echo ""
+    printf -v val '%-40s' "$missing_value"
+    echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #" 
-    echo "#   Missing :" ${missing_value}
+    echo "#   Missing : ${val}                                  #"
     echo "#                                                                                       #" 
     echo "#   Usage: install_environment.sh                                                       #"
     echo "#      -d deployer parameter file                                                       #"

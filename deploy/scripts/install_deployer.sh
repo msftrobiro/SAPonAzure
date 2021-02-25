@@ -51,14 +51,14 @@ key=$(echo "${parameterfile}" | cut -d. -f1)
 
 if [ ! -f "${parameterfile}" ]
 then
+    printf -v val %-40.40s "$parameterfile"
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #" 
-    echo "#                  Parameter file" ${parameterfile} " does not exist!!! #"
+    echo "#               Parameter file does not exist: ${val} #"
     echo "#                                                                                       #" 
     echo "#########################################################################################"
-    exit -1
-
+    exit
 fi
 
 #Persisting the parameters across executions
@@ -149,20 +149,6 @@ else
 fi
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/bootstrap/"${deployment_system}"/
-
-if [ ! -d "${terraform_module_directory}" ]
-then
-    echo "#########################################################################################"
-    echo "#                                                                                       #" 
-    echo "#   Incorrect system deployment type specified :" ${deployment_system} "            #"
-    echo "#                                                                                       #" 
-    echo "#   Valid options are:                                                                  #"
-    echo "#      sap_deployer                                                                     #"
-    echo "#                                                                                       #" 
-    echo "#########################################################################################"
-    echo ""
-    exit -1
-fi
 
 ok_to_proceed=false
 new_deployment=false

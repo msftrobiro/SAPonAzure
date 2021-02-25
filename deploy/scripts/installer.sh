@@ -29,11 +29,12 @@ function showhelp {
 }
 
 function missing {
+    printf -v val %-.40s "$option"
     echo ""
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#   Missing environment variables ("${option} " )!!!                         #"
+    echo "#   Missing environment variables: ${option}!!!              #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
     echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-hana))                        #"
@@ -78,10 +79,12 @@ key=$(echo "${parameterfile}" | cut -d. -f1)
 
 if [ ! -f "${parameterfile}" ]
 then
+    printf -v val %-40.40s "$parameterfile"
+    echo ""
     echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                  Parameter file" ${parameterfile} " does not exist!!! #"
-    echo "#                                                                                       #"
+    echo "#                                                                                       #" 
+    echo "#               Parameter file does not exist: ${val} #"
+    echo "#                                                                                       #" 
     echo "#########################################################################################"
     exit
 fi
@@ -202,9 +205,10 @@ terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${depl
 
 if [ ! -d "${terraform_module_directory}" ]
 then
+    printf -v val %-40.40s "$deployment_system"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#   Incorrect system deployment type specified :" ${deployment_system} "       #"
+    echo "#   Incorrect system deployment type specified: ${val}#"
     echo "#                                                                                       #"
     echo "#     Valid options are:                                                                #"
     echo "#       sap_deployer                                                                    #"

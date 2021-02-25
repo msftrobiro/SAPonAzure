@@ -41,6 +41,14 @@ output "anydb_vm_ids" {
   value = module.anydb_node.anydb_vm_ids
 }
 
-output "temp" {
-  value = data.terraform_remote_state.landscape.outputs
+output "region" {
+  value = var.infrastructure.region
+}
+
+output "environment" {
+  value = var.infrastructure.environment
+}
+
+output "sid" {
+  value = var.application.sid
 }

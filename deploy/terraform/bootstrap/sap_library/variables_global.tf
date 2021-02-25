@@ -62,3 +62,7 @@ variable "key_vault" {
   default     = {}
 }
 
+variable "deployer_tfstate_key" {
+  description = "The key of deployer's remote tfstate file"
+  default=""
+}

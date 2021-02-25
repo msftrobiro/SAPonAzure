@@ -2,37 +2,7 @@
 
 ## Preparation activities
 
-The deployment will require using a Service principal.
 
-1. Create SPN
-
-From a privilaged account, create an SPN.
-
-```bash
-az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" --name="Deployment Account-NP"
-```
-
-2. Record the credential outputs.
-   The pertinant fields are:
-   - appId
-   - password
-   - tenant
-
-```json
-    {
-      "appId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-      "displayName": "Deployment Account-NP",
-      "name": "http://Deployment-Account-NP",
-      "password": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-      "tenant": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx""
-    }
- ```
-
-3. Add Role Assignment to SPN.
-
-```bash
-az role assignment create --assignee <appId> --role "User Access Administrator"
-```
 
 ## Sample files
 
@@ -65,6 +35,38 @@ The deployment will create a Virtual network and a storage accounts for boot dia
 The SAP System configuration is specified in [SAP System](WORKSPACES/DEPLOYMENT-ORCHESTRATION/SYSTEM/PROD-WEEU-SAP00-ZZZ/PROD-WEEU-SAP00-ZZZ.json)
 
 The deployment will create a SAP system that has an Hana database server, 2 application servers, 1 central services server and a web dispatcher and two key vaults (which can be ignored for now).
+
+The deployment will require using a Service principal.
+
+1. Create SPN
+
+From a privilaged account, create an SPN.
+
+```bash
+az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" --name="Deployment Account-NP"
+```
+
+2. Record the credential outputs.
+   The pertinant fields are:
+   - appId
+   - password
+   - tenant
+
+```json
+    {
+      "appId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      "displayName": "Deployment Account-NP",
+      "name": "http://Deployment-Account-NP",
+      "password": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "tenant": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx""
+    }
+ ```
+
+3. Add Role Assignment to SPN.
+
+```bash
+az role assignment create --assignee <appId> --role "User Access Administrator"
+```
 
 ## Choosing the orchestration environment
 

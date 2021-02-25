@@ -13,6 +13,7 @@ data "terraform_remote_state" "deployer" {
     key                  = var.deployer_tfstate_key
     subscription_id      = local.saplib_subscription_id
   }
+}
 
 data "terraform_remote_state" "landscape" {
   backend = "azurerm"

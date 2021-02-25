@@ -52,3 +52,7 @@ output "environment" {
 output "sid" {
   value = var.application.sid
 }
+
+output "automation_version" {
+  value = local.version_label
+}

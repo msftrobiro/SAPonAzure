@@ -1,4 +1,5 @@
 locals {
+  version_label = trimspace(file("${path.module}/../../../configs/version.txt"))
   deployer_prefix = module.sap_namegenerator.naming.prefix.DEPLOYER
 
   // If custom names are used for deployer, providing resource_group_name and msi_name will override the naming convention

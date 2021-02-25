@@ -17,7 +17,7 @@ steps:
         sapsystem_prefix=${sapsystem_env}
       fi
 
-      sapsystem_rg="${sapsystem_prefix}-EAUS-SAP-PRD"
+      sapsystem_rg="${sapsystem_prefix}-WEEU-SAP-PRD"
       
       repo_dir=$HOME/${sapsystem_rg}/sap-hana
       ws_dir=$HOME/Azure_SAP_Automated_Deployment/WORKSPACES/SAP_SYSTEM/${sapsystem_rg}

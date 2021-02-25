@@ -48,8 +48,6 @@ module "hdb_node" {
   databases                  = var.databases
   infrastructure             = var.infrastructure
   options                    = local.options
-  ssh-timeout                = var.ssh-timeout
-  authentication             = var.authentication
   resource_group             = module.common_infrastructure.resource_group
   vnet_sap                   = module.common_infrastructure.vnet_sap
   storage_bootdiag_endpoint  = module.common_infrastructure.storage_bootdiag_endpoint
@@ -73,8 +71,6 @@ module "app_tier" {
   application                = var.application
   infrastructure             = var.infrastructure
   options                    = local.options
-  ssh-timeout                = var.ssh-timeout
-  authentication             = var.authentication
   resource_group             = module.common_infrastructure.resource_group
   vnet_sap                   = module.common_infrastructure.vnet_sap
   storage_bootdiag_endpoint  = module.common_infrastructure.storage_bootdiag_endpoint
@@ -98,8 +94,6 @@ module "anydb_node" {
   databases                  = var.databases
   infrastructure             = var.infrastructure
   options                    = var.options
-  ssh-timeout                = var.ssh-timeout
-  authentication             = var.authentication
   resource_group             = module.common_infrastructure.resource_group
   vnet_sap                   = module.common_infrastructure.vnet_sap
   storage_bootdiag_endpoint  = module.common_infrastructure.storage_bootdiag_endpoint

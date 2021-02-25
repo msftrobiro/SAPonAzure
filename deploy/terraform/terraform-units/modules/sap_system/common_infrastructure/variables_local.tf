@@ -257,9 +257,6 @@ locals {
   user_key_vault_id = try(var.key_vault.kv_user_id, var.landscape_tfstate.landscape_key_vault_user_arm_id)
   prvt_key_vault_id = try(var.key_vault.kv_prvt_id, var.landscape_tfstate.landscape_key_vault_private_arm_id)
 
-  user_key_vault_id = try(var.key_vault.kv_user_id, var.landscape_tfstate.landscape_key_vault_user_arm_id)
-  prvt_key_vault_id = try(var.key_vault.kv_prvt_id, var.landscape_tfstate.landscape_key_vault_private_arm_id)
-
   //Override 
   user_kv_override = length(try(var.key_vault.kv_user_id, "")) > 0
   prvt_kv_override = length(try(var.key_vault.kv_prvt_id, "")) > 0
@@ -271,8 +268,6 @@ locals {
   prvt_kv_name    = local.prvt_kv_override ? split("/", local.prvt_key_vault_id)[8] : local.sid_keyvault_names.private_access
   prvt_kv_rg_name = local.prvt_kv_override ? split("/", local.prvt_key_vault_id)[4] : ""
 
-<<<<<<< HEAD
-<<<<<<< HEAD
   use_local_credentials = length(var.authentication) > 0
 
   // If local credentials are used then try the parameter file.
@@ -290,32 +285,6 @@ locals {
 
   sid_public_key    = local.use_local_credentials ? try(file(var.authentication.path_to_public_key), tls_private_key.sdu[0].public_key_openssh) : data.azurerm_key_vault_secret.sid_pk[0].value
   sid_private_key   = local.use_local_credentials ? try(file(var.authentication.path_to_private_key), tls_private_key.sdu[0].private_key_pem) : ""
-=======
-  //ToDo change ssh key block
-  use_local_credentials = length(var.authentication) > 0
-
-  sid_public_key  = local.use_local_credentials ? try(file(var.authentication.path_to_public_key), tls_private_key.sdu[0].public_key_openssh) : data.azurerm_key_vault_secret.sid_pk[0].value
-  sid_private_key = local.use_local_credentials ? try(file(var.authentication.path_to_private_key), tls_private_key.sdu[0].private_key_pem) : ""
->>>>>>> Renaming sshkey block to authentication AB#137 (#1047)
-=======
-  use_local_credentials = length(var.authentication) > 0
-
-  // If local credentials are used then try the parameter file.
-  // If the username is empty retrieve it from the keyvault
-  // If password or sshkeys are empty create them
-  sid_auth_username = coalesce(
-    try(var.authentication.username, ""),
-    try(data.azurerm_key_vault_secret.sid_username[0].value, "azureadm")
-  )
-  
-  sid_auth_password = coalesce(
-    try(var.authentication.password, ""),
-    try(data.azurerm_key_vault_secret.sid_password[0].value, local.use_local_credentials ? random_password.password[0].result : "")
-  )
-
-  sid_public_key    = local.use_local_credentials ? try(file(var.authentication.path_to_public_key), tls_private_key.sdu[0].public_key_openssh) : data.azurerm_key_vault_secret.sid_pk[0].value
-  sid_private_key   = local.use_local_credentials ? try(file(var.authentication.path_to_private_key), tls_private_key.sdu[0].private_key_pem) : ""
->>>>>>> Use credentials (username/password) from landscape keyvault (#1021)
 
   //---- Update infrastructure with defaults ----//
   infrastructure = {

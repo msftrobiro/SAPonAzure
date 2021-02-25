@@ -1,6 +1,6 @@
 {
   "application": {
-    "application_server_count": 1,
+    "application_server_count": 2,
     "enable_deployment": true,
     "ers_instance_number": "02",
     "os": {

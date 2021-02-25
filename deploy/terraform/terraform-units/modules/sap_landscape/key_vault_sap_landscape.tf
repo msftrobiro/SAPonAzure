@@ -151,9 +151,7 @@ data "azurerm_key_vault_secret" "iscsi_username" {
 // Using TF tls to generate SSH key pair for SID
 resource "tls_private_key" "sid" {
   count = (
-    local.enable_landscape_kv
-    && try(file(var.authentication.path_to_public_key), null) == null
-    && ! local.sid_key_exist
+    try(file(var.authentication.path_to_public_key), null) == null
   ) ? 1 : 0
   algorithm = "RSA"
   rsa_bits  = 2048

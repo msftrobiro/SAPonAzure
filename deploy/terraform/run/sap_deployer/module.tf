@@ -9,7 +9,7 @@ module "sap_deployer" {
   deployers      = var.deployers
   options        = var.options
   ssh-timeout    = var.ssh-timeout
-  sshkey         = var.sshkey
+  authentication = var.authentication
   key_vault      = var.key_vault
   naming         = module.sap_namegenerator.naming
 }

@@ -48,3 +48,7 @@ output "dns_info_iscsi" {
 output "route_table_id" {
   value = module.sap_landscape.route_table_id
 }
+
+output "automation_version" {
+  value = local.version_label
+}

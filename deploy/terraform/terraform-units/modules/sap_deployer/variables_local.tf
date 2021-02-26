@@ -7,6 +7,14 @@ variable naming {
   description = "naming convention"
 }
 
+variable "firewall_deployment" {
+  description = "Boolean flag indicating if an Azure Firewall should be deployed"
+}
+
+variable "assign_subscription_permissions" {
+  description = "Assign permissions on the subscription"
+}
+
 // Set defaults
 locals {
 
@@ -52,6 +60,15 @@ locals {
   sub_mgmt_nsg_name        = local.sub_mgmt_nsg_exists ? split("/", local.sub_mgmt_nsg_arm_id)[8] : try(local.sub_mgmt_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.deployer_subnet_nsg))
   sub_mgmt_nsg_allowed_ips = local.sub_mgmt_nsg_exists ? [] : try(local.sub_mgmt_nsg.allowed_ips, ["0.0.0.0/0"])
   sub_mgmt_nsg_deployed    = try(local.sub_mgmt_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0] : azurerm_network_security_group.nsg_mgmt[0], null)
+
+  // Firewall subnet
+  sub_fw_snet        = try(local.vnet_mgmt.subnet_fw, {})
+  sub_fw_snet_arm_id = try(local.sub_fw_snet.arm_id, "")
+  sub_fw_snet_exists = length(local.sub_fw_snet_arm_id) > 0 ? true : false
+  sub_fw_snet_name   = "AzureFirewallSubnet"
+  sub_fw_snet_prefix = local.sub_fw_snet_exists ? "" : try(local.sub_fw_snet.prefix, "")
+
+  firewall_service_tags = format("AzureCloud.%s", local.region)
 
   // Deployer(s) information from input
   deployer_input = var.deployers

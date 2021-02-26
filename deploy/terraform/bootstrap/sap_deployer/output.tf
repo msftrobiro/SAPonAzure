@@ -78,3 +78,16 @@ output "deployer_rg_name" {
 output "deployer_public_ip_address" {
   value = module.sap_deployer.deployer_public_ip_address
 }
+
+output "firewall_ip" {
+  value = module.sap_deployer.firewall_ip
+}
+
+output "firewall_id" {
+  value = module.sap_deployer.firewall_id
+}
+
+output "automation_version" {
+  value = local.version_label
+}
+

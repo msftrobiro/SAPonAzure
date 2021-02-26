@@ -8,6 +8,12 @@ resource "azurerm_subnet" "subnet_sap_app" {
   address_prefixes     = [local.sub_app_prefix]
 }
 
+resource "azurerm_subnet_route_table_association" "subnet_sap_app" {
+  count          = ! local.sub_app_exists && length(var.route_table_id) > 0 ? 1 : 0
+  subnet_id      = azurerm_subnet.subnet_sap_app[0].id
+  route_table_id = var.route_table_id
+}
+
 # Imports data of existing SAP app subnet
 data "azurerm_subnet" "subnet_sap_app" {
   count                = local.enable_deployment ? (local.sub_app_exists ? 1 : 0) : 0
@@ -23,6 +29,12 @@ resource "azurerm_subnet" "subnet_sap_web" {
   resource_group_name  = local.vnet_sap_resource_group_name
   virtual_network_name = local.vnet_sap_name
   address_prefixes     = [local.sub_web_prefix]
+}
+
+resource "azurerm_subnet_route_table_association" "subnet_sap_web" {
+  count          = ! local.sub_web_exists && length(var.route_table_id) > 0 ? 1 : 0
+  subnet_id      = azurerm_subnet.subnet_sap_web[0].id
+  route_table_id = var.route_table_id
 }
 
 # Imports data of existing SAP web dispatcher subnet
@@ -44,7 +56,7 @@ resource "azurerm_lb" "scs" {
   name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_alb)
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
-  sku                 = local.scs_zonal_deployment ? "Standard" : "Basic"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name      = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_alb_feip)
@@ -88,13 +100,13 @@ resource "azurerm_lb_probe" "scs" {
 
 # Create the SCS Load Balancer Rules
 resource "azurerm_lb_rule" "scs" {
-  count                          = local.enable_deployment && local.scs_server_count > 0 ? length(local.lb_ports.scs) : 0
+  count                          = local.enable_deployment && local.scs_server_count > 0 ? 1 : 0
   resource_group_name            = var.resource_group[0].name
   loadbalancer_id                = azurerm_lb.scs[0].id
-  name                           = format("%s%s%s%05d-%02d", local.prefix, var.naming.separator, local.resource_suffixes.scs_scs_rule, local.lb_ports.scs[count.index], count.index)
-  protocol                       = "Tcp"
-  frontend_port                  = local.lb_ports.scs[count.index]
-  backend_port                   = local.lb_ports.scs[count.index]
+  name                           = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_scs_rule)
+  protocol                       = "All"
+  frontend_port                  = 0
+  backend_port                   = 0
   frontend_ip_configuration_name = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_alb_feip)
   backend_address_pool_id        = azurerm_lb_backend_address_pool.scs[0].id
   probe_id                       = azurerm_lb_probe.scs[0].id
@@ -103,13 +115,13 @@ resource "azurerm_lb_rule" "scs" {
 
 # Create the ERS Load balancer rules only in High Availability configurations
 resource "azurerm_lb_rule" "ers" {
-  count                          = local.enable_deployment && local.scs_server_count > 0 ? (local.scs_high_availability ? length(local.lb_ports.ers) : 0) : 0
+  count                          = local.enable_deployment && local.scs_server_count > 0 ? (local.scs_high_availability ? 1 : 0) : 0
   resource_group_name            = var.resource_group[0].name
   loadbalancer_id                = azurerm_lb.scs[0].id
-  name                           = format("%s%s%s%05d-%02d", local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_rule, local.lb_ports.ers[count.index], count.index)
-  protocol                       = "Tcp"
-  frontend_port                  = local.lb_ports.ers[count.index]
-  backend_port                   = local.lb_ports.ers[count.index]
+  name                           = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_rule)
+  protocol                       = "All"
+  frontend_port                  = 0
+  backend_port                   = 0
   frontend_ip_configuration_name = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_feip)
   backend_address_pool_id        = azurerm_lb_backend_address_pool.scs[0].id
   probe_id                       = azurerm_lb_probe.scs[1].id
@@ -158,7 +170,7 @@ resource "azurerm_lb" "web" {
   name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_alb)
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
-  sku                 = local.web_zonal_deployment ? "Standard" : "Basic"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name      = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_alb_feip)
@@ -182,13 +194,13 @@ resource "azurerm_lb_backend_address_pool" "web" {
 
 # Create the Web dispatcher Load Balancer Rules
 resource "azurerm_lb_rule" "web" {
-  count                          = local.enable_deployment && local.webdispatcher_count > 0 ? length(local.lb_ports.web) : 0
+  count                          = local.enable_deployment && local.webdispatcher_count > 0 ? 1 : 0
   resource_group_name            = var.resource_group[0].name
   loadbalancer_id                = azurerm_lb.web[0].id
-  name                           = format("%s%s%s%05d-%02d", local.prefix, var.naming.separator, local.resource_suffixes.web_alb_inrule, local.lb_ports.web[count.index], count.index)
-  protocol                       = "Tcp"
-  frontend_port                  = local.lb_ports.web[count.index]
-  backend_port                   = local.lb_ports.web[count.index]
+  name                           = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_alb_inrule)
+  protocol                       = "All"
+  frontend_port                  = 0
+  backend_port                   = 0
   frontend_ip_configuration_name = azurerm_lb.web[0].frontend_ip_configuration[0].name
   backend_address_pool_id        = azurerm_lb_backend_address_pool.web[0].id
   enable_floating_ip             = true
@@ -215,4 +227,23 @@ resource "azurerm_availability_set" "web" {
   platform_fault_domain_count  = local.faultdomain_count
   proximity_placement_group_id = local.web_zonal_deployment ? var.ppg[count.index % length(local.web_zones)].id : var.ppg[0].id
   managed                      = true
+}
+
+# FIREWALL
+
+# Create a Azure Firewall Network Rule for Azure Management API
+resource "azurerm_firewall_network_rule_collection" "firewall-azure-app" {
+  count               = local.firewall_exists ? 1 : 0
+  name                = format("%s%s%s", local.prefix, var.naming.separator, "firewall-rule-app")
+  azure_firewall_name = local.firewall_name
+  resource_group_name = local.firewall_rgname
+  priority            = 10006
+  action              = "Allow"
+  rule {
+    name                  = "Azure-Cloud"
+    source_addresses      = local.sub_web_defined ? [local.sub_app_prefix, local.sub_web_prefix] : [local.sub_app_prefix]
+    destination_ports     = ["*"]
+    destination_addresses = [local.firewall_service_tags] 
+    protocols             = ["Any"]
+  }
 }

@@ -69,3 +69,13 @@ data "azurerm_storage_account" "storage_bootdiag" {
   name                = split("/", var.diagnostics_storage_account.arm_id)[8]
   resource_group_name = split("/", var.diagnostics_storage_account.arm_id)[4]
 }
+
+//Route table
+resource "azurerm_route_table" "rt" {
+  count                         = local.vnet_sap_exists ? 0 : 1
+  name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.routetable)
+  resource_group_name           = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  location                      = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].location : azurerm_virtual_network.vnet_sap[0].location
+  disable_bgp_route_propagation = false
+}
+

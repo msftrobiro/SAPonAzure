@@ -82,3 +82,7 @@ output "deployer_public_ip_address" {
 output "firewall_ip" {
   value = module.sap_deployer.firewall_ip
 }
+
+output "automation_version" {
+  value = local.version_label
+}

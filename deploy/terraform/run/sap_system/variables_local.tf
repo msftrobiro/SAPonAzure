@@ -37,10 +37,12 @@ variable "landscape_tfstate_key" {
 
 locals {
 
+  version_label = trimspace(file("${path.module}/../../../configs/version.txt"))
   // The environment of sap landscape and sap system
   environment = upper(try(var.infrastructure.environment, ""))
+  vnet_sap_arm_id = data.terraform_remote_state.landscape.outputs.vnet_sap_arm_id
 
-  vnet_sap_name = local.vnet_sap_exists ? try(split("/", local.vnet_sap_arm_id)[8], "") : try(local.var_vnet_sap.name, "sap")
+  vnet_sap_name = split("/", local.vnet_sap_arm_id)[8]
   vnet_nr_parts = length(split("-", local.vnet_sap_name))
   // Default naming of vnet has multiple parts. Taking the second-last part as the name 
   vnet_sap_name_part = try(substr(upper(local.vnet_sap_name), -5, 5), "") == "-VNET" ? substr(split("-", local.vnet_sap_name)[(local.vnet_nr_parts - 2)], 0, 7) : local.vnet_sap_name
@@ -62,7 +64,6 @@ locals {
   // SAP vnet
   var_infra       = try(var.infrastructure, {})
   var_vnet_sap    = try(local.var_infra.vnets.sap, {})
-  vnet_sap_arm_id = try(local.var_vnet_sap.arm_id, "")
   vnet_sap_exists = length(local.vnet_sap_arm_id) > 0 ? true : false
 
   //SID determination
@@ -100,11 +101,8 @@ locals {
   scs_zones = try(var.application.scs_zones, [])
   web_zones = try(var.application.web_zones, [])
 
-  anchor        = try(local.var_infra.anchor_vms, {})
+  anchor        = try(var.infrastructure.anchor_vms, {})
   anchor_ostype = upper(try(local.anchor.os.os_type, "LINUX"))
-
-  // Import deployer information for ansible.tf
-  import_deployer = data.terraform_remote_state.deployer.outputs.deployer
 
   // Locate the tfstate storage account
   tfstate_resource_id          = try(var.tfstate_resource_id, "")
@@ -116,7 +114,7 @@ locals {
   landscape_tfstate_key        = try(var.landscape_tfstate_key, "")
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
-  deployer_key_vault_arm_id = try(data.terraform_remote_state.deployer.outputs.deployer_kv_user_arm_id, "")
+  deployer_key_vault_arm_id = try(var.key_vault.kv_spn_id, data.terraform_remote_state.deployer.outputs.deployer_kv_user_arm_id)
 
   spn = {
     subscription_id = data.azurerm_key_vault_secret.subscription_id.value,

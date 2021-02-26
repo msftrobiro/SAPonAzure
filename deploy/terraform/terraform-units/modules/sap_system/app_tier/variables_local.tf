@@ -158,7 +158,7 @@ locals {
     try(local.sub_web.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet))
   )
 
-  sub_web_prefix = local.sub_web_exists ? data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0] : try(local.var_sub_web.prefix, "")
+  sub_web_prefix = local.sub_web_exists ? data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0] : try(local.sub_web.prefix, "")
   sub_web_deployed = try(local.sub_web_defined ? (
     local.sub_web_exists ? data.azurerm_subnet.subnet_sap_web[0] : azurerm_subnet.subnet_sap_web[0]) : (
     local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0] : azurerm_subnet.subnet_sap_app[0]), null

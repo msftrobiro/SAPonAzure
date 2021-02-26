@@ -237,12 +237,11 @@ resource "azurerm_firewall_network_rule_collection" "firewall-azure-app" {
   name                = format("%s%s%s", local.prefix, var.naming.separator, "firewall-rule-app")
   azure_firewall_name = local.firewall_name
   resource_group_name = local.firewall_rgname
-  priority            = 10005
+  priority            = 10006
   action              = "Allow"
   rule {
     name                  = "Azure-Cloud"
     source_addresses      = local.sub_web_defined ? [local.sub_app_prefix, local.sub_web_prefix] : [local.sub_app_prefix]
-    [local.sub_admin_prefix,local.sub_db_prefix]
     destination_ports     = ["*"]
     destination_addresses = [local.firewall_service_tags] 
     protocols             = ["Any"]

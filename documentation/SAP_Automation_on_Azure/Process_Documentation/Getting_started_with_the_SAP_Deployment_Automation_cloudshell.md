@@ -29,6 +29,8 @@ export ARM_SUBSCRIPTION_ID=8d8422a3-a9c1-4fe9-b880-adcf61557c71
 cp sap-hana/documentation/SAP_Automation_on_Azure/Process_Documentation/WORKSPACES WORKSPACES/ -r
 ```
 
+Navigate to the ~/Azure_SAP_Automated_Deployment/WORKSPACES/DEPLOYMENT-ORCHESTRATION folder.
+
 The deployment will need the Service Principal details (application id, secret and tenant ID)
 
 ## **Deploying the environment**

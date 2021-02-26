@@ -21,7 +21,10 @@ git clone <https://github.com/Azure/sap-hana.git> command
 
 1. Copy the sample parameter folder from
 
-sap-hana\documentation\SAP_Automation_on_Azure\Process_Documentation\WORKSPACES to the “Azure_SAP_Automated_Deployment” folder
+sap-hana\documentation\SAP_Automation_on_Azure\Process_Documentation\WORKSPACES to the “Azure_SAP_Automated_Deployment” folder.
+
+Navigate to the Azure_SAP_Automated_Deployment\WORKSPACES\DEPLOYMENT-ORCHESTRATION folder.
+
 
 The deployment will need the Service Principal details (application id, secret and tenant ID)
 

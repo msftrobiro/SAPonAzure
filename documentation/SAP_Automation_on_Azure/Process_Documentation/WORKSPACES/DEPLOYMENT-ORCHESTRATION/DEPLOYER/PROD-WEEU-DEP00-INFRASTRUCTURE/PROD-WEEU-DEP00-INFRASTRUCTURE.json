@@ -4,14 +4,18 @@
     "environment": "PROD",
     "vnets": {
       "management": {
-        "address_space": "10.0.20.0/28",
+        "address_space": "10.0.20.0/25",
         "subnet_mgmt": {
-          "prefix": "10.0.20.0/29"
+          "prefix": "10.0.20.0/28"
+        },
+        "subnet_fw": {
+          "prefix": "10.0.20.16/26"
         }
       }
     }
   },
   "options": {
     "enable_deployer_public_ip": true
-  }
+  },
+  "firewall_deployment": true
 }

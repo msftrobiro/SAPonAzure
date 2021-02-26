@@ -33,13 +33,13 @@ resource "azurerm_subnet_route_table_association" "admin" {
 }
 
 resource "azurerm_route" "admin" {
-  count                  = ! local.sub_admin_exists && length(local.firewall_id) > 0 ? 1 : 0
+  count                  = ! local.sub_admin_exists && length(local.firewall_ip) > 0 ? 1 : 0
   name                   = format("%s%s%s%s", local.prefix, var.naming.separator, "admin", "route")
   resource_group_name    = local.vnet_sap_resource_group_name
-  route_table_name       = format("%s%s%s", var.naming.prefix.VNET, var.naming.separator, "route_table")
+  route_table_name       = local.route_table_name
   address_prefix         = "0.0.0.0/0"
   next_hop_type          = "VirtualAppliance"
-  next_hop_in_ip_address = local.firewall_id
+  next_hop_in_ip_address = local.firewall_ip
 }
 
 // Imports data of existing SAP admin subnet
@@ -108,4 +108,23 @@ data "azurerm_proximity_placement_group" "ppg" {
   count               = local.ppg_exists ? max(length(local.zones), 1) : 0
   name                = split("/", local.ppg_arm_ids[count.index])[8]
   resource_group_name = split("/", local.ppg_arm_ids[count.index])[4]
+}
+
+# FIREWALL
+
+# Create a Azure Firewall Network Rule for Azure Management API
+resource "azurerm_firewall_network_rule_collection" "firewall-azure" {
+  count               = local.firewall_exists ? 1 : 0
+  name                = format("%s%s%s", local.prefix, var.naming.separator, "firewall-rule-db")
+  azure_firewall_name = local.firewall_name
+  resource_group_name = local.firewall_rgname
+  priority            = 10005
+  action              = "Allow"
+  rule {
+    name                  = "Azure-Cloud"
+    source_addresses      = [local.sub_admin_prefix,local.sub_db_prefix]
+    destination_ports     = ["*"]
+    destination_addresses = [local.firewall_service_tags] 
+    protocols             = ["Any"]
+  }
 }

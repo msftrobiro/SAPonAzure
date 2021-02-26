@@ -99,3 +99,7 @@ output "deployer_private_ip_address" {
 output "firewall_ip" {
   value = var.firewall_deployment ? azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address : ""
 }
+
+output "firewall_id" {
+  value = var.firewall_deployment ? azurerm_firewall.firewall[0].id : ""
+}

@@ -78,9 +78,17 @@ locals {
   // If the environment deployment created a route table use it to populate a route
 
   route_table_id = try(var.landscape_tfstate.route_table_id, "")
+  route_table_name = try(split("/", var.landscape_tfstate.route_table_id)[8], "")
 
-  firewall_id = try(var.deployer_tfstate.firewall_ip, "")
+  firewall_ip = try(var.deployer_tfstate.firewall_ip, "")
 
+  // Firewall
+  firewall_id     = try(var.deployer_tfstate.firewall_id, "")
+  firewall_exists = length(local.firewall_id) > 0
+  firewall_name   = local.firewall_exists ? try(split("/", local.firewall_id)[8], "") : ""
+  firewall_rgname = local.firewall_exists ? try(split("/", local.firewall_id)[4], "") : ""
+
+  firewall_service_tags = format("AzureCloud.%s", local.region)
 
   //Filter the list of databases to only HANA platform entries
   databases = [
@@ -217,7 +225,7 @@ locals {
   sub_admin_exists    = length(local.sub_admin_arm_id) > 0
 
   sub_admin_name   = local.sub_admin_exists ? try(split("/", local.sub_admin_arm_id)[10], "") : try(local.var_sub_admin.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet))
-  sub_admin_prefix = local.sub_admin_exists ? "" : try(local.var_sub_admin.prefix, "")
+  sub_admin_prefix = local.sub_admin_exists ? data.azurerm_subnet.admin[0].address_prefixes[0] : try(local.var_sub_admin.prefix, "")
 
   //Admin NSG
   var_sub_admin_nsg    = try(local.var_sub_admin.nsg, {})
@@ -230,7 +238,7 @@ locals {
   sub_db_arm_id = try(local.var_sub_db.arm_id, "")
   sub_db_exists = length(local.sub_db_arm_id) > 0 ? true : false
   sub_db_name   = local.sub_db_exists ? try(split("/", local.sub_db_arm_id)[10], "") : try(local.var_sub_db.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_subnet))
-  sub_db_prefix = local.sub_db_exists ? "" : try(local.var_sub_db.prefix, "")
+  sub_db_prefix = local.sub_db_exists ? data.azurerm_subnet.db[0].address_prefixes[0] : try(local.var_sub_db.prefix, "")
 
   //DB NSG
   var_sub_db_nsg    = try(local.var_sub_db.nsg, {})

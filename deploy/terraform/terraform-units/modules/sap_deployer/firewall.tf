@@ -37,37 +37,3 @@ resource "azurerm_firewall" "firewall" {
   }
 }
 
-# Create a Azure Firewall Network Rule for Azure Management API
-resource "azurerm_firewall_network_rule_collection" "firewall-azure" {
-  count               = var.firewall_deployment && length(var.firewall_rule_subnets) > 0 ? 1 : 0
-  name                = format("%s%s%s", local.prefix, var.naming.separator, "firewall-rule")
-  azure_firewall_name = azurerm_firewall.firewall[0].name
-  resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
-  priority            = 10005
-  action              = "Allow"
-  rule {
-    name                  = "Azure-Cloud"
-    source_addresses      = var.firewall_rule_subnets
-    destination_ports     = ["*"]
-    destination_addresses = [local.firewall_service_tags] 
-    protocols             = ["Any"]
-  }
-}
-
-# Create a Azure Firewall Network Rule for SUSE and RedHAT repos
-resource "azurerm_firewall_network_rule_collection" "firewall-repos" {
-  count               = var.firewall_deployment && (length(var.firewall_rule_subnets) > 0 && length(var.firewall_allowed_ipaddresses) > 0) ? 1 : 0
-  name                = format("%s%s%s", local.prefix, var.naming.separator, "firewall-rule-repos")
-  azure_firewall_name = azurerm_firewall.firewall[0].name
-  resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
-  priority            = 10006
-  action              = "Allow"
-  rule {
-    name                  = "Repo-Access"
-    source_addresses      = var.firewall_rule_subnets
-    destination_ports     = ["*"]
-    destination_addresses = var.firewall_allowed_ipaddresses
-    protocols             = ["Any"]
-  }
-}
-

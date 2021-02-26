@@ -43,12 +43,6 @@ steps:
         }
       }' \
       | jq '. += {
-        authentication: {
-          path_to_public_key: "sshkey.pub",
-          path_to_private_key: "sshkey"
-        }
-      }' \
-      | jq '. += {
         options: {
           enable_deployer_public_ip: true
         }

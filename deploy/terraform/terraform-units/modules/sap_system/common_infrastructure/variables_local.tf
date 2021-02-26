@@ -69,6 +69,26 @@ locals {
 
   storageaccount_name    = try(var.landscape_tfstate.storageaccount_name, "")
   storageaccount_rg_name = try(var.landscape_tfstate.storageaccount_rg_name, "")
+  // Retrieve information about Sap Landscape from tfstate file
+  landscape_tfstate = var.landscape_tfstate
+
+  iscsi_private_ip = try(local.landscape_tfstate.iscsi_private_ip, [])
+
+  // Firewall routing logic
+  // If the environment deployment created a route table use it to populate a route
+
+  route_table_id = try(var.landscape_tfstate.route_table_id, "")
+  route_table_name = try(split("/", var.landscape_tfstate.route_table_id)[8], "")
+
+  firewall_ip = try(var.deployer_tfstate.firewall_ip, "")
+
+  // Firewall
+  firewall_id     = try(var.deployer_tfstate.firewall_id, "")
+  firewall_exists = length(local.firewall_id) > 0
+  firewall_name   = local.firewall_exists ? try(split("/", local.firewall_id)[8], "") : ""
+  firewall_rgname = local.firewall_exists ? try(split("/", local.firewall_id)[4], "") : ""
+
+  firewall_service_tags = format("AzureCloud.%s", local.region)
 
   //Filter the list of databases to only HANA platform entries
   databases = [
@@ -205,7 +225,7 @@ locals {
   sub_admin_exists    = length(local.sub_admin_arm_id) > 0
 
   sub_admin_name   = local.sub_admin_exists ? try(split("/", local.sub_admin_arm_id)[10], "") : try(local.var_sub_admin.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet))
-  sub_admin_prefix = local.sub_admin_exists ? "" : try(local.var_sub_admin.prefix, "")
+  sub_admin_prefix = local.sub_admin_exists ? data.azurerm_subnet.admin[0].address_prefixes[0] : try(local.var_sub_admin.prefix, "")
 
   //Admin NSG
   var_sub_admin_nsg    = try(local.var_sub_admin.nsg, {})
@@ -218,7 +238,7 @@ locals {
   sub_db_arm_id = try(local.var_sub_db.arm_id, "")
   sub_db_exists = length(local.sub_db_arm_id) > 0 ? true : false
   sub_db_name   = local.sub_db_exists ? try(split("/", local.sub_db_arm_id)[10], "") : try(local.var_sub_db.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_subnet))
-  sub_db_prefix = local.sub_db_exists ? "" : try(local.var_sub_db.prefix, "")
+  sub_db_prefix = local.sub_db_exists ? data.azurerm_subnet.db[0].address_prefixes[0] : try(local.var_sub_db.prefix, "")
 
   //DB NSG
   var_sub_db_nsg    = try(local.var_sub_db.nsg, {})
@@ -254,8 +274,8 @@ locals {
   sub_storage_nsg_name   = local.sub_storage_nsg_exists ? try(split("/", local.sub_storage_nsg_arm_id)[8], "") : try(local.sub_storage_nsg.name, format("%s%s", local.prefix, local.resource_suffixes.storage_subnet_nsg))
 
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of using the landscape key vault
-  user_key_vault_id = try(var.key_vault.kv_user_id, var.landscape_tfstate.landscape_key_vault_user_arm_id)
-  prvt_key_vault_id = try(var.key_vault.kv_prvt_id, var.landscape_tfstate.landscape_key_vault_private_arm_id)
+  user_key_vault_id = try(var.key_vault.kv_user_id, local.landscape_tfstate.landscape_key_vault_user_arm_id)
+  prvt_key_vault_id = try(var.key_vault.kv_prvt_id, local.landscape_tfstate.landscape_key_vault_private_arm_id)
 
   //Override 
   user_kv_override = length(try(var.key_vault.kv_user_id, "")) > 0

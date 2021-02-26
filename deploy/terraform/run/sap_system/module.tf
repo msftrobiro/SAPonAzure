@@ -84,8 +84,13 @@ module "app_tier" {
   sid_password               = module.common_infrastructure.sid_password
   sid_username               = module.common_infrastructure.sid_username
   sdu_public_key             = module.common_infrastructure.sdu_public_key
+  route_table_id             = module.common_infrastructure.route_table_id
+  firewall_id                = module.common_infrastructure.firewall_id
+  // Comment out code with users.object_id for the time being.  
+  // deployer_user    = module.deployer.deployer_user
   sap_sid                    = local.sap_sid
-
+  // Comment out code with users.object_id for the time being.  
+  // deployer_user    = module.deployer.deployer_user
 }
 
 // Create anydb database nodes

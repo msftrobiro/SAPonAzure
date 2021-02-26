@@ -86,3 +86,7 @@ output "firewall_ip" {
 output "firewall_id" {
   value = module.sap_deployer.firewall_id
 }
+
+output "automation_version" {
+  value = local.version_label
+}

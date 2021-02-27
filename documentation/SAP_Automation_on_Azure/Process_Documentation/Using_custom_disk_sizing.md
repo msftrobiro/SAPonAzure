@@ -1,6 +1,6 @@
 # Using custom disk sizing #
 
-By default the automation will deploy the correct disk configuration for the Hana deployments. For the AnyDB deployments the default disklayout is defined based on the size of the database and for Hana deployments it is typically tied to the VM size. See [product_documentation-sap_deployment_unit.md] (../Software_Documentation/product_documentation-sap_deployment_unit.md) for more info
+By default the automation will deploy the correct disk configuration for the Hana deployments. For the AnyDB deployments the default disklayout is defined based on the size of the database and for Hana deployments it is typically tied to the VM size. See [product_documentation-sap_deployment_unit.md](../Software_Documentation/product_documentation-sap_deployment_unit.md) for more information
 
 The disk sizing can be changed by providing a custom json file to the deployment by specifying the following parameter ```db_disk_sizes_filename : "[PATH to json file]"``` in the parameter file.
 

@@ -13,10 +13,22 @@
     "scs_high_availability": true,
     "scs_server_count": 1,
     "scs_instance_number": "01",
-    "sid": "ZZZ",
+    "sid": "ABC",
     "webdispatcher_count": 1,
     "dual_nics": false,
-    "use_DHCP": true
+    "use_DHCP": true,
+    "app_zones": [
+      "1",
+      "2"
+    ],
+    "scs_zones": [
+      "1",
+      "2"
+    ],
+    "web_zones": [
+      "1",
+      "2"
+    ]
   },
   "databases": [
     {
@@ -30,6 +42,9 @@
       "platform": "HANA",
       "size": "Default",
       "use_DHCP": true,
+      "zones": [
+        "1"
+      ],
       "dbnodes": [
         {}
       ]
@@ -41,13 +56,13 @@
     "vnets": {
       "sap": {
         "subnet_admin": {
-          "prefix": "10.100.0.0/27"
+          "prefix": "<arm_id>"
         },
         "subnet_app": {
-          "prefix": "10.100.0.32/27"
+          "prefix": "<arm_id>"
         },
         "subnet_db": {
-          "prefix": "10.100.0.64/27"
+          "prefix": "<arm_id>"
         }
       }
     }

@@ -3,12 +3,12 @@
         "username": "azureadm"
     },
     "infrastructure": {
-        "environment": "PROD",
+        "environment": "DEV",
         "region": "westeurope",
         "vnets": {
             "sap": {
-                "name" :"SAP00",
-                "arm_id": "<arm_id>"
+                "name" :"SAP01",
+                "address_space": "10.110.0.0/24"
             }
         }
     },

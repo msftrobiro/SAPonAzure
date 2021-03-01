@@ -1,7 +1,10 @@
 {
   "infrastructure": {
     "region": "westeurope",
-    "environment": "PROD"
+    "environment": "PROD",
+    "resource_group": {
+      "name" : "WEEU-SAP_LIBRARY"
+    }
   },
   "deployer": {
     "environment": "PROD",

@@ -12,6 +12,9 @@
           "prefix": "10.0.20.16/26"
         }
       }
+    },
+    "resource_group": {
+      "name": "WEEU-DEP00-INFRASTRUCTURE"
     }
   },
   "options": {

@@ -18,11 +18,7 @@ data "azurerm_key_vault_secret" "sid_username" {
 
 data "azurerm_key_vault_secret" "sid_password" {
   count        = local.use_local_credentials ? 0 : 1
-<<<<<<< HEAD
-  name         = var.landscape_tfstate.sid_password_secret_name
-=======
   name         = try(var.landscape_tfstate.sid_password_secret_name, trimprefix(format("%s-sid-password", var.naming.prefix.VNET), "-"))
->>>>>>> b6417ffe905642a6e416dd2a3280a854c4c5d3ea
   key_vault_id = local.user_key_vault_id
 }
 

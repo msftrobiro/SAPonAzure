@@ -39,12 +39,12 @@ Import-Module  C:\Azure_SAP_Automated_Deployment\sap-hana\deploy\scripts\pwsh\SA
 For deploying the supporting infrastructure (Deployer, Library and Workload zone) use the New-Environment cmdlet
 
 ```PowerShell
-New-Environment -DeployerParameterfile .\DEPLOYER\PROD-WEEU-DEP00-INFRASTRUCTURE\PROD-WEEU-DEP00-INFRASTRUCTURE.json  -LibraryParameterfile .\LIBRARY\PROD-WEEU-SAP_LIBRARY\PROD-WEEU-SAP_LIBRARY.json -EnvironmentParameterfile .\LANDSCAPE\PROD-WEEU-SAP00-INFRASTRUCTURE\PROD-WEEU-SAP00-INFRASTRUCTURE.json
+New-Environment -DeployerParameterfile .\DEPLOYER\DEV-WEEU-DEP00-INFRASTRUCTURE\DEV-WEEU-DEP00-INFRASTRUCTURE.json  -LibraryParameterfile .\LIBRARY\DEV-WEEU-SAP_LIBRARY\DEV-WEEU-SAP_LIBRARY.json -EnvironmentParameterfile .\LANDSCAPE\DEV-WEEU-SAP01-INFRASTRUCTURE\DEV-WEEU-SAP01-INFRASTRUCTURE.json
 ```
 
 The script will deploy the deployment infrastructure and create the Azure keyvault for storing the Service Principal details.
 
-When prompted for the environment details enter "PROD" and then enter the Service Principal details. 
+When prompted for the environment details enter "DEV" and then enter the Service Principal details. 
 
 The script will them deploy the rest of the resources required.
 
@@ -53,7 +53,7 @@ The script will them deploy the rest of the resources required.
 For deploying the SAP system navigate to the folder containing the parameter file and use the New-System cmdlet
 
 ```PowerShell
-New-System -Parameterfile .\PROD-WEEU-SAP00-ZZZ.json -Type sap\_system
+New-System -Parameterfile .\DEV-WEEU-SAP01-ZZZ.json -Type sap\_system
 ```
 
 ## **Clean up the deployment**
@@ -99,24 +99,24 @@ function Remove-TfDeploymentItems {
             
 }
 
-$rgname = "PROD-WEEU-SAP00-ZZZ"
-$dirname = "SYSTEM\PROD-WEEU-SAP00-ZZZ\"
+$rgname = "DEV-WEEU-SAP00-ZZZ"
+$dirname = "SYSTEM\DEV-WEEU-SAP00-ZZZ\"
 
 Remove-TfDeploymentItems -rgName $rgname -dirname $dirname
 
 
-$rgname = "PROD-WEEU-DEP00-INFRASTRUCTURE"
-$dirname = "DEPLOYER\PROD-WEEU-DEP00-INFRASTRUCTURE\"
+$rgname = "DEV-WEEU-DEP00-INFRASTRUCTURE"
+$dirname = "DEPLOYER\DEV-WEEU-DEP00-INFRASTRUCTURE\"
 
 Remove-TfDeploymentItems -rgName $rgname -dirname $dirname
 
-$rgname = "PROD-WEEU-SAP00-INFRASTRUCTURE"
-$dirname = "LANDSCAPE\PROD-WEEU-SAP00-INFRASTRUCTURE\"
+$rgname = "DEV-WEEU-SAP00-INFRASTRUCTURE"
+$dirname = "LANDSCAPE\DEV-WEEU-SAP00-INFRASTRUCTURE\"
 
 Remove-TfDeploymentItems -rgName $rgname -dirname $dirname
 
-$rgname = "PROD-WEEU-SAP_LIBRARY"
-$dirname = "LIBRARY\PROD-WEEU-SAP_LIBRARY\"
+$rgname = "DEV-WEEU-SAP_LIBRARY"
+$dirname = "LIBRARY\DEV-WEEU-SAP_LIBRARY\"
 
 Remove-TfDeploymentItems -rgName $rgname -dirname $dirname
 

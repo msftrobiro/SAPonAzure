@@ -48,8 +48,19 @@ Licensed under the MIT license.
     [IO.FileInfo] $fInfo = $Parameterfile
     $Environment = ($fInfo.Name -split "-")[0]
 
+    if ($null -ne $iniContent[$Environment] ) {
+        $sub = $iniContent[$Environment]["subscription"] 
+    }
+    else {
+        $Category1 = @{"subscription" = "" }
+        $iniContent += @{$Environment = $Category1 }
+        Out-IniFile -InputObject $iniContent -FilePath $filePath
+                
+    }
     # Subscription
+
     $sub = $iniContent[$Environment]["subscription"] 
+
     $repo = $iniContent["Common"]["repo"]
     $changed = $false
 

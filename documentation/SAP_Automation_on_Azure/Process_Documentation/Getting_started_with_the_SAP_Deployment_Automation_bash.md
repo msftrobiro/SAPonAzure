@@ -28,7 +28,7 @@ For deploying the supporting infrastructure (Deployer, Library and Workload zone
 
 ${DEPLOYMENT_REPO_PATH}deploy/scripts/install_environment
 
--d DEPLOYER/PROD-WEEU-DEP00-INFRASTRUCTURE/PROD-WEEU-DEP00-INFRASTRUCTURE.json -l LIBRARY/PROD-WEEU-SAP_LIBRARY/PROD-WEEU-SAP_LIBRARY.json -e LANDSCAPE/PROD-WEEU-SAP00-INFRASTRUCTURE/PROD-WEEU-SAP00-INFRASTRUCTURE.json
+-d DEPLOYER/DEV-WEEU-DEP00-INFRASTRUCTURE/DEV-WEEU-DEP00-INFRASTRUCTURE.json -l LIBRARY/DEV-WEEU-SAP_LIBRARY/DEV-WEEU-SAP_LIBRARY.json -e LANDSCAPE/DEV-WEEU-SAP01-INFRASTRUCTURE/DEV-WEEU-SAP00-INFRASTRUCTURE.json
 
 The script will deploy the deployment infrastructure and create the Azure keyvault for storing the Service Principal details. When prompted for the environment details enter “PROD” and then enter the Service Principal details. The script will them deploy the rest of the resources required.
 
@@ -37,5 +37,5 @@ The script will deploy the deployment infrastructure and create the Azure keyvau
 For deploying the SAP system navigate to the folder containing the parameter file and use the installer.sh script.
 
 ```bash
-${DEPLOYMENT_REPO_PATH}deploy/scripts/installer.sh -p PROD-WEEU-SAP00-ZZZ.json -t sap_system
+${DEPLOYMENT_REPO_PATH}deploy/scripts/installer.sh -p DEV-WEEU-SAP01-ZZZ.json -t sap_system
 ```

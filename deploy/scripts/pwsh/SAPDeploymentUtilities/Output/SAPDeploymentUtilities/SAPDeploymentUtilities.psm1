@@ -132,8 +132,19 @@ Licensed under the MIT license.
     [IO.FileInfo] $fInfo = $Parameterfile
     $Environment = ($fInfo.Name -split "-")[0]
 
+    if ($null -ne $iniContent[$Environment] ) {
+        $sub = $iniContent[$Environment]["subscription"] 
+    }
+    else {
+        $Category1 = @{"subscription" = "" }
+        $iniContent += @{$Environment = $Category1 }
+        Out-IniFile -InputObject $iniContent -FilePath $filePath
+                
+    }
     # Subscription
+
     $sub = $iniContent[$Environment]["subscription"] 
+
     $repo = $iniContent["Common"]["repo"]
     $changed = $false
 
@@ -329,10 +340,23 @@ Licensed under the MIT license.
 
     $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
     
-    $iniContent[$combined]["Landscape"] = $envkey
-    $iniContent[$combined]["Deployer"] = $key
+    try {
+        if ($null -ne $iniContent[$combined] ) {
+            $iniContent[$combined]["Landscape"] = $envkey
+            $iniContent[$combined]["Deployer"] = $key
+        }
+        else {
+            $Category1 = @{"Landscape" = $envkey; "Deployer" = $key }
+            $iniContent += @{$combined = $Category1 }
+            Out-IniFile -InputObject $iniContent -FilePath $filePath
+                    
+        }
+                
+    }
+    catch {
+        
+    }
 
-    Out-IniFile -InputObject $iniContent -FilePath $filePath
 
     Set-Location -Path $fInfo.Directory.FullName
     New-Deployer -Parameterfile $fInfo.Name 
@@ -343,7 +367,18 @@ Licensed under the MIT license.
 
     $ans = Read-Host -Prompt "Do you want to enter the Keyvault secrets Y/N?"
     if ("Y" -eq $ans) {
-        $vault = $iniContent[$Environment]["Vault"]
+        $vault = ""
+        if ($null -ne $iniContent[$Environment] ) {
+            $vault = $iniContent[$Environment]["Vault"]
+        }
+
+        if(($null -eq $vault ) -or ("" -eq $vault))        {
+            $vault = Read-Host -Prompt "Please enter the vault name"
+            $iniContent[$Environment]["Vault"] = $vault 
+            Out-IniFile -InputObject $iniContent -FilePath $filePath
+    
+        }
+
         Set-Secrets -Environment $Environment -VaultName $vault
         
     }
@@ -430,24 +465,27 @@ Licensed under the MIT license.
     $environmentname = ($fInfo.Name -split "-")[0]
 
     # Subscription
-    $sub = $iniContent[$environmentname]["subscription"] 
-    $repo = $iniContent["Common"]["repo"]
-    $changed = $false
-
-    if ($null -eq $sub -or "" -eq $sub) {
+    try {
+        $sub = $iniContent[$Environment]["subscription"] 
+        
+    }
+    catch {
         $sub = Read-Host -Prompt "Please enter the subscription"
-        $iniContent[$environmentname]["subscription"] = $sub
+        $iniContent[$Environment]["subscription"] = $sub
         $changed = $true
+        
     }
 
-    if ($null -eq $repo -or "" -eq $repo) {
-        $repo = Read-Host -Prompt "Please enter the sap-hana repository path"
+    try {
+        $repo = $iniContent["Common"]["repo"]
+    }
+    catch {
         $iniContent["Common"]["repo"] = $repo
         $changed = $true
     }
 
     if ($changed) {
-        Out-IniFile -InputObject $iniContent -FilePath $filePath
+         Out-IniFile -InputObject $iniContent -FilePath $filePath
     }
 
     $terraform_module_directory = $repo + "\deploy\terraform\bootstrap\sap_library"

@@ -78,10 +78,23 @@ Licensed under the MIT license.
 
     $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
     
-    $iniContent[$combined]["Landscape"] = $envkey
-    $iniContent[$combined]["Deployer"] = $key
+    try {
+        if ($null -ne $iniContent[$combined] ) {
+            $iniContent[$combined]["Landscape"] = $envkey
+            $iniContent[$combined]["Deployer"] = $key
+        }
+        else {
+            $Category1 = @{"Landscape" = $envkey; "Deployer" = $key }
+            $iniContent += @{$combined = $Category1 }
+            Out-IniFile -InputObject $iniContent -FilePath $filePath
+                    
+        }
+                
+    }
+    catch {
+        
+    }
 
-    Out-IniFile -InputObject $iniContent -FilePath $filePath
 
     Set-Location -Path $fInfo.Directory.FullName
     New-Deployer -Parameterfile $fInfo.Name 
@@ -92,7 +105,18 @@ Licensed under the MIT license.
 
     $ans = Read-Host -Prompt "Do you want to enter the Keyvault secrets Y/N?"
     if ("Y" -eq $ans) {
-        $vault = $iniContent[$Environment]["Vault"]
+        $vault = ""
+        if ($null -ne $iniContent[$Environment] ) {
+            $vault = $iniContent[$Environment]["Vault"]
+        }
+
+        if(($null -eq $vault ) -or ("" -eq $vault))        {
+            $vault = Read-Host -Prompt "Please enter the vault name"
+            $iniContent[$Environment]["Vault"] = $vault 
+            Out-IniFile -InputObject $iniContent -FilePath $filePath
+    
+        }
+
         Set-Secrets -Environment $Environment -VaultName $vault
         
     }

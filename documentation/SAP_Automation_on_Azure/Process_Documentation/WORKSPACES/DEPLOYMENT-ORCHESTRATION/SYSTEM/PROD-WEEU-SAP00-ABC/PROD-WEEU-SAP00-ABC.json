@@ -56,18 +56,38 @@
     "vnets": {
       "sap": {
         "subnet_admin": {
-          "prefix": "<arm_id>"
+          "arm_id": "<arm_id>",
+          "nsg": {
+            "arm_id": "<arm_id>"
+          }
         },
         "subnet_app": {
-          "prefix": "<arm_id>"
+          "arm_id": "<arm_id>",
+          "nsg": {
+            "arm_id": "<arm_id>"
+          }
         },
         "subnet_db": {
-          "prefix": "<arm_id>"
+          "arm_id": "<arm_id>",
+          "nsg": {
+            "arm_id": "<arm_id>"
+          }
+        },
+        "subnet_web": {
+          "arm_id": "<arm_id>",
+          "nsg": {
+            "arm_id": "<arm_id>"
+          }
         }
       }
     }
   },
   "options": {
     "resource_offset": 1
+  },
+  "key_vault": {
+    "kv_user_id": "<arm_id>",
+    "kv_prvt_id": "<arm_id>",
+    "kv_spn_id": "<arm_id>"
   }
 }

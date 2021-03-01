@@ -41,16 +41,16 @@
     "vnets": {
       "sap": {
         "subnet_admin": {
-          "prefix": "10.100.0.0/27"
+          "prefix": "10.110.0.0/27"
         },
         "subnet_app": {
-          "prefix": "10.100.0.32/27"
+          "prefix": "10.110.0.32/27"
         },
         "subnet_db": {
-          "prefix": "10.100.0.64/27"
+          "prefix": "10.110.0.64/27"
         },
         "subnet_web": {
-          "prefix": "10.100.0.96/27"
+          "prefix": "10.110.0.96/27"
         }
       }
     }

@@ -8,31 +8,31 @@
 
 The repository contains a folder [WORKSPACES](WORKSPACES) that has a set of sample parameter files that can be used to deploy the supporting components and the SAP System. The folder structure is documented here: [Deployment folder structure](Deployment_folder_structure.md)
 
-The name of the environment is **PROD** and it is deployed to West Europe. The SID of the application is ZZZ.
+The name of the environment is **DEV** and it is deployed to West Europe. The SID of the application is ZZZ.
 
 The sample deployment will create a deployment environment, the shared library for state management, the workload virtual network and a SAP system.
 
 ### **Deployment environment**
 
-The deployment environment configuration is specified in [Deployment Environment](WORKSPACES/DEPLOYMENT-ORCHESTRATION/DEPLOYER/PROD-WEEU-DEP00-INFRASTRUCTURE/PROD-WEEU-DEP00-INFRASTRUCTURE.json)
+The deployment environment configuration is specified in [Deployment Environment](WORKSPACES/DEPLOYMENT-ORCHESTRATION/DEPLOYER/DEV-WEEU-DEP00-INFRASTRUCTURE/DEV-WEEU-DEP00-INFRASTRUCTURE.json)
 
 The deployment will contain an Ubuntu Virtual machine, and the key vault to store the SPN secrets.
 
 ### **Shared Library**
 
-The shared library configuration is specified in [Library Environment](WORKSPACES/DEPLOYMENT-ORCHESTRATION/LIBRARY/PROD-WEEU-SAP_LIBRARY/PROD-WEEU-SAP_LIBRARY.json)
+The shared library configuration is specified in [Library Environment](WORKSPACES/DEPLOYMENT-ORCHESTRATION/LIBRARY/DEV-WEEU-SAP_LIBRARY/DEV-WEEU-SAP_LIBRARY.json)
 
 The deployment will create two storage accounts and two key vaults (which can be ignored for now)
 
 ### **Workload Zone**
 
-The workload zone configuration is specified in [Workload Zone Environment](WORKSPACES/DEPLOYMENT-ORCHESTRATION/LANDSCAPE/PROD-WEEU-SAP00-INFRASTRUCTURE/PROD-WEEU-SAP00-INFRASTRUCTURE.json)
+The workload zone configuration is specified in [Workload Zone Environment](WORKSPACES/DEPLOYMENT-ORCHESTRATION/LANDSCAPE/DEV-WEEU-SAP00-INFRASTRUCTURE/DEV-WEEU-SAP01-INFRASTRUCTURE.json)
 
 The deployment will create a Virtual network and a storage accounts for boot diagnostics and two key vaults (which can be ignored for now). The deployment will also populate the keyvault in the deployment environment with the default credentials for the Virtual Machines
 
 ### **SAP System**
 
-The SAP System configuration is specified in [SAP System](WORKSPACES/DEPLOYMENT-ORCHESTRATION/SYSTEM/PROD-WEEU-SAP00-ZZZ/PROD-WEEU-SAP00-ZZZ.json)
+The SAP System configuration is specified in [SAP System](WORKSPACES/DEPLOYMENT-ORCHESTRATION/SYSTEM/DEV-WEEU-SAP00-ZZZ/DEV-WEEU-SAP01-ZZZ.json)
 
 The deployment will create a SAP system that has an Hana database server, 2 application servers, 1 central services server and a web dispatcher and two key vaults (which can be ignored for now).
 
@@ -43,7 +43,7 @@ The deployment will require using a Service principal.
 From a privilaged account, create an SPN.
 
 ```bash
-az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" --name="Deployment Account-NP"
+az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" --name="Deployment Account-DEV"
 ```
 
 2. Record the credential outputs.

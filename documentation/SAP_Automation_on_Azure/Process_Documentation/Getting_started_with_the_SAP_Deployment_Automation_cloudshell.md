@@ -14,6 +14,10 @@ Open the cloud shell and use bash.
 
 ```bash
 git clone <https://github.com/Azure/sap-hana.git> 
+
+cd sap-hana
+
+git checkout beta
 ```
 
 4. Export the required environment variables

@@ -1,0 +1,16 @@
+{
+    "authentication": {
+        "username": "azureadm"
+    },
+    "infrastructure": {
+        "environment": "PROD",
+        "region": "westeurope",
+        "vnets": {
+            "sap": {
+                "name" :"SAP00",
+                "address_space": "10.100.0.0/24"
+            }
+        }
+    },
+    "options": {}
+}

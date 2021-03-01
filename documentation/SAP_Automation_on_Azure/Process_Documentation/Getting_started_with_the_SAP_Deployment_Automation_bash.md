@@ -10,6 +10,9 @@ Connect to the deployer vm using ssh.
 ```bash
 export DEPLOYMENT_REPO_PATH=~/Azure_SAP_Automated_Deployment/sap-hana/
 export ARM_SUBSCRIPTION_ID=8d8422a3-a9c1-4fe9-b880-adcf61557c71
+
+cd sap-hana
+git checkout beta
 ```
 
 3. Copy the sample parameter folders with

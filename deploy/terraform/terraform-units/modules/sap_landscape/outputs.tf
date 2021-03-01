@@ -80,5 +80,5 @@ output "dns_info_vms" {
 }
 
 output "route_table_id" {
-  value = azurerm_route_table.rt[0].id //local.vnet_sap_exists ? "" : azurerm_route_table.rt[0].id
+  value = local.vnet_sap_exists ? "" : azurerm_route_table.rt[0].id
 }

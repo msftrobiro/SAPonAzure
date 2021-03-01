@@ -62,3 +62,10 @@ variable "diagnostics_storage_account" {
     arm_id = ""
   }
 }
+
+variable "witness_storage_account" {
+  description = "Storage account information for witness storage account"
+  default     = {
+    arm_id = ""
+  }
+}

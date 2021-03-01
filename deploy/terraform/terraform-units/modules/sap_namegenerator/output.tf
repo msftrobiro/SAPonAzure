@@ -9,7 +9,11 @@ output naming {
     storageaccount_names = {
       DEPLOYER = local.deployer_storageaccount_name
       SDU      = local.sdu_storageaccount_name
-      VNET     = local.landscape_storageaccount_name
+      VNET     = {
+        landscape_storageaccount_name = local.landscape_storageaccount_name
+        witness_storageaccount_name   = local.witness_storageaccount_name
+      }
+
       LIBRARY = {
         library_storageaccount_name        = local.library_storageaccount_name
         terraformstate_storageaccount_name = local.terraformstate_storageaccount_name

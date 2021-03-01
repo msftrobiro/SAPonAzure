@@ -262,6 +262,7 @@ variable resource_suffixes {
     "web_avset"           = "web-avset"
     "web_subnet"          = "web-subnet"
     "web_subnet_nsg"      = "webSubnet-nsg"
+    "witness"             = "-witness"
 
   }
 }

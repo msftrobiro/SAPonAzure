@@ -19,6 +19,8 @@ Once the pre-requisites are met, proceed with the next steps.
    ```bash
     git clone https://github.com/Azure/sap-hana.git
     
+    cd sap-hana
+    
     git checkout beta
     ```
 

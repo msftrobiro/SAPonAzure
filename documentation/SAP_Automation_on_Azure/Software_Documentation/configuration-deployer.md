@@ -5,21 +5,16 @@ deploy/terraform/bootstrap/sap_deployer/deployer.json
 deploy/terraform/run/sap_deployer/deployer_full.json
 deploy/terraform/run/sap_deployer/deployer.json
 -->
-### <img src="../assets/images/UnicornSAPBlack256x256.png" width="64px"> SAP Deployment Automation Framework <!-- omit in toc -->
-<br/><br/>
+# ![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework** #
 
-# Configuration - Deployer with Public IP <!-- omit in toc -->
+## Configuration - Deployer with Public IP <!-- omit in toc --> ##
 
-<br/>
-
-## Table of Contents <!-- omit in toc -->
-<br/>
+## Table of Contents <!-- omit in toc --> ##
 
 - [Parameter file construction](#parameter-file-construction)
 - [Examples](#examples)
   - [Minimal (Default) input parameter JSON](#minimal-default-input-parameter-json)
   - [Complete input parameter JSON](#complete-input-parameter-json)
-
 
 <br/><br/><br/><br/>
 

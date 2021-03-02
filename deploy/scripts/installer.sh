@@ -178,25 +178,25 @@ else
 fi
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
-    option="${DEPLOYMENT_REPO_PATH}"
+    option="DEPLOYMENT_REPO_PATH"
     missing
     exit -1
 fi
 
 if [ ! -n "${ARM_SUBSCRIPTION_ID}" ]; then
-    option="${ARM_SUBSCRIPTION_ID}"
+    option="ARM_SUBSCRIPTION_ID"
     missing
     exit -1
 fi
 
 if [ ! -n "${REMOTE_STATE_RG}" ]; then
-    option="${REMOTE_STATE_RG}"
+    option="REMOTE_STATE_RG"
     missing
     exit -1
 fi
 
 if [ ! -n "${REMOTE_STATE_SA}" ]; then
-    option="${REMOTE_STATE_SA}"
+    option="REMOTE_STATE_SA"
     missing
     exit -1
 fi

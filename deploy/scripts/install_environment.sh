@@ -143,7 +143,7 @@ if [ ! -n "$tf" ]; then
     exit -1
 fi
 
-az=$(az version | grep azure-cli)
+az=$(az --version | grep azure-cli)
 if [ ! -n "${az}" ]; then 
     echo ""
     echo "#########################################################################################"

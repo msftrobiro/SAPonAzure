@@ -66,6 +66,14 @@ Licensed under the MIT license.
     $saName = $iniContent[$environmentname]["REMOTE_STATE_SA"] 
     $tfstate_resource_id = $iniContent[$environmentname]["tfstate_resource_id"] 
 
+    Write-Host    $deployer_tfstate_key
+    Write-Host $landscape_tfstate_key 
+
+    Write-Host $rgName
+    Write-Host $saName
+    Write-Host $tfstate_resource_id 
+
+
     # Subscription
     $sub = $iniContent[$environmentname]["subscription"] 
     $repo = $iniContent["Common"]["repo"]

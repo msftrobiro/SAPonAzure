@@ -54,24 +54,27 @@ Licensed under the MIT license.
     $environmentname = ($fInfo.Name -split "-")[0]
 
     # Subscription
-    $sub = $iniContent[$environmentname]["subscription"] 
-    $repo = $iniContent["Common"]["repo"]
-    $changed = $false
-
-    if ($null -eq $sub -or "" -eq $sub) {
+    try {
+        $sub = $iniContent[$Environment]["subscription"] 
+        
+    }
+    catch {
         $sub = Read-Host -Prompt "Please enter the subscription"
-        $iniContent[$environmentname]["subscription"] = $sub
+        $iniContent[$Environment]["subscription"] = $sub
         $changed = $true
+        
     }
 
-    if ($null -eq $repo -or "" -eq $repo) {
-        $repo = Read-Host -Prompt "Please enter the sap-hana repository path"
+    try {
+        $repo = $iniContent["Common"]["repo"]
+    }
+    catch {
         $iniContent["Common"]["repo"] = $repo
         $changed = $true
     }
 
     if ($changed) {
-        Out-IniFile -InputObject $iniContent -FilePath $filePath
+         Out-IniFile -InputObject $iniContent -FilePath $filePath
     }
 
     $terraform_module_directory = $repo + "\deploy\terraform\bootstrap\sap_library"

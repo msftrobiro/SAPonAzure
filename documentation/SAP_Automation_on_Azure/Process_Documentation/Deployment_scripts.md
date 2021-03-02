@@ -61,7 +61,7 @@ ${DEPLOYMENT_REPO_PATH}scripts/install_library.sh
 -d ../../DEPLOYER/PROD-WEEU-DEP00-INFRASTRUCTURE/ 
 ```
 
-## **install_environment.sh**
+## **prepare_region.sh**
 
 Wrapper script that:
 
@@ -75,7 +75,7 @@ Wrapper script that:
 Usage:
 
 ```bash
-${DEPLOYMENT_REPO_PATH}scripts/install_environment.sh
+${DEPLOYMENT_REPO_PATH}scripts/prepare_region.sh
 
 Parameters:
 -d deployer parameter file
@@ -87,7 +87,7 @@ Parameters:
 Example
 
 ```bash
-${DEPLOYMENT_REPO_PATH}scripts/install_environment.sh 
+${DEPLOYMENT_REPO_PATH}scripts/prepare_region.sh 
 -d DEPLOYER/PROD-WEEU-DEP00-INFRASTRUCTURE/PROD-WEEU-DEP00-INFRASTRUCTURE.json \
 -l LIBRARY/PROD-WEEU-SAP_LIBRARY/PROD-WEEU-SAP_LIBRARY.json \
 -e LANDSCAPE/PROD-WEEU-SAP00-INFRASTRUCTURE/PROD-WEEU-SAP00-INFRASTRUCTURE.json
@@ -161,14 +161,14 @@ Open a Powershell prompt with Administrative privileges and run the:
 Import-Module SAPDeploymentUtilities.psd1
 ```
 
-### **New-Deployer**
+### **New-SAPDeployer**
 
 This cmdlet bootstraps the deployer.
 
 Usage:
 
 ```Powershell
-New-Deployer -Parameterfile <>
+New-SAPDeployer -Parameterfile <>
 
 Parameters:
 -Parameterfile parameter file for the deployer
@@ -177,23 +177,23 @@ Parameters:
 Example:
 
 ```Powershell
-New-Deployer -Parameterfile .\DEPLOYER\PROD-WEEU-DEP00-INFRASTRUCTURE\PROD-WEEU-DEP00-INFRASTRUCTURE.json
+New-SAPDeployer -Parameterfile .\DEPLOYER\PROD-WEEU-DEP00-INFRASTRUCTURE\PROD-WEEU-DEP00-INFRASTRUCTURE.json
 ```
 
 Help:
 
 ```Powershell
-Get-Help New-Deployer -Examples
+Get-Help New-SAPDeployer -Examples
 ```
 
-### **New-Library**
+### **New-SAPLibrary**
 
 This cmdlet bootstraps the deployer.
 
 Usage:
 
 ```Powershell
-New-Library -Parameterfile <> -DeployerFolderRelativePath <>
+New-SAPLibrary -Parameterfile <> -DeployerFolderRelativePath <>
 
 Parameters:
 -Parameterfile This is the parameter file for the library
@@ -203,16 +203,16 @@ Parameters:
 Example:
 
 ```Powershell
-New-Library -Parameterfile .\PROD-WEEU-SAP_LIBRARY.json -DeployerFolderRelativePath ..\..\DEPLOYER\PROD-WEEU-DEP00-INFRASTRUCTURE\
+New-SAPLibrary -Parameterfile .\PROD-WEEU-SAP_LIBRARY.json -DeployerFolderRelativePath ..\..\DEPLOYER\PROD-WEEU-DEP00-INFRASTRUCTURE\
 ```
 
 Help:
 
 ```Powershell
-Get-Help New-Library -Examples
+Get-Help New-SAPLibrary -Examples
 ```
 
-## **New-Environment**
+## **New-SAPAutomationRegion**
 
 Wrapper cmdlet that deploys a full new SAP Workload Zone (Deployer, Library and Workload VNet), using the following steps:
 
@@ -226,7 +226,7 @@ Wrapper cmdlet that deploys a full new SAP Workload Zone (Deployer, Library and 
 Usage:
 
 ```Powershell
-New-Environment -DeployerParameterfile <> -LibraryParameterfile <>
+New-SAPAutomationRegion -DeployerParameterfile <> -LibraryParameterfile <>
 `     `-EnvironmentParameterfile <>
 
 Parameters:
@@ -238,23 +238,23 @@ Parameters:
 Example:
 
 ```Powershell
-New-Environment -DeployerParameterfile .\DEPLOYER\PROD-WEEU-DEP00-INFRASTRUCTURE\PROD-WEEU-DEP00-INFRASTRUCTURE.json -LibraryParameterfile .LIBRARY\PROD-WEEU-SAP_LIBRARY\PROD-WEEU-SAP_LIBRARY.json -EnvironmentParameterfile .\LANDSCAPE\PROD-WEEU-SAP00-INFRASTRUCTURE\PROD-WEEU-SAP00-INFRASTRUCTURE.json
+New-SAPAutomationRegion -DeployerParameterfile .\DEPLOYER\PROD-WEEU-DEP00-INFRASTRUCTURE\PROD-WEEU-DEP00-INFRASTRUCTURE.json -LibraryParameterfile .LIBRARY\PROD-WEEU-SAP_LIBRARY\PROD-WEEU-SAP_LIBRARY.json -EnvironmentParameterfile .\LANDSCAPE\PROD-WEEU-SAP00-INFRASTRUCTURE\PROD-WEEU-SAP00-INFRASTRUCTURE.json
 ```
 
 Help:
 
 ```Powershell
-Get-Help New-Environment -Examples
+Get-Help New-SAPAutomationRegion -Examples
 ```
 
-## **New-System**
+## **New-SAPSystem**
 
 Deployment helper, the cmdlet can be used to deploy the deployer, the library, the landscape or the system (SID)
 
 Usage:
 
 ```Powershell
-$New-System -Parameterfile <> -Type <>
+$New-SAPSystem -Parameterfile <> -Type <>
 
 Parameters:
 -Parameterfile This is the parameter file for the system
@@ -264,17 +264,17 @@ Parameters:
 Example:
 
 ```Powershell
-$New-System -Parameterfile SYSTEM/PROD-WEEU-SAP00-ABC / PROD-WEEU-SAP00-ABC.json -Type sap_system
+$New-SAPSystem -Parameterfile SYSTEM/PROD-WEEU-SAP00-ABC / PROD-WEEU-SAP00-ABC.json -Type sap_system
 ```
 
-## **Set-secrets**
+## **Set-SAPSPNSecrets**
 
 Helper cmdlet to set the SPN secrets in Azure keyvault.
 
 Usage:
 
 ```Powershell
-Set-Secrets -Environment <> -VaultName <vaultname> -Client_id <appId> -Client_secret <clientsecret> -Tenant <TenantID> 
+Set-SAPSPNSecrets -Environment <> -VaultName <vaultname> -Client_id <appId> -Client_secret <clientsecret> -Tenant <TenantID> 
 
 Parameters:
 -Environment environment name
@@ -287,5 +287,5 @@ Parameters:
 Example:
 
 ```Powershell
-Set-Secrets -Environment PROD -VaultName prodweeuusrabc -Client_id 11111111-1111-1111-1111-111111111111 -Client_secret SECRETPassword -Tenant 222222222-2222-2222-2222-222222222222
+Set-SAPSPNSecrets -Environment PROD -VaultName prodweeuusrabc -Client_id 11111111-1111-1111-1111-111111111111 -Client_secret SECRETPassword -Tenant 222222222-2222-2222-2222-222222222222
 ```

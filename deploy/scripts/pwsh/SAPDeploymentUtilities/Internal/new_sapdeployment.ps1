@@ -1,4 +1,4 @@
-function New-System {
+function New-SAPSystem {
     <#
     .SYNOPSIS
         Deploy a new system
@@ -15,7 +15,7 @@ function New-System {
     #
     # Import the module
     Import-Module "SAPDeploymentUtilities.psd1"
-    New-System -Parameterfile .\PROD-WEEU-SAP00-ZZZ.json -Type sap_system
+    New-SAPSystem -Parameterfile .\PROD-WEEU-SAP00-ZZZ.json -Type sap_system
 
     .EXAMPLE 
 
@@ -23,7 +23,7 @@ function New-System {
     #
     # Import the module
     Import-Module "SAPDeploymentUtilities.psd1"
-    New-System -Parameterfile .\PROD-WEEU-SAP_LIBRARY.json -Type sap_library
+    New-SAPSystem -Parameterfile .\PROD-WEEU-SAP_LIBRARY.json -Type sap_library
 
     
 .LINK
@@ -52,41 +52,49 @@ Licensed under the MIT license.
     $mydocuments = [environment]::getfolderpath("mydocuments")
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
     $iniContent = Get-IniContent $filePath
+    $changed = $false
 
     [IO.FileInfo] $fInfo = $Parameterfile
-    $environmentname = ($fInfo.Name -split "-")[0]
+    $environment = ($fInfo.Name -split "-")[0]
     $region = ($fInfo.Name -split "-")[1]
-    $combined = $environmentname + $region
+    $environmentname = $environment + $region
 
     $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
-    $deployer_tfstate_key = $iniContent[$combined]["Deployer"]
-    $landscape_tfstate_key = $iniContent[$combined]["Landscape"]
+    if("sap_deployer" -eq $Type) {
+        $iniContent[$region]["Deployer"]  = $key
+        Out-IniFile -InputObject $iniContent -FilePath $filePath
+        $iniContent = Get-IniContent $filePath
+    }
+    else {
+        $deployer_tfstate_key = $iniContent[$region]["Deployer"]    
+    }
+    
 
-    $rgName = $iniContent[$environmentname]["REMOTE_STATE_RG"] 
-    $saName = $iniContent[$environmentname]["REMOTE_STATE_SA"] 
-    $tfstate_resource_id = $iniContent[$environmentname]["tfstate_resource_id"] 
+    if($Type -eq "sap_system") {
+        if ($null -ne $iniContent[$environmentname] ) {
+            $landscape_tfstate_key = $iniContent[$environmentname]["Landscape"]
+        }
+        else {
+            Write-Host -ForegroundColor Red "The workload zone for " $environment "in " $region " is not deployed"
+        }
+    }
 
-    Write-Host    $deployer_tfstate_key
-    Write-Host $landscape_tfstate_key 
-
-    Write-Host $rgName
-    Write-Host $saName
-    Write-Host $tfstate_resource_id 
-
+    $rgName = $iniContent[$region]["REMOTE_STATE_RG"] 
+    $saName = $iniContent[$region]["REMOTE_STATE_SA"] 
+    $tfstate_resource_id = $iniContent[$region]["tfstate_resource_id"] 
 
     # Subscription
-    $sub = $iniContent[$environmentname]["subscription"] 
+    $sub = $iniContent[$region]["subscription"] 
     $repo = $iniContent["Common"]["repo"]
-    $changed = $false
 
     if ($null -eq $sub -or "" -eq $sub) {
         $sub = Read-Host -Prompt "Please enter the subscription"
-        $iniContent[$environmentname]["Subscription"] = $sub
+        $iniContent[$region]["Subscription"] = $sub
         $changed = $true
     }
 
     if ($null -eq $repo -or "" -eq $repo) {
-        $repo = Read-Host -Prompt "Please enter the subscription"
+        $repo = Read-Host -Prompt "Please enter the path to the repo"
         $iniContent["Common"]["repo"] = $repo
         $changed = $true
     }
@@ -102,7 +110,6 @@ Licensed under the MIT license.
     $Command = " init -upgrade=true -force-copy -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$key"" " +  $terraform_module_directory
 
     if (Test-Path ".terraform" -PathType Container) {
-
         $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
 
         if ("azurerm" -eq $jsonData.backend.type) {

@@ -21,7 +21,8 @@ function showhelp {
     echo "#########################################################################################"
     echo "#                                                                                       #"
     echo "#                                                                                       #" 
-    echo "#   This file contains the logic to deploy an environment to support SAP workloads.     #" 
+    echo "#   This file contains the logic to prepare an Azure region to support the              #" 
+    echo "#   SAP Deployment Automation by preparing the deployer and the library.                #" 
     echo "#   The script experts the following exports:                                           #" 
     echo "#                                                                                       #" 
     echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #" 
@@ -34,10 +35,9 @@ function showhelp {
     echo "#   ~/.sap_deployment_automation folder                                                 #" 
     echo "#                                                                                       #" 
     echo "#                                                                                       #" 
-    echo "#   Usage: install_environment.sh                                                       #"
+    echo "#   Usage: prepare_region.sh                                                            #"
     echo "#    -d deployer parameter file                                                         #"
     echo "#    -l library parameter file                                                          #"
-    echo "#    -e environment parameter file                                                      #"
     echo "#    -h Show help                                                                       #"
     echo "#                                                                                       #" 
     echo "#   Example:                                                                            #" 
@@ -45,7 +45,6 @@ function showhelp {
     echo "#   [REPO-ROOT]deploy/scripts/install_environment.sh \                                  #"
 	echo "#      -d DEPLOYER/PROD-WEEU-DEP00-INFRASTRUCTURE/PROD-WEEU-DEP00-INFRASTRUCTURE.json \ #"
 	echo "#      -l LIBRARY/PROD-WEEU-SAP_LIBRARY/PROD-WEEU-SAP_LIBRARY.json \                    #"
-	echo "#      -e LANDSCAPE/PROD-WEEU-SAP00-INFRASTRUCTURE/PROD-WEEU-SAP00-INFRASTRUCTURE.json  #" 
     echo "#                                                                                       #" 
     echo "#                                                                                       #" 
     echo "#########################################################################################"
@@ -58,7 +57,7 @@ function missing {
     echo "#                                                                                       #" 
     echo "#   Missing : ${val}                                  #"
     echo "#                                                                                       #" 
-    echo "#   Usage: install_environment.sh                                                       #"
+    echo "#   Usage: prepare_region.sh                                                            #"
     echo "#      -d deployer parameter file                                                       #"
     echo "#      -l library parameter file                                                        #"
     echo "#      -e environment parameter file                                                    #"
@@ -74,7 +73,6 @@ while getopts ":d:l:e:h" option; do
     case "${option}" in
         d) deployer_parameter_file=${OPTARG};;
         l) library_parameter_file=${OPTARG};;
-        e) environment_parameter_file=${OPTARG};;
         h) showhelp
            exit 3
            ;;
@@ -89,14 +87,13 @@ if [ -z $deployer_parameter_file ]; then
     exit -1
 fi
 
+# Read environment
+readarray -d '-' -t environment<<<"${deployer_parameter_file}"
+readarray -d '-' -t -s 1 region<<<"${deployer_parameter_file}"
+
+
 if [ -z $library_parameter_file ]; then
     missing_value='library parameter file'
-    missing
-    exit -1
-fi
-
-if [ -z $environment_parameter_file ]; then
-    missing_value='environment parameter file'
     missing
     exit -1
 fi
@@ -164,12 +161,10 @@ deployer_dirname=$(dirname "${deployer_parameter_file}")
 deployer_file_parametername=$(basename "${deployer_parameter_file}")
 deployer_key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
 deployer_config_information="${automation_config_directory}""${deployer_key}"
+library_config_information="${automation_config_directory}"${region}"
 
 library_dirname=$(dirname "${library_parameter_file}")
 library_file_parametername=$(basename "${library_parameter_file}")
-
-environment_dirname=$(dirname "${environment_parameter_file}")
-environment_file_parametername=$(basename "${environment_parameter_file}")
 
 #Calculate the depth of the library json folder relative to the root folder from which the code is called
 readarray -d '/' -t levels<<<"${library_dirname}"
@@ -219,7 +214,7 @@ cd "${curdir}"
 read -p "Do you want to specify the keyvault secrets Y/N?"  ans
 answer=${ans^^}
 if [ $answer == 'Y' ]; then
-    temp=$(grep "keyvault=" $deployer_config_information)
+    temp=$(grep "keyvault=" $library_config_information)
     if [ ! -z $temp ]
     then
         # Key vault was specified in ~/.sap_deployment_automation in the deployer file
@@ -282,19 +277,3 @@ if [ $? -eq 255 ]
     exit $?
 fi 
 cd "${curdir}"
-
-echo "#########################################################################################"
-echo "#                                                                                       #" 
-echo "#                           Deploying the environment                                   #"
-echo "#                                                                                       #" 
-echo "#########################################################################################"
-echo ""
-
-cd "${environment_dirname}"
-"${DEPLOYMENT_REPO_PATH}"deploy/scripts/installer.sh -p $environment_file_parametername  -i true -t sap_landscape
-if [ $? -eq 255 ]
-    then
-    exit $?
-fi 
-cd "${curdir}"
-

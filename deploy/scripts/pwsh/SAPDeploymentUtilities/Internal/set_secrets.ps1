@@ -1,5 +1,5 @@
 #>
-Function Set-Secrets {
+Function Set-SAPSPNSecrets {
     <#
     .SYNOPSIS
         Sets the Secrets in Azure Keyvault
@@ -7,7 +7,10 @@ Function Set-Secrets {
     .DESCRIPTION
         Sets the secrets in Azure Keyvault that are required for the deployment automation
 
-    .PARAMETER Environment
+    .PARAMETER Region
+        This is the region name
+
+     .PARAMETER Environment
         This is the name of the environment.
 
     .PARAMETER VAultNAme
@@ -29,7 +32,7 @@ Function Set-Secrets {
     #
     # Import the module
     Import-Module "SAPDeploymentUtilities.psd1"
-    Set-Secrets -Environment PROD -VaultName <vaultname> -Client_id <appId> -Client_secret <clientsecret> -Tenant <TenantID> 
+    Set-SAPSPNSecrets -Environment PROD -VaultName <vaultname> -Client_id <appId> -Client_secret <clientsecret> -Tenant <TenantID> 
 
     
 .LINK
@@ -47,16 +50,18 @@ Licensed under the MIT license.
 #>
     [cmdletbinding()]
     param(
+        #Region
+        [Parameter(Mandatory = $true)][string]$Region,
         #Environment name
         [Parameter(Mandatory = $true)][string]$Environment,
         #Keyvault name
         [Parameter(Mandatory = $true)][string]$VaultName,
         # #SPN App ID
-        [Parameter(Mandatory = $true)][string]$Client_id="",
+        [Parameter(Mandatory = $true)][string]$Client_id = "",
         #SPN App secret
         [Parameter(Mandatory = $true)][string]$Client_secret,
         #Tenant
-        [Parameter(Mandatory = $true)][string]$Tenant=""
+        [Parameter(Mandatory = $true)][string]$Tenant = ""
     )
 
     Write-Host -ForegroundColor green ""
@@ -67,12 +72,18 @@ Licensed under the MIT license.
     $iniContent = Get-IniContent $filePath
 
     # Subscription
-    $sub = $iniContent[$Environment]["Subscription"]
+    $sub = $iniContent[$Region]["subscription"]
+    if ($null -eq $sub -or "" -eq $sub) {
+        $sub = Read-Host -Prompt "Please enter the subscription for the key vault"
+        $iniContent[$region]["subscription"] = $sub
+        $changed = $true
+    }
+
 
     Write-Host "Setting the secrets for " $Environment
 
     # Read keyvault
-    $v = $iniContent[$Environment]["Vault"]
+    $v = $iniContent[$Region]["Vault"]
 
     Write-Host $v
 
@@ -92,12 +103,12 @@ Licensed under the MIT license.
     if ($Client_id -eq "") {
         if ($spnid -eq "" -or $null -eq $spnid) {
             $spnid = Read-Host -Prompt 'SPN App ID:'
-            $iniContent[$Environment]["Client_id"]=$spnid 
+            $iniContent[$Environment]["Client_id"] = $spnid 
         }
     }
     else {
         $spnid = $Client_id
-        $iniContent[$Environment]["Client_id"]=$Client_id
+        $iniContent[$Environment]["Client_id"] = $Client_id
     }
 
     # Read Tenant
@@ -125,23 +136,28 @@ Licensed under the MIT license.
 
     $Secret = ConvertTo-SecureString -String $sub -AsPlainText -Force
     $Secret_name = $Environment + "-subscription-id"
+    Write-Host "Setting the secret "$Secret_name " in vault " $v
     Set-AzKeyVaultSecret -VaultName $v -Name $Secret_name -SecretValue $Secret
 
     $Secret = ConvertTo-SecureString -String $spnid -AsPlainText -Force
     $Secret_name = $Environment + "-client-id"
+    Write-Host "Setting the secret "$Secret_name " in vault " $v
     Set-AzKeyVaultSecret -VaultName $v -Name $Secret_name -SecretValue $Secret
 
 
     $Secret = ConvertTo-SecureString -String $t -AsPlainText -Force
     $Secret_name = $Environment + "-tenant-id"
+    Write-Host "Setting the secret "$Secret_name " in vault " $v
     Set-AzKeyVaultSecret -VaultName $v -Name $Secret_name -SecretValue $Secret
 
     $Secret = ConvertTo-SecureString -String $spnpwd -AsPlainText -Force
     $Secret_name = $Environment + "-client-secret"
+    Write-Host "Setting the secret "$Secret_name " in vault " $v
     Set-AzKeyVaultSecret -VaultName $v -Name $Secret_name -SecretValue $Secret
 
     $Secret = ConvertTo-SecureString -String $sub -AsPlainText -Force
     $Secret_name = $Environment + "-subscription"
+    Write-Host "Setting the secret "$Secret_name + " in vault " + $v
     Set-AzKeyVaultSecret -VaultName $v -Name $Secret_name -SecretValue $Secret
 
 }

@@ -49,10 +49,17 @@ while getopts ":e:c:s:t:h:v:x:d:i" option; do
     esac
 done
 
+# Read environment
+readarray -d '-' -t environment<<<"${parameterfile}"
+readarray -d '-' -t -s 1 region<<<"${parameterfile}"
+
+
 if [ -n "$deployer_paramfile" ]; then
     key=$(echo "$deployer_paramfile" | cut -d. -f1)
     automation_config_directory=~/.sap_deployment_automation/
     deployer_config_information="${automation_config_directory}""${key}"
+    library_config_information="${automation_config_directory}"${region}"
+    
     if [ ! -d "${automation_config_directory}" ]
     then
         # No configuration directory exists
@@ -168,8 +175,8 @@ fi
 
 if [ $vaultname_exists -eq 0 ]
     then
-    sed -i /keyvault/d  "{$deployer_config_information}"
-    echo "keyvault=${vaultname}" >> ${deployer_config_information}
+    sed -i /keyvault/d  "{$library_config_information}"
+    echo "keyvault=${vaultname}" >> ${library_config_information}
 fi
 
 if [ $client_id_exists -eq 0 ]

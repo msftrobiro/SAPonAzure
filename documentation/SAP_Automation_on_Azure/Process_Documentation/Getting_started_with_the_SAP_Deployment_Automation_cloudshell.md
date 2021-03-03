@@ -39,10 +39,10 @@ The deployment will need the Service Principal details (application id, secret a
 
 ## **Deploying the environment**
 
-For deploying the supporting infrastructure (Deployer, Library and Workload zone) use the install_environment.sh script 
+For deploying the supporting infrastructure (Deployer, Library and Workload zone) use the prepare_region.sh script 
 
 ```bash
-${DEPLOYMENT_REPO_PATH}deploy/scripts/install_environment
+${DEPLOYMENT_REPO_PATH}deploy/scripts/prepare_region
 -d DEPLOYER/DEV-WEEU-DEP00-INFRASTRUCTURE/DEV-WEEU-DEP00-INFRASTRUCTURE.json -l LIBRARY/DEV-WEEU-SAP_LIBRARY/DEV-WEEU-SAP_LIBRARY.json -e LANDSCAPE/DEV-WEEU-SAP01-INFRASTRUCTURE/DEV-WEEU-SAP01-INFRASTRUCTURE.json
 ```
 

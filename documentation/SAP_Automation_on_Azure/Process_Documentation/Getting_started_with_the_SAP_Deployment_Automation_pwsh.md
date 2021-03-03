@@ -40,10 +40,10 @@ Import the Powershell module by running the
 Import-Module  C:\Azure_SAP_Automated_Deployment\sap-hana\deploy\scripts\pwsh\SAPDeploymentUtilities\Output\SAPDeploymentUtilities\SAPDeploymentUtilities.psd1
 ```
 
-For deploying the supporting infrastructure (Deployer, Library and Workload zone) use the New-Environment cmdlet
+For deploying the supporting infrastructure (Deployer, Library and Workload zone) use the New-SAPAutomationRegion cmdlet
 
 ```PowerShell
-New-Environment -DeployerParameterfile .\DEPLOYER\DEV-WEEU-DEP00-INFRASTRUCTURE\DEV-WEEU-DEP00-INFRASTRUCTURE.json  -LibraryParameterfile .\LIBRARY\DEV-WEEU-SAP_LIBRARY\DEV-WEEU-SAP_LIBRARY.json -EnvironmentParameterfile .\LANDSCAPE\DEV-WEEU-SAP01-INFRASTRUCTURE\DEV-WEEU-SAP01-INFRASTRUCTURE.json
+New-SAPAutomationRegion -DeployerParameterfile .\DEPLOYER\DEV-WEEU-DEP00-INFRASTRUCTURE\DEV-WEEU-DEP00-INFRASTRUCTURE.json  -LibraryParameterfile .\LIBRARY\DEV-WEEU-SAP_LIBRARY\DEV-WEEU-SAP_LIBRARY.json -EnvironmentParameterfile .\LANDSCAPE\DEV-WEEU-SAP01-INFRASTRUCTURE\DEV-WEEU-SAP01-INFRASTRUCTURE.json
 ```
 
 The script will deploy the deployment infrastructure and create the Azure keyvault for storing the Service Principal details.
@@ -54,10 +54,10 @@ The script will them deploy the rest of the resources required.
 
 ## **Deploying the SAP system**
 
-For deploying the SAP system navigate to the folder containing the parameter file and use the New-System cmdlet
+For deploying the SAP system navigate to the folder containing the parameter file and use the New-SAPSystem cmdlet
 
 ```PowerShell
-New-System -Parameterfile .\DEV-WEEU-SAP01-ZZZ.json -Type sap\_system
+New-SAPSystem -Parameterfile .\DEV-WEEU-SAP01-ZZZ.json -Type sap\_system
 ```
 
 ## **Clean up the deployment**

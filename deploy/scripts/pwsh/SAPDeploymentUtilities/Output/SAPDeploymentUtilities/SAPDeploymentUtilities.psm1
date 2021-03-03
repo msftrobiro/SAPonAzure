@@ -261,31 +261,18 @@ Licensed under the MIT license.
     [IO.FileInfo] $fInfo = $Parameterfile
     $region = ($fInfo.Name -split "-")[1]
 
-<<<<<<< HEAD
-    if ($null -ne $iniContent[$Environment] ) {
-        $sub = $iniContent[$Environment]["subscription"] 
-    }
-    else {
-        $Category1 = @{"subscription" = "" }
-        $iniContent += @{$Environment = $Category1 }
-=======
     if ($null -ne $iniContent[$region] ) {
         $sub = $iniContent[$region]["subscription"] 
     }
     else {
         $Category1 = @{"subscription" = "" }
         $iniContent += @{$region = $Category1 }
->>>>>>> 1684eb82b9fe4ffe72c43dcad94591620386b74c
         Out-IniFile -InputObject $iniContent -FilePath $filePath
                 
     }
     # Subscription
 
-<<<<<<< HEAD
-    $sub = $iniContent[$Environment]["subscription"] 
-=======
     $sub = $iniContent[$region]["subscription"] 
->>>>>>> 1684eb82b9fe4ffe72c43dcad94591620386b74c
 
     $repo = $iniContent["Common"]["repo"]
     $changed = $false

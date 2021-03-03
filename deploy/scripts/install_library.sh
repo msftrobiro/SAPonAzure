@@ -67,7 +67,7 @@ fi
 #Persisting the parameters across executions
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-library_config_information="${automation_config_directory}""${environment}"-"${region}"
+library_config_information="${automation_config_directory}""${region}"
 
 arm_config_stored=false
 config_stored=false
@@ -176,7 +176,7 @@ then
     exit -1
 fi
 
-k_to_proceed=false
+ok_to_proceed=false
 new_deployment=false
 
 rm backend.tf
@@ -214,7 +214,7 @@ else
         echo "#                          .terraform directory already exists!                         #"
         echo "#                                                                                       #" 
         echo "#########################################################################################"
-        read -p "Do you want to continue with the deployment Y/N?"  ans
+        read -p "Do you want to redeploy Y/N?"  ans
         answer=${ans^^}
         if [ $answer == 'Y' ]; then
             if [ -f ./.terraform/terraform.tfstate ]; then
@@ -230,7 +230,7 @@ else
 
             terraform init -upgrade=true "{$terraform_module_directory}"
         else
-            exit -1
+            return 0
         fi
     fi
 fi

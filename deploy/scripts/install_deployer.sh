@@ -47,6 +47,8 @@ deployment_system=sap_deployer
 
 # Read environment
 readarray -d '-' -t environment<<<"${parameterfile}"
+readarray -d '-' -t -s 1 region<<<"${parameterfile}"
+
 key=$(echo "${parameterfile}" | cut -d. -f1)
 
 if [ ! -f "${parameterfile}" ]
@@ -65,6 +67,7 @@ fi
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 deployer_config_information="${automation_config_directory}""${key}"
+library_config_information="${automation_config_directory}""${region}"
 
 arm_config_stored=false
 config_stored=false
@@ -166,7 +169,7 @@ else
     echo "#                          .terraform directory already exists!                         #"
     echo "#                                                                                       #" 
     echo "#########################################################################################"
-    read -p "Do you want to continue with the deployment Y/N?"  ans
+    read -p "Do you want to redeploy Y/N?"  ans
     answer=${ans^^}
     if [ $answer == 'Y' ]; then
 
@@ -225,8 +228,8 @@ then
     temp=$(echo "${kv_name}" | grep "Backend reinitialization required")
     if [ -z "${temp}" ]
     then
-        sed -i /keyvault/d  "${deployer_config_information}"
-        echo "keyvault=${kv_name}" >> "${deployer_config_information}"
+        sed -i /keyvault/d  "${library_config_information}"
+        echo "keyvault=${kv_name}" >> "${library_config_information}"
     fi
 fi
 

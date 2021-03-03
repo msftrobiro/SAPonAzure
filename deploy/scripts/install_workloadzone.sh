@@ -14,15 +14,15 @@ function showhelp {
     echo "#   ~/.sap_deployment_automation folder                                                 #"
     echo "#                                                                                       #"
     echo "#                                                                                       #"
-    echo "#   Usage: installer.sh                                                                 #"
+    echo "#   Usage: install_workloadzone.sh                                                      #"
     echo "#    -p parameter file                                                                  #"
     echo "#    -i interactive true/false setting the value to false will not prompt before apply  #"
     echo "#    -h Show help                                                                       #"
     echo "#                                                                                       #"
     echo "#   Example:                                                                            #"
     echo "#                                                                                       #"
-    echo "#   [REPO-ROOT]deploy/scripts/install_deployer.sh \                                     #"
-    echo "#      -p PROD-WEEU-DEP00-INFRASTRUCTURE.json \                                         #"
+    echo "#   [REPO-ROOT]deploy/scripts/install_workloadzone.sh \                                 #"
+    echo "#      -p PROD-WEEU-SAP01-INFRASTRUCTURE.json \                                         #"
     echo "#      -i true                                                                          #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
@@ -50,7 +50,6 @@ show_help=false
 while getopts ":p:t:i:d:h" option; do
     case "${option}" in
         p) parameterfile=${OPTARG};;
-        t) deployment_system=${OPTARG};;
         i) approve="--auto-approve";;
         h) showhelp
             exit 3
@@ -71,18 +70,20 @@ landscape_tfstate_key=""
 landscape_tfstate_key_parameter=""
 landscape_tfstate_key_exists=false
 
-parameterfile_name=$(basename "${parameterfile}")
+deployment_system=sap_landscape
+
+workload_dirname=$(dirname "${parameterfile}")
+workload_file_parametername=$(basename "${parameterfile}")
 
 
 # Read environment
-readarray -d '-' -t environment<<<"${parameterfile_name}"
-readarray -d '-' -t -s 1 region<<<"${parameterfile_name}"
+readarray -d '-' -t environment<<<"${workload_file_parametername}"
+readarray -d '-' -t -s 1 region<<<"${workload_file_parametername}"
+key=$(echo "${workload_file_parametername}" | cut -d. -f1)
 
-key=$(echo "${parameterfile_name}" | cut -d. -f1)
-
-if [ ! -f "${parameterfile}" ]
+if [ ! -f "${workload_file_parametername}" ]
 then
-    printf -v val %-40.40s "$parameterfile"
+    printf -v val %-40.40s "$workload_file_parametername"
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #" 
@@ -166,18 +167,6 @@ else
 
     fi
 
-    temp=$(grep "landscape_tfstate_key" "${library_config_information}")
-    if [ ! -z "${temp}" ]
-    then
-        # Landscape state was specified in ~/.sap_deployment_automation library config
-        landscape_tfstate_key=$(echo "${temp}" | cut -d= -f2)
-
-        if [ $deployment_system == sap_system ]
-        then
-            landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
-        fi
-        landscape_tfstate_key_exists=true
-    fi
 fi
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
@@ -206,8 +195,6 @@ fi
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
 
-echo $terraform_module_directory
-
 if [ ! -d "${terraform_module_directory}" ]
 then
     printf -v val %-40.40s "$deployment_system"
@@ -216,10 +203,7 @@ then
     echo "#   Incorrect system deployment type specified: ${val}#"
     echo "#                                                                                       #"
     echo "#     Valid options are:                                                                #"
-    echo "#       sap_deployer                                                                    #"
-    echo "#       sap_library                                                                     #"
     echo "#       sap_landscape                                                                   #"
-    echo "#       sap_system                                                                      #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -263,8 +247,6 @@ then
     $terraform_module_directory
 else
     temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
-    echo $temp
-    cat .terraform/terraform.tfstate
     if [ ! -z "${temp}" ]
     then
         echo "${REMOTE_STATE_SA}"
@@ -356,15 +338,6 @@ if ! $new_deployment; then
         echo ""
         rm plan_output.log
 
-        if [ $deployment_system == sap_deployer ]
-        then
-            if [ $deployer_tfstate_key_exists == false ]
-            then
-                echo "Saving the deployer state file name"
-                echo "deployer_tfstate_key=${key}.terraform.tfstate" >> $library_config_information
-                deployer_tfstate_key_exists=true
-            fi
-        fi
         if [ $deployment_system == sap_landscape ]
         then
             if [ $landscape_tfstate_key_exists == false ]
@@ -415,19 +388,12 @@ if [ $ok_to_proceed ]; then
     terraform apply ${approve} -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory
 fi
 
-if [ $deployment_system == sap_deployer ]
-then
-echo $deployer_tfstate_key_exists
-    if [ $deployer_tfstate_key_exists == false ]
-    then
-        echo "deployer_tfstate_key=${key}.terraform.tfstate" >> $library_config_information
-    fi
-fi
-
 if [ $deployment_system == sap_landscape ]
 then
     if [ $landscape_tfstate_key_exists == false ]
     then
+        sed -i /landscape_tfstate_key/d  "${library_config_information}"
+
         echo "landscape_tfstate_key=${key}.terraform.tfstate" >> $library_config_information
     fi
 fi

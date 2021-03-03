@@ -10,17 +10,18 @@ function showhelp {
     echo "#                                                                                       #" 
     echo "#   Usage: set_secret.sh                                                                #"
     echo "#      -e environment name                                                              #"
+    echo "#      -r region short name                                                             #"
     echo "#      -v vault name                                                                    #"
     echo "#      -c SPN app id                                                                    #"
     echo "#      -s SPN password                                                                  #"
     echo "#      -t tenant of                                                                     #"
-    echo "#      -i true/false. If true runs in interactive mode prompting for input              #"
     echo "#      -h Show help                                                                     #"
     echo "#                                                                                       #" 
     echo "#   Example:                                                                            #" 
     echo "#                                                                                       #" 
     echo "#   [REPO-ROOT]deploy/scripts/set_secret.sh \                                           #"
 	echo "#      -e PROD  \                                                                       #"
+	echo "#      -r weeu  \                                                                       #"
 	echo "#      -v prodweeuusrabc  \                                                             #"
 	echo "#      -c 11111111-1111-1111-1111-111111111111 \                                        #"
 	echo "#      -s SECRETPassword \                                                              #" 
@@ -30,15 +31,14 @@ function showhelp {
 }
 
 
-while getopts ":e:c:s:t:h:v:x:d:i" option; do
+while getopts ":e:c:s:t:h:v:r:x" option; do
     case "${option}" in
         e) environment=${OPTARG};;
         c) client_id=${OPTARG};;
+        r) region=${OPTARG};;
         s) client_secret=${OPTARG};;
         t) tenant=${OPTARG};;
         v) vaultname=${OPTARG};;
-        i) interactive=true;;
-        d) deployer_paramfile=${OPTARG};;
         h) showhelp
            exit 0
            ;;
@@ -49,74 +49,62 @@ while getopts ":e:c:s:t:h:v:x:d:i" option; do
     esac
 done
 
-if [ -n "$deployer_paramfile" ]; then
-    key=$(echo "$deployer_paramfile" | cut -d. -f1)
-    automation_config_directory=~/.sap_deployment_automation/
-    deployer_config_information="${automation_config_directory}""${key}"
-    if [ ! -d "${automation_config_directory}" ]
-    then
-        # No configuration directory exists
-        mkdir "${automation_config_directory}"
-    else
-        temp=$(grep "Environment" "${deployer_config_information}")
-        if [ ! -z "${temp}" ]
-        then
-            environment=$(echo "${temp}" | cut -d= -f2)
-            environment_exists=1
-        else
-            environment_exists=0
-        fi
-        
-        temp=$(grep "keyvault" "${deployer_config_information}")
-        if [ ! -z "${temp}" ]
-        then
-            vaultname=$(echo "${temp}" | cut -d= -f2)
-            vaultname_exists=1
-        else
-            vaultname_exists=0
-        fi
-        
-        temp=$(grep "SPNAppID" "${deployer_config_information}")
-        if [ ! -z "${temp}" ]
-        then
-            client_id=$(echo "${temp}" | cut -d= -f2)
-            client_id_exists=1
-        else
-            client_id_exists=0
-        fi
-        
-        temp=$(grep "Tenant" "${deployer_config_information}")
-        if [ ! -z "${temp}" ]
-        then
-            tenant=$(echo "${temp}" | cut -d= -f2)
-            tenant_exists=1
-        else
-            tenant_exists=0
-        fi
-    fi
-fi
-
-
-if [ $interactive == true ]; then
-    if [ ! -n "${environment}" ]; then
-        read -p "Environment name:"  environment
-    fi
-
-    if [ ! -n "$vaultname" ]; then
-        read -p "Keyvault name:"  vaultname
-    fi 
-
-    if [ ! -n "$client_id" ]; then
-        read -p "SPN App ID:"  client_id
-    fi 
-
-    read -p "SPN App Password:"  client_secret
+automation_config_directory=~/.sap_deployment_automation/
+library_config_information="${automation_config_directory}""${region}"
+environment_config_information="${automation_config_directory}""${environment}"-"${region}"
+touch $environment_config_information
     
-    if [ ! -n "${tenant}" ]; then
-        read -p "SPN Tenant ID:"  tenant
-    fi 
-        
+if [ ! -d "${automation_config_directory}" ]
+then
+    # No configuration directory exists
+    mkdir "${automation_config_directory}"
+else
+    
+    temp=$(grep "keyvault" "${library_config_information}")
+    if [ ! -z "${temp}" ]
+    then
+        vaultname=$(echo "${temp}" | cut -d= -f2)
+        vaultname_exists=1
+    else
+        vaultname_exists=0
+    fi
+    
+    temp=$(grep "SPNAppID" "${environment_config_information}")
+    if [ ! -z "${temp}" ]
+    then
+        client_id=$(echo "${temp}" | cut -d= -f2)
+        client_id_exists=1
+    else
+        client_id_exists=0
+    fi
+    
+    temp=$(grep "Tenant" "${environment_config_information}")
+    if [ ! -z "${temp}" ]
+    then
+        tenant=$(echo "${temp}" | cut -d= -f2)
+        tenant_exists=1
+    else
+        tenant_exists=0
+    fi
 fi
+
+if [ ! -n "${environment}" ]; then
+    read -p "Environment name:"  environment
+fi
+
+if [ ! -n "$vaultname" ]; then
+    read -p "Keyvault name:"  vaultname
+fi 
+
+if [ ! -n "$client_id" ]; then
+    read -p "SPN App ID:"  client_id
+fi 
+
+read -p "SPN App Password:"  client_secret
+
+if [ ! -n "${tenant}" ]; then
+    read -p "SPN Tenant ID:"  tenant
+fi 
 
 if [ ! -n "{$ARM_SUBSCRIPTION_ID}" ]; then
     echo ""
@@ -160,32 +148,34 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-if [ $environment_exists  -eq 0 ]
-    then
-    sed -i /Environment/d  "${deployer_config_information}"
-    echo "Environment=${environment} >> ${deployer_config_information}"
-fi
+sed -i /Environment/d  "${environment_config_information}"
+echo "Environment=${environment} >> ${environment_config_information}"
 
 if [ $vaultname_exists -eq 0 ]
     then
-    sed -i /keyvault/d  "{$deployer_config_information}"
-    echo "keyvault=${vaultname}" >> ${deployer_config_information}
+    sed -i /keyvault/d  "{$library_config_information}"
+    echo "keyvault=${vaultname}" >> "${library_config_information}"
 fi
 
 if [ $client_id_exists -eq 0 ]
     then
-    sed -i /SPNAppID/d  "{$deployer_config_information}"
-    echo "SPNAppID=${client_id}" >> ${deployer_config_information}
+    sed -i /SPNAppID/d  "{$environment_config_information}"
+    echo "SPNAppID=${client_id}" >> ${environment_config_information}
 fi
 
 if [ $tenant_exists -eq 0 ]
     then
-    sed -i /Tenant/d  "{$deployer_config_information}"
-    echo "Tenant=${tenant}" >> ${deployer_config_information}
+    sed -i /Tenant/d  "{$environment_config_information}"
+    echo "Tenant=${tenant}" >> ${environment_config_information}
 fi
 
-result=$(az keyvault secret set --name "${environment}-subscription-id" --vault-name "${vaultname}" --value $ARM_SUBSCRIPTION_ID | grep "The user, group or application")
+secretname="${environment}"-subscription-id
 
+echo $secretname
+
+result=$(az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${ARM_SUBSCRIPTION_ID}") 
+
+result=$(echo $result | grep "The user, group or application")
 if [ ! -n $result ]; then 
     echo "#########################################################################################"
     echo "#                                                                                       #" 
@@ -198,6 +188,13 @@ if [ ! -n $result ]; then
 fi
 
 
-az keyvault secret set --name "${environment}-client-id"       --vault-name "${vaultname}" --value $client_id
-az keyvault secret set --name "${environment}-client-secret"   --vault-name "${vaultname}" --value $client_secret
-az keyvault secret set --name "${environment}-tenant-id"       --vault-name "${vaultname}" --value $tenant
+secretname="${environment}"-client-id
+az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value $client_id
+
+secretname="${environment}"-client-secret
+az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value $client_secret
+
+secretname="${environment}"-tenant-id
+az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value $tenant
+
+

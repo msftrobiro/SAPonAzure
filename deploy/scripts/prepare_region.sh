@@ -229,7 +229,6 @@ if [ $answer == 'Y' ]; then
     region_param=$(printf " -r %s " $region)
     
     allParams=${env_param}${keyvault_param}${region_param}
-    echo $allParams
     "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh -e $allParams 
     if [ $? -eq 255 ]
         then

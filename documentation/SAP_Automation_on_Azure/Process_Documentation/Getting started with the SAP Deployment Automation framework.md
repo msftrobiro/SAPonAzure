@@ -2,8 +2,6 @@
 
 ## Preparation activities
 
-
-
 ## Sample files
 
 The repository contains a folder [WORKSPACES](WORKSPACES) that has a set of sample parameter files that can be used to deploy the supporting components and the SAP System. The folder structure is documented here: [Deployment folder structure](Deployment_folder_structure.md)
@@ -81,5 +79,7 @@ The templates and scripts need to be executed from an execution environment, cur
 The links below explain how to deploy using the different deployment environments.
 
 [Deploying from cloud shell](./Getting_started_with_the_SAP_Deployment_Automation_cloudshell.md)
+
 [Deploying from the Deployer](./Getting_started_with_the_SAP_Deployment_Automation_bash.md)
+
 [Deploying using PowerShell](./Getting_started_with_the_SAP_Deployment_Automation_pwsh.md)

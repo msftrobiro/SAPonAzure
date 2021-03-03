@@ -71,11 +71,14 @@ landscape_tfstate_key=""
 landscape_tfstate_key_parameter=""
 landscape_tfstate_key_exists=false
 
+parameterfile_name=$(basename "${parameterfile}")
+
 
 # Read environment
-readarray -d '-' -t environment<<<"${parameterfile}"
-readarray -d '-' -t -s 1 region<<<"${parameterfile}"
-key=$(echo "${parameterfile}" | cut -d. -f1)
+readarray -d '-' -t environment<<<"${parameterfile_name}"
+readarray -d '-' -t -s 1 region<<<"${parameterfile_name}"
+
+key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
 if [ ! -f "${parameterfile}" ]
 then
@@ -93,7 +96,7 @@ fi
 
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-library_config_information="${automation_config_directory}"${region}"
+library_config_information="${automation_config_directory}""${region}"
 
 if [ ! -d ${automation_config_directory} ]
 then
@@ -203,6 +206,8 @@ fi
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
 
+echo $terraform_module_directory
+
 if [ ! -d "${terraform_module_directory}" ]
 then
     printf -v val %-40.40s "$deployment_system"
@@ -258,6 +263,8 @@ then
     $terraform_module_directory
 else
     temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
+    echo $temp
+    cat .terraform/terraform.tfstate
     if [ ! -z "${temp}" ]
     then
         echo "${REMOTE_STATE_SA}"

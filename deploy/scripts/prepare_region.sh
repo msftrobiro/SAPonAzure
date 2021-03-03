@@ -60,7 +60,6 @@ function missing {
     echo "#   Usage: prepare_region.sh                                                            #"
     echo "#      -d deployer parameter file                                                       #"
     echo "#      -l library parameter file                                                        #"
-    echo "#      -e environment parameter file                                                    #"
     echo "#      -h Show help                                                                     #"
     echo "#                                                                                       #" 
     echo "#########################################################################################"
@@ -87,10 +86,7 @@ if [ -z $deployer_parameter_file ]; then
     exit -1
 fi
 
-# Read environment
-readarray -d '-' -t environment<<<"${deployer_parameter_file}"
-readarray -d '-' -t -s 1 region<<<"${deployer_parameter_file}"
-
+echo $deployer_parameter_file
 
 if [ -z $library_parameter_file ]; then
     missing_value='library parameter file'
@@ -140,7 +136,9 @@ if [ ! -n "$tf" ]; then
     exit -1
 fi
 
-az=$(az --version | grep azure-cli)
+
+az --version > stdout.az 2>&1
+az=$(grep "azure-cli" stdout.az)
 if [ ! -n "${az}" ]; then 
     echo ""
     echo "#########################################################################################"
@@ -152,16 +150,22 @@ if [ ! -n "${az}" ]; then
     exit -1
 fi
 
+
 # Helper variables
 
 automation_config_directory=~/.sap_deployment_automation/
 
-
 deployer_dirname=$(dirname "${deployer_parameter_file}")
 deployer_file_parametername=$(basename "${deployer_parameter_file}")
+
+# Read environment
+readarray -d '-' -t environment<<<"${deployer_file_parametername}"
+readarray -d '-' -t -s 1 region<<<"${deployer_file_parametername}"
+
 deployer_key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
 deployer_config_information="${automation_config_directory}""${deployer_key}"
-library_config_information="${automation_config_directory}"${region}"
+
+library_config_information="${automation_config_directory}""${region}"
 
 library_dirname=$(dirname "${library_parameter_file}")
 library_file_parametername=$(basename "${library_parameter_file}")
@@ -177,9 +181,9 @@ do
 done
 
 # Checking for valid az session
-az account show > stdout.az 2>&1
+
 temp=$(grep "az login" stdout.az)
-if [ -n "$temp" ]; then 
+if [ -n "${temp}" ]; then 
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #" 
@@ -219,10 +223,14 @@ if [ $answer == 'Y' ]; then
     then
         # Key vault was specified in ~/.sap_deployment_automation in the deployer file
         keyvault_name=$(echo $temp | cut -d= -f2)
-        keyvault_param='-v $keyvault_name'
+        keyvault_param=$(printf " -v %s " $keyvault_name)
     fi    
-
-    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh -i -d $deployer_file_parametername $keyvault_param
+    env_param=$environment
+    region_param=$(printf " -r %s " $region)
+    
+    allParams=${env_param}${keyvault_param}${region_param}
+    echo $allParams
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh -e $allParams 
     if [ $? -eq 255 ]
         then
         exit $?
@@ -254,6 +262,10 @@ echo "##########################################################################
 echo ""
 
 cd "${deployer_dirname}"
+
+# Remove the script file
+rm ./post_deployment.sh
+echo pwd
 "${DEPLOYMENT_REPO_PATH}"deploy/scripts/installer.sh -p $deployer_file_parametername -i true -t sap_deployer
 if [ $? -eq 255 ]
     then

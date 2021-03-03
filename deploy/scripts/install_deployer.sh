@@ -67,7 +67,7 @@ fi
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 deployer_config_information="${automation_config_directory}""${key}"
-library_config_information="${automation_config_directory}"${region}"
+library_config_information="${automation_config_directory}""${region}"
 
 arm_config_stored=false
 config_stored=false
@@ -169,7 +169,7 @@ else
     echo "#                          .terraform directory already exists!                         #"
     echo "#                                                                                       #" 
     echo "#########################################################################################"
-    read -p "Do you want to continue with the deployment Y/N?"  ans
+    read -p "Do you want to redeploy Y/N?"  ans
     answer=${ans^^}
     if [ $answer == 'Y' ]; then
 

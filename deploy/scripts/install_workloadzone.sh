@@ -72,15 +72,18 @@ landscape_tfstate_key_exists=false
 
 deployment_system=sap_landscape
 
+workload_dirname=$(dirname "${parameterfile}")
+workload_file_parametername=$(basename "${parameterfile}")
+
 
 # Read environment
-readarray -d '-' -t environment<<<"${parameterfile}"
-readarray -d '-' -t -s 1 region<<<"${parameterfile}"
-key=$(echo "${parameterfile}" | cut -d. -f1)
+readarray -d '-' -t environment<<<"${workload_file_parametername}"
+readarray -d '-' -t -s 1 region<<<"${workload_file_parametername}"
+key=$(echo "${workload_file_parametername}" | cut -d. -f1)
 
-if [ ! -f "${parameterfile}" ]
+if [ ! -f "${workload_file_parametername}" ]
 then
-    printf -v val %-40.40s "$parameterfile"
+    printf -v val %-40.40s "$workload_file_parametername"
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #" 
@@ -94,7 +97,7 @@ fi
 
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-library_config_information="${automation_config_directory}"${region}"
+library_config_information="${automation_config_directory}""${region}"
 
 if [ ! -d ${automation_config_directory} ]
 then

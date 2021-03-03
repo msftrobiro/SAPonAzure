@@ -171,16 +171,15 @@ fi
 
 secretname="${environment}"-subscription-id
 
-echo $secretname
+az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${ARM_SUBSCRIPTION_ID}"  > stdout.az 2>&1
+result=$(grep "ERROR: The user, group or application" stdout.az)
 
-result=$(az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${ARM_SUBSCRIPTION_ID}") 
-
-result=$(echo $result | grep "The user, group or application")
-if [ ! -n $result ]; then 
+rm stdout.az
+if [ -n "${result}" ]; then 
     echo "#########################################################################################"
     echo "#                                                                                       #" 
-    echo "#          No access to add the secrets in the" "${vaultname}" "keyvault            #"
-    echo "#            Please add an access policy for your account you use                       #" 
+    echo "#          No access to add the secrets in the" "${vaultname}" "keyvault             #"
+    echo "#            Please add an access policy for the account you use                        #" 
     echo "#                                                                                       #" 
     echo "#########################################################################################"
     echo ""

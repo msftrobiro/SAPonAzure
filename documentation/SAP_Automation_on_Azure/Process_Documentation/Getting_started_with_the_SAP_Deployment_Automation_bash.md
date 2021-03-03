@@ -75,13 +75,13 @@ function removeTFDeploymentItems() {
     
     az group delete --resource-group $1 
     curdir=$(pwd)
-
-    echo $2
     
     cd $2
+
     rm .terraform -r
     rm terraform.tfstate
     rm terraform.tfstate.backup
+
     cd "${curdir}"
     return
     

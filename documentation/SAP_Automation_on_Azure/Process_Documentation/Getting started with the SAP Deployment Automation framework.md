@@ -1,5 +1,7 @@
 ﻿# Getting started with the SAP Deployment Automation framework
 
+The SAP Deployment Automation Framework provides both Terraform templates and Ansible playbooks which can be used to build and configure the environments to run SAP on Azure.
+
 ## Preparation activities
 
 ## Sample files
@@ -65,10 +67,25 @@ az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/xxxxxxxx-
 ```bash
 az role assignment create --assignee <appId> --role "User Access Administrator"
 ```
+## Deployment flow
+
+The automation flow:
+
+### Prepare the region
+
+This step deploys the required artifacts to support the SAP Automation framework in a specifed Azure region.
+This includes creating the deployment environment and the shared storage for Terraform statefiles as well as the SAP installation media.
+
+### Preparing the environment
+
+This step deploys the Workload Zone specific aritfacts: the Virtual Network and the Azure Key Vaults used for credentials management.
+
+### Deploying the system
+
+This step deploys the actual infrastructure for the SAP System (SID)
 
 ## Choosing the orchestration environment
 
-The SAP Deployment Automation Framework provides both Terraform templates and Ansible playbooks which can be used to build and configure the environments to run SAP on Azure.
 
 The templates and scripts need to be executed from an execution environment, currently the supported environments are:
 

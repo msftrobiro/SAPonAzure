@@ -72,35 +72,28 @@ The script below removes the two deployments and their supporting terraform file
 
 ```bash
 
-
-function removeTFDeploymentItems {
-
-    az group delete -n $rgName -force
+function removeTFDeploymentItems() {
+    
+    az group delete --resource-group $1 
     curdir=$(pwd)
 
-    cd "${dirname}"
+    echo $2
+    
+    cd $2
     rm .terraform -r
     rm terraform.tfstate
     rm terraform.tfstate.backup
     cd "${curdir}"
     return
-            
+    
 }
 
-rgname=DEV-WEEU-SAP00-ZZZ
-dirname=SYSTEM/DEV-WEEU-SAP00-ZZZ/"
-removeTFDeploymentItems
+removeTFDeploymentItems DEV-WEEU-SAP01-ZZZ SYSTEM/DEV-WEEU-SAP01-ZZZ/
 
-rgname=DEV-WEEU-SAP01-INFRASTRUCTURE
-dirname=LANDSCAPE/DEV-WEEU-SAP01-INFRASTRUCTURE/
-removeTFDeploymentItems
+removeTFDeploymentItems DEV-WEEU-SAP01-INFRASTRUCTURE LANDSCAPE/DEV-WEEU-SAP01-INFRASTRUCTURE/
 
-rgname=WEEU-DEP00-INFRASTRUCTURE
-dirname=DEPLOYER/DEV-WEEU-DEP00-INFRASTRUCTURE/
-removeTFDeploymentItems
+removeTFDeploymentItems WEEU-DEP00-INFRASTRUCTURE DEPLOYER/DEV-WEEU-DEP00-INFRASTRUCTURE/
 
-rgname=WEEU-SAP_LIBRARY
-dirname="LIBRARY/DEV-WEEU-SAP_LIBRARY/
-removeTFDeploymentItems
+removeTFDeploymentItems WEEU-SAP_LIBRARY LIBRARY/DEV-WEEU-SAP_LIBRARY/
 
 ```

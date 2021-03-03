@@ -69,7 +69,8 @@ az role assignment create --assignee <appId> --role "User Access Administrator"
 ```
 ## Deployment flow
 
-The automation flow:
+The deployment flow has three steps: Preparing the region, preparing the environment(s) and deploying the systems.
+
 
 ### Prepare the region
 

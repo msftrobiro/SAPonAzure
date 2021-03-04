@@ -65,35 +65,3 @@ For deploying the SAP system navigate to the folder(DEV-WEEU-SAP01-ZZZ) containi
 ```bash
 ${DEPLOYMENT_REPO_PATH}deploy/scripts/installer.sh -p DEV-WEEU-SAP01-ZZZ.json -t sap_system
 ```
-
-## **Clean up the deployment**
-
-The script below removes the two deployments and their supporting terraform files.
-
-```bash
-
-function removeTFDeploymentItems() {
-    
-    az group delete --resource-group $1 
-    curdir=$(pwd)
-
-    echo $2
-    
-    cd $2
-    rm .terraform -r
-    rm terraform.tfstate
-    rm terraform.tfstate.backup
-    cd "${curdir}"
-    return
-    
-}
-
-removeTFDeploymentItems DEV-WEEU-SAP01-ZZZ SYSTEM/DEV-WEEU-SAP01-ZZZ/
-
-removeTFDeploymentItems DEV-WEEU-SAP01-INFRASTRUCTURE LANDSCAPE/DEV-WEEU-SAP01-INFRASTRUCTURE/
-
-removeTFDeploymentItems WEEU-DEP00-INFRASTRUCTURE DEPLOYER/DEV-WEEU-DEP00-INFRASTRUCTURE/
-
-removeTFDeploymentItems WEEU-SAP_LIBRARY LIBRARY/DEV-WEEU-SAP_LIBRARY/
-
-```

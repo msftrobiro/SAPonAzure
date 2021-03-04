@@ -44,3 +44,7 @@ output "storageaccount_rg_name" {
 output "dns_info_iscsi" {
   value = module.sap_landscape.dns_info_vms
 }
+
+output "automation_version" {
+  value = local.version_label
+}

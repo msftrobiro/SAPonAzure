@@ -38,6 +38,7 @@ variable "landscape_tfstate_key" {
 
 locals {
 
+  version_label = trimspace(file("${path.module}/../../../configs/version.txt"))
   // The environment of sap landscape and sap system
   environment = upper(try(var.infrastructure.environment, ""))
   vnet_sap_arm_id = data.terraform_remote_state.landscape.outputs.vnet_sap_arm_id
@@ -101,7 +102,7 @@ locals {
   scs_zones = try(var.application.scs_zones, [])
   web_zones = try(var.application.web_zones, [])
 
-  anchor        = try(local.var_infra.anchor_vms, {})
+  anchor        = try(var.infrastructure.anchor_vms, {})
   anchor_ostype = upper(try(local.anchor.os.os_type, "LINUX"))
 
   // Locate the tfstate storage account

@@ -32,6 +32,8 @@ variable "deployer_tfstate_key" {
 
 locals {
 
+  version_label = trimspace(file("${path.module}/../../../configs/version.txt"))
+  
   // The environment of sap landscape and sap system
   environment = upper(try(var.infrastructure.environment, ""))
 

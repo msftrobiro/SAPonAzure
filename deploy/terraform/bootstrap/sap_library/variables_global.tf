@@ -66,3 +66,8 @@ variable "deployer_tfstate_key" {
   description = "The key of deployer's remote tfstate file"
   default=""
 }
+
+variable "deployer_statefile_foldername" {
+  description = "Folder name of folder containing the terraform state file"
+  default = ""
+}

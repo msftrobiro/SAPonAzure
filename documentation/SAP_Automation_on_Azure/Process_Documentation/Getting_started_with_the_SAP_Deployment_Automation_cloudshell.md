@@ -53,3 +53,4 @@ The script will deploy the deployment infrastructure and create the Azure keyvau
 For deploying the SAP system navigate to the folder containing the parameter file and use the installer.sh script 
 
 ${DEPLOYMENT_REPO_PATH}deploy/scripts/installer.sh -p DEV-WEEU-SAP01-ZZZ.json -t sap_system
+```

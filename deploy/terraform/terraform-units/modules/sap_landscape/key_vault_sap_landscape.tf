@@ -5,7 +5,7 @@
 
 // Create private KV with access policy
 resource "azurerm_key_vault" "kv_prvt" {
-  count                      = (local.enable_landscape_kv && ! local.prvt_kv_exist) ? 1 : 0
+  count                      = (local.enable_landscape_kv && !local.prvt_kv_exist) ? 1 : 0
   name                       = local.prvt_kv_name
   location                   = local.region
   resource_group_name        = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
@@ -36,7 +36,7 @@ data "azurerm_key_vault" "kv_prvt" {
 
 // Create user KV with access policy
 resource "azurerm_key_vault" "kv_user" {
-  count                      = (local.enable_landscape_kv && ! local.user_kv_exist) ? 1 : 0
+  count                      = (local.enable_landscape_kv && !local.user_kv_exist) ? 1 : 0
   name                       = local.user_kv_name
   location                   = local.region
   resource_group_name        = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
@@ -72,7 +72,7 @@ resource "tls_private_key" "iscsi" {
   count = (
     local.enable_landscape_kv
     && local.enable_iscsi_auth_key
-    && ! local.iscsi_key_exist
+    && !local.iscsi_key_exist
     && try(file(var.authentication.path_to_public_key), null) == null
   ) ? 1 : 0
   algorithm = "RSA"
@@ -80,28 +80,28 @@ resource "tls_private_key" "iscsi" {
 }
 
 resource "azurerm_key_vault_secret" "iscsi_ppk" {
-  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_key && ! local.iscsi_key_exist) ? 1 : 0
+  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
   name         = local.iscsi_ppk_name
   value        = local.iscsi_private_key
   key_vault_id = local.user_kv_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
 }
 
 resource "azurerm_key_vault_secret" "iscsi_pk" {
-  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_key && ! local.iscsi_key_exist) ? 1 : 0
+  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
   name         = local.iscsi_pk_name
   value        = local.iscsi_public_key
   key_vault_id = local.user_kv_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
 }
 
 resource "azurerm_key_vault_secret" "iscsi_username" {
-  count        = (local.enable_landscape_kv && local.enable_iscsi && ! local.iscsi_username_exist) ? 1 : 0
+  count        = (local.enable_landscape_kv && local.enable_iscsi && !local.iscsi_username_exist) ? 1 : 0
   name         = local.iscsi_username_name
   value        = local.iscsi_auth_username
   key_vault_id = local.user_kv_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
 }
 
 resource "azurerm_key_vault_secret" "iscsi_password" {
-  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_password && ! local.iscsi_pwd_exist) ? 1 : 0
+  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_password && !local.iscsi_pwd_exist) ? 1 : 0
   name         = local.iscsi_pwd_name
   value        = local.iscsi_auth_password
   key_vault_id = local.user_kv_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
@@ -112,7 +112,7 @@ resource "random_password" "iscsi_password" {
   count = (
     local.enable_landscape_kv
     && local.enable_iscsi_auth_password
-    && ! local.iscsi_pwd_exist
+    && !local.iscsi_pwd_exist
   && try(local.var_iscsi.authentication.password, null) == null) ? 1 : 0
 
   length           = 32
@@ -217,4 +217,21 @@ data "azurerm_key_vault_secret" "sid_password" {
   count        = (local.sid_credentials_secret_exist) ? 1 : 0
   name         = local.sid_password_secret_name
   key_vault_id = local.user_key_vault_id
+}
+
+
+//Witness access key
+resource "azurerm_key_vault_secret" "witness_access_key" {
+  count        = length(var.witness_storage_account.arm_id) > 0 ? 0 : 1
+  name         = format("%s-%s", local.vnet_prefix, "witness-accesskey")
+  value        = length(var.witness_storage_account.arm_id) > 0 ? data.azurerm_storage_account.witness_storage[0].primary_access_key : azurerm_storage_account.witness_storage[0].primary_access_key
+  key_vault_id = local.user_kv_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+}
+
+//Witness access key
+resource "azurerm_key_vault_secret" "witness_name" {
+  count        = length(var.witness_storage_account.arm_id) > 0 ? 0 : 1
+  name         = format("%s-%s", local.vnet_prefix, "witness-name")
+  value        = length(var.witness_storage_account.arm_id) > 0 ? data.azurerm_storage_account.witness_storage[0].name : azurerm_storage_account.witness_storage[0].name
+  key_vault_id = local.user_kv_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
 }

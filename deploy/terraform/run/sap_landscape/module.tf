@@ -13,6 +13,8 @@ module "sap_landscape" {
   key_vault                   = var.key_vault
   deployer_tfstate            = data.terraform_remote_state.deployer.outputs
   diagnostics_storage_account = var.diagnostics_storage_account
+  witness_storage_account     = var.witness_storage_account
+
 }
 
 module "sap_namegenerator" {

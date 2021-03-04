@@ -66,6 +66,8 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
     "get",
     "list",
     "set",
+    "restore",
+    "recover"
   ]
 }
 
@@ -81,6 +83,8 @@ resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
     "get",
     "list",
     "set",
+    "restore",
+    "recover",
   ]
 
   lifecycle {

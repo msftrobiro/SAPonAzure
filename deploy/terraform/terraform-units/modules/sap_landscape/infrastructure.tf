@@ -76,7 +76,7 @@ resource "azurerm_storage_account" "witness_storage" {
   name                      = local.witness_storageaccount_name
   resource_group_name       = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   location                  = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  account_replication_type  = "ZRS"
+  account_replication_type  = "LRS"
   account_tier              = "Standard"
   enable_https_traffic_only = var.options.enable_secure_transfer == "" ? true : var.options.enable_secure_transfer
 }

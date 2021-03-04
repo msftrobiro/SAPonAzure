@@ -23,6 +23,582 @@
           "write_accelerator": false
         }
       ]
+    },
+    "S_Dsv3": {
+      "compute": {
+        "vm_size": "Standard_D4s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Esv3": {
+      "compute": {
+        "vm_size": "Standard_E4s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Ddsv4": {
+      "compute": {
+        "vm_size": "Standard_D4ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Dasv4": {
+      "compute": {
+        "vm_size": "Standard_D4as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Easv4": {
+      "compute": {
+        "vm_size": "Standard_E4as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Edsv4": {
+      "compute": {
+        "vm_size": "Standard_E4ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Dsv3": {
+      "compute": {
+        "vm_size": "Standard_D8s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Esv3": {
+      "compute": {
+        "vm_size": "Standard_E8s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Ddsv4": {
+      "compute": {
+        "vm_size": "Standard_D8ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Dasv4": {
+      "compute": {
+        "vm_size": "Standard_D8as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Easv4": {
+      "compute": {
+        "vm_size": "Standard_E8as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Edsv4": {
+      "compute": {
+        "vm_size": "Standard_E8ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Dsv3": {
+      "compute": {
+        "vm_size": "Standard_D16s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Esv3": {
+      "compute": {
+        "vm_size": "Standard_E16s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Ddsv4": {
+      "compute": {
+        "vm_size": "Standard_D16ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Dasv4": {
+      "compute": {
+        "vm_size": "Standard_D16as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Easv4": {
+      "compute": {
+        "vm_size": "Standard_E16as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Edsv4": {
+      "compute": {
+        "vm_size": "Standard_E16ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Dsv3": {
+      "compute": {
+        "vm_size": "Standard_D20s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Esv3": {
+      "compute": {
+        "vm_size": "Standard_E20s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Ddsv4": {
+      "compute": {
+        "vm_size": "Standard_D20ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Dasv4": {
+      "compute": {
+        "vm_size": "Standard_D20as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Easv4": {
+      "compute": {
+        "vm_size": "Standard_E20as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Edsv4": {
+      "compute": {
+        "vm_size": "Standard_E20ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
     }
   },
   "scs": {
@@ -49,6 +625,582 @@
           "write_accelerator": false
         }
       ]
+    },
+    "S_Dsv3": {
+      "compute": {
+        "vm_size": "Standard_D4s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Esv3": {
+      "compute": {
+        "vm_size": "Standard_E4s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Ddsv4": {
+      "compute": {
+        "vm_size": "Standard_D4ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Dasv4": {
+      "compute": {
+        "vm_size": "Standard_D4as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Easv4": {
+      "compute": {
+        "vm_size": "Standard_E4as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Edsv4": {
+      "compute": {
+        "vm_size": "Standard_E4ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Dsv3": {
+      "compute": {
+        "vm_size": "Standard_D8s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Esv3": {
+      "compute": {
+        "vm_size": "Standard_E8s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Ddsv4": {
+      "compute": {
+        "vm_size": "Standard_D8ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Dasv4": {
+      "compute": {
+        "vm_size": "Standard_D8as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Easv4": {
+      "compute": {
+        "vm_size": "Standard_E8as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Edsv4": {
+      "compute": {
+        "vm_size": "Standard_E8ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Dsv3": {
+      "compute": {
+        "vm_size": "Standard_D16s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Esv3": {
+      "compute": {
+        "vm_size": "Standard_E16s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Ddsv4": {
+      "compute": {
+        "vm_size": "Standard_D16ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Dasv4": {
+      "compute": {
+        "vm_size": "Standard_D16as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Easv4": {
+      "compute": {
+        "vm_size": "Standard_E16as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Edsv4": {
+      "compute": {
+        "vm_size": "Standard_E16ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Dsv3": {
+      "compute": {
+        "vm_size": "Standard_D20s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Esv3": {
+      "compute": {
+        "vm_size": "Standard_E20s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Ddsv4": {
+      "compute": {
+        "vm_size": "Standard_D20ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Dasv4": {
+      "compute": {
+        "vm_size": "Standard_D20as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Easv4": {
+      "compute": {
+        "vm_size": "Standard_E20as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Edsv4": {
+      "compute": {
+        "vm_size": "Standard_E20ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
     }
   },
   "web": {
@@ -63,6 +1215,582 @@
           "name": "os",
           "disk_type": "Premium_LRS",
           "size_gb": 30,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Dsv3": {
+      "compute": {
+        "vm_size": "Standard_D4s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Esv3": {
+      "compute": {
+        "vm_size": "Standard_E4s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Ddsv4": {
+      "compute": {
+        "vm_size": "Standard_D4ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Dasv4": {
+      "compute": {
+        "vm_size": "Standard_D4as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Easv4": {
+      "compute": {
+        "vm_size": "Standard_E4as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "S_Edsv4": {
+      "compute": {
+        "vm_size": "Standard_E4ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Dsv3": {
+      "compute": {
+        "vm_size": "Standard_D8s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Esv3": {
+      "compute": {
+        "vm_size": "Standard_E8s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Ddsv4": {
+      "compute": {
+        "vm_size": "Standard_D8ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Dasv4": {
+      "compute": {
+        "vm_size": "Standard_D8as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Easv4": {
+      "compute": {
+        "vm_size": "Standard_E8as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "M_Edsv4": {
+      "compute": {
+        "vm_size": "Standard_E8ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Dsv3": {
+      "compute": {
+        "vm_size": "Standard_D16s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Esv3": {
+      "compute": {
+        "vm_size": "Standard_E16s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Ddsv4": {
+      "compute": {
+        "vm_size": "Standard_D16ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Dasv4": {
+      "compute": {
+        "vm_size": "Standard_D16as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Easv4": {
+      "compute": {
+        "vm_size": "Standard_E16as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "L_Edsv4": {
+      "compute": {
+        "vm_size": "Standard_E16ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Dsv3": {
+      "compute": {
+        "vm_size": "Standard_D20s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Esv3": {
+      "compute": {
+        "vm_size": "Standard_E20s_v3",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Ddsv4": {
+      "compute": {
+        "vm_size": "Standard_D20ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Dasv4": {
+      "compute": {
+        "vm_size": "Standard_D20as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Easv4": {
+      "compute": {
+        "vm_size": "Standard_E20as_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
+          "caching": "ReadWrite",
+          "write_accelerator": false
+        },
+        {
+          "count": 1,
+          "name": "data",
+          "disk_type": "Premium_LRS",
+          "size_gb": 512,
+          "caching": "None",
+          "write_accelerator": false
+        }
+      ]
+    },
+    "XL_Edsv4": {
+      "compute": {
+        "vm_size": "Standard_E20ds_v4",
+        "accelerated_networking": false
+      },
+      "storage": [
+        {
+          "count": 1,
+          "name": "os",
+          "disk_type": "Premium_LRS",
+          "size_gb": 64,
           "caching": "ReadWrite",
           "write_accelerator": false
         },

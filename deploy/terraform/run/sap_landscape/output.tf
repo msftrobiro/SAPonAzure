@@ -52,3 +52,12 @@ output "route_table_id" {
 output "automation_version" {
   value = local.version_label
 }
+
+//Witness
+output "witness_storage_account" {
+  value = module.sap_landscape.witness_storage_account
+}
+
+output "witness_storage_account_key" {
+  value = module.sap_landscape.witness_storage_account_key
+}

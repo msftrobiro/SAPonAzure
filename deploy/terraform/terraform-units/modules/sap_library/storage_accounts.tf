@@ -92,9 +92,9 @@ TBD: two options
 2. when deploying storage accounts, deployer msi will be assgined a role as Storage Account Contributor, so it can move the terraform.tfstate from local to the storage account.
 */
 // Assign contributor role to deployer's msi to access tfstate storage account
-resource "azurerm_role_assignment" "deployer_msi_sa_tfstate" {
-  scope                = local.sa_sapbits_exists ? data.azurerm_storage_account.storage_tfstate[0].id : azurerm_storage_account.storage_tfstate[0].id
-  role_definition_name = "Storage Account Contributor"
-  principal_id         = local.deployer_msi_principal_id
-}
+# resource "azurerm_role_assignment" "deployer_msi_sa_tfstate" {
+#   scope                = local.sa_sapbits_exists ? data.azurerm_storage_account.storage_tfstate[0].id : azurerm_storage_account.storage_tfstate[0].id
+#   role_definition_name = "Storage Account Contributor"
+#   principal_id         = local.deployer_msi_principal_id
+# }
 

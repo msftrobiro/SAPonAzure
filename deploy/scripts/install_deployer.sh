@@ -228,6 +228,7 @@ then
     temp=$(echo "${kv_name}" | grep "Backend reinitialization required")
     if [ -z "${temp}" ]
     then
+        touch "${library_config_information}"
         sed -i /keyvault/d  "${library_config_information}"
         echo "keyvault=${kv_name}" >> "${library_config_information}"
     fi

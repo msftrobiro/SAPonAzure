@@ -148,6 +148,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
+touch "${environment_config_information}"
 sed -i /Environment/d  "${environment_config_information}"
 echo "Environment=${environment} >> ${environment_config_information}"
 

@@ -215,7 +215,7 @@ if [ $? -eq 255 ]
 fi 
 cd "${curdir}"
 
-read -p "Do you want to specify the keyvault secrets Y/N?"  ans
+read -p "Do you want to specify the SPN Details Y/N?"  ans
 answer=${ans^^}
 if [ $answer == 'Y' ]; then
     temp=$(grep "keyvault=" $library_config_information)

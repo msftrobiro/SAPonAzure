@@ -61,6 +61,4 @@ output "witness_storage_account" {
 output "witness_storage_account_key" {
   value = module.sap_landscape.witness_storage_account_key
 }
-output "automation_version" {
-  value = local.version_label
-}
+

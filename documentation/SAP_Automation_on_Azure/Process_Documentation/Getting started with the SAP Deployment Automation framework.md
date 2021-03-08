@@ -2,27 +2,62 @@
 
 The SAP Deployment Automation Framework provides both Terraform templates and Ansible playbooks which can be used to build and configure the environments to run SAP on Azure.
 
-## Preparation activities
+### Table of Contents <!-- omit in toc --> ###
 
-## Sample files
+- [Planning](##Planning-environment)
+- [Deployment Environment](###Deployment-environment)
+- [SAP Library](###SAP Library)
 
-The repository contains a folder [WORKSPACES](WORKSPACES) that has a set of sample parameter files that can be used to deploy the supporting components and the SAP System. The folder structure is documented here: [Deployment folder structure](Deployment_folder_structure.md)
-
-The name of the environment is **DEV** and it is deployed to West Europe. The SID of the application is ZZZ.
-
-The sample deployment will create a deployment environment, the shared library for state management, the workload virtual network and a SAP system.
+## Planning
 
 ### **Deployment environment**
 
-The deployment environment configuration is specified in [Deployment Environment](WORKSPACES/DEPLOYMENT-ORCHESTRATION/DEPLOYER/DEV-WEEU-DEP00-INFRASTRUCTURE/DEV-WEEU-DEP00-INFRASTRUCTURE.json)
+The deployment environment provides the following services
 
-The deployment will contain an Ubuntu Virtual machine, and the key vault to store the SPN secrets.
+1. Deployment Virtual Machine, this virtual machine can be used to perform both the Terraform deployments as well as the Ansible configurations.
+2. Azure Keyvault, this keyvault will containg the Service Principal details and will be used by the Terraform deployments
+3. Azure Firewall, this optional component is used to provide outbound Internet connectivity.
 
-### **Shared Library**
+#### Configuring the deployment environment
 
-The shared library configuration is specified in [Library Environment](WORKSPACES/DEPLOYMENT-ORCHESTRATION/LIBRARY/DEV-WEEU-SAP_LIBRARY/DEV-WEEU-SAP_LIBRARY.json)
+The deployment configuration file defines the region and the environment name and the Virtual Network information for the Deployment Virtual Machine.
 
-The deployment will create two storage accounts and two key vaults (which can be ignored for now)
+   ```json
+   {
+      "infrastructure": {
+         "region": "westeurope",
+         "environment": "DEV",
+         "vnets": {
+               "management": {
+                  "address_space": "10.10.20.0/25",
+                  "subnet_mgmt": {
+                     "prefix": "10.10.20.64/28"
+                  }
+               }
+         }
+      }
+   }
+   ```
+
+A sample deployment environment configuration is specified in [Deployment Environment](WORKSPACES/DEPLOYMENT-ORCHESTRATION/DEPLOYER/DEV-WEEU-DEP00-INFRASTRUCTURE/DEV-WEEU-DEP00-INFRASTRUCTURE.json)
+
+For more details on the deployer see [Deployer](../Software_Documentation\product_documentation-deployer.md)
+
+For more details on the configuration of the deployer see [Deployment Configuration](../Software_Documentation/configuration-deployer.md)
+
+### **SAP Library**
+
+The SAP Library provides the following services:
+
+- Storage for the Terraform state files
+- Storage for the SAP Installation media
+
+The sample deployment for the SAP library configuration is specified in [Library Environment](WORKSPACES/DEPLOYMENT-ORCHESTRATION/LIBRARY/DEV-WEEU-SAP_LIBRARY/DEV-WEEU-SAP_LIBRARY.json)
+
+For more details on the SAP Library see [SAP Library](../Software_Documentation\product_documentation-sap_library.md)
+
+For more details on the configuration of the SAP Library see [SAP Library Configuration](../Software_Documentation/configuration-sap_library.md)
+
 
 ### **Workload Zone**
 
@@ -85,8 +120,15 @@ This step deploys the Workload Zone specific aritfacts: the Virtual Network and 
 
 This step deploys the actual infrastructure for the SAP System (SID)
 
-## Choosing the orchestration environment
+## Sample files
 
+The repository contains a folder [WORKSPACES](WORKSPACES) that has a set of sample parameter files that can be used to deploy the supporting components and the SAP System. The folder structure is documented here: [Deployment folder structure](Deployment_folder_structure.md)
+
+The name of the environment is **DEV** and it is deployed to West Europe. The SID of the application is ZZZ.
+
+The sample deployment will create a deployment environment, the shared library for state management, the workload virtual network and a SAP system.
+
+## Choosing the orchestration environment
 
 The templates and scripts need to be executed from an execution environment, currently the supported environments are:
 

@@ -18,7 +18,7 @@ variable "ppg" {
   description = "Details of the proximity placement group"
 }
 
-variable naming {
+variable "naming" {
   description = "Defines the names for the resources"
 }
 
@@ -79,6 +79,9 @@ locals {
 
   //Allowing changing the base for indexing, default is zero-based indexing, if customers want the first disk to start with 1 they would change this
   offset = try(var.options.resource_offset, 0)
+
+  //Allowing to keep the old nic order
+  legacy_nic_order = try(var.options.legacy_nic_order, false)
 
   // Zones
   zones            = try(local.anydb.zones, [])

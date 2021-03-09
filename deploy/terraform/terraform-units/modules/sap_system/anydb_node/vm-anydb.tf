@@ -73,7 +73,10 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   zone = local.enable_ultradisk || local.db_server_count == local.db_zone_count ? local.zones[count.index % max(local.db_zone_count, 1)] : null
 
   network_interface_ids = local.anydb_dual_nics ? (
-    [azurerm_network_interface.anydb_db[count.index].id, azurerm_network_interface.anydb_admin[count.index].id]) : (
+    local.legacy_nic_order ? (
+      [azurerm_network_interface.anydb_admin[count.index].id, azurerm_network_interface.anydb_db[count.index].id]) : (
+      [azurerm_network_interface.anydb_db[count.index].id, azurerm_network_interface.anydb_admin[count.index].id]
+    )) : (
     [azurerm_network_interface.anydb_db[count.index].id]
   )
 
@@ -105,7 +108,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
 
   admin_username                  = var.sid_username
   admin_password                  = local.enable_auth_key ? null : var.sid_password
-  disable_password_authentication = ! local.enable_auth_password
+  disable_password_authentication = !local.enable_auth_password
 
   dynamic "admin_ssh_key" {
     for_each = range(local.enable_auth_password ? 0 : 1)
@@ -150,9 +153,13 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   zone = local.enable_ultradisk || local.db_server_count == local.db_zone_count ? local.zones[count.index % max(local.db_zone_count, 1)] : null
 
   network_interface_ids = local.anydb_dual_nics ? (
-    [azurerm_network_interface.anydb_db[count.index].id, azurerm_network_interface.anydb_admin[count.index].id]) : (
+    local.legacy_nic_order ? (
+      [azurerm_network_interface.anydb_admin[count.index].id, azurerm_network_interface.anydb_db[count.index].id]) : (
+      [azurerm_network_interface.anydb_db[count.index].id, azurerm_network_interface.anydb_admin[count.index].id]
+    )) : (
     [azurerm_network_interface.anydb_db[count.index].id]
   )
+
   size = local.anydb_vms[count.index].size
 
   source_image_id = local.anydb_custom_image ? local.anydb_os.source_image_id : null

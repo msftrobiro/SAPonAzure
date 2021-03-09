@@ -31,7 +31,10 @@ variable "options" {
 variable "authentication" {
   description = "Details of ssh key pair"
   default = {
-    username = "azureadm"
+    username = "azureadm",
+    path_to_public_key = "",
+    path_to_private_key = ""
+
   }
 
   validation {

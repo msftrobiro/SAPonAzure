@@ -3,7 +3,7 @@
     "region": "westeurope",
     "environment": "DEV",
     "resource_group": {
-      "name" : "WEEU-SAP_LIBRARY"
+      "name": "WEEU-SAP_LIBRARY"
     }
   },
   "deployer": {

@@ -5,15 +5,54 @@ The SAP Deployment Automation Framework provides both Terraform templates and An
 ## Table of Contents <!-- omit in toc --> ##
 
 - [Planning](##Planning-environment)
+  - [SPN](###SPN-Creation)
   - [DevOps planning](###DevOps-planning)
   - [Region planning](###Regional-planning)
+    - [Deployment Environment](###Deployment-environment)
+    - [SAP Library](###SAP-Library)
   - [Workload planning](###Workload-zone-planning)
-- [Deployment Environment](###Deployment-environment)
-- [SAP Library](###SAP-Library)
+  - [SAP System planning](###SAP-System-planning)
+- [Deployment Flow](##Deployment-flow)
+- [Sample Files](##Sample-files)
 
 ## Planning ##
 
 Before deploying the SAP Systems there are a few design decisions that need to be made. This section covers the high level steps for the planning process
+
+### **SPN Creation** ###
+
+The deployment will require using a Service principal.
+
+1. Create SPN
+
+From a privilaged account, create an SPN.
+
+   ```bash
+   az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" --name="Deployment Account-DEV"
+   ```
+
+2. Record the credential outputs.
+
+   The pertinant fields are:
+   - appId
+   - password
+   - tenant
+
+```json
+    {
+      "appId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      "displayName": "Deployment Account-NP",
+      "name": "http://Deployment-Account-NP",
+      "password": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "tenant": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx""
+    }
+ ```
+
+3. Add Role Assignment to SPN.
+
+   ```bash
+   az role assignment create --assignee <appId> --role "User Access Administrator"
+   ```
 
 ### **DevOps planning** ###
 
@@ -31,6 +70,8 @@ The SAP Deployment Automation supports deployments in multiple Azure Regions. Ea
 - SAP Library for state and SAP installation media
 - 1-n Workload zones
 - 1-n SAP systems deployed in the Workload Zones.
+
+<img src="./assets/SAP_DevOps_strategy.png" width=600px>
 
 #### Design questions - regions ####
 
@@ -112,13 +153,15 @@ A workload zone combines the workload Virtual Network and the set of credentials
 
 Some common patterns for workload zones are:
 
-#### Production and Non-Production ####
+#### **Production and Non-Production** ####
 
 In this model the SAP environments are partitioned into two zones, production and non production.
 
-#### Development, Quality Assurance, Production ####
+#### **Development, Quality Assurance, Production** ####
 
 In this model the SAP environments are partitioned into three zones, development, quality Assurance, production
+
+<img src="./assets/SAP_estate.png" width=600px>
 
 #### Design questions - workload zone ####
 
@@ -162,62 +205,45 @@ The deployment will create a Virtual network and a storage account for boot diag
 For more details on the Workload Zone see [Workload Zone](../Software_Documentation/product_documentation-sap-workloadzone.md)
 For more details on the configuration of the SAP Library see [Workload Zone Configuration](../Software_Documentation/configuration-sap_workloadzone.md)
 
-### **SAP System**
+### **SAP System planning** ###
 
-The SAP System configuration is specified in [SAP System](WORKSPACES/DEPLOYMENT-ORCHESTRATION/SYSTEM/DEV-WEEU-SAP00-ZZZ/DEV-WEEU-SAP01-ZZZ.json)
+The SAP System is the actual SAP Application, it contains all the Azure artifacts required to host the SAP Application.
+
+A sample SAP System configuration is specified in [SAP System](WORKSPACES/DEPLOYMENT-ORCHESTRATION/SYSTEM/DEV-WEEU-SAP00-ZZZ/DEV-WEEU-SAP01-ZZZ.json)
 
 The deployment will create a SAP system that has an Hana database server, 2 application servers, 1 central services server and a web dispatcher and two key vaults (which can be ignored for now).
 
-The deployment will require using a Service principal.
+#### Design questions - SAP System ####
 
-1. Create SPN
+- Which database backend to use?
+- The number of database servers?
+- Is high availability required?
+- The number of Application Servers?
+- The number of Web Dispatchers (if any)?
+- The number of Central Services instances?
+- The sizes of the virtual machines?
+- Which image to use marketplace/custom?
+- Is the deployment a Greenfield deployment (no Azure Infrastructure for the subnets created) or a Brownfield deployment (some or all of the artifacts for the subnets already exists)?
+- IP Allocation strategy (Azure or customer provided)
 
-From a privilaged account, create an SPN.
-
-```bash
-az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" --name="Deployment Account-DEV"
-```
-
-2. Record the credential outputs.
-   The pertinant fields are:
-   - appId
-   - password
-   - tenant
-
-```json
-    {
-      "appId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-      "displayName": "Deployment Account-NP",
-      "name": "http://Deployment-Account-NP",
-      "password": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-      "tenant": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx""
-    }
- ```
-
-3. Add Role Assignment to SPN.
-
-```bash
-az role assignment create --assignee <appId> --role "User Access Administrator"
-```
-## Deployment flow
+## **Deployment flow** ##
 
 The deployment flow has three steps: Preparing the region, preparing the environment(s) and deploying the systems.
 
-
-### Prepare the region
+### Prepare the region ###
 
 This step deploys the required artifacts to support the SAP Automation framework in a specifed Azure region.
 This includes creating the deployment environment and the shared storage for Terraform statefiles as well as the SAP installation media.
 
-### Preparing the environment
+### Preparing the workload zone ###
 
 This step deploys the Workload Zone specific aritfacts: the Virtual Network and the Azure Key Vaults used for credentials management.
 
-### Deploying the system
+### Deploying the system ###
 
 This step deploys the actual infrastructure for the SAP System (SID)
 
-## Sample files
+## Sample files ##
 
 The repository contains a folder [WORKSPACES](WORKSPACES) that has a set of sample parameter files that can be used to deploy the supporting components and the SAP System. The folder structure is documented here: [Deployment folder structure](Deployment_folder_structure.md)
 
@@ -225,7 +251,7 @@ The name of the environment is **DEV** and it is deployed to West Europe. The SI
 
 The sample deployment will create a deployment environment, the shared library for state management, the workload virtual network and a SAP system.
 
-## Choosing the orchestration environment
+## Choosing the orchestration environment ##
 
 The templates and scripts need to be executed from an execution environment, currently the supported environments are:
 

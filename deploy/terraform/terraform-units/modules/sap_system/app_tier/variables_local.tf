@@ -195,7 +195,7 @@ locals {
   application_server_count = try(var.application.application_server_count, 0)
   scs_server_count         = try(var.application.scs_server_count, 1) * (local.scs_high_availability ? 2 : 1)
   webdispatcher_count      = try(var.application.webdispatcher_count, 0)
-  vm_sizing                = try(var.application.vm_sizing, "Default")
+  
   app_nic_ips              = try(var.application.app_nic_ips, [])
   app_admin_nic_ips        = try(var.application.app_admin_nic_ips, [])
   scs_lb_ips               = try(var.application.scs_lb_ips, [])
@@ -204,6 +204,12 @@ locals {
   web_lb_ips               = try(var.application.web_lb_ips, [])
   web_nic_ips              = try(var.application.web_nic_ips, [])
   web_admin_nic_ips        = try(var.application.web_admin_nic_ips, [])
+
+  app_size = try(var.application.app_sku, "")
+  scs_size = try(var.application.scs_sku, local.app_size)
+  web_size = try(var.application.web_sku, local.app_size)
+
+  vm_sizing = length(local.app_size) > 0 ? "New" : "Default"
 
   use_DHCP = try(var.application.use_DHCP, false)
 

@@ -72,7 +72,7 @@ resource "azurerm_linux_virtual_machine" "web" {
     [azurerm_network_interface.web[count.index].id]
   )
 
-  size                            = local.web_sizing.compute.vm_size
+  size                            = length(local.web_size) > 0 ? local.web_size : local.web_sizing.compute.vm_size
   admin_username                  = var.sid_username
   disable_password_authentication = !local.enable_auth_password
   admin_password                  = local.enable_auth_key ? null : var.sid_password

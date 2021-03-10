@@ -37,6 +37,7 @@ variable "landscape_tfstate_key" {
 
 locals {
 
+  version_label = trimspace(file("${path.module}/../../../configs/version.txt"))
   // The environment of sap landscape and sap system
   environment     = upper(try(var.infrastructure.environment, ""))
   vnet_sap_arm_id = data.terraform_remote_state.landscape.outputs.vnet_sap_arm_id
@@ -59,6 +60,12 @@ locals {
   file_hosts     = fileexists("${terraform.workspace}/ansible_config_files/hosts") ? file("${terraform.workspace}/ansible_config_files/hosts") : ""
   file_hosts_yml = fileexists("${terraform.workspace}/ansible_config_files/hosts.yml") ? file("${terraform.workspace}/ansible_config_files/hosts.yml") : ""
   file_output    = fileexists("${terraform.workspace}/ansible_config_files/output.json") ? file("${terraform.workspace}/ansible_config_files/output.json") : ""
+
+  // SAP vnet
+  var_infra       = try(var.infrastructure, {})
+  var_vnet_sap    = try(local.var_infra.vnets.sap, {})
+  vnet_sap_arm_id = try(local.var_vnet_sap.arm_id,"")
+  vnet_sap_exists = length(local.vnet_sap_arm_id) > 0 ? true : false
 
   //SID determination
 
@@ -108,7 +115,7 @@ locals {
   landscape_tfstate_key        = try(var.landscape_tfstate_key, "")
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
-  spn_key_vault_arm_id = try(var.key_vault.kv_spn_id, data.terraform_remote_state.deployer.outputs.deployer_kv_user_arm_id, "")
+  deployer_key_vault_arm_id = try(var.key_vault.kv_spn_id, data.terraform_remote_state.deployer.outputs.deployer_kv_user_arm_id)
 
   spn = {
     subscription_id = data.azurerm_key_vault_secret.subscription_id.value,

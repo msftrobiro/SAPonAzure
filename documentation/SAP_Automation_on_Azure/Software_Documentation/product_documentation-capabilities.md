@@ -6,7 +6,9 @@ The SAP Deployment automation supports deployment on both Linux and Windows
 
 ## Supported topologies ##
 
-The default deployment model using the SAP Deployment Automation is the distributed model with a database tier and an application tier. The application tier can be further split into three tiers: the application servers, the central services servers and the web dispatchers
+The default deployment model using the SAP Deployment Automation is the distributed model with a database tier and an application tier. The application tier can be further split into three tiers: the application servers, the central services servers and the web dispatchers.
+
+The automation can also be deployed to a standalone server by specifying an configuration without an application tier.
 
 ## Supported capabilities ##
 
@@ -15,9 +17,12 @@ The SAP Deployment Automation Framework supportability matrix
 Feature                                      | Supported    |  Notes |
 | :------------------------------------------|  :---------- |  :----------
 | Application Security Groups                | N            | In roadmap
-| Anchor VM                                  | Y            | A Virtual Machine which is uses to anchor the proximity placement group in the correct Availability Zone
-| Availability Sets                          | Y            | New Availability Sets or existing
+| Anchor VM                                  | Y            | A Virtual Machine which is uses to anchor the proximity placement group in the Availability Zone
+| Authentication                             | Y            | The authentication supports both ssh based authentication as well as username/password based authentication
+| Availability Zones                         | Y            | The automation can deploy Virtual
 | Availability Zones                         | Y            | The automation can deploy Virtual machines zonal or across Availability Zones
+| Azure Firewall                             | Y            | The automation can an Azure Firewall in the deployer network
+| Azure Load Balancer                        | Y            | The automation uses Standard Azure Load Balancers
 | Boot diagnistics Storage Account           | Y            | The boot diagnistics storage account is shared across all systems in a Workload Zone
 | Azure Key Vaults                           | Y            | New Azure Keyvaults or existing
 | Customer images                            | Y            | The custom images need to be replicated to the region

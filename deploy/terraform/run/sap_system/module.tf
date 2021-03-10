@@ -144,4 +144,7 @@ module "output_files" {
   anydb_loadbalancers       = module.anydb_node.anydb_loadbalancers
   random_id                 = module.common_infrastructure.random_id
   landscape_tfstate         = data.terraform_remote_state.landscape.outputs
+  tfstate_resource_id       = var.tfstate_resource_id
+  naming                    = module.sap_namegenerator.naming
+  app_tier_os_types         = module.app_tier.app_tier_os_types
 }

@@ -1,7 +1,8 @@
 locals {
-  environment = lower(try(var.infrastructure.environment, ""))
-  location    = try(var.infrastructure.region, "")
-  codename    = lower(try(var.infrastructure.codename, ""))
+  version_label = trimspace(file("${path.module}/../../../configs/version.txt"))
+  environment   = lower(try(var.infrastructure.environment, ""))
+  location      = try(var.infrastructure.region, "")
+  codename      = lower(try(var.infrastructure.codename, ""))
 
   // Management vnet
   vnet_mgmt        = try(var.infrastructure.vnets.management, {})

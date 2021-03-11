@@ -17,7 +17,7 @@ locals {
   deployer_rg_name = try(var.deployer.resource_group_name, format("%s%s", local.deployer_prefix, module.sap_namegenerator.naming.resource_suffixes.deployer_rg))
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
-  deployer_key_vault_arm_id = try(var.key_vault.kv_spn_id, try(data.terraform_remote_state.deployer.outputs.deployer_kv_user_arm_id, ""))
+  spn_key_vault_arm_id = try(var.key_vault.kv_spn_id, try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, ""))
 
   // Locate the tfstate storage account
   tfstate_resource_id          = try(var.tfstate_resource_id, "")

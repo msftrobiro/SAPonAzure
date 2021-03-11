@@ -93,6 +93,7 @@ TBD: two options
 */
 // Assign contributor role to deployer's msi to access tfstate storage account
 resource "azurerm_role_assignment" "deployer_msi_sa_tfstate" {
+  count                = length(local.deployer_msi_principal_id) > 0 ? 1 : 0
   scope                = local.sa_sapbits_exists ? data.azurerm_storage_account.storage_tfstate[0].id : azurerm_storage_account.storage_tfstate[0].id
   role_definition_name = "Storage Account Contributor"
   principal_id         = local.deployer_msi_principal_id

@@ -82,9 +82,9 @@ locals {
   // Current service principal
   service_principal = try(var.service_principal, {})
 
-  // deployer terraform.tfstate
-  deployer_tfstate          = var.deployer_tfstate
-  deployer_msi_principal_id = local.deployer_tfstate.outputs.deployer_uai.principal_id
+// deployer terraform.tfstate
+  deployer_defined          = length(var.deployer_tfstate) > 0
+  deployer_msi_principal_id = local.deployer_defined ? var.deployer_tfstate.outputs.deployer_uai.principal_id : ""
 
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of creating new key vaults
   user_key_vault_id = try(var.key_vault.kv_user_id, "")

@@ -16,8 +16,8 @@ The following diagram illustrates the dependencies between SAP systems, workload
 
 |Term|Description|Scope|
 | :- | :- | :- |
-|Deployer|The Deployer is a virtual machine that can be used to execute Terraform and Ansible commands. It is deployed to a virtual network (new or existing) that will be peered to the SAP Virtual Network. For more info see [Deployer](../SAP_Automation_on_Azure/Software_Documentation/product_documentation-deployer.md)|Region.
-|Library|This will provide storage for the Terraform state files and the SAP Installation Media. [Library](../SAP_Automation_on_Azure/Software_Documentation/product_documentation-sap_library.md)|Region|
-|Workload Zone| The environment will contain the Virtual Network into which the SAP Systems will be deployed. It will also contain Key Vault which will contain the credentials for the systems in the environment. For more info see [Workload Zone](../SAP_Automation_on_Azure/Software_Documentation/product_documentation-sap-workloadzone.md) |Workload Zone|
-|System|The system is the deployment unit for the SAP Application (SID). It will contain the Virtual Machines and the supporting infrastructure artifacts (load balancers, availability sets etc). For more info see [System](../SAP_Automation_on_Azure/Software_Documentation/product_documentation-sap_deployment_unit.md)|Workload Zone|
+|Deployer|The Deployer is a virtual machine that can be used to execute Terraform and Ansible commands. It is deployed to a virtual network (new or existing) that will be peered to the SAP Virtual Network. For more info see [Deployer](../Software_Documentation/product_documentation-deployer.md)|Region.
+|Library|This will provide storage for the Terraform state files and the SAP Installation Media. [Library](../Software_Documentation/product_documentation-sap_library.md)|Region|
+|Workload Zone| The environment will contain the Virtual Network into which the SAP Systems will be deployed. It will also contain Key Vault which will contain the credentials for the systems in the environment. For more info see [Workload Zone](../Software_Documentation/product_documentation-sap-workloadzone.md) |Workload Zone|
+|System|The system is the deployment unit for the SAP Application (SID). It will contain the Virtual Machines and the supporting infrastructure artifacts (load balancers, availability sets etc). For more info see [System](../Software_Documentation/product_documentation-sap_deployment_unit.md)|Workload Zone|
 

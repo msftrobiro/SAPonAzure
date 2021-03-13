@@ -55,6 +55,8 @@ resource "azurerm_key_vault" "kv_user" {
       "get",
       "list",
       "set",
+      "restore",
+      "recover"
     ]
 
   }

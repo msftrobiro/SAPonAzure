@@ -49,8 +49,8 @@ Licensed under the MIT license.
     Write-Host -ForegroundColor green ""
     Write-Host -ForegroundColor green "Deploying the" $Type
 
-    Add-Content -Path "log.txt" -Value ("Deploying the: " + $Type)
-    Add-Content -Path "log.txt" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
+    Add-Content -Path "deployment.log" -Value ("Deploying the: " + $Type)
+    Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
     
 
     $mydocuments = [environment]::getfolderpath("mydocuments")
@@ -67,7 +67,12 @@ Licensed under the MIT license.
         }
     }
 
-    $region = $jsonData.infrastructure.environment
+    $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
+
+    $Environment = $jsonData.infrastructure.environment
+    $region = $jsonData.infrastructure.region
+    $combined = $Environment + $region
+    
     $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
     if ("sap_deployer" -eq $Type) {
         $iniContent[$region]["Deployer"] = $key
@@ -80,8 +85,8 @@ Licensed under the MIT license.
     
 
     if ($Type -eq "sap_system") {
-        if ($null -ne $iniContent[$Environment] ) {
-            $landscape_tfstate_key = $iniContent[$Environment]["Landscape"]
+        if ($null -ne $iniContent[$combined] ) {
+            $landscape_tfstate_key = $iniContent[$combined]["Landscape"]
         }
         else {
             Write-Host -ForegroundColor Red "The workload zone for " $environment "in " $region " is not deployed"
@@ -93,12 +98,12 @@ Licensed under the MIT license.
     $tfstate_resource_id = $iniContent[$region]["tfstate_resource_id"] 
 
     # Subscription
-    $sub = $iniContent[$region]["subscription"] 
+    $sub = $iniContent[$combined]["subscription"] 
     $repo = $iniContent["Common"]["repo"]
 
     if ($null -eq $sub -or "" -eq $sub) {
         $sub = Read-Host -Prompt "Please enter the subscription"
-        $iniContent[$region]["Subscription"] = $sub
+        $iniContent[$combined]["Subscription"] = $sub
         $changed = $true
     }
 
@@ -119,9 +124,9 @@ Licensed under the MIT license.
     $Command = " init -upgrade=true -force-copy -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$key"" " + $terraform_module_directory
 
     if (Test-Path ".terraform" -PathType Container) {
-        $Command = " init -upgrade=true"
         $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
         if ("azurerm" -eq $jsonData.backend.type) {
+            $Command = " init -upgrade=true"
 
             $ans = Read-Host -Prompt ".terraform already exists, do you want to continue Y/N?"
             if ("Y" -ne $ans) {
@@ -131,7 +136,7 @@ Licensed under the MIT license.
     } 
 
     $Cmd = "terraform $Command"
-    Add-Content -Path "log.txt" -Value $Cmd
+    Add-Content -Path "deployment.log" -Value $Cmd
 
     & ([ScriptBlock]::Create($Cmd)) 
     if ($LASTEXITCODE -ne 0) {
@@ -200,7 +205,7 @@ Licensed under the MIT license.
     $Command = " plan -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
 
     $Cmd = "terraform $Command"
-    Add-Content -Path "log.txt" -Value $Cmd
+    Add-Content -Path "deployment.log" -Value $Cmd
     $planResults = & ([ScriptBlock]::Create($Cmd)) | Out-String 
     
     if ($LASTEXITCODE -ne 0) {
@@ -234,7 +239,7 @@ Licensed under the MIT license.
     $Command = " apply -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
 
     $Cmd = "terraform $Command"
-    Add-Content -Path "log.txt" -Value $Cmd
+    Add-Content -Path "deployment.log" -Value $Cmd
     & ([ScriptBlock]::Create($Cmd))  
     if ($LASTEXITCODE -ne 0) {
         throw "Error executing command: $Cmd"

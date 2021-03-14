@@ -52,6 +52,9 @@ Licensed under the MIT license.
     Write-Host -ForegroundColor green ""
     Write-Host -ForegroundColor green "Remove the" $Type
 
+    Add-Content -Path "deployment.log" -Value ("Removing the: " + $Type)
+    Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
+
     $mydocuments = [environment]::getfolderpath("mydocuments")
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
     $iniContent = Get-IniContent $filePath
@@ -69,8 +72,6 @@ Licensed under the MIT license.
     $deployer_tfstate_key = $iniContent[$region]["Deployer"]
     $landscape_tfstate_key = $iniContent[$combined]["Landscape"]
 
-    $rgName = $iniContent[$region]["REMOTE_STATE_RG"] 
-    $saName = $iniContent[$region]["REMOTE_STATE_SA"] 
     $tfstate_resource_id = $iniContent[$region]["tfstate_resource_id"] 
 
     # Subscription
@@ -99,13 +100,6 @@ Licensed under the MIT license.
     if ($Type -ne "sap_deployer") {
         $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
     }
-    else {
-        # Removing the bootsrap shell script
-        if (Test-Path ".\post_deployment.sh" -PathType Leaf) {
-            Remove-Item -Path ".\post_deployment.sh"  -Force 
-        }
-        
-    }
 
     if ($Type -eq "sap_landscape") {
         $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
@@ -128,6 +122,7 @@ Licensed under the MIT license.
     $Command = " destroy -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
 
     $Cmd = "terraform $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
     & ([ScriptBlock]::Create($Cmd))  
     if ($LASTEXITCODE -ne 0) {
         throw "Error executing command: $Cmd"

@@ -173,6 +173,7 @@ stages:
   - job: runAnsibleSLES
     timeoutInMinutes: 120
     dependsOn: createSAPSystemSLES
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
     steps:
       - template: templates/util/prepare-agent.yml
       - template: templates/util/collect-deployer-info.yml

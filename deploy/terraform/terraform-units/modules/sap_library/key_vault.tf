@@ -22,6 +22,13 @@ resource "azurerm_key_vault" "kv_prvt" {
       "get",
     ]
   }
+
+  lifecycle {
+      ignore_changes = [
+          soft_delete_enabled
+      ]
+  }
+
 }
 
 // Create user KV with access policy
@@ -48,6 +55,13 @@ resource "azurerm_key_vault" "kv_user" {
       "recover"
     ]
   }
+
+  lifecycle {
+      ignore_changes = [
+          soft_delete_enabled
+      ]
+  }
+
 }
 
 /* Comment out code with users.object_id for the time being

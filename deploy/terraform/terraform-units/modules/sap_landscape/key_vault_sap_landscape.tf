@@ -23,6 +23,13 @@ resource "azurerm_key_vault" "kv_prvt" {
     ]
 
   }
+
+  lifecycle {
+    ignore_changes = [
+      soft_delete_enabled
+    ]
+  }
+
 }
 
 // Import an existing private Key Vault
@@ -58,6 +65,12 @@ resource "azurerm_key_vault" "kv_user" {
       "purge"
     ]
 
+  }
+
+  lifecycle {
+    ignore_changes = [
+      soft_delete_enabled
+    ]
   }
 }
 
@@ -151,7 +164,7 @@ data "azurerm_key_vault_secret" "iscsi_username" {
 
 // Using TF tls to generate SSH key pair for SID
 resource "tls_private_key" "sid" {
-  count = (try(file(var.authentication.path_to_public_key), null) == null ) ? 1 : 0
+  count     = (try(file(var.authentication.path_to_public_key), null) == null) ? 1 : 0
   algorithm = "RSA"
   rsa_bits  = 2048
 }

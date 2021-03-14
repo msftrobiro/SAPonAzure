@@ -43,6 +43,12 @@ resource "azurerm_key_vault" "sid_kv_prvt" {
     ]
   }
 
+  lifecycle {
+      ignore_changes = [
+          soft_delete_enabled
+      ]
+  }
+
 }
 
 // Import an existing private Key Vault
@@ -75,6 +81,13 @@ resource "azurerm_key_vault" "sid_kv_user" {
     ]
 
   }
+  
+  lifecycle {
+      ignore_changes = [
+          soft_delete_enabled
+      ]
+  }
+
 }
 
 // Import an existing user Key Vault

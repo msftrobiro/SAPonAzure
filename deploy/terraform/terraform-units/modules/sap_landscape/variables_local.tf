@@ -37,7 +37,8 @@ locals {
   region = try(local.var_infra.region, "")
   prefix = try(var.infrastructure.resource_group.name, var.naming.prefix.VNET)
 
-  vnet_mgmt        = try(var.deployer_tfstate.vnet_mgmt, {})
+  deployer_tfstate = var.deployer_tfstate
+  vnet_mgmt_id     = try(local.deployer_tfstate.vnet_mgmt_id, try(local.deployer_tfstate.vnet_mgmt.id, ""))
 
   // Resource group
   var_rg    = try(local.var_infra.resource_group, {})
@@ -60,7 +61,7 @@ locals {
       "sku"       = try(local.var_iscsi.os.sku, "gen1")
       "version"   = try(local.var_iscsi.os.version, "latest")
   })
-  
+
   iscsi_auth_type     = local.enable_iscsi ? try(local.var_iscsi.authentication.type, "key") : ""
   iscsi_auth_username = local.enable_iscsi ? (local.iscsi_username_exist ? data.azurerm_key_vault_secret.iscsi_username[0].value : try(local.var_iscsi.authentication.username, "azureadm")) : ""
   iscsi_nic_ips       = local.sub_iscsi_exists ? try(local.var_iscsi.iscsi_nic_ips, []) : []

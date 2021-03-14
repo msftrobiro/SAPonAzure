@@ -9,30 +9,29 @@ output "deployer_id" {
   value     = module.sap_deployer.deployer_id
 }
 
-output "vnet_mgmt" {
-  sensitive = true
-  value     = module.sap_deployer.vnet_mgmt
+output "vnet_mgmt_id" {
+  value     = module.sap_deployer.vnet_mgmt.id
 }
 
-output "subnet_mgmt" {
-  sensitive = true
-  value     = module.sap_deployer.subnet_mgmt
-}
+# output "subnet_mgmt" {
+#   sensitive = true
+#   value     = module.sap_deployer.subnet_mgmt.id
+# }
 
-output "nsg_mgmt" {
-  sensitive = true
-  value     = module.sap_deployer.nsg_mgmt
-}
+# output "nsg_mgmt" {
+#   sensitive = true
+#   value     = module.sap_deployer.nsg_mgmt.id
+# }
 
 output "deployer_uai" {
   sensitive = true
-  value     = module.sap_deployer.deployer_uai
+  value     = module.sap_deployer.deployer_uai.principal_id
 }
 
-output "deployer" {
-  sensitive = true
-  value     = module.sap_deployer.deployers
-}
+# output "deployer" {
+#   sensitive = true
+#   value     = module.sap_deployer.deployers
+# }
 
 // Comment out code with users.object_id for the time being.
 /*

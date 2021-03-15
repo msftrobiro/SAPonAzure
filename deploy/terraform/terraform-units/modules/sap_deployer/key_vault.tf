@@ -7,11 +7,16 @@ resource "azurerm_key_vault" "kv_prvt" {
   resource_group_name        = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                   = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   tenant_id                  = data.azurerm_client_config.deployer.tenant_id
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
 
   sku_name = "standard"
+  lifecycle {
+    ignore_changes = [
+      // Ignore changes to object_id
+      soft_delete_enabled
+    ]
+  }
 }
 
 // Import an existing private Key Vault
@@ -40,11 +45,16 @@ resource "azurerm_key_vault" "kv_user" {
   resource_group_name        = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                   = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   tenant_id                  = data.azurerm_client_config.deployer.tenant_id
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
 
   sku_name = "standard"
+  lifecycle {
+    ignore_changes = [
+      // Ignore changes to object_id
+      soft_delete_enabled
+    ]
+  }
 }
 
 // Import an existing user Key Vault
@@ -67,7 +77,8 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
     "list",
     "set",
     "restore",
-    "recover"
+    "recover",
+    "purge"
   ]
 }
 
@@ -85,8 +96,8 @@ resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
     "set",
     "restore",
     "recover",
+    "purge"
   ]
-
   lifecycle {
     ignore_changes = [
       // Ignore changes to object_id

@@ -22,7 +22,7 @@ variable "ppg" {
   description = "Details of the proximity placement group"
 }
 
-variable naming {
+variable "naming" {
   description = "Defines the names for the resources"
 }
 
@@ -89,6 +89,9 @@ locals {
   //Allowing changing the base for indexing, default is zero-based indexing, if customers want the first disk to start with 1 they would change this
   offset = try(var.options.resource_offset, 0)
 
+  //Allowing to keep the old nic order
+  legacy_nic_order = try(var.options.legacy_nic_order, "false") == "true"
+
   faultdomain_count = try(tonumber(compact(
     [for pair in local.faults :
       upper(pair.Location) == upper(local.region) ? pair.MaximumFaultDomainCount : ""
@@ -135,7 +138,7 @@ locals {
     try(split("/", local.sub_app_arm_id)[10], "")) : (
     try(local.var_sub_app.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet))
   )
-  
+
   sub_app_prefix = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] : try(local.var_sub_app.prefix, "")
 
   // APP NSG
@@ -184,7 +187,6 @@ locals {
 
   firewall_service_tags = format("AzureCloud.%s", local.region)
 
-
   application_sid          = try(var.application.sid, "")
   enable_deployment        = try(var.application.enable_deployment, false)
   scs_instance_number      = try(var.application.scs_instance_number, "01")
@@ -193,7 +195,7 @@ locals {
   application_server_count = try(var.application.application_server_count, 0)
   scs_server_count         = try(var.application.scs_server_count, 1) * (local.scs_high_availability ? 2 : 1)
   webdispatcher_count      = try(var.application.webdispatcher_count, 0)
-  vm_sizing                = try(var.application.vm_sizing, "Default")
+  
   app_nic_ips              = try(var.application.app_nic_ips, [])
   app_admin_nic_ips        = try(var.application.app_admin_nic_ips, [])
   scs_lb_ips               = try(var.application.scs_lb_ips, [])
@@ -202,6 +204,12 @@ locals {
   web_lb_ips               = try(var.application.web_lb_ips, [])
   web_nic_ips              = try(var.application.web_nic_ips, [])
   web_admin_nic_ips        = try(var.application.web_admin_nic_ips, [])
+
+  app_size = try(var.application.app_sku, "")
+  scs_size = try(var.application.scs_sku, local.app_size)
+  web_size = try(var.application.web_sku, local.app_size)
+
+  vm_sizing = length(local.app_size) > 0 ? "New" : "Default"
 
   use_DHCP = try(var.application.use_DHCP, false)
 
@@ -214,6 +222,7 @@ locals {
   app_ostype       = try(var.application.os.os_type, "Linux")
 
   app_os = {
+    "os_type"         = local.app_ostype
     "source_image_id" = local.app_custom_image ? var.application.os.source_image_id : ""
     "publisher"       = try(var.application.os.publisher, local.app_custom_image ? "" : "suse")
     "offer"           = try(var.application.os.offer, local.app_custom_image ? "" : "sles-sap-12-sp5")
@@ -224,10 +233,11 @@ locals {
   // OS image for all SCS VMs
   // If custom image is used, we do not overwrite os reference with default value
   // If no publisher or no custom image is specified use the custom image from the app if specified
-  scs_custom_image = try(var.application.scs_os.source_image_id, "") == "" && ! local.app_custom_image ? false : true
+  scs_custom_image = try(var.application.scs_os.source_image_id, "") == "" && !local.app_custom_image ? false : true
   scs_ostype       = try(var.application.scs_os.os_type, local.app_ostype)
 
   scs_os = {
+    "os_type"         = local.scs_ostype
     "source_image_id" = local.scs_custom_image ? try(var.application.scs_os.source_image_id, var.application.os.source_image_id) : ""
     "publisher"       = try(var.application.scs_os.publisher, local.scs_custom_image ? "" : local.app_os.publisher)
     "offer"           = try(var.application.scs_os.offer, local.scs_custom_image ? "" : local.app_os.offer)
@@ -247,10 +257,11 @@ locals {
   // OS image for all WebDispatcher VMs
   // If custom image is used, we do not overwrite os reference with default value
   // If no publisher or no custom image is specified use the custom image from the app if specified
-  web_custom_image = try(var.application.web_os.source_image_id, "") == "" && ! local.app_custom_image ? false : true
+  web_custom_image = try(var.application.web_os.source_image_id, "") == "" && !local.app_custom_image ? false : true
   web_ostype       = try(var.application.web_os.os_type, local.app_ostype)
 
   web_os = {
+    "os_type"         = local.web_ostype
     "source_image_id" = try(var.application.web_os.source_image_id, local.web_custom_image ? local.app_os.source_image_id : null)
     "publisher"       = try(var.application.web_os.publisher, local.web_custom_image ? "" : local.app_os.publisher)
     "offer"           = try(var.application.web_os.offer, local.web_custom_image ? "" : local.app_os.offer)

@@ -10,7 +10,6 @@ resource "azurerm_key_vault" "kv_prvt" {
   location                   = local.region
   resource_group_name        = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   tenant_id                  = local.service_principal.tenant_id
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
   sku_name                   = "standard"
@@ -24,6 +23,13 @@ resource "azurerm_key_vault" "kv_prvt" {
     ]
 
   }
+
+  lifecycle {
+    ignore_changes = [
+      soft_delete_enabled
+    ]
+  }
+
 }
 
 // Import an existing private Key Vault
@@ -41,7 +47,6 @@ resource "azurerm_key_vault" "kv_user" {
   location                   = local.region
   resource_group_name        = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   tenant_id                  = local.service_principal.tenant_id
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
   sku_name                   = "standard"
@@ -55,8 +60,17 @@ resource "azurerm_key_vault" "kv_user" {
       "get",
       "list",
       "set",
+      "restore",
+      "recover",
+      "purge"
     ]
 
+  }
+
+  lifecycle {
+    ignore_changes = [
+      soft_delete_enabled
+    ]
   }
 }
 
@@ -150,7 +164,7 @@ data "azurerm_key_vault_secret" "iscsi_username" {
 
 // Using TF tls to generate SSH key pair for SID
 resource "tls_private_key" "sid" {
-  count = (try(file(var.authentication.path_to_public_key), null) == null ) ? 1 : 0
+  count     = (try(file(var.authentication.path_to_public_key), null) == null) ? 1 : 0
   algorithm = "RSA"
   rsa_bits  = 2048
 }

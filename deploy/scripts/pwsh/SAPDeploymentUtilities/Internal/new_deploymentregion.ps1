@@ -53,14 +53,16 @@ Licensed under the MIT license.
 
     $DeployerRelativePath = "..\..\" + $fInfo.Directory.FullName.Replace($dirInfo.ToString() + "\", "")
 
-    $Environment = ($fInfo.Name -split "-")[0]
-    $region = ($fInfo.Name -split "-")[1]
+    $jsonData = Get-Content -Path $DeployerParameterfile | ConvertFrom-Json
+
+    $Environment = $jsonData.infrastructure.environment
+    $region = $jsonData.infrastructure.region
 
     $mydocuments = [environment]::getfolderpath("mydocuments")
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
 
     if ( -not (Test-Path -Path $FilePath)) {
-        New-Item -Path $mydocuments -Name "sap_deployment_automation.ini" -ItemType "file" -Value "[Common]`nrepo=`nsubscription=`n[$region]`nDeployer=`nLandscape=`n[$Environment]`nDeployer=`n[$Environment-$region]`nDeployer=" -Force
+        New-Item -Path $mydocuments -Name "sap_deployment_automation.ini" -ItemType "file" -Value "[Common]`nrepo=`nsubscription=`n[$region]`nDeployer=`nLandscape=`n[$Environment]`nDeployer=`n[$Environment$region]`nDeployer=" -Force
     }
 
     $iniContent = Get-IniContent $filePath
@@ -90,7 +92,7 @@ Licensed under the MIT license.
     # Re-read ini file
     $iniContent = Get-IniContent $filePath
 
-    $ans = Read-Host -Prompt "Do you want to enter the Keyvault secrets Y/N?"
+    $ans = Read-Host -Prompt "Do you want to enter the SPN secrets Y/N?"
     if ("Y" -eq $ans) {
         $vault = ""
         if ($null -ne $iniContent[$region] ) {

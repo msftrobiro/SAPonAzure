@@ -2,7 +2,7 @@
 Function Set-SAPSPNSecrets {
     <#
     .SYNOPSIS
-        Sets the Secrets in Azure Keyvault
+        Sets the SPN Secrets in Azure Keyvault
 
     .DESCRIPTION
         Sets the secrets in Azure Keyvault that are required for the deployment automation
@@ -71,11 +71,18 @@ Licensed under the MIT license.
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
     $iniContent = Get-IniContent $filePath
 
+    $combined = $Environment + $region
+
+    $UserUPN = ([ADSI]"LDAP://<SID=$([System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value)>").UserPrincipalName
+    If ($UserUPN) {
+        Set-AzKeyVaultAccessPolicy -VaultName $VaultName -UserPrincipalName $UserUPN -PermissionsToSecrets Get,List,Set,Recover,Restore
+    }
+
     # Subscription
-    $sub = $iniContent[$Region]["subscription"]
+    $sub = $iniContent[$combined]["subscription"]
     if ($null -eq $sub -or "" -eq $sub) {
         $sub = Read-Host -Prompt "Please enter the subscription for the key vault"
-        $iniContent[$region]["subscription"] = $sub
+        $iniContent[$combined]["subscription"] = $sub
         $changed = $true
     }
 
@@ -83,7 +90,7 @@ Licensed under the MIT license.
     Write-Host "Setting the secrets for " $Environment
 
     # Read keyvault
-    $v = $iniContent[$Region]["Vault"]
+    $v = $iniContent[$combined]["Vault"]
 
     Write-Host $v
 
@@ -98,31 +105,31 @@ Licensed under the MIT license.
     }
 
     # Read SPN ID
-    $spnid = $iniContent[$Environment]["Client_id"]
+    $spnid = $iniContent[$combined]["Client_id"]
 
     if ($Client_id -eq "") {
         if ($spnid -eq "" -or $null -eq $spnid) {
             $spnid = Read-Host -Prompt 'SPN App ID:'
-            $iniContent[$Environment]["Client_id"] = $spnid 
+            $iniContent[$combined]["Client_id"] = $spnid 
         }
     }
     else {
         $spnid = $Client_id
-        $iniContent[$Environment]["Client_id"] = $Client_id
+        $iniContent[$combined]["Client_id"] = $Client_id
     }
 
     # Read Tenant
-    $t = $iniContent[$Environment]["Tenant"]
+    $t = $iniContent[$combined]["Tenant"]
 
     if ($Tenant -eq "") {
         if ($t -eq "" -or $null -eq $t) {
             $t = Read-Host -Prompt 'Tenant:'
-            $iniContent[$Environment]["Tenant"] = $t 
+            $iniContent[$combined]["Tenant"] = $t 
         }
     }
     else {
         $t = $Tenant
-        $iniContent[$Environment]["Tenant"] = $Tenant
+        $iniContent[$combined]["Tenant"] = $Tenant
     }
 
     if ($Client_secret -eq "") {

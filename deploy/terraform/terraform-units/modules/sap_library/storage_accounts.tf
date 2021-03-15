@@ -42,6 +42,23 @@ resource "azurerm_storage_container" "storagecontainer_tfstate" {
   container_access_type = local.sa_tfstate_container_access_type
 }
 
+//Ansible container
+
+data "azurerm_storage_container" "storagecontainer_ansible" {
+  count                = local.sa_ansible_container_exists ? 1 : 0
+  name                 = local.sa_ansible_container_name
+  storage_account_name = local.sa_tfstate_exists ? data.azurerm_storage_account.storage_tfstate[0].name : azurerm_storage_account.storage_tfstate[0].name
+}
+
+// Creates the storage container inside the storage account for sapsystem
+resource "azurerm_storage_container" "storagecontainer_ansible" {
+  count                 = local.sa_ansible_container_exists ? 0 : 1
+  name                  = local.sa_ansible_container_name
+  storage_account_name  = local.sa_tfstate_exists ? data.azurerm_storage_account.storage_tfstate[0].name : azurerm_storage_account.storage_tfstate[0].name
+  container_access_type = local.sa_tfstate_container_access_type
+}
+
+
 // Imports existing storage account for storing SAP bits
 data "azurerm_storage_account" "storage_sapbits" {
   count               = local.sa_sapbits_exists ? 1 : 0
@@ -92,9 +109,10 @@ TBD: two options
 2. when deploying storage accounts, deployer msi will be assgined a role as Storage Account Contributor, so it can move the terraform.tfstate from local to the storage account.
 */
 // Assign contributor role to deployer's msi to access tfstate storage account
-# resource "azurerm_role_assignment" "deployer_msi_sa_tfstate" {
-#   scope                = local.sa_sapbits_exists ? data.azurerm_storage_account.storage_tfstate[0].id : azurerm_storage_account.storage_tfstate[0].id
-#   role_definition_name = "Storage Account Contributor"
-#   principal_id         = local.deployer_msi_principal_id
-# }
+resource "azurerm_role_assignment" "deployer_msi_sa_tfstate" {
+  count                = length(local.deployer_msi_principal_id) > 0 ? 1 : 0
+  scope                = local.sa_sapbits_exists ? data.azurerm_storage_account.storage_tfstate[0].id : azurerm_storage_account.storage_tfstate[0].id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = local.deployer_msi_principal_id
+}
 

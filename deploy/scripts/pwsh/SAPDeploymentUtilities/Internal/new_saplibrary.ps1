@@ -46,21 +46,29 @@ Licensed under the MIT license.
     Write-Host -ForegroundColor green ""
     Write-Host -ForegroundColor green "Bootstrap the library"
 
+    Add-Content -Path "log.txt" -Value "Bootstrap the library"
+    Add-Content -Path "log.txt" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
+    
+
     $mydocuments = [environment]::getfolderpath("mydocuments")
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
     $iniContent = Get-IniContent $filePath
 
     [IO.FileInfo] $fInfo = $Parameterfile
-    $environmentname = ($fInfo.Name -split "-")[0]
+    $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
+
+    $Environment = $jsonData.infrastructure.environment
+    $region = $jsonData.infrastructure.region
+    $combined = $Environment + $region
 
     # Subscription
     try {
-        $sub = $iniContent[$Environment]["subscription"] 
+        $sub = $iniContent[$region]["subscription"] 
         
     }
     catch {
         $sub = Read-Host -Prompt "Please enter the subscription"
-        $iniContent[$Environment]["subscription"] = $sub
+        $iniContent[$region]["subscription"] = $sub
         $changed = $true
         
     }
@@ -96,8 +104,9 @@ Licensed under the MIT license.
             }
         }
     }
-
+    
     $Cmd = "terraform $Command"
+    Add-Content -Path "log.txt" -Value $Cmd
     & ([ScriptBlock]::Create($Cmd)) 
     if ($LASTEXITCODE -ne 0) {
         throw "Error executing command: $Cmd"
@@ -111,7 +120,9 @@ Licensed under the MIT license.
         $Command = " plan -var-file " + $Parameterfile + " -var deployer_statefile_foldername=" + $DeployerFolderRelativePath + " " + $terraform_module_directory
     }
 
+    
     $Cmd = "terraform $Command"
+    Add-Content -Path "log.txt" -Value $Cmd
     $planResults = & ([ScriptBlock]::Create($Cmd)) | Out-String 
     
     if ($LASTEXITCODE -ne 0) {
@@ -145,6 +156,7 @@ Licensed under the MIT license.
     }
 
     $Cmd = "terraform $Command"
+    Add-Content -Path "log.txt" -Value $Cmd
     & ([ScriptBlock]::Create($Cmd))  
     if ($LASTEXITCODE -ne 0) {
         throw "Error executing command: $Cmd"

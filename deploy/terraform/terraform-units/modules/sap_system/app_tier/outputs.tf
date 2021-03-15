@@ -127,3 +127,7 @@ output "scs_vm_ids" {
 output "web_vm_ids" {
   value = local.enable_deployment ? concat(azurerm_windows_virtual_machine.web[*].id, azurerm_linux_virtual_machine.web[*].id) : []
 }
+
+output "app_tier_os_types" {
+  value = zipmap(["app", "scs", "web"], [local.app_ostype, local.scs_ostype, local.web_ostype])
+}

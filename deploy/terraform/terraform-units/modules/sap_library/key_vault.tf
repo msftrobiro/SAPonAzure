@@ -10,7 +10,6 @@ resource "azurerm_key_vault" "kv_prvt" {
   location                   = local.region
   resource_group_name        = local.rg_exists ? data.azurerm_resource_group.library[0].name : azurerm_resource_group.library[0].name
   tenant_id                  = local.service_principal.tenant_id
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
   sku_name                   = "standard"
@@ -23,6 +22,13 @@ resource "azurerm_key_vault" "kv_prvt" {
       "get",
     ]
   }
+
+  lifecycle {
+      ignore_changes = [
+          soft_delete_enabled
+      ]
+  }
+
 }
 
 // Create user KV with access policy
@@ -32,7 +38,6 @@ resource "azurerm_key_vault" "kv_user" {
   location                   = local.region
   resource_group_name        = local.rg_exists ? data.azurerm_resource_group.library[0].name : azurerm_resource_group.library[0].name
   tenant_id                  = local.service_principal.tenant_id
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
   sku_name                   = "standard"
@@ -46,8 +51,17 @@ resource "azurerm_key_vault" "kv_user" {
       "get",
       "list",
       "set",
+      "restore",
+      "recover"
     ]
   }
+
+  lifecycle {
+      ignore_changes = [
+          soft_delete_enabled
+      ]
+  }
+
 }
 
 /* Comment out code with users.object_id for the time being

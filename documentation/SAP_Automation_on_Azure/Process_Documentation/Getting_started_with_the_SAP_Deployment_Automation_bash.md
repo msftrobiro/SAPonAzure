@@ -1,4 +1,4 @@
-﻿# Running the automation from the a Linux VM
+﻿# Running the automation from Linux
 
 
 ## **Pre-Requisites**
@@ -19,6 +19,7 @@ cd sap-hana
 
 git checkout beta
 ```
+**Note** If using the deployer the repository is already cloned,
 
 4. Export the required environment variables
 

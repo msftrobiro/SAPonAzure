@@ -4,10 +4,6 @@ variable "tfstate_resource_id" {
   default     = ""
 }
 
-variable "deployer_tfstate_key" {
-  description = "The key of deployer's remote tfstate file"
-  default=""
-}
 
 locals {
   
@@ -16,8 +12,10 @@ locals {
   // If custom names are used for deployer, providing resource_group_name and msi_name will override the naming convention
   deployer_rg_name = try(var.deployer.resource_group_name, format("%s%s", local.deployer_prefix, module.sap_namegenerator.naming.resource_suffixes.deployer_rg))
 
+  use_deployer = try(var.deployer.use,"true")=="true"
+
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
-  deployer_key_vault_arm_id = try(var.key_vault.kv_spn_id, try(data.terraform_remote_state.deployer.outputs.deployer_kv_user_arm_id, ""))
+  spn_key_vault_arm_id = try(var.key_vault.kv_spn_id, try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, ""))
 
   // Locate the tfstate storage account
   tfstate_resource_id          = try(var.tfstate_resource_id, "")

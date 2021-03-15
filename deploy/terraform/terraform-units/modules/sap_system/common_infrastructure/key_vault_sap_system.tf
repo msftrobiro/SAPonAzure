@@ -17,7 +17,7 @@ data "azurerm_key_vault_secret" "sid_username" {
 }
 
 data "azurerm_key_vault_secret" "sid_password" {
-  count        = local.use_local_credentials ? 0 : 1
+  count        = local.password_required ? 1 : 0
   name         = try(var.landscape_tfstate.sid_password_secret_name, trimprefix(format("%s-sid-password", var.naming.prefix.VNET), "-"))
   key_vault_id = local.user_key_vault_id
 }
@@ -25,12 +25,11 @@ data "azurerm_key_vault_secret" "sid_password" {
 
 // Create private KV with access policy
 resource "azurerm_key_vault" "sid_kv_prvt" {
-  count                      = local.enable_sid_deployment  && !local.prvt_kv_override ? 1 : 0
+  count                      = local.enable_sid_deployment && ! local.prvt_kv_override ? 1 : 0
   name                       = local.prvt_kv_name
   location                   = local.region
   resource_group_name        = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   tenant_id                  = local.service_principal.tenant_id
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
   sku_name                   = "standard"
@@ -44,6 +43,12 @@ resource "azurerm_key_vault" "sid_kv_prvt" {
     ]
   }
 
+  lifecycle {
+      ignore_changes = [
+          soft_delete_enabled
+      ]
+  }
+
 }
 
 // Import an existing private Key Vault
@@ -55,12 +60,11 @@ data "azurerm_key_vault" "sid_kv_prvt" {
 
 // Create user KV with access policy
 resource "azurerm_key_vault" "sid_kv_user" {
-  count                      = local.enable_sid_deployment && !local.user_kv_override ? 1 : 0
+  count                      = local.enable_sid_deployment && ! local.user_kv_override ? 1 : 0
   name                       = local.user_kv_name
   location                   = local.region
   resource_group_name        = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   tenant_id                  = local.service_principal.tenant_id
-  soft_delete_enabled        = true
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
   sku_name                   = "standard"
@@ -77,6 +81,13 @@ resource "azurerm_key_vault" "sid_kv_user" {
     ]
 
   }
+  
+  lifecycle {
+      ignore_changes = [
+          soft_delete_enabled
+      ]
+  }
+
 }
 
 // Import an existing user Key Vault
@@ -107,7 +118,7 @@ resource "random_id" "sapsystem" {
 
 // Generate random password if password is set as authentication type and user doesn't specify a password, and save in KV
 resource "random_password" "password" {
-  count            = !local.use_local_credentials ? 0 : length(trimspace(try(var.authentication.password, ""))) > 0 ? 0 : 1
+  count            = ! local.use_local_credentials ? 0 : length(trimspace(try(var.authentication.password, ""))) > 0 ? 0 : 1
   length           = 32
   special          = true
   override_special = "_%@"

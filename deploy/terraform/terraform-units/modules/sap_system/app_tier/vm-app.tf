@@ -70,13 +70,17 @@ resource "azurerm_linux_virtual_machine" "app" {
   null)
 
   network_interface_ids = local.apptier_dual_nics ? (
-    [azurerm_network_interface.app[count.index].id, azurerm_network_interface.app_admin[count.index].id]) : (
+    local.legacy_nic_order ? (
+      [azurerm_network_interface.app_admin[count.index].id, azurerm_network_interface.app[count.index].id]) : (
+      [azurerm_network_interface.app[count.index].id, azurerm_network_interface.app_admin[count.index].id]
+    )
+    ) : (
     [azurerm_network_interface.app[count.index].id]
   )
 
-  size                            = local.app_sizing.compute.vm_size
+  size                            = length(local.app_size) > 0 ? local.app_size : local.app_sizing.compute.vm_size
   admin_username                  = var.sid_username
-  disable_password_authentication = ! local.enable_auth_password
+  disable_password_authentication = !local.enable_auth_password
   admin_password                  = local.enable_auth_key ? null : var.sid_password
 
   dynamic "os_disk" {
@@ -157,11 +161,15 @@ resource "azurerm_windows_virtual_machine" "app" {
   null)
 
   network_interface_ids = local.apptier_dual_nics ? (
-    [azurerm_network_interface.app[count.index].id, azurerm_network_interface.app_admin[count.index].id]) : (
+    local.legacy_nic_order ? (
+      [azurerm_network_interface.app_admin[count.index].id, azurerm_network_interface.app[count.index].id]) : (
+      [azurerm_network_interface.app[count.index].id, azurerm_network_interface.app_admin[count.index].id]
+    )
+    ) : (
     [azurerm_network_interface.app[count.index].id]
   )
 
-  size           = local.app_sizing.compute.vm_size
+  size           = length(local.app_size) > 0 ? local.app_size : local.app_sizing.compute.vm_size
   admin_username = var.sid_username
   admin_password = var.sid_password
 

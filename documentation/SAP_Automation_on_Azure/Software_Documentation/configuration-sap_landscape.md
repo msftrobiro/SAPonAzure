@@ -45,6 +45,7 @@ JSON structure
     },
     "vnets": {
       "sap": {
+        "name"                        : "SAP01"                                   <- Required parameter
         "arm_id"                      : "",                                       <-- Optional
         "address_space"               : "10.1.0.0/16",                            <-- Required Parameter unless arm_id is provided
         "subnet_iscsi": {
@@ -90,9 +91,9 @@ Node                                   | attribute                     | Type   
 | | <br/> | 
 | infrastructure.resource_group.              | `name`                        | optional      |          | If specified the name of the resource group to be created |
 | | <br/> | 
+| infrastructure.vnets.sap.                     | `name`                      | **required**  | -        | The logical name of the Virtual Network to be created, the naming convention constructs the name based on this value. </br>For example "SAP01" becomes NP-WEEU-SAP01-vnet" | 
 | infrastructure.vnets.sap.                     |`arm_id`                     | optional      |          | If provided the VNet specified by the resource ID will be used |
 | | **or** | 
-| infrastructure.vnets.sap.                     | `name`                      | **required**  | -        | The name of the Virtual Network to be created| 
 | infrastructure.vnets.sap.                     | `address_space`              | **required**  | -        | The address space of the VNet to be used. Required if the arm_id field is empty. |
 | | <br/> | 
 | infrastructure.vnets.sap.subnet_iscsi.                     |`name`          | optional      |          | If specified, the name of the iscsi subnet |
@@ -137,6 +138,7 @@ Node                                   | attribute                     | Type   
     "region"                          : "eastus2",
     "vnets": {
       "sap": {
+        "name"                        : "SAP01",
         "address_space"               : "10.1.0.0/16"
       }
     }
@@ -162,7 +164,7 @@ Node                                   | attribute                     | Type   
     },
     "vnets": {
       "sap": {
-        "arm_id"                      : "SAP0",
+        "name"                        : "SAP01",
         "arm_id"                      : "",
         "address_space"               : "10.1.0.0/16",
         "subnet_iscsi": {

@@ -6,8 +6,8 @@ Description:
   Define 0..n Deployer(s).
 */
 
-data azurerm_subscription "primary" {}
-data azurerm_client_config "current" {}
+data "azurerm_subscription" "primary" {}
+data "azurerm_client_config" "current" {}
 
 // Public IP addresse and nic for Deployer
 resource "azurerm_public_ip" "deployer" {

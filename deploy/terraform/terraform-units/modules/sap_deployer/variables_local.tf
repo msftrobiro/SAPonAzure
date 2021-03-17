@@ -3,7 +3,7 @@ Description:
 
   Define local variables.
 */
-variable naming {
+variable "naming" {
   description = "naming convention"
 }
 
@@ -110,9 +110,9 @@ locals {
       "os" = {
         "source_image_id" = try(deployer.os.source_image_id, "")
         "publisher"       = try(deployer.os.source_image_id, "") == "" ? try(deployer.os.publisher, "Canonical") : ""
-        "offer"           = try(deployer.os.source_image_id, "") == "" ? try(deployer.os.offer,"UbuntuServer") : ""
-        "sku"             = try(deployer.os.source_image_id, "") == "" ? try(deployer.os.sku,"18.04-LTS") : ""
-        "version"         = try(deployer.os.source_image_id, "") == "" ? try(deployer.os.version,"latest") : ""
+        "offer"           = try(deployer.os.source_image_id, "") == "" ? try(deployer.os.offer, "UbuntuServer") : ""
+        "sku"             = try(deployer.os.source_image_id, "") == "" ? try(deployer.os.sku, "18.04-LTS") : ""
+        "version"         = try(deployer.os.source_image_id, "") == "" ? try(deployer.os.version, "latest") : ""
       },
       "authentication" = {
         "type"     = try(deployer.authentication.type, "key")

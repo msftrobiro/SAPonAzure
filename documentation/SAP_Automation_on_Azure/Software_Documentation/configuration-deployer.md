@@ -23,7 +23,7 @@ The configuration of the deployement infrastructure is achieved using a json for
 
 ### JSON structure ###
 
-```json
+```
 {                                                                                 <-- JSON opening tag
   "infrastructure": {
     "environment"                     : "NP",                                     <-- Required Parameter
@@ -35,12 +35,12 @@ The configuration of the deployement infrastructure is achieved using a json for
         "name"                        : "DEP00",                                  <-- Required Parameter
         "address_space"               : "10.0.0.0/25",                            <-- Required Parameter if arm_id is not specified
         "subnet_mgmt": {
-          "arm_id"                    : ""                                        <-- Optional Identifier
-          "name"                      : "deployment_subnet"                       <-- Optional Identifier
+          "arm_id"                    : "",                                       <-- Optional Identifier
+          "name"                      : "deployment_subnet",                      <-- Optional Identifier
           "prefix"                    : "10.0.0.16/28"                            <-- Required Parameter
         }
         "subnet_fw": {
-          "arm_id"                    : ""                                        <-- Optional Identifier
+          "arm_id"                    : "",                                       <-- Optional Identifier
           "prefix"                    : "10.0.0.32/26"                            <-- Required Parameter
         }
       }

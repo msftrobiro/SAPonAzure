@@ -123,13 +123,13 @@ JSON structure
     "kv_sid_sshkey_prvt" : "",
     "kv_sid_sshkey_pub" : "",
     "kv_spn_id": ""
-  }
+  },
   "authentication": {                                                             <-- Optional Block
     "username"                        : "azureadm"
     "password"                        : "T0pSecret"
     "path_to_public_key"              : "sshkey.pub",
     "path_to_private_key"             : "sshkey"
-  }
+  },
   "tfstate_resource_id"               : "",                                       <-- Required Parameter
   "deployer_tfstate_key"              : "",                                       <-- Required Parameter
   "landscape_tfstate_key"             : "",                                       <-- Required Parameter
@@ -270,9 +270,8 @@ Node                                   | Attribute                     | Type   
     }
   },
   "options": {
-    "enable_secure_transfer"          : true,
-    "enable_prometheus"               : true
-  }
+    "resource_offset"                 : 0,
+  },
   "tfstate_resource_id"               : "",
   "deployer_tfstate_key"              : "",
   "landscape_tfstate_key"             : ""
@@ -381,8 +380,7 @@ Node                                   | Attribute                     | Type   
     "path_to_private_key"             : "sshkey"
   },
   "options": {
-    "enable_secure_transfer"          : true,
-    "enable_prometheus"               : true
+    "resource_offset"                 : 0,
   },
   "tfstate_resource_id"               : "",
   "deployer_tfstate_key"              : "",

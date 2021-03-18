@@ -101,11 +101,6 @@ locals {
   dbnode_per_site       = length(try(local.hdb.dbnodes, [{}]))
   enable_storage_subnet = local.use_ANF && local.dbnode_per_site > 1
 
-  // Zones
-  zones            = try(local.hdb.zones, [])
-  zonal_deployment = length(local.zones) > 0 ? true : false
-  db_zone_count    = length(local.zones)
-
   // Availability Set 
   availabilityset_arm_ids = try(local.hdb.avset_arm_ids, [])
   availabilitysets_exist  = length(local.availabilityset_arm_ids) > 0 ? true : false
@@ -315,4 +310,15 @@ locals {
     )[0],
     false
   )
+
+    // Zones
+  zones            = try(local.hdb.zones, [])
+  db_zone_count    = length(local.zones)
+  
+  //Ultra disk requires zonal deployment
+  zonal_deployment = local.db_zone_count > 0 || local.enable_ultradisk ? true : false
+
+  //If we deploy more than one server in zone put them in an availability set
+  use_avset = !local.zonal_deployment || local.db_server_count != local.db_zone_count
+
 }

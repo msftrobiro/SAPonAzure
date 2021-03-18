@@ -63,20 +63,13 @@ resource "azurerm_linux_virtual_machine" "scs" {
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
 
-  //If more than one servers are deployed into a zone put them in an availability set and not a zone
-  availability_set_id = local.scs_zonal_deployment && (local.scs_server_count == local.scs_zone_count) ? (
-    null) : (
-    local.scs_zone_count > 1 ? (
-      azurerm_availability_set.scs[count.index % max(local.scs_zone_count, 1)].id) : (
-      azurerm_availability_set.scs[0].id
-    )
-  )
   proximity_placement_group_id = local.scs_zonal_deployment ? var.ppg[count.index % max(local.scs_zone_count, 1)].id : var.ppg[0].id
-  zone = local.scs_zonal_deployment && (local.scs_server_count == local.scs_zone_count) ? (
-    local.scs_zones[count.index % max(local.scs_zone_count, 1)]) : (
-    null
-  )
 
+  //If more than one servers are deployed into a single zone put them in an availability set and not a zone
+  availability_set_id = local.use_scs_avset ? azurerm_availability_set.scs[count.index % max(local.scs_zone_count, 1)].id : null
+
+  //If length of zones > 1 distribute servers evenly across zones
+  zone = local.use_scs_avset ? null : local.scs_zones[count.index % max(local.scs_zone_count, 1)]
   network_interface_ids = local.apptier_dual_nics ? (
     local.legacy_nic_order ? (
       [azurerm_network_interface.scs_admin[count.index].id, azurerm_network_interface.scs[count.index].id]) : (
@@ -154,19 +147,13 @@ resource "azurerm_windows_virtual_machine" "scs" {
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
 
-  //If more than one servers are deployed into a zone put them in an availability set and not a zone
-  availability_set_id = local.scs_zonal_deployment && (local.scs_server_count == local.scs_zone_count) ? (
-    null) : (
-    local.scs_zone_count > 1 ? (
-      azurerm_availability_set.scs[count.index % max(local.scs_zone_count, 1)].id) : (
-      azurerm_availability_set.scs[0].id
-    )
-  )
   proximity_placement_group_id = local.scs_zonal_deployment ? var.ppg[count.index % max(local.scs_zone_count, 1)].id : var.ppg[0].id
-  zone = local.scs_zonal_deployment && (local.scs_server_count == local.scs_zone_count) ? (
-    local.scs_zones[count.index % max(local.scs_zone_count, 1)]) : (
-    null
-  )
+
+  //If more than one servers are deployed into a single zone put them in an availability set and not a zone
+  availability_set_id = local.use_scs_avset ? azurerm_availability_set.scs[count.index % max(local.scs_zone_count, 1)].id : null
+
+  //If length of zones > 1 distribute servers evenly across zones
+  zone = local.use_scs_avset ? null : local.scs_zones[count.index % max(local.scs_zone_count, 1)]
 
   network_interface_ids = local.apptier_dual_nics ? (
     local.legacy_nic_order ? (

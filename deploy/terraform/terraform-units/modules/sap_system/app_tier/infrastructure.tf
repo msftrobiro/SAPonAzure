@@ -9,7 +9,7 @@ resource "azurerm_subnet" "subnet_sap_app" {
 }
 
 resource "azurerm_subnet_route_table_association" "subnet_sap_app" {
-  count          = ! local.sub_app_exists && length(var.route_table_id) > 0 ? 1 : 0
+  count          = !local.sub_app_exists && length(var.route_table_id) > 0 ? 1 : 0
   subnet_id      = azurerm_subnet.subnet_sap_app[0].id
   route_table_id = var.route_table_id
 }
@@ -129,7 +129,7 @@ resource "azurerm_lb_rule" "ers" {
 
 # Create the SCS Availability Set
 resource "azurerm_availability_set" "scs" {
-  count = local.enable_deployment ? local.scs_server_count == local.scs_zone_count ? 0 : max(length(local.scs_zones), 1) : 0
+  count = local.enable_deployment && local.use_scs_avset ? max(length(local.scs_zones), 1) : 0
   name = local.scs_zonal_deployment ? (
     format("%s%sz%s%s%s", local.prefix, var.naming.separator, local.scs_zones[count.index], var.naming.separator, local.resource_suffixes.scs_avset)) : (
     format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_avset)
@@ -148,7 +148,7 @@ resource "azurerm_availability_set" "scs" {
 
 # Create the Application Availability Set
 resource "azurerm_availability_set" "app" {
-  count                        = local.enable_deployment ? local.application_server_count == local.app_zone_count ? 0 : max(local.app_zone_count, 1) : 0
+  count                        = local.enable_deployment && local.use_app_avset ? max(length(local.app_zones), 1) : 0
   name                         = local.app_zonal_deployment ? format("%s%sz%s%s%s", local.prefix, var.naming.separator, local.app_zones[count.index], var.naming.separator, local.resource_suffixes.app_avset) : format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_avset)
   location                     = var.resource_group[0].location
   resource_group_name          = var.resource_group[0].name
@@ -215,7 +215,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "web" {
 
 # Create the Web dispatcher Availability Set
 resource "azurerm_availability_set" "web" {
-  count = local.enable_deployment ? local.webdispatcher_count == local.web_zone_count ? 0 : max(length(local.web_zones), 1) : 0
+  count = local.enable_deployment && local.use_web_avset ? max(length(local.web_zones), 1) : 0
   name = local.web_zonal_deployment ? (
     format("%s%sz%s%s%s", local.prefix, var.naming.separator, local.web_zones[count.index], var.naming.separator, local.resource_suffixes.web_avset)) : (
     format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_avset)
@@ -254,7 +254,7 @@ resource "azurerm_firewall_network_rule_collection" "firewall-azure-app" {
     name                  = "Azure-Cloud"
     source_addresses      = local.sub_web_defined ? [local.sub_app_prefix, local.sub_web_prefix] : [local.sub_app_prefix]
     destination_ports     = ["*"]
-    destination_addresses = [local.firewall_service_tags] 
+    destination_addresses = [local.firewall_service_tags]
     protocols             = ["Any"]
   }
 }

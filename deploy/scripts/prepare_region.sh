@@ -159,12 +159,12 @@ deployer_dirname=$(dirname "${deployer_parameter_file}")
 deployer_file_parametername=$(basename "${deployer_parameter_file}")
 
 # Read environment
-environment=$(grep "environment" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \" | sed 's/[ ]*$//')
-region=$(grep "region" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"  | sed 's/[ ]*$//')
+environment=$(grep "environment" "${deployer_parameter_file}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \" | xargs)
+region=$(grep "region" "${deployer_parameter_file}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"   | xargs)
 
 deployer_key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
-
 library_config_information="${automation_config_directory}""${region}"
+touch $library_config_information
 
 library_dirname=$(dirname "${library_parameter_file}")
 library_file_parametername=$(basename "${library_parameter_file}")
@@ -209,26 +209,29 @@ echo ""
 cd "${deployer_dirname}"
 "${DEPLOYMENT_REPO_PATH}"deploy/scripts/install_deployer.sh -p $deployer_file_parametername -i true
 if [ $? -eq 255 ]
-    then
-    exit $?
+   then
+   exit $?
 fi 
 cd "${curdir}"
 
 read -p "Do you want to specify the SPN Details Y/N?"  ans
 answer=${ans^^}
 if [ $answer == 'Y' ]; then
+echo $library_config_information
     temp=$(grep "keyvault=" $library_config_information)
     if [ ! -z $temp ]
     then
         # Key vault was specified in ~/.sap_deployment_automation in the deployer file
-        keyvault_name=$(echo $temp | cut -d= -f2)
+        keyvault_name=$(echo $temp | cut -d= -f2 | xargs)
         keyvault_param=$(printf " -v %s " $keyvault_name)
     fi    
-    env_param=$environment
+    
+    env_param=$(printf " -e %s " $environment)
     region_param=$(printf " -r %s " $region)
     
     allParams=${env_param}${keyvault_param}${region_param}
-    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh -e $allParams 
+
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh $allParams 
     if [ $? -eq 255 ]
         then
         exit $?
@@ -262,8 +265,10 @@ echo ""
 cd "${deployer_dirname}"
 
 # Remove the script file
-rm ./post_deployment.sh
-echo pwd
+if [ -f post_deployment.sh ]
+then
+    rm post_deployment.sh
+fi
 "${DEPLOYMENT_REPO_PATH}"deploy/scripts/installer.sh -p $deployer_file_parametername -i true -t sap_deployer
 if [ $? -eq 255 ]
     then

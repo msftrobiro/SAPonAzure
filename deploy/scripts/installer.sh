@@ -75,8 +75,8 @@ parameterfile_name=$(basename "${parameterfile}")
 
 
 # Read environment
-environment=$(grep "environment" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"  | sed 's/[ ]*$//')
-region=$(grep "region" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"  | sed 's/[ ]*$//')
+environment=$(grep "environment" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"   | xargs)
+region=$(grep "region" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"   | xargs)
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
@@ -97,7 +97,7 @@ fi
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 library_config_information="${automation_config_directory}""${region}"
-workload_config_information="${automation_config_directory}""${region}""${environment}"
+workload_config_information="${automation_config_directory}""${environment}"
 
 if [ ! -d ${automation_config_directory} ]
 then
@@ -142,7 +142,6 @@ else
     temp=$(grep "tfstate_resource_id" "${library_config_information}")
     if [ ! -z "${temp}" ]
     then
-        echo "tfstate_resource_id specified"
         tfstate_resource_id=$(echo "${temp}" | cut -d= -f2)
         if [ "${deployment_system}" != sap_deployer ]
         then
@@ -160,7 +159,11 @@ else
         then
             deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
         else
-            rm post_deployment.sh
+            if [ -f post_deployment.sh ]
+            then
+                rm post_deployment.sh
+            fi
+            
         fi
 
         deployer_tfstate_key_exists=true
@@ -207,8 +210,6 @@ fi
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
 
-echo $terraform_module_directory
-
 if [ ! -d "${terraform_module_directory}" ]
 then
     printf -v val %-40.40s "$deployment_system"
@@ -254,6 +255,15 @@ fi
 
 check_output=0
 
+cat <<EOF > backend.tf
+####################################################
+# To overcome terraform issue                      #
+####################################################
+terraform {
+    backend "azurerm" {}
+}
+EOF
+
 if [ ! -d ./.terraform/ ]; 
 then
     terraform init -upgrade=true -force-copy --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
@@ -266,7 +276,6 @@ else
     temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
     if [ ! -z "${temp}" ]
     then
-        echo "${REMOTE_STATE_SA}"
         terraform init -upgrade=true -force-copy --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
         --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
         --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -285,10 +294,11 @@ else
         answer=${ans^^}
         if [ $answer == 'Y' ]; then
             ok_to_proceed=true
+
         else
             exit 1
         fi
-        terraform init -upgrade=true
+        terraform init -upgrade=true $terraform_module_directory
         check_output=1
 
     fi
@@ -297,7 +307,7 @@ fi
 
 if [ 1 == $check_output ]
 then
-    outputs=$(terraform output)
+    outputs=$(terraform output )
     if echo "${outputs}" | grep "No outputs"; then
         ok_to_proceed=true
         new_deployment=true

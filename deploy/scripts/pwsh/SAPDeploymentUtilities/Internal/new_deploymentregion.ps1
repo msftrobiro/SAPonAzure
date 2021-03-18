@@ -115,7 +115,7 @@ Licensed under the MIT license.
     
         }
         try {
-            Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault
+            Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault  -Workload $false
         }
         catch {
             $errors_occurred = true

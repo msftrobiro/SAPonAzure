@@ -77,8 +77,8 @@ workload_file_parametername=$(basename "${parameterfile}")
 
 
 # Read environment
-environment=$(grep "environment" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"  | sed 's/[ ]*$//')
-region=$(grep "region" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"  | sed 's/[ ]*$//')
+environment=$(grep "environment" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"   | xargs)
+region=$(grep "region" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"   | xargs)
 key=$(echo "${workload_file_parametername}" | cut -d. -f1)
 
 if [ ! -f "${workload_file_parametername}" ]
@@ -98,7 +98,33 @@ fi
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 library_config_information="${automation_config_directory}""${region}"
-workload_config_information="${automation_config_directory}""${region}""${environment}"
+workload_config_information="${automation_config_directory}""${environment}"
+
+touch $workload_config_information
+
+read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
+answer=${ans^^}
+if [ $answer == 'Y' ]; then
+    temp=$(grep "keyvault=" $library_config_information)
+    if [ ! -z $temp ]
+    then
+        # Key vault was specified in ~/.sap_deployment_automation in the deployer file
+        keyvault_name=$(echo $temp | cut -d= -f2 | xargs)
+        keyvault_param=$(printf " -v %s " $keyvault_name)
+    fi    
+    
+    env_param=$(printf " -e %s " $environment)
+    region_param=$(printf " -r %s " $region)
+    
+    allParams=${env_param}${keyvault_param}${region_param}
+
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh $allParams 
+    if [ $? -eq 255 ]
+        then
+        exit $?
+    fi 
+fi
+
 
 if [ ! -d ${automation_config_directory} ]
 then
@@ -143,7 +169,6 @@ else
     temp=$(grep "tfstate_resource_id" "${library_config_information}")
     if [ ! -z "${temp}" ]
     then
-        echo "tfstate_resource_id specified"
         tfstate_resource_id=$(echo "${temp}" | cut -d= -f2)
         if [ "${deployment_system}" != sap_deployer ]
         then
@@ -157,12 +182,7 @@ else
         # Deployer state was specified in ~/.sap_deployment_automation library config
         deployer_tfstate_key=$(echo "${temp}" | cut -d= -f2)
         
-        if [ "${deployment_system}" != sap_deployer ]
-        then
-            deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
-        else
-            rm post_deployment.sh
-        fi
+        deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
 
         deployer_tfstate_key_exists=true
 
@@ -258,12 +278,19 @@ else
         --backend-config "key=${key}.terraform.tfstate" \
         $terraform_module_directory
     else
-        terraform init -upgrade=true
+        terraform init -upgrade=true $terraform_module_directory
         check_output=1
     fi
 
 fi
-
+cat <<EOF > backend.tf
+####################################################
+# To overcome terraform issue                      #
+####################################################
+terraform {
+    backend "azurerm" {}
+}
+EOF
 if [ 1 == $check_output ]
 then
     outputs=$(terraform output)

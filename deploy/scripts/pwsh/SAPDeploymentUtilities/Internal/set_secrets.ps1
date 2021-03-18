@@ -61,7 +61,10 @@ Licensed under the MIT license.
         #SPN App secret
         [Parameter(Mandatory = $true)][string]$Client_secret,
         #Tenant
-        [Parameter(Mandatory = $true)][string]$Tenant = ""
+        [Parameter(Mandatory = $true)][string]$Tenant = "",
+        #Workload
+        [Parameter(Mandatory = $true)][bool]$Workload = $true
+
     )
 
     Write-Host -ForegroundColor green ""
@@ -72,6 +75,10 @@ Licensed under the MIT license.
     $iniContent = Get-IniContent $filePath
 
     $combined = $Environment + $region
+
+    if($false -eq $Workload) {
+        $combined = $region
+    }
 
     if ($null -eq $iniContent[$combined]) {
         $Category1 = @{"subscription" = "" }

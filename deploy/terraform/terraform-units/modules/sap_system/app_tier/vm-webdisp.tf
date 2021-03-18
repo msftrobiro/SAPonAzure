@@ -20,6 +20,13 @@ resource "azurerm_network_interface" "web" {
   }
 }
 
+resource "azurerm_network_interface_application_security_group_association" "web" {
+  count                         = local.enable_deployment ? local.webdispatcher_count : 0
+  network_interface_id          = azurerm_network_interface.web[count.index].id
+  application_security_group_id = azurerm_application_security_group.web.id
+}
+
+
 # Create Application NICs
 resource "azurerm_network_interface" "web_admin" {
   count                         = local.enable_deployment && local.apptier_dual_nics ? local.webdispatcher_count : 0

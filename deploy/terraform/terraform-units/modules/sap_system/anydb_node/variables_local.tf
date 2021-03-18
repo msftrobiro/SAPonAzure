@@ -55,6 +55,10 @@ variable "sap_sid" {
   description = "The SID of the application"
 }
 
+variable "db_asg_id" {
+  description = "Database Application Security Group"
+}
+
 locals {
   // Imports database sizing information
 

@@ -60,6 +60,13 @@ variable "sap_sid" {
   description = "The SID of the application"
 }
 
+
+variable "db_asg_id" {
+  description = "Database Application Security Group"
+}
+
+
+
 locals {
   // Resources naming
   computer_names       = var.naming.virtualmachine_names.HANA_COMPUTERNAME
@@ -68,9 +75,6 @@ locals {
   storageaccount_names = var.naming.storageaccount_names.SDU
   resource_suffixes    = var.naming.resource_suffixes
 
-}
-
-locals {
   // Imports database sizing information
   sizes = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/hdb_sizes.json"))
 

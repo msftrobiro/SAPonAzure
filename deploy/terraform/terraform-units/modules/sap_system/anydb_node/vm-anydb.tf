@@ -26,6 +26,12 @@ resource "azurerm_network_interface" "anydb_db" {
   }
 }
 
+resource "azurerm_network_interface_application_security_group_association" "db" {
+  count                         = local.enable_deployment ? local.db_server_count : 0
+  network_interface_id          = azurerm_network_interface.anydb_db[count.index].id
+  application_security_group_id = var.db_asg_id
+}
+
 # Creates the Admin traffic NIC and private IP address for database nodes
 resource "azurerm_network_interface" "anydb_admin" {
   count                         = local.enable_deployment && local.anydb_dual_nics ? local.db_server_count : 0

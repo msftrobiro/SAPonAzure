@@ -59,6 +59,13 @@ resource "azurerm_network_interface" "nics_dbnodes_db" {
   }
 }
 
+resource "azurerm_network_interface_application_security_group_association" "db" {
+  count                         = local.enable_deployment ? length(local.hdb_vms) : 0
+  network_interface_id          = azurerm_network_interface.nics_dbnodes_db[count.index].id
+  application_security_group_id = var.db_asg_id
+}
+
+
 // Creates the NIC for Hana storage
 resource "azurerm_network_interface" "nics_dbnodes_storage" {
   count = local.enable_deployment && local.enable_storage_subnet ? length(local.hdb_vms) : 0

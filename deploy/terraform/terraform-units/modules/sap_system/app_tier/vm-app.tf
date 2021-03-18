@@ -20,7 +20,14 @@ resource "azurerm_network_interface" "app" {
       )
     )
     private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
+
   }
+}
+
+resource "azurerm_network_interface_application_security_group_association" "app" {
+  count                         = local.enable_deployment ? local.application_server_count : 0
+  network_interface_id          = azurerm_network_interface.app[count.index].id
+  application_security_group_id = azurerm_application_security_group.app.id
 }
 
 # Create Application NICs

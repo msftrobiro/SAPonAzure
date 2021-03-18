@@ -92,45 +92,45 @@ Licensed under the MIT license.
     
     $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
     if ("sap_deployer" -eq $Type) {
-        $iniContent[$region]["Deployer"] = $key
+        $iniContent[$region]["Deployer"] = $key.Trim()
         Out-IniFile -InputObject $iniContent -FilePath $filePath
         $iniContent = Get-IniContent $filePath
     }
     else {
-        $deployer_tfstate_key = $iniContent[$region]["Deployer"]    
+        $deployer_tfstate_key = $iniContent[$region]["Deployer"].Trim()    
     }
     
 
     if ($Type -eq "sap_system") {
         if ($null -ne $iniContent[$combined] ) {
-            $landscape_tfstate_key = $iniContent[$combined]["Landscape"]
+            $landscape_tfstate_key = $iniContent[$combined]["Landscape"].Trim()
         }
         else {
             Write-Host -ForegroundColor Red "The workload zone for " $environment "in " $region " is not deployed"
         }
     }
 
-    $rgName = $iniContent[$region]["REMOTE_STATE_RG"] 
-    $saName = $iniContent[$region]["REMOTE_STATE_SA"] 
-    $tfstate_resource_id = $iniContent[$region]["tfstate_resource_id"] 
+    $rgName = $iniContent[$region]["REMOTE_STATE_RG"].Trim() 
+    $saName = $iniContent[$region]["REMOTE_STATE_SA"].Trim()  
+    $tfstate_resource_id = $iniContent[$region]["tfstate_resource_id"].Trim() 
 
     # Subscription
     if ($Type -eq "sap_system" -or $Type -eq "sap_landscape") {
-        $sub = $iniContent[$combined]["subscription"] 
+        $sub = $iniContent[$combined]["subscription"].Trim()  
     }
     else {
-        $sub = $iniContent[$region]["subscription"] 
+        $sub = $iniContent[$region]["subscription"].Trim()  
     }
     
-    $repo = $iniContent["Common"]["repo"]
+    $repo = $iniContent["Common"]["repo"].Trim() 
 
     if ($null -eq $sub -or "" -eq $sub) {
         $sub = Read-Host -Prompt "Please enter the subscription"
         if ($Type -eq "sap_system" -or $Type -eq "sap_landscape") {
-            $iniContent[$combined]["subscription"] = $sub
+            $iniContent[$combined]["subscription"] = $sub.Trim() 
         }
         else {
-            $iniContent[$region]["subscription"] = $sub 
+            $iniContent[$region]["subscription"] = $sub.Trim()  
         }
     
         $changed = $true
@@ -138,7 +138,7 @@ Licensed under the MIT license.
 
     if ($null -eq $repo -or "" -eq $repo) {
         $repo = Read-Host -Prompt "Please enter the path to the repo"
-        $iniContent["Common"]["repo"] = $repo
+        $iniContent["Common"]["repo"] = $repo.Trim() 
         $changed = $true
     }
 

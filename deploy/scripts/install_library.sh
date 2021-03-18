@@ -47,8 +47,8 @@ while getopts ":p:i:d:h" option; do
 done
 
 # Read environment
-environment=$(grep "environment" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \")
-region=$(grep "region" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \")
+environment=$(grep "environment" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"  | sed 's/[ ]*$//')
+region=$(grep "region" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"  | sed 's/[ ]*$//')
 key=$(echo "${parameterfile}" | cut -d. -f1)
 deployment_system=sap_library
 

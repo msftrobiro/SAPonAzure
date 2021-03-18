@@ -74,8 +74,8 @@ parameterfile_name=$(basename "${parameterfile}")
 
 
 # Read environment
-environment=$(grep "environment" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \")
-region=$(grep "region" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \")
+environment=$(grep "environment" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"  | sed 's/[ ]*$//')
+region=$(grep "region" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"  | sed 's/[ ]*$//')
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 

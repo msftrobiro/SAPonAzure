@@ -77,8 +77,8 @@ workload_file_parametername=$(basename "${parameterfile}")
 
 
 # Read environment
-environment=$(grep "environment" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \")
-region=$(grep "region" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \")
+environment=$(grep "environment" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"  | sed 's/[ ]*$//')
+region=$(grep "region" "${parameterfile}" -m1  | cut -d: -f2 | cut -d, -f1 | tr -d \"  | sed 's/[ ]*$//')
 key=$(echo "${workload_file_parametername}" | cut -d. -f1)
 
 if [ ! -f "${workload_file_parametername}" ]

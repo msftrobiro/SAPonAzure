@@ -994,7 +994,7 @@ Licensed under the MIT license.
         Out-IniFile -InputObject $iniContent -FilePath $filePath
     }
     else {
-        $deployer_tfstate_key = $iniContent[$region]["Deployer"]
+        $deployer_tfstate_key = $iniContent[$region]["Deployer"].Trim()
     }
 
     try {
@@ -1013,14 +1013,14 @@ Licensed under the MIT license.
         
     }
 
-    $rgName = $iniContent[$region]["REMOTE_STATE_RG"] 
-    $saName = $iniContent[$region]["REMOTE_STATE_SA"] 
-    $tfstate_resource_id = $iniContent[$region]["tfstate_resource_id"] 
+    $rgName = $iniContent[$region]["REMOTE_STATE_RG"].Trim() 
+    $saName = $iniContent[$region]["REMOTE_STATE_SA"].Trim() 
+    $tfstate_resource_id = $iniContent[$region]["tfstate_resource_id"].Trim()
 
 
     # Subscription
-    $sub = $iniContent[$region]["subscription"] 
-    $repo = $iniContent["Common"]["repo"]
+    $sub = $iniContent[$region]["subscription"].Trim() 
+    $repo = $iniContent["Common"]["repo"].Trim()
     $changed = $false
 
     if ($null -eq $sub -or "" -eq $sub) {

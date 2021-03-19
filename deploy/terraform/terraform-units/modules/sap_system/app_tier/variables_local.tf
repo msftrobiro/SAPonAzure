@@ -464,19 +464,19 @@ locals {
   app_zonal_deployment = length(local.app_zones) > 0 ? true : false
   app_zone_count       = length(local.app_zones)
   //If we deploy more than one server in zone put them in an availability set
-  use_app_avset = !local.app_zonal_deployment || local.application_server_count != local.app_zone_count
+  use_app_avset        = local.application_server_count > 0 ? !local.app_zonal_deployment || local.application_server_count != local.app_zone_count : 0
 
   scs_zones            = try(var.application.scs_zones, [])
   scs_zonal_deployment = length(local.scs_zones) > 0 ? true : false
   scs_zone_count       = length(local.scs_zones)
   //If we deploy more than one server in zone put them in an availability set
-  use_scs_avset = !local.scs_zonal_deployment || local.scs_server_count != local.scs_zone_count
+  use_scs_avset        = local.scs_server_count > 0 ? (!local.scs_zonal_deployment || local.scs_server_count != local.scs_zone_count) : 0
 
   web_zones            = try(var.application.web_zones, [])
   web_zonal_deployment = length(local.web_zones) > 0 ? true : false
   web_zone_count       = length(local.web_zones)
   //If we deploy more than one server in zone put them in an availability set
-  use_web_avset = !local.web_zonal_deployment || local.webdispatcher_count != local.web_zone_count
+  use_web_avset        = local.webdispatcher_count > 0 ? (!local.web_zonal_deployment || local.webdispatcher_count != local.web_zone_count) : 0
 
 
 

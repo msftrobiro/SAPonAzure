@@ -67,12 +67,18 @@ Licensed under the MIT license.
         }
     }
 
+    $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
+    $landscapeKey = ""
+    if ($Type -eq "sap_landscape") {
+        $landscapeKey = $key
+    }
+  
+    
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
 
     $Environment = $jsonData.infrastructure.environment
     $region = $jsonData.infrastructure.region
     $combined = $Environment + $region
-
 
     if ($null -eq $iniContent[$region]) {
         Write-Error "The region data is not available"
@@ -88,9 +94,13 @@ Licensed under the MIT license.
 
     }
 
+    if ($null -eq $iniContent[$combined]) {
+        $Category1 = @{"Landscape" = $landscapeKey; "Subscription" = "" }
+        $iniContent += @{$combined = $Category1 }
+        Out-IniFile -InputObject $iniContent -FilePath $filePath
+    }
 
     
-    $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
     if ("sap_deployer" -eq $Type) {
         $iniContent[$region]["Deployer"] = $key.Trim()
         Out-IniFile -InputObject $iniContent -FilePath $filePath
@@ -99,7 +109,6 @@ Licensed under the MIT license.
     else {
         $deployer_tfstate_key = $iniContent[$region]["Deployer"].Trim()    
     }
-    
 
     if ($Type -eq "sap_system") {
         if ($null -ne $iniContent[$combined] ) {
@@ -125,7 +134,7 @@ Licensed under the MIT license.
     $repo = $iniContent["Common"]["repo"].Trim() 
 
     if ($null -eq $sub -or "" -eq $sub) {
-        $sub = Read-Host -Prompt "Please enter the subscription"
+        $sub = Read-Host -Prompt "Please enter the subscription for the deployment"
         if ($Type -eq "sap_system" -or $Type -eq "sap_landscape") {
             $iniContent[$combined]["subscription"] = $sub.Trim() 
         }

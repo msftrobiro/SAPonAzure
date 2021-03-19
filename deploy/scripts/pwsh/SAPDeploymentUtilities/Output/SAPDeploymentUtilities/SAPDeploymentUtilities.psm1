@@ -199,7 +199,7 @@ Licensed under the MIT license.
     
         }
         try {
-            Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault
+            Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault  -Workload $false
         }
         catch {
             $errors_occurred = true
@@ -518,12 +518,18 @@ Licensed under the MIT license.
         }
     }
 
+    $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
+    $landscapeKey = ""
+    if ($Type -eq "sap_landscape") {
+        $landscapeKey = $key
+    }
+  
+    
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
 
     $Environment = $jsonData.infrastructure.environment
     $region = $jsonData.infrastructure.region
     $combined = $Environment + $region
-
 
     if ($null -eq $iniContent[$region]) {
         Write-Error "The region data is not available"
@@ -539,49 +545,52 @@ Licensed under the MIT license.
 
     }
 
+    if ($null -eq $iniContent[$combined]) {
+        $Category1 = @{"Landscape" = $landscapeKey; "Subscription" = "" }
+        $iniContent += @{$combined = $Category1 }
+        Out-IniFile -InputObject $iniContent -FilePath $filePath
+    }
 
     
-    $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
     if ("sap_deployer" -eq $Type) {
-        $iniContent[$region]["Deployer"] = $key
+        $iniContent[$region]["Deployer"] = $key.Trim()
         Out-IniFile -InputObject $iniContent -FilePath $filePath
         $iniContent = Get-IniContent $filePath
     }
     else {
-        $deployer_tfstate_key = $iniContent[$region]["Deployer"]    
+        $deployer_tfstate_key = $iniContent[$region]["Deployer"].Trim()    
     }
-    
 
     if ($Type -eq "sap_system") {
         if ($null -ne $iniContent[$combined] ) {
-            $landscape_tfstate_key = $iniContent[$combined]["Landscape"]
+            $landscape_tfstate_key = $iniContent[$combined]["Landscape"].Trim()
         }
         else {
             Write-Host -ForegroundColor Red "The workload zone for " $environment "in " $region " is not deployed"
         }
     }
 
-    $rgName = $iniContent[$region]["REMOTE_STATE_RG"] 
-    $saName = $iniContent[$region]["REMOTE_STATE_SA"] 
-    $tfstate_resource_id = $iniContent[$region]["tfstate_resource_id"] 
+    $rgName = $iniContent[$region]["REMOTE_STATE_RG"].Trim() 
+    $saName = $iniContent[$region]["REMOTE_STATE_SA"].Trim()  
+    $tfstate_resource_id = $iniContent[$region]["tfstate_resource_id"].Trim() 
 
     # Subscription
     if ($Type -eq "sap_system" -or $Type -eq "sap_landscape") {
-        $sub = $iniContent[$combined]["subscription"] 
+        $sub = $iniContent[$combined]["subscription"].Trim()  
     }
     else {
-        $sub = $iniContent[$region]["subscription"] 
+        $sub = $iniContent[$region]["subscription"].Trim()  
     }
     
-    $repo = $iniContent["Common"]["repo"]
+    $repo = $iniContent["Common"]["repo"].Trim() 
 
     if ($null -eq $sub -or "" -eq $sub) {
-        $sub = Read-Host -Prompt "Please enter the subscription"
+        $sub = Read-Host -Prompt "Please enter the subscription for the deployment"
         if ($Type -eq "sap_system" -or $Type -eq "sap_landscape") {
-            $iniContent[$combined]["subscription"] = $sub
+            $iniContent[$combined]["subscription"] = $sub.Trim() 
         }
         else {
-            $iniContent[$region]["subscription"] = $sub 
+            $iniContent[$region]["subscription"] = $sub.Trim()  
         }
     
         $changed = $true
@@ -589,7 +598,7 @@ Licensed under the MIT license.
 
     if ($null -eq $repo -or "" -eq $repo) {
         $repo = Read-Host -Prompt "Please enter the path to the repo"
-        $iniContent["Common"]["repo"] = $repo
+        $iniContent["Common"]["repo"] = $repo.Trim() 
         $changed = $true
     }
 
@@ -1013,6 +1022,32 @@ Licensed under the MIT license.
         
     }
 
+    $ans = Read-Host -Prompt "Do you want to enter the Workload SPN secrets Y/N?"
+    if ("Y" -eq $ans) {
+        $vault = ""
+        if ($null -ne $iniContent[$region] ) {
+            $vault = $iniContent[$region]["Vault"]
+        }
+
+        if (($null -eq $vault ) -or ("" -eq $vault)) {
+            $vault = Read-Host -Prompt "Please enter the vault name"
+            $iniContent[$region]["Vault"] = $vault 
+            Out-IniFile -InputObject $iniContent -FilePath $filePath
+    
+        }
+        try {
+            Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault -Workload $true
+        }
+        catch {
+            return
+        }
+    
+        
+    }
+
+
+
+
     $rgName = $iniContent[$region]["REMOTE_STATE_RG"].Trim() 
     $saName = $iniContent[$region]["REMOTE_STATE_SA"].Trim() 
     $tfstate_resource_id = $iniContent[$region]["tfstate_resource_id"].Trim()
@@ -1344,7 +1379,10 @@ Licensed under the MIT license.
         #SPN App secret
         [Parameter(Mandatory = $true)][string]$Client_secret,
         #Tenant
-        [Parameter(Mandatory = $true)][string]$Tenant = ""
+        [Parameter(Mandatory = $true)][string]$Tenant = "",
+        #Workload
+        [Parameter(Mandatory = $true)][bool]$Workload = $true
+
     )
 
     Write-Host -ForegroundColor green ""
@@ -1355,6 +1393,10 @@ Licensed under the MIT license.
     $iniContent = Get-IniContent $filePath
 
     $combined = $Environment + $region
+
+    if($false -eq $Workload) {
+        $combined = $region
+    }
 
     if ($null -eq $iniContent[$combined]) {
         $Category1 = @{"subscription" = "" }

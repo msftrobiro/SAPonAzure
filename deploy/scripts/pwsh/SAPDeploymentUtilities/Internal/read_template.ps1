@@ -40,7 +40,6 @@ function Read-OSNode {
         else {
             Write-Error "The Operating system must be specified if custom images are used"
         }
-        os_type
     }
     else {
         
@@ -295,9 +294,13 @@ Licensed under the MIT license.
         Read-OSNode -Nodename "Image" -os $jsonData.databases[0].os
         if ($jsonData.databases[0].zones.Length -gt 0) {
             Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Zonal")    
+            $Zones = "["
             for ($zone = 0 ; $zone -lt $jsonData.databases[0].zones.Length ; $zone++) {
-                Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $jsonData.databases[0].zones[$zone])    
+                $Zones = $Zones + "" + $jsonData.databases[0].zones[$zone] + ","
             }
+            $Zones = $Zones.Substring(0,$Zones.Length - 1)
+            $Zones = $Zones + "]"
+            Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $Zones)    
         }
         else {
             Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Regional")    
@@ -343,10 +346,14 @@ Licensed under the MIT license.
             Write-Host -ForegroundColor White ("  sku:".PadRight(25, ' ') + $jsonData.application.app_sku)    
         }
         if ($jsonData.application.app_zones.Length -gt 0) {
-            Write-Host -ForegroundColor White ("  Deployment:".PadRight(25, ' ') + "Zonal")    
+            Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Zonal")    
+            $Zones = "["
             for ($zone = 0 ; $zone -lt $jsonData.application.app_zones.Length ; $zone++) {
-                Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $jsonData.application.app_zones[$zone])    
+                $Zones = $Zones + "" + $jsonData.application.app_zones[$zone] + ","
             }
+            $Zones = $Zones.Substring(0,$Zones.Length - 1)
+            $Zones = $Zones + "]"
+            Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $Zones)    
         }
         else {
             Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Regional")    
@@ -365,10 +372,14 @@ Licensed under the MIT license.
             Write-Host -ForegroundColor White ("  sku:".PadRight(25, ' ') + $jsonData.application.scs_sku)    
         }
         if ($jsonData.application.scs_zones.Length -gt 0) {
-            Write-Host -ForegroundColor White ("  Deployment:".PadRight(25, ' ') + "Zonal")    
+            Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Zonal")    
+            $Zones = "["
             for ($zone = 0 ; $zone -lt $jsonData.application.scs_zones.Length ; $zone++) {
-                Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $jsonData.application.scs_zones[$zone])    
+                $Zones = $Zones + "" + $jsonData.application.scs_zones[$zone] + ","
             }
+            $Zones = $Zones.Substring(0,$Zones.Length - 1)
+            $Zones = $Zones + "]"
+            Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $Zones)    
         }
         else {
             Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Regional")    
@@ -386,10 +397,14 @@ Licensed under the MIT license.
         }
 
         if ($jsonData.application.web_zones.Length -gt 0) {
-            Write-Host -ForegroundColor White ("  Deployment:".PadRight(25, ' ') + "Zonal")    
+            Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Zonal")    
+            $Zones = "["
             for ($zone = 0 ; $zone -lt $jsonData.application.web_zones.Length ; $zone++) {
-                Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $jsonData.application.web_zones[$zone])    
+                $Zones = $Zones + "" + $jsonData.application.web_zones[$zone] + ","
             }
+            $Zones = $Zones.Substring(0,$Zones.Length - 1)
+            $Zones = $Zones + "]"
+            Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $Zones)    
         }
         else {
             Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Regional")    

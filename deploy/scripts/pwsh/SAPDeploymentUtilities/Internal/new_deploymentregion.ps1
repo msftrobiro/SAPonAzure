@@ -66,7 +66,7 @@ Licensed under the MIT license.
         New-Item -Path $mydocuments -Name "sap_deployment_automation.ini" -ItemType "file" -Value "[Common]`nrepo=`nsubscription=`n[$region]`nDeployer=`nLandscape=`n[$Environment]`nDeployer=`n[$combined]`nDeployer=`nSubscription=" -Force
     }
 
-    $iniContent = Get-IniContent $filePath
+    $iniContent = Get-IniContent -Path $filePath
 
     $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
     
@@ -77,7 +77,7 @@ Licensed under the MIT license.
         else {
             $Category1 = @{"Deployer" = $key }
             $iniContent += @{$region = $Category1 }
-            Out-IniFile -InputObject $iniContent -FilePath $filePath                    
+            Out-IniFile -InputObject $iniContent -Path $filePath                    
         }
                 
     }
@@ -99,7 +99,7 @@ Licensed under the MIT license.
     }
 
     # Re-read ini file
-    $iniContent = Get-IniContent $filePath
+    $iniContent = Get-IniContent -Path $filePath
 
     $ans = Read-Host -Prompt "Do you want to enter the SPN secrets Y/N?"
     if ("Y" -eq $ans) {
@@ -111,7 +111,7 @@ Licensed under the MIT license.
         if (($null -eq $vault ) -or ("" -eq $vault)) {
             $vault = Read-Host -Prompt "Please enter the vault name"
             $iniContent[$region]["Vault"] = $vault 
-            Out-IniFile -InputObject $iniContent -FilePath $filePath
+            Out-IniFile -InputObject $iniContent -Path $filePath
     
         }
         try {
@@ -144,7 +144,7 @@ Licensed under the MIT license.
     [IO.FileInfo] $fInfo = $fileDir
     Set-Location -Path $fInfo.Directory.FullName
     try {
-        New-SAPSystem -Parameterfile $fInfo.Name -Type "sap_deployer"
+        New-SAPSystem -Parameterfile $fInfo.Name -Type [SAP_Types]::sap_deployer
     }
     catch {
         $errors_occurred = true
@@ -159,7 +159,7 @@ Licensed under the MIT license.
     [IO.FileInfo] $fInfo = $fileDir
     Set-Location -Path $fInfo.Directory.FullName
     try {
-        New-SAPSystem -Parameterfile $fInfo.Name -Type "sap_library"
+        New-SAPSystem -Parameterfile $fInfo.Name -Type [SAP_Types]::sap_library
     }
     catch {
         $errors_occurred = true

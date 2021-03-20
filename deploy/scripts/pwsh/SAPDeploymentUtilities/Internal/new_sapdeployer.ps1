@@ -32,7 +32,7 @@ function New-SAPDeployer {
 Copyright (c) Microsoft Corporation.
 Licensed under the MIT license.
 #>
-    [cmdletbinding()]
+    [cmdletbinding(SupportsShouldProcess)]
     param(
         #Parameter file
         [Parameter(Mandatory = $true)][string]$Parameterfile
@@ -41,19 +41,21 @@ Licensed under the MIT license.
     Write-Host -ForegroundColor green ""
     Write-Host -ForegroundColor green "Bootstrap the deployer"
 
-    Add-Content -Path "log.txt" -Value "Bootstrap the deployer"
-    Add-Content -Path "log.txt" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
+    $fInfo = Get-ItemProperty -Path $Parameterfile
+    if (!$fInfo.Exists ) {
+        Write-Error ("File " + $Parameterfile + " does not exist")
+        return
+    }
+
+    Add-Content -Path "deployment.log" -Value "Bootstrap the deployer"
+    Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
 
     $mydocuments = [environment]::getfolderpath("mydocuments")
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
-    $iniContent = Get-IniContent $filePath
+    $iniContent = Get-IniContent -Path $filePath
 
-    [IO.FileInfo] $fInfo = $Parameterfile
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
-
-    $Environment = $jsonData.infrastructure.environment
     $region = $jsonData.infrastructure.region
-    $combined = $Environment + $region
 
     if ($null -ne $iniContent[$region] ) {
         $sub = $iniContent[$region]["subscription"] 
@@ -61,14 +63,14 @@ Licensed under the MIT license.
     else {
         $Category1 = @{"subscription" = "" }
         $iniContent += @{$region = $Category1 }
-        Out-IniFile -InputObject $iniContent -FilePath $filePath
-                
+        Out-IniFile -InputObject $iniContent -Path $filePath
     }
-    # Subscription
+    
+    # Subscription & repo path
 
     $sub = $iniContent[$region]["subscription"] 
-
     $repo = $iniContent["Common"]["repo"]
+
     $changed = $false
 
     if ($null -eq $sub -or "" -eq $sub) {
@@ -84,7 +86,7 @@ Licensed under the MIT license.
     }
 
     if ($changed) {
-        Out-IniFile -InputObject $iniContent -FilePath $filePath
+        Out-IniFile -InputObject $iniContent -Path $filePath
     }
 
     $terraform_module_directory = $repo + "\deploy\terraform\bootstrap\sap_deployer"
@@ -92,7 +94,7 @@ Licensed under the MIT license.
     if (-not (Test-Path $terraform_module_directory) ) {
         Write-Host -ForegroundColor Red "The repository path: $repo is incorrect!"
         $iniContent["Common"]["repo"] = ""
-        Out-IniFile -InputObject $iniContent -FilePath $filePath
+        Out-IniFile -InputObject $iniContent -Path $filePath
         throw "The repository path: $repo is incorrect!"
         return
 
@@ -123,7 +125,7 @@ Licensed under the MIT license.
     }
 
     $Cmd = "terraform $Command"
-    Add-Content -Path "log.txt" -Value $Cmd
+    Add-Content -Path "deployment.log" -Value $Cmd
     & ([ScriptBlock]::Create($Cmd)) 
     if ($LASTEXITCODE -ne 0) {
         throw "Error executing command: $Cmd"
@@ -131,10 +133,9 @@ Licensed under the MIT license.
 
     Write-Host -ForegroundColor green "Running plan"
     $Command = " plan -var-file " + $Parameterfile + " " + $terraform_module_directory
-
     
     $Cmd = "terraform $Command"
-    Add-Content -Path "log.txt" -Value $Cmd
+    Add-Content -Path "deployment.log" -Value $Cmd
     $planResults = & ([ScriptBlock]::Create($Cmd)) | Out-String 
     
     if ($LASTEXITCODE -ne 0) {
@@ -159,36 +160,34 @@ Licensed under the MIT license.
 
     Write-Host $planResults
     
-    Write-Host -ForegroundColor green "Running apply"
+    if ($PSCmdlet.ShouldProcess($Parameterfile)) {
+        Write-Host -ForegroundColor green "Running apply"
 
-    $Command = " apply -var-file " + $Parameterfile + " " + $terraform_module_directory
-    $Cmd = "terraform $Command"
-    Add-Content -Path "log.txt" -Value $Cmd
-    & ([ScriptBlock]::Create($Cmd)) 
-    if ($LASTEXITCODE -ne 0) {
-        throw "Error executing command: $Cmd"
+        $Command = " apply -var-file " + $Parameterfile + " " + $terraform_module_directory
+        $Cmd = "terraform $Command"
+        Add-Content -Path "deployment.log" -Value $Cmd
+        & ([ScriptBlock]::Create($Cmd)) 
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
+
+        New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""local"" {}`n}" -Force
+
+        $Command = " output deployer_kv_user_name"
+
+        $Cmd = "terraform $Command"
+        $kvName = & ([ScriptBlock]::Create($Cmd)) | Out-String 
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
+
+        Write-Host $kvName.Replace("""", "")
+        $iniContent[$region]["Vault"] = $kvName.Replace("""", "")
+        Out-IniFile -InputObject $iniContent -Path $filePath
+
+        if (Test-Path ".\backend.tf" -PathType Leaf) {
+            Remove-Item -Path ".\backend.tf" -Force 
+        }
     }
-
-    New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""local"" {}`n}" -Force
-
-    $Command = " output deployer_kv_user_name"
-
-    $Cmd = "terraform $Command"
-    $kvName = & ([ScriptBlock]::Create($Cmd)) | Out-String 
-
-    if ($LASTEXITCODE -ne 0) {
-        throw "Error executing command: $Cmd"
-    }
-
-    Write-Host $kvName.Replace("""", "")
-    $iniContent[$region]["Vault"] = $kvName.Replace("""", "")
-    Out-IniFile -InputObject $iniContent -FilePath $filePath
-
-    if (Test-Path ".\backend.tf" -PathType Leaf) {
-        Remove-Item -Path ".\backend.tf" -Force 
-    }
-
-
 }
-
-

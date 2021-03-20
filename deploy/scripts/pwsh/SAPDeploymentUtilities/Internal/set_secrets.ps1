@@ -72,7 +72,7 @@ Licensed under the MIT license.
 
     $mydocuments = [environment]::getfolderpath("mydocuments")
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
-    $iniContent = Get-IniContent $filePath
+    $iniContent = Get-IniContent -Path $filePath
 
     $combined = $Environment + $region
 
@@ -147,7 +147,7 @@ Licensed under the MIT license.
         $spnpwd = $Client_secret
     }
 
-    Out-IniFile -InputObject $iniContent -FilePath $filePath
+    Out-IniFile -InputObject $iniContent -Path $filePath
 
     $Secret = ConvertTo-SecureString -String $sub -AsPlainText -Force
     $Secret_name = $Environment + "-subscription-id"
@@ -158,7 +158,6 @@ Licensed under the MIT license.
     $Secret_name = $Environment + "-client-id"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
     Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
-
 
     $Secret = ConvertTo-SecureString -String $t -AsPlainText -Force
     $Secret_name = $Environment + "-tenant-id"

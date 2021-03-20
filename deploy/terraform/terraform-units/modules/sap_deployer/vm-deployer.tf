@@ -15,7 +15,7 @@ resource "azurerm_public_ip" "deployer" {
   name                = format("%s%s%s%s", local.prefix, var.naming.separator, local.deployers[count.index].name, local.resource_suffixes.pip)
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
-  allocation_method   = "static"
+  allocation_method   = "Static"
   sku                 = "Basic"
 }
 
@@ -29,7 +29,7 @@ resource "azurerm_network_interface" "deployer" {
     name                          = "ipconfig1"
     subnet_id                     = local.sub_mgmt_deployed.id
     private_ip_address            = local.deployers[count.index].use_DHCP ? "" : local.deployers[count.index].private_ip_address
-    allocation_method             = local.deployers[count.index].use_DHCP ? "Dynamic" : "Static"
+    private_ip_address_allocation = local.deployers[count.index].use_DHCP ? "Dynamic" : "Static"
     public_ip_address_id          = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[count.index].id : ""
   }
 }

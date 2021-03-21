@@ -1,5 +1,6 @@
 # Create SCS NICs
 resource "azurerm_network_interface" "scs" {
+  provider                      = azurerm.main
   count                         = local.enable_deployment ? local.scs_server_count : 0
   name                          = format("%s%s%s%s", local.prefix, var.naming.separator, local.scs_virtualmachine_names[count.index], local.resource_suffixes.nic)
   location                      = var.resource_group[0].location
@@ -24,6 +25,7 @@ resource "azurerm_network_interface" "scs" {
 }
 
 resource "azurerm_network_interface_application_security_group_association" "scs" {
+  provider                      = azurerm.main
   count                         = local.enable_deployment ? local.scs_server_count : 0
   network_interface_id          = azurerm_network_interface.scs[count.index].id
   application_security_group_id = azurerm_application_security_group.app[0].id
@@ -32,6 +34,7 @@ resource "azurerm_network_interface_application_security_group_association" "scs
 
 // Create Admin NICs
 resource "azurerm_network_interface" "scs_admin" {
+  provider                      = azurerm.main
   count                         = local.enable_deployment && local.apptier_dual_nics ? local.scs_server_count : 0
   name                          = format("%s%s%s%s", local.prefix, var.naming.separator, local.scs_virtualmachine_names[count.index], local.resource_suffixes.admin_nic)
   location                      = var.resource_group[0].location
@@ -55,6 +58,7 @@ resource "azurerm_network_interface" "scs_admin" {
 
 # Associate SCS VM NICs with the Load Balancer Backend Address Pool
 resource "azurerm_network_interface_backend_address_pool_association" "scs" {
+  provider                = azurerm.main
   count                   = local.enable_deployment ? local.scs_server_count : 0
   network_interface_id    = azurerm_network_interface.scs[count.index].id
   ip_configuration_name   = azurerm_network_interface.scs[count.index].ip_configuration[0].name
@@ -63,6 +67,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "scs" {
 
 # Create the SCS Linux VM(s)
 resource "azurerm_linux_virtual_machine" "scs" {
+  provider            = azurerm.main
   depends_on          = [var.anydb_vms, var.hdb_vms]
   count               = local.enable_deployment && (upper(local.scs_ostype) == "LINUX") ? local.scs_server_count : 0
   name                = format("%s%s%s%s", local.prefix, var.naming.separator, local.scs_virtualmachine_names[count.index], local.resource_suffixes.vm)
@@ -147,6 +152,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
 
 # Create the SCS Windows VM(s)
 resource "azurerm_windows_virtual_machine" "scs" {
+  provider            = azurerm.main
   depends_on          = [var.anydb_vms, var.hdb_vms]
   count               = local.enable_deployment && (upper(local.scs_ostype) == "WINDOWS") ? local.scs_server_count : 0
   name                = format("%s%s%s%s", local.prefix, var.naming.separator, local.scs_virtualmachine_names[count.index], local.resource_suffixes.vm)
@@ -223,6 +229,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
 
 # Creates managed data disk
 resource "azurerm_managed_disk" "scs" {
+  provider               = azurerm.main
   count                  = local.enable_deployment ? length(local.scs_data_disks) : 0
   name                   = format("%s%s%s%s", local.prefix, var.naming.separator, local.scs_virtualmachine_names[local.scs_data_disks[count.index].vm_index], local.scs_data_disks[count.index].suffix)
   location               = var.resource_group[0].location
@@ -242,6 +249,7 @@ resource "azurerm_managed_disk" "scs" {
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "scs" {
+  provider        = azurerm.main
   count           = local.enable_deployment ? length(local.scs_data_disks) : 0
   managed_disk_id = azurerm_managed_disk.scs[count.index].id
   virtual_machine_id = upper(local.scs_ostype) == "LINUX" ? (

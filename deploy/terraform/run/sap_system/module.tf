@@ -3,21 +3,6 @@
   Setup common infrastructure
 */
 
-module "common_infrastructure" {
-  source                     = "../../terraform-units/modules/sap_system/common_infrastructure"
-  is_single_node_hana        = "true"
-  application                = var.application
-  databases                  = var.databases
-  infrastructure             = var.infrastructure
-  options                    = local.options
-  key_vault                  = var.key_vault
-  naming                     = module.sap_namegenerator.naming
-  service_principal          = local.service_principal
-  deployer_tfstate           = length(local.deployer_tfstate_key) > 0 ? data.terraform_remote_state.deployer[0].outputs : null
-  landscape_tfstate          = data.terraform_remote_state.landscape.outputs
-  custom_disk_sizes_filename = var.db_disk_sizes_filename
-  authentication             = var.authentication
-}
 
 module "sap_namegenerator" {
   source           = "../../terraform-units/modules/sap_namegenerator"
@@ -42,9 +27,33 @@ module "sap_namegenerator" {
   resource_offset  = try(var.options.resource_offset, 0)
 }
 
+module "common_infrastructure" {
+  source                     = "../../terraform-units/modules/sap_system/common_infrastructure"
+  providers = {
+    azurerm.main = azurerm
+    azurerm.deployer = azurerm.deployer
+  }
+  is_single_node_hana        = "true"
+  application                = var.application
+  databases                  = var.databases
+  infrastructure             = var.infrastructure
+  options                    = local.options
+  key_vault                  = var.key_vault
+  naming                     = module.sap_namegenerator.naming
+  service_principal          = local.service_principal
+  deployer_tfstate           = length(local.deployer_tfstate_key) > 0 ? data.terraform_remote_state.deployer[0].outputs : null
+  landscape_tfstate          = data.terraform_remote_state.landscape.outputs
+  custom_disk_sizes_filename = var.db_disk_sizes_filename
+  authentication             = var.authentication
+}
+
 // Create HANA database nodes
 module "hdb_node" {
   source                     = "../../terraform-units/modules/sap_system/hdb_node"
+  providers = {
+    azurerm.main = azurerm
+    azurerm.deployer = azurerm.deployer
+  }
   databases                  = var.databases
   infrastructure             = var.infrastructure
   options                    = local.options
@@ -69,6 +78,10 @@ module "hdb_node" {
 // Create Application Tier nodes
 module "app_tier" {
   source                     = "../../terraform-units/modules/sap_system/app_tier"
+  providers = {
+    azurerm.main = azurerm
+    azurerm.deployer = azurerm.deployer
+  }
   application                = var.application
   infrastructure             = var.infrastructure
   options                    = local.options
@@ -97,6 +110,10 @@ module "app_tier" {
 // Create anydb database nodes
 module "anydb_node" {
   source                     = "../../terraform-units/modules/sap_system/anydb_node"
+  providers = {
+    azurerm.main = azurerm
+    azurerm.deployer = azurerm.deployer
+  }
   databases                  = var.databases
   infrastructure             = var.infrastructure
   options                    = var.options
@@ -120,6 +137,10 @@ module "anydb_node" {
 // Generate output files
 module "output_files" {
   source                    = "../../terraform-units/modules/sap_system/output_files"
+  providers = {
+    azurerm.main = azurerm
+    azurerm.deployer = azurerm.deployer
+  }
   application               = module.app_tier.application
   databases                 = var.databases
   infrastructure            = var.infrastructure

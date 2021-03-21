@@ -1,5 +1,6 @@
 # Create Application NICs
 resource "azurerm_network_interface" "app" {
+  provider                      = azurerm.main
   count                         = local.enable_deployment ? local.application_server_count : 0
   name                          = format("%s%s%s%s", local.prefix, var.naming.separator, local.app_virtualmachine_names[count.index], local.resource_suffixes.nic)
   location                      = var.resource_group[0].location
@@ -25,6 +26,7 @@ resource "azurerm_network_interface" "app" {
 }
 
 resource "azurerm_network_interface_application_security_group_association" "app" {
+  provider                      = azurerm.main
   count                         = local.enable_deployment ? local.application_server_count : 0
   network_interface_id          = azurerm_network_interface.app[count.index].id
   application_security_group_id = azurerm_application_security_group.app[0].id
@@ -32,6 +34,7 @@ resource "azurerm_network_interface_application_security_group_association" "app
 
 # Create Application NICs
 resource "azurerm_network_interface" "app_admin" {
+  provider                      = azurerm.main
   count                         = local.enable_deployment && local.apptier_dual_nics ? local.application_server_count : 0
   name                          = format("%s%s%s%s", local.prefix, var.naming.separator, local.app_virtualmachine_names[count.index], local.resource_suffixes.admin_nic)
   location                      = var.resource_group[0].location
@@ -55,6 +58,7 @@ resource "azurerm_network_interface" "app_admin" {
 
 # Create the Linux Application VM(s)
 resource "azurerm_linux_virtual_machine" "app" {
+  provider            = azurerm.main
   depends_on          = [var.anydb_vms, var.hdb_vms]
   count               = local.enable_deployment ? (upper(local.app_ostype) == "LINUX" ? local.application_server_count : 0) : 0
   name                = format("%s%s%s%s", local.prefix, var.naming.separator, local.app_virtualmachine_names[count.index], local.resource_suffixes.vm)
@@ -141,6 +145,7 @@ resource "azurerm_linux_virtual_machine" "app" {
 
 # Create the Windows Application VM(s)
 resource "azurerm_windows_virtual_machine" "app" {
+  provider            = azurerm.main
   depends_on          = [var.anydb_vms, var.hdb_vms]
   count               = local.enable_deployment ? (upper(local.app_ostype) == "WINDOWS" ? local.application_server_count : 0) : 0
   name                = format("%s%s%s%s", local.prefix, var.naming.separator, local.app_virtualmachine_names[count.index], local.resource_suffixes.vm)
@@ -217,6 +222,7 @@ resource "azurerm_windows_virtual_machine" "app" {
 
 # Creates managed data disk
 resource "azurerm_managed_disk" "app" {
+  provider               = azurerm.main
   count                  = local.enable_deployment ? length(local.app_data_disks) : 0
   name                   = format("%s%s%s%s", local.prefix, var.naming.separator, local.app_virtualmachine_names[local.app_data_disks[count.index].vm_index], local.app_data_disks[count.index].suffix)
   location               = var.resource_group[0].location
@@ -236,6 +242,7 @@ resource "azurerm_managed_disk" "app" {
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "app" {
+  provider                  = azurerm.main
   count                     = local.enable_deployment ? length(local.app_data_disks) : 0
   managed_disk_id           = azurerm_managed_disk.app[count.index].id
   virtual_machine_id        = upper(local.app_ostype) == "LINUX" ? azurerm_linux_virtual_machine.app[local.app_data_disks[count.index].vm_index].id : azurerm_windows_virtual_machine.app[local.app_data_disks[count.index].vm_index].id

@@ -110,12 +110,12 @@ if [ "${deployment_system}" == sap_system ] ; then
             else
                 echo "* Admin subnet:              " "(name defined by automation)"
             fi
-        fi
-        if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_admin.prefix' >/dev/null; then
-            prefix=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_admin.prefix | tr -d \")
-            echo "* Admin subnet prefix:       " "${prefix}"
-        else
-            echo "Error!!! The Admin subnet prefix must be specified"
+            if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_admin.prefix' >/dev/null; then
+                prefix=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_admin.prefix | tr -d \")
+                echo "* Admin subnet prefix:       " "${prefix}"
+            else
+                echo "Error!!! The Admin subnet prefix must be specified"
+            fi
         fi
         if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_admin.nsg' >/dev/null; then
             if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_admin.nsg.arm_id' >/dev/null; then
@@ -148,12 +148,12 @@ if [ "${deployment_system}" == sap_system ] ; then
             else
                 echo "* Database subnet:           " "(name defined by automation)"
             fi
-        fi
-        if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_db.prefix' >/dev/null; then
-            prefix=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_db.prefix | tr -d \")
-            echo "* Database subnet prefix:    " "${prefix}"
-        else
-            echo "Error!!! The Database subnet prefix must be specified"
+            if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_db.prefix' >/dev/null; then
+                prefix=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_db.prefix | tr -d \")
+                echo "* Database subnet prefix:    " "${prefix}"
+            else
+                echo "Error!!! The Database subnet prefix must be specified"
+            fi
         fi
         
         if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_db.nsg' >/dev/null; then
@@ -187,12 +187,12 @@ if [ "${deployment_system}" == sap_system ] ; then
             else
                 echo "* Application subnet:        " "(name defined by automation)"
             fi
-        fi
-        if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_app.prefix' >/dev/null; then
-            prefix=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_app.prefix | tr -d \")
-            echo "* Application subnet prefix: " "${prefix}"
-        else
-            echo "Error!!! The Application subnet prefix must be specified"
+            if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_app.prefix' >/dev/null; then
+                prefix=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_app.prefix | tr -d \")
+                echo "* Application subnet prefix: " "${prefix}"
+            else
+                echo "Error!!! The Application subnet prefix must be specified"
+            fi
         fi
         
         if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_app.nsg' >/dev/null; then
@@ -226,12 +226,12 @@ if [ "${deployment_system}" == sap_system ] ; then
             else
                 echo "* Web subnet:                " "(name defined by automation)"
             fi
-        fi
-        if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_web.prefix' >/dev/null; then
-            prefix=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_web.prefix | tr -d \")
-            echo "* Web subnet prefix:         " "${prefix}"
-        else
-            echo "Error!!! The Web prefix must be specified"
+            if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_web.prefix' >/dev/null; then
+                prefix=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_web.prefix | tr -d \")
+                echo "* Web subnet prefix:         " "${prefix}"
+            else
+                echo "Error!!! The Web prefix must be specified"
+            fi
         fi
         
         if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_web.nsg' >/dev/null; then
@@ -301,7 +301,7 @@ if [ "${deployment_system}" == sap_system ] ; then
         echo "Networking:                  " "Use Customer provided IP addresses"
     fi
     if cat "${parameterfile}"  | jq --exit-status '.databases[0].authentication.type' >/dev/null; then
-        authentication=$(cat "${parameterfile}" | jq '.databases[0].authentication.type')
+        authentication=$(cat "${parameterfile}" | jq '.databases[0].authentication.type'  | tr -d \")
         echo "Authentication:              " "${authentication}"
     else
         echo "Authentication:              " "key"
@@ -312,7 +312,7 @@ if [ "${deployment_system}" == sap_system ] ; then
     echo "Application tier"
     echo "----------------------------------------------------------------------------"
     if cat "${parameterfile}"  | jq --exit-status '.application.authentication.type' >/dev/null; then
-        authentication=$(cat "${parameterfile}" | jq '.application.authentication.type')
+        authentication=$(cat "${parameterfile}" | jq '.application.authentication.type'  | tr -d \")
         echo "Authentication:              " "${authentication}"
     else
         echo "Authentication:              " "key"

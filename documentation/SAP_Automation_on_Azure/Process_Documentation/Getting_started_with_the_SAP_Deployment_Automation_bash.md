@@ -19,7 +19,8 @@ cd sap-hana
 
 git checkout beta
 ```
-**Note** If using the deployer the repository is already cloned,
+
+**Note** If using the deployer the repository is already cloned.
 
 4. Export the required environment variables
 
@@ -37,6 +38,19 @@ git checkout beta
 Navigate to the ~/Azure_SAP_Automated_Deployment/WORKSPACES/DEPLOYMENT-ORCHESTRATION folder.
 
 The deployment will need the Service Principal details (application id, secret and tenant ID)
+
+## **Listing the contents of the deployment**
+
+For a highlevel overview of what gets deployed use the validate.sh script
+
+```bash
+${DEPLOYMENT_REPO_PATH}deploy/scripts/validate.sh
+-d DEPLOYER/MGMT-WEEU-DEP00-INFRASTRUCTURE/MGMT-WEEU-DEP00-INFRASTRUCTURE.json -t sap_deployer
+
+${DEPLOYMENT_REPO_PATH}deploy/scripts/validate.sh
+-d DEPLOYER/MGMT-WEEU-SAP_LIBRARY/MGMT-WEEU-SAP_LIBRARY.json -t sap_library
+
+```
 
 ## **Preparing the region**
 

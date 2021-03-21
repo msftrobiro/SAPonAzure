@@ -27,7 +27,7 @@ variable "deployer_user" {
 }
 */
 
-variable naming {
+variable "naming" {
   description = "Defines the names for the resources"
 }
 
@@ -77,7 +77,7 @@ locals {
   // Firewall routing logic
   // If the environment deployment created a route table use it to populate a route
 
-  route_table_id = try(var.landscape_tfstate.route_table_id, "")
+  route_table_id   = try(var.landscape_tfstate.route_table_id, "")
   route_table_name = try(split("/", var.landscape_tfstate.route_table_id)[8], "")
 
   firewall_ip = try(var.deployer_tfstate.firewall_ip, "")
@@ -168,7 +168,7 @@ locals {
   anchor_authentication       = try(local.anchor.authentication, local.db_auth)
   anchor_auth_type            = try(local.anchor.authentication.type, "key")
   enable_anchor_auth_password = local.deploy_anchor && local.anchor_auth_type == "password"
-  enable_anchor_auth_key      = ! local.enable_anchor_auth_password
+  enable_anchor_auth_key      = !local.enable_anchor_auth_password
 
   //If the db uses ultra disks ensure that the anchore sets the ultradisk flag but only for the zones that will contain db servers
   enable_anchor_ultra = [

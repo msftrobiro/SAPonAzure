@@ -150,10 +150,9 @@ resource "local_file" "ansible_inventory_new_yml" {
 }
 
 resource "azurerm_storage_blob" "hosts_yaml" {
-
+  provider             = azurerm.deployer
   name                 = format("%s_hosts.yml", trimspace(var.naming.prefix.SDU))
   storage_account_name = local.tfstate_storage_account_name
-
   storage_container_name = local.ansible_container_name
   type                   = "Block"
   source                 = local_file.ansible_inventory_new_yml.filename

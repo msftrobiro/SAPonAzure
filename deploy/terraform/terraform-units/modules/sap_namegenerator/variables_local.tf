@@ -166,7 +166,7 @@ variable region_mapping {
     "centralindia"       = "cein"
     "centralus"          = "ceus"
     "eastasia"           = "eaas"
-    "westeurope"             = "eaus"
+    "eastus"             = "eaus"
     "eastus2"            = "eus2"
     "francecentral"      = "frce"
     "francesouth"        = "frso"

@@ -8,7 +8,7 @@ function Read-KVNode {
         Write-Host -ForegroundColor White ("SPN keyvault".PadRight(25, ' ') + $kv.kv_spn_id)
     }
     else {
-        Write-Host -ForegroundColor White ("SPN keyvault".PadRight(25, ' ') + $source)
+        Write-Host -ForegroundColor White ("SPN keyvault".PadRight(25, ' ') + "Deployer")
     }
 
     if ($null -ne $kv.kv_user_id) {
@@ -324,6 +324,7 @@ Licensed under the MIT license.
         else {
             Write-Host -ForegroundColor White ("Authentication:".PadRight(25, ' ') + "ssh keys")    
         }
+
         Write-Host
         Write-Host -ForegroundColor White "Application tier"
         Write-Host "-".PadRight(120, '-')
@@ -332,13 +333,14 @@ Licensed under the MIT license.
                 Write-Host -ForegroundColor White ("Authentication:".PadRight(25, ' ') + "Username/password")    
             }
             else {
-                Write-Host -ForegroundColor White ("Authentication:".PadRight(25, ' ') + "ssh keys")    
+                Write-Host -ForegroundColor White ("Authentication:".PadRight(25, ' ') + "key")    
             }
-    
         }
         else {
-            Write-Host -ForegroundColor White ("Authentication:".PadRight(25, ' ') + "ssh keys")    
+            Write-Host -ForegroundColor White ("Authentication:".PadRight(25, ' ') + "key")    
         }
+
+
         Write-Host -ForegroundColor White "Application servers"
         Write-Host -ForegroundColor White ("  Number of servers:".PadRight(25, ' ') + $jsonData.application.application_server_count)    
         Read-OSNode -Nodename "  Image" -os $jsonData.application.os
@@ -417,5 +419,7 @@ Licensed under the MIT license.
         }
 
     }
+
+
     
 }

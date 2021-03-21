@@ -113,7 +113,7 @@ data "azurerm_storage_account" "storage_bootdiag" {
 resource "azurerm_proximity_placement_group" "ppg" {
   provider            = azurerm.main
   count               = local.ppg_exists ? 0 : (local.zonal_deployment ? max(length(local.zones), 1) : 1)
-  name                = local.zonal_deployment ? format("%s%sz%s%s", local.prefix, var.naming.separator, local.zones[count.index], local.resource_suffixes.ppg) : local.ppg_names[count.index]
+  name                = format("%s%s", local.prefix, var.naming.ppg_names[count.index])
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
 }

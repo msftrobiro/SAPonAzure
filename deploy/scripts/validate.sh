@@ -1,4 +1,12 @@
 #!/bin/bash
+min() {
+    printf "%s\n" "${@:2}" | sort "$1" | head -n1
+}
+max() {
+    # using sort's -r (reverse) option - using tail instead of head is also possible
+    min ${1}r ${@:2}
+}
+
 function showhelp {
     echo ""
     echo "#########################################################################################"
@@ -76,19 +84,29 @@ if cat "${parameterfile}"  | jq --exit-status '.infrastructure.resource_group' >
     else
         if cat "${parameterfile}"  | jq --exit-status '.infrastructure.resource_group.name' >/dev/null; then
             name=$(cat "${parameterfile}" | jq .infrastructure.resource_group.name | tr -d \")
-            echo "* Resource group:            " "${name}"
+            echo "Resource group:            " "${name}"
         else
-            echo "* Resource group:            " "(name defined by automation)"
+            echo "Resource group:            " "(name defined by automation)"
         fi
     fi
     
 else
-    echo "* Resource group:            " "(name defined by automation)"
+    echo "Resource group:            " "(name defined by automation)"
 fi
-echo ""
-
+###############################################################################
+#                              SAP System                                     # 
+###############################################################################
 if [ "${deployment_system}" == sap_system ] ; then
-    
+
+    db_zone_count=$(cat "${parameterfile}" | jq ' .databases[0].zones | length')
+    app_zone_count=$(cat "${parameterfile}" | jq ' .application.app_zones | length')
+    scs_zone_count=$(cat "${parameterfile}" | jq ' .application.scs_zones | length')
+    web_zone_count=$(cat "${parameterfile}" | jq ' .application.web_zones | length')
+
+    ppg_count=$(max -g $db_zone_count $app_zone_count $scs_zone_count $web_zone_count)
+
+    echo "PPG:                         " "($ppg_count) (name defined by automation)"
+    echo ""
     echo "Networking"
     echo "----------------------------------------------------------------------------"
     
@@ -106,13 +124,13 @@ if [ "${deployment_system}" == sap_system ] ; then
         else
             if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_admin.name' >/dev/null; then
                 name=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_admin.name | tr -d \")
-                echo "* Admin subnet:              " "${name}"
+                echo "Admin subnet:              " "${name}"
             else
-                echo "* Admin subnet:              " "(name defined by automation)"
+                echo "Admin subnet:              " "(name defined by automation)"
             fi
             if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_admin.prefix' >/dev/null; then
                 prefix=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_admin.prefix | tr -d \")
-                echo "* Admin subnet prefix:       " "${prefix}"
+                echo "Admin subnet prefix:       " "${prefix}"
             else
                 echo "Error!!! The Admin subnet prefix must be specified"
             fi
@@ -124,13 +142,13 @@ if [ "${deployment_system}" == sap_system ] ; then
             else
                 if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_admin.nsg.name' >/dev/null; then
                     name=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_admin.nsg.name | tr -d \")
-                    echo "* Admin subnet nsg:          " "${name}"
+                    echo "Admin subnet nsg:          " "${name}"
                 else
-                    echo "* Admin subnet nsg:          " "(name defined by automation)"
+                    echo "Admin subnet nsg:          " "(name defined by automation)"
                 fi
             fi
         else
-            echo "* Admin subnet nsg:          " "(name defined by automation)"
+            echo "Admin subnet nsg:          " "(name defined by automation)"
         fi
         
     else
@@ -144,13 +162,13 @@ if [ "${deployment_system}" == sap_system ] ; then
         else
             if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_db.name' >/dev/null; then
                 name=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_db.name | tr -d \")
-                echo "* Database subnet:           " "${name}"
+                echo "Database subnet:           " "${name}"
             else
-                echo "* Database subnet:           " "(name defined by automation)"
+                echo "Database subnet:           " "(name defined by automation)"
             fi
             if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_db.prefix' >/dev/null; then
                 prefix=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_db.prefix | tr -d \")
-                echo "* Database subnet prefix:    " "${prefix}"
+                echo "Database subnet prefix:    " "${prefix}"
             else
                 echo "Error!!! The Database subnet prefix must be specified"
             fi
@@ -163,13 +181,13 @@ if [ "${deployment_system}" == sap_system ] ; then
             else
                 if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_db.nsg.name' >/dev/null; then
                     name=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_db.nsg.name | tr -d \")
-                    echo "* Database subnet nsg:       " "${name}"
+                    echo "Database subnet nsg:       " "${name}"
                 else
-                    echo "* Database subnet nsg:       " "(name defined by automation)"
+                    echo "Database subnet nsg:       " "(name defined by automation)"
                 fi
             fi
         else
-            echo "* Database subnet nsg:       " "(name defined by automation)"
+            echo "Database subnet nsg:       " "(name defined by automation)"
         fi
         
     else
@@ -183,13 +201,13 @@ if [ "${deployment_system}" == sap_system ] ; then
         else
             if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_app.name' >/dev/null; then
                 name=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_app.name | tr -d \")
-                echo "* Application subnet:        " "${name}"
+                echo "Application subnet:        " "${name}"
             else
-                echo "* Application subnet:        " "(name defined by automation)"
+                echo "Application subnet:        " "(name defined by automation)"
             fi
             if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_app.prefix' >/dev/null; then
                 prefix=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_app.prefix | tr -d \")
-                echo "* Application subnet prefix: " "${prefix}"
+                echo "Application subnet prefix: " "${prefix}"
             else
                 echo "Error!!! The Application subnet prefix must be specified"
             fi
@@ -202,13 +220,13 @@ if [ "${deployment_system}" == sap_system ] ; then
             else
                 if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_app.nsg.name' >/dev/null; then
                     name=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_app.nsg.name | tr -d \")
-                    echo "* Application subnet nsg:    " "${name}"
+                    echo "Application subnet nsg:    " "${name}"
                 else
-                    echo "* Application subnet nsg:    " "(name defined by automation)"
+                    echo "Application subnet nsg:    " "(name defined by automation)"
                 fi
             fi
         else
-            echo "* Application subnet nsg:    " "(name defined by automation)"
+            echo "Application subnet nsg:    " "(name defined by automation)"
         fi
         
     else
@@ -222,13 +240,13 @@ if [ "${deployment_system}" == sap_system ] ; then
         else
             if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_web.name' >/dev/null; then
                 name=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_web.name | tr -d \")
-                echo "* Web subnet:                " "${name}"
+                echo "Web subnet:                " "${name}"
             else
-                echo "* Web subnet:                " "(name defined by automation)"
+                echo "Web subnet:                " "(name defined by automation)"
             fi
             if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_web.prefix' >/dev/null; then
                 prefix=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_web.prefix | tr -d \")
-                echo "* Web subnet prefix:         " "${prefix}"
+                echo "Web subnet prefix:         " "${prefix}"
             else
                 echo "Error!!! The Web prefix must be specified"
             fi
@@ -241,13 +259,13 @@ if [ "${deployment_system}" == sap_system ] ; then
             else
                 if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.subnet_web.nsg.name' >/dev/null; then
                     name=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.subnet_web.nsg.name | tr -d \")
-                    echo "* Web subnet nsg:            " "${name}"
+                    echo "Web subnet nsg:            " "${name}"
                 else
-                    echo "* Web subnet nsg:            " "(name defined by automation)"
+                    echo "Web subnet nsg:            " "(name defined by automation)"
                 fi
             fi
         else
-            echo "* Web subnet nsg:            " "(name defined by automation)"
+            echo "Web subnet nsg:            " "(name defined by automation)"
         fi
     fi
     
@@ -263,6 +281,12 @@ if [ "${deployment_system}" == sap_system ] ; then
     echo "Number of servers:           " "${nr}"
     size=$(cat "${parameterfile}" | jq .databases[0].size | tr -d \")
     echo "Database sizing:             " "${size}"
+    echo "Database load balancer:      "  "(name defined by automation)"
+    if [ $db_zone_count -gt 1 ] ; then
+        echo "Database availability set:   "  "($db_zone_count) (name defined by automation)"
+    else
+        echo "Database availability set:   "  "(name defined by automation)"
+    fi
     if cat "${parameterfile}"  | jq --exit-status '.databases[0].os.source_image_id' >/dev/null; then
         image=$(cat "${parameterfile}" | jq .databases[0].os.source_image_id | tr -d \")
         echo "Database os custom image:    " "${image}"
@@ -319,6 +343,11 @@ if [ "${deployment_system}" == sap_system ] ; then
     fi
     
     echo "Application servers"
+    if [ $app_zone_count -gt 1 ] ; then
+        echo "  Application avset:         " "($app_zone_count) (name defined by automation)"
+    else
+        echo "  Application avset:         " "(name defined by automation)"
+    fi
     app_server_count=$(cat "${parameterfile}" | jq .application.application_server_count)
     echo "  Number of servers:         " "${app_server_count}"
     if cat "${parameterfile}"  | jq --exit-status '.application.os.source_image_id' >/dev/null; then
@@ -349,11 +378,17 @@ if [ "${deployment_system}" == sap_system ] ; then
     fi
     
     echo "Central Services"
+    echo "  SCS load balancer:          " "(name defined by automation)"
+    if [ $scs_zone_count -gt 1 ] ; then
+        echo "  SCS avset:                 " "($scs_zone_count) (name defined by automation)"
+    else
+        echo "  SCS avset:                 " "(name defined by automation)"
+    fi
     scs_server_count=$(cat "${parameterfile}" | jq .application.scs_server_count)
     echo "  Number of servers:         " "${scs_server_count}"
     scs_server_ha=$(cat "${parameterfile}" | jq .application.scs_high_availability)
     echo "  High availability:         " "${scs_server_ha}"
-    
+
     if cat "${parameterfile}"  | jq --exit-status '.application.scs_os' >/dev/null; then
         if cat "${parameterfile}"  | jq --exit-status '.application.scs_os.source_image_id' >/dev/null; then
             image=$(cat "${parameterfile}" | jq .application.scs_os.source_image_id | tr -d \")
@@ -405,6 +440,12 @@ if [ "${deployment_system}" == sap_system ] ; then
     
     echo "Web dispatcher"
     web_server_count=$(cat "${parameterfile}" | jq .application.webdispatcher_count)
+    echo "  Web dispatcher lb:         " "(name defined by automation)"
+    if [ $web_zone_count -gt 1 ] ; then
+        echo "  Web dispatcher avset:      " "($web_zone_count) (name defined by automation)"
+    else
+        echo "  Web dispatcher avset:      " "(name defined by automation)"
+    fi
     echo "  Number of servers:         " "${web_server_count}"
     
     if cat "${parameterfile}"  | jq --exit-status '.application.web_os' >/dev/null; then
@@ -482,6 +523,10 @@ if [ "${deployment_system}" == sap_system ] ; then
     
 fi
 
+###############################################################################
+#                              SAP LAndscape                                  # 
+###############################################################################
+
 if [ "${deployment_system}" == sap_landscape ] ; then
     echo "Networking"
     echo "----------------------------------------------------------------------------"
@@ -500,12 +545,12 @@ if [ "${deployment_system}" == sap_landscape ] ; then
         else
             if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.name' >/dev/null; then
                 name=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.name | tr -d \")
-                echo "* VNet Logical name:         " "${name}"
+                echo "VNet Logical name:         " "${name}"
             fi
         fi
         if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.address_space' >/dev/null; then
             prefix=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.address_space | tr -d \")
-            echo "* Address space:             " "${prefix}"
+            echo "Address space:             " "${prefix}"
         else
             echo "Error!!! The Virtual network address space must be specified"
         fi
@@ -537,6 +582,10 @@ if [ "${deployment_system}" == sap_landscape ] ; then
         echo "  Automation Key Vault:      " "Workload keyvault"
     fi
 fi
+
+###############################################################################
+#                              SAP Library                                    # 
+###############################################################################
 
 if [ "${deployment_system}" == sap_library ] ; then
     echo ""
@@ -553,17 +602,22 @@ if [ "${deployment_system}" == sap_library ] ; then
         kv=$(cat "${parameterfile}" | jq .key_vault.kv_user_id | tr -d \")
         echo "  User Key Vault:            " "${kv}"
     else
-        echo "  User Key Vault:            " "Workload keyvault"
+        echo "  User Key Vault:            " "Library keyvault"
     fi
     
     if cat "${parameterfile}"  | jq --exit-status '.key_vault.kv_prvt_id' >/dev/null; then
         kv=$(cat "${parameterfile}" | jq .key_vault.kv_prvt_id | tr -d \")
         echo "  Automation Key Vault:      " "${kv}"
     else
-        echo "  Automation Key Vault:      " "Workload keyvault"
+        echo "  Automation Key Vault:      " "Library keyvault"
     fi
     
 fi
+
+###############################################################################
+#                              SAP Deployer                                   # 
+###############################################################################
+
 
 if [ "${deployment_system}" == sap_deployer ] ; then
     if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.management' >/dev/null; then
@@ -573,12 +627,12 @@ if [ "${deployment_system}" == sap_deployer ] ; then
         else
             if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.management.name' >/dev/null; then
                 name=$(cat "${parameterfile}" | jq .infrastructure.vnets.management.name | tr -d \")
-                echo "* VNet Logical name  :      " "${name}"
+                echo "VNet Logical name  :      " "${name}"
             fi
         fi
         if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.management.address_space' >/dev/null; then
             prefix=$(cat "${parameterfile}" | jq .infrastructure.vnets.management.address_space | tr -d \")
-            echo "* Address space:                " "${prefix}"
+            echo "Address space:                " "${prefix}"
         else
             echo "Error!!! The Virtual network address space must be specified"
         fi
@@ -600,13 +654,13 @@ if [ "${deployment_system}" == sap_deployer ] ; then
         kv=$(cat "${parameterfile}" | jq .key_vault.kv_user_id | tr -d \")
         echo "  User Key Vault:            " "${kv}"
     else
-        echo "  User Key Vault:            " "Workload keyvault"
+        echo "  User Key Vault:            " "Deployer keyvault"
     fi
     
     if cat "${parameterfile}"  | jq --exit-status '.key_vault.kv_prvt_id' >/dev/null; then
         kv=$(cat "${parameterfile}" | jq .key_vault.kv_prvt_id | tr -d \")
         echo "  Automation Key Vault:      " "${kv}"
     else
-        echo "  Automation Key Vault:      " "Workload keyvault"
+        echo "  Automation Key Vault:      " "Deployer keyvault"
     fi
 fi

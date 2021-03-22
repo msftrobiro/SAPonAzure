@@ -314,12 +314,12 @@ echo $library_config_information
     env_param=$(printf " -e %s " "${environment}")
     region_param=$(printf " -r %s " "${region}")
     
-    allParams=${env_param}${keyvault_param}${region_param}
+    allParams="${env_param}""${keyvault_param}""${region_param}"
 
-    echo $allParams
+    echo "${allParams}"
     exit 255
 
-    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh $allParams 
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh "${allParams}"
     if [ $? -eq 255 ]
         then
         exit $?

@@ -306,17 +306,13 @@ echo $library_config_information
     then
         # Key vault was specified in ~/.sap_deployment_automation in the deployer file
         keyvault_name=$(echo $temp | cut -d= -f2 | xargs)
-        keyvault_param=$(printf " -v %s " "{$keyvault_name}")
+        keyvault_param=$(printf " -v %s " "${keyvault_name}")
     fi    
     
     env_param=$(printf " -e %s " "${environment}")
     region_param=$(printf " -r %s " "${region}")
     
     allParams="${env_param}""${keyvault_param}""${region_param}"
-
-    echo "${environment}"
-    echo "${allParams}"
-    exit 255
 
     "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh "${allParams}"
     if [ $? -eq 255 ]

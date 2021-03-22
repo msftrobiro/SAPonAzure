@@ -71,10 +71,10 @@ function Read-SubnetNode {
     }
     else {
         if ($null -ne $subnet.name) {
-            Write-Host -ForegroundColor White (("* " + $NodeName + " subnet:").PadRight(25, ' ') + $subnet.name)
+            Write-Host -ForegroundColor White (("" + $NodeName + " subnet:").PadRight(25, ' ') + $subnet.name)
         }
         else {
-            Write-Host -ForegroundColor White (("* " + $NodeName + " subnet:").PadRight(25, ' ') + "(name defined by automation")
+            Write-Host -ForegroundColor White (("" + $NodeName + " subnet:").PadRight(25, ' ') + "(name defined by automation")
         }
         if ($null -ne $subnet.prefix) {
             Write-Host -ForegroundColor White ("  Prefix:".PadRight(25, ' ') + $subnet.prefix)
@@ -88,10 +88,10 @@ function Read-SubnetNode {
     }
     else {
         if ($null -ne $subnet.nsg.name) {
-            Write-Host -ForegroundColor White (("* " + $NodeName + " subnet nsg:").PadRight(25, ' ') + $subnet.nsg.name)
+            Write-Host -ForegroundColor White (("" + $NodeName + " subnet nsg:").PadRight(25, ' ') + $subnet.nsg.name)
         }
         else {
-            Write-Host -ForegroundColor White (("* " + $NodeName + " subnet nsg:").PadRight(25, ' ') + "(name defined by automation")    
+            Write-Host -ForegroundColor White (("" + $NodeName + " subnet nsg:").PadRight(25, ' ') + "(name defined by automation")    
         }
         
     }
@@ -164,8 +164,14 @@ Licensed under the MIT license.
 
     $Environment = $jsonData.infrastructure.environment
     $region = $jsonData.infrastructure.region
+    $db_zone_count = $jsonData.databases[0].zones.Length
+    $app_zone_count = $jsonData.application.app_zones.Length
+    $scs_zone_count = $jsonData.application.scs_zones.Length
+    $web_zone_count = $jsonData.application.web_zones.Length
+    $zone_count = ($db_zone_count, $app_zone_count, $scs_zone_count, $web_zone_count | Measure-Object -Max).Maximum
 
     Write-Host -ForegroundColor White "Deployment information"
+    Write-Host -ForegroundColor White "------------------------------------------------------------------------------------------------"
     Write-Host -ForegroundColor White ("Environment:".PadRight(25, ' ') + $Environment)
     Write-Host -ForegroundColor White ("Region:".PadRight(25, ' ') + $region)
     Write-Host "-".PadRight(120, '-')
@@ -174,11 +180,17 @@ Licensed under the MIT license.
     }
     else {
         if ($null -ne $jsonData.infrastructure.resource_group.name) {
-            Write-Host -ForegroundColor White ("* Resource group:".PadRight(25, ' ') + $jsonData.infrastructure.resource_group.name)
+            Write-Host -ForegroundColor White ("Resource group:".PadRight(25, ' ') + $jsonData.infrastructure.resource_group.name)
         }
         else {
-            Write-Host -ForegroundColor White ("* Resource group:".PadRight(25, ' ') + "(name defined by automation")
+            Write-Host -ForegroundColor White ("Resource group:".PadRight(25, ' ') + "(name defined by automation")
         }
+    }
+    if ( $zone_count -gt 1) {
+        Write-Host -ForegroundColor White ("PPG:".PadRight(25, ' ') + "(" + $zone_count.ToString() + ") (name defined by automation")
+    }
+    else {
+        Write-Host -ForegroundColor White ("PPG:".PadRight(25, ' ') + "(name defined by automation")
     }
 
     if ("sap_deployer" -eq $Type) {
@@ -186,7 +198,7 @@ Licensed under the MIT license.
             Write-Host -ForegroundColor White ("Virtual Network:".PadRight(25, ' ') + $jsonData.infrastructure.vnets.management.armid)
         }
         else {
-            Write-Host -ForegroundColor White ("* Virtual Network:".PadRight(25, ' ') + " (Name defined by automation")
+            Write-Host -ForegroundColor White ("Virtual Network:".PadRight(25, ' ') + " (Name defined by automation")
             if ($null -ne $jsonData.infrastructure.vnets.management.address_space) {
                 Write-Host -ForegroundColor White ("  Address space:".PadRight(25, ' ') + $jsonData.infrastructure.vnets.management.address_space)
             }
@@ -245,7 +257,7 @@ Licensed under the MIT license.
             Write-Host -ForegroundColor White ("Virtual Network:".PadRight(25, ' ') + $jsonData.infrastructure.vnets.sap.armid)
         }
         else {
-            Write-Host -ForegroundColor White ("* Virtual Network:".PadRight(25, ' ') + " (Name defined by automation")
+            Write-Host -ForegroundColor White ("Virtual Network:".PadRight(25, ' ') + " (Name defined by automation")
             if ($null -ne $jsonData.infrastructure.vnets.sap.address_space) {
                 Write-Host -ForegroundColor White ("  Address space:".PadRight(25, ' ') + $jsonData.infrastructure.vnets.sap.address_space)
             }
@@ -262,6 +274,7 @@ Licensed under the MIT license.
 
     }
     if ("sap_system" -eq $Type) {
+
         Write-Host
         Write-Host -ForegroundColor White "Networking"
         Write-Host "-".PadRight(120, '-')
@@ -289,6 +302,14 @@ Licensed under the MIT license.
         Write-Host "-".PadRight(120, '-')
         Write-Host -ForegroundColor White ("Platform:".PadRight(25, ' ') + $jsonData.databases[0].platform)
         Write-Host -ForegroundColor White ("High availability:".PadRight(25, ' ') + $jsonData.databases[0].high_availability)
+        Write-Host -ForegroundColor White ("Database load balancer:".PadRight(25, ' ') + "(name defined by automation")
+        if ( $db_zone_count -gt 1) {
+            Write-Host -ForegroundColor White ("Database availability set:".PadRight(25, ' ') + "(" + $db_zone_count.ToString() + ") (name defined by automation")
+        }
+        else {
+            Write-Host -ForegroundColor White ("Database availability set:".PadRight(25, ' ') + "(name defined by automation")
+        }
+    
         Write-Host -ForegroundColor White ("Number of servers:".PadRight(25, ' ') + $jsonData.databases[0].dbnodes.Length)
         Write-Host -ForegroundColor White ("Database sizing:".PadRight(25, ' ') + $jsonData.databases[0].size)
         Read-OSNode -Nodename "Image" -os $jsonData.databases[0].os
@@ -298,7 +319,7 @@ Licensed under the MIT license.
             for ($zone = 0 ; $zone -lt $jsonData.databases[0].zones.Length ; $zone++) {
                 $Zones = $Zones + "" + $jsonData.databases[0].zones[$zone] + ","
             }
-            $Zones = $Zones.Substring(0,$Zones.Length - 1)
+            $Zones = $Zones.Substring(0, $Zones.Length - 1)
             $Zones = $Zones + "]"
             Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $Zones)    
         }
@@ -340,8 +361,13 @@ Licensed under the MIT license.
             Write-Host -ForegroundColor White ("Authentication:".PadRight(25, ' ') + "key")    
         }
 
-
         Write-Host -ForegroundColor White "Application servers"
+        if ( $app_zone_count -gt 1) {
+            Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(" + $app_zone_count.ToString() + ") (name defined by automation")
+        }
+        else {
+            Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(name defined by automation")
+        }
         Write-Host -ForegroundColor White ("  Number of servers:".PadRight(25, ' ') + $jsonData.application.application_server_count)    
         Read-OSNode -Nodename "  Image" -os $jsonData.application.os
         if ($null -ne $jsonData.application.app_sku) {
@@ -353,7 +379,7 @@ Licensed under the MIT license.
             for ($zone = 0 ; $zone -lt $jsonData.application.app_zones.Length ; $zone++) {
                 $Zones = $Zones + "" + $jsonData.application.app_zones[$zone] + ","
             }
-            $Zones = $Zones.Substring(0,$Zones.Length - 1)
+            $Zones = $Zones.Substring(0, $Zones.Length - 1)
             $Zones = $Zones + "]"
             Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $Zones)    
         }
@@ -364,6 +390,13 @@ Licensed under the MIT license.
         Write-Host -ForegroundColor White "Central Services"
         Write-Host -ForegroundColor White ("  Number of servers:".PadRight(25, ' ') + $jsonData.application.scs_server_count)    
         Write-Host -ForegroundColor White ("  High availability:".PadRight(25, ' ') + $jsonData.application.scs_high_availability)    
+        Write-Host -ForegroundColor White ("  Load balancer:".PadRight(25, ' ') + "(name defined by automation")
+        if ( $scs_zone_count -gt 1) {
+            Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(" + $scs_zone_count.ToString() + ") (name defined by automation")
+        }
+        else {
+            Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(name defined by automation")
+        }
         if ($null -ne $jsonData.application.scs_os) {
             Read-OSNode -Nodename "  Image" -os $jsonData.application.scs_os
         }
@@ -379,7 +412,7 @@ Licensed under the MIT license.
             for ($zone = 0 ; $zone -lt $jsonData.application.scs_zones.Length ; $zone++) {
                 $Zones = $Zones + "" + $jsonData.application.scs_zones[$zone] + ","
             }
-            $Zones = $Zones.Substring(0,$Zones.Length - 1)
+            $Zones = $Zones.Substring(0, $Zones.Length - 1)
             $Zones = $Zones + "]"
             Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $Zones)    
         }
@@ -388,6 +421,13 @@ Licensed under the MIT license.
         }
         Write-Host -ForegroundColor White "Web Dispatchers"
         Write-Host -ForegroundColor White ("  Number of servers:".PadRight(25, ' ') + $jsonData.application.webdispatcher_count)    
+        Write-Host -ForegroundColor White ("  Load balancer:".PadRight(25, ' ') + "(name defined by automation")
+        if ( $web_zone_count -gt 1) {
+            Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(" + $web_zone_count.ToString() + ") (name defined by automation")
+        }
+        else {
+            Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(name defined by automation")
+        }
         if ($null -ne $jsonData.application.web_os) {
             Read-OSNode -Nodename "  Image" -os $jsonData.application.web_os
         }
@@ -404,7 +444,7 @@ Licensed under the MIT license.
             for ($zone = 0 ; $zone -lt $jsonData.application.web_zones.Length ; $zone++) {
                 $Zones = $Zones + "" + $jsonData.application.web_zones[$zone] + ","
             }
-            $Zones = $Zones.Substring(0,$Zones.Length - 1)
+            $Zones = $Zones.Substring(0, $Zones.Length - 1)
             $Zones = $Zones + "]"
             Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $Zones)    
         }

@@ -84,14 +84,14 @@ if cat "${parameterfile}"  | jq --exit-status '.infrastructure.resource_group' >
     else
         if cat "${parameterfile}"  | jq --exit-status '.infrastructure.resource_group.name' >/dev/null; then
             name=$(cat "${parameterfile}" | jq .infrastructure.resource_group.name | tr -d \")
-            echo "Resource group:            " "${name}"
+            echo "Resource group:              " "${name}"
         else
-            echo "Resource group:            " "(name defined by automation)"
+            echo "Resource group:              " "(name defined by automation)"
         fi
     fi
     
 else
-    echo "Resource group:            " "(name defined by automation)"
+    echo "Resource group:              " "(name defined by automation)"
 fi
 ###############################################################################
 #                              SAP System                                     # 
@@ -112,7 +112,7 @@ if [ "${deployment_system}" == sap_system ] ; then
     
     if cat "${parameterfile}"  | jq --exit-status '.infrastructure.vnets.sap.name' >/dev/null; then
         name=$(cat "${parameterfile}" | jq .infrastructure.vnets.sap.name | tr -d \")
-        echo "VNet Logical Name:           " "${name}"
+        echo "VNet Logical Name:         " "${name}"
     else
         echo "Error!!! The VNet logical name must be specified"
     fi
@@ -378,7 +378,7 @@ if [ "${deployment_system}" == sap_system ] ; then
     fi
     
     echo "Central Services"
-    echo "  SCS load balancer:          " "(name defined by automation)"
+    echo "  SCS load balancer:         " "(name defined by automation)"
     if [ $scs_zone_count -gt 1 ] ; then
         echo "  SCS avset:                 " "($scs_zone_count) (name defined by automation)"
     else

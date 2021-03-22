@@ -316,7 +316,7 @@ echo $library_config_information
 
     echo $allParams
 
-    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh $allParams"
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh $allParams
     if [ $? -eq 255 ]
         then
         exit $?

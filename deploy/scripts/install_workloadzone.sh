@@ -270,7 +270,7 @@ else
     temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
     if [ ! -z "${temp}" ]
     then
-        echo "${REMOTE_STATE_SA}"
+        
         terraform init -upgrade=true -force-copy --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
         --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
         --backend-config "storage_account_name=${REMOTE_STATE_SA}" \

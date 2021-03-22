@@ -126,6 +126,8 @@ if [ ! -d ${automation_config_directory} ]
 then
     # No configuration directory exists
     mkdir $automation_config_directory
+    touch "${generic_config_information}"
+    touch "${library_config_information}"
     if [ -n "${DEPLOYMENT_REPO_PATH}" ]; then
         # Store repo path in ~/.sap_deployment_automation/config
         echo "DEPLOYMENT_REPO_PATH=${DEPLOYMENT_REPO_PATH}" >> "${generic_config_information}"
@@ -142,7 +144,6 @@ else
     then
         # Repo path was specified in ~/.sap_deployment_automation/config
         DEPLOYMENT_REPO_PATH=$(echo "${temp}" | cut -d= -f2 | xargs)
-        
         config_stored=1
     else
         config_stored=0
@@ -277,10 +278,15 @@ terraform {
 }
 EOF
 
+echo ${ARM_SUBSCRIPTION_ID}" 
+echo ${REMOTE_STATE_RG}" 
+echo ${REMOTE_STATE_SA}" 
+    
+
 if [ ! -d ./.terraform/ ];
 then
     terraform init -upgrade=true -force-copy \
-     --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
+    --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
     --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
     --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
     --backend-config "container_name=tfstate" \

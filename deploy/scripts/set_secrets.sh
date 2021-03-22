@@ -51,6 +51,7 @@ done
 
 automation_config_directory=~/.sap_deployment_automation/
 environment_config_information="${automation_config_directory}""${environment}"
+touch "${environment_config_information}"
 
 if [ ! -d "${automation_config_directory}" ]
 then

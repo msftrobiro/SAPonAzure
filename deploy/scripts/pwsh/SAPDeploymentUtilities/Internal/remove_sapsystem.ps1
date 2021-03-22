@@ -99,8 +99,8 @@ Licensed under the MIT license.
     if ($changed) {
         Out-IniFile -InputObject $iniContent -Path $filePath
     }
-
-    $terraform_module_directory = $repo + "\deploy\terraform\run\" + $Type
+    
+    $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\run\$Type"$terraform_module_directory = $repo + "\deploy\terraform\run\" + $Type
 
     if ($Type -ne "sap_deployer") {
         $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id

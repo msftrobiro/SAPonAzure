@@ -155,7 +155,7 @@ echo ""
 
 touch "${environment_config_information}"
 sed -i /Environment/d  "${environment_config_information}"
-echo "Environment=${environment} >> ${environment_config_information}"
+echo "Environment=${environment}" >> "${environment_config_information}"
 
 if [ $vaultname_exists -eq 0 ]
     then

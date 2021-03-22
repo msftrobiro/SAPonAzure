@@ -50,6 +50,12 @@ while getopts ":e:c:s:t:h:v:r:x" option; do
 done
 
 automation_config_directory=~/.sap_deployment_automation/
+
+if [ ! -n "${environment}" ]; then
+    read -p "Environment name:"  environment
+fi
+
+
 environment_config_information="${automation_config_directory}""${environment}"
 touch "${environment_config_information}"
 
@@ -95,10 +101,6 @@ else
         subscription_exists=0
     fi
 
-fi
-
-if [ ! -n "${environment}" ]; then
-    read -p "Environment name:"  environment
 fi
 
 if [ ! -n "$vaultname" ]; then

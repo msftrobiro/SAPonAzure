@@ -130,7 +130,7 @@ Licensed under the MIT license.
         Out-IniFile -InputObject $iniContent -Path $fileINIPath
     }
 
-    $terraform_module_directory = $repo + "\deploy\terraform\run\" + $Type
+    $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\run\$Type"
 
     Write-Host -ForegroundColor green "Initializing Terraform"
 

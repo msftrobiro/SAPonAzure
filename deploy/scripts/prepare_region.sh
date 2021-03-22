@@ -238,8 +238,6 @@ else
     fi
 fi
 
-
-
 deployer_dirname=$(dirname "${deployer_parameter_file}")
 deployer_file_parametername=$(basename "${deployer_parameter_file}")
 
@@ -316,6 +314,7 @@ echo $library_config_information
     
     allParams="${env_param}""${keyvault_param}""${region_param}"
 
+    echo "${environment}"
     echo "${allParams}"
     exit 255
 

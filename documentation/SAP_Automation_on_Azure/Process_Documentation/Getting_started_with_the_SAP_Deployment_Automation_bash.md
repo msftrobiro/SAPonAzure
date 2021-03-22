@@ -133,10 +133,10 @@ For deploying the supporting infrastructure for the Azure region(Deployer, Libra
 
 ```bash
 ${DEPLOYMENT_REPO_PATH}deploy/scripts/prepare_region.sh
--d DEPLOYER/DEV-WEEU-DEP00-INFRASTRUCTURE/DEV-WEEU-DEP00-INFRASTRUCTURE.json -l LIBRARY/DEV-WEEU-SAP_LIBRARY/DEV-WEEU-SAP_LIBRARY.json
+-d DEPLOYER/MGMT-WEEU-DEP00-INFRASTRUCTURE/MGMT-WEEU-DEP00-INFRASTRUCTURE.json -l LIBRARY/MGMT-WEEU-SAP_LIBRARY/MGMT-WEEU-SAP_LIBRARY.json
 ```
 
-The script will deploy the deployment infrastructure and create the Azure keyvault for storing the Service Principal details. When prompted for the environment details enter "DEV" and then enter the Service Principal details. The script will them deploy the rest of the resources required.
+The script will deploy the deployment infrastructure and create the Azure keyvault for storing the Service Principal details. When prompted for the environment details enter "MGMT" and then enter the Service Principal details. The script will them deploy the rest of the resources required.
 
 ## **Deploying the DEV environment**
 

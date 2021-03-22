@@ -109,7 +109,7 @@ if [ $answer == 'Y' ]; then
     if [ ! -z $temp ]
     then
         # Key vault was specified in ~/.sap_deployment_automation in the deployer file
-        keyvault_name=$(echo $temp | cut -d= -f2 | xargs)
+        keyvault_name=$(echo $temp | cut -d= -f2 | tr -d \" | xargs)
         keyvault_param=$(printf " -v %s " $keyvault_name)
     fi    
     
@@ -156,20 +156,20 @@ else
     if [ ! -z "${temp}" ]
     then
         # Remote state storage group was specified in ~/.sap_deployment_automation library config
-        REMOTE_STATE_RG=$(echo "${temp}" | cut -d= -f2)
+        REMOTE_STATE_RG=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
     fi
 
     temp=$(grep "REMOTE_STATE_SA" "${library_config_information}")
     if [ ! -z "${temp}" ]
     then
         # Remmote state storage group was specified in ~/.sap_deployment_automation library config
-        REMOTE_STATE_SA=$(echo "${temp}" | cut -d= -f2)
+        REMOTE_STATE_SA=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
     fi
 
     temp=$(grep "tfstate_resource_id" "${library_config_information}")
     if [ ! -z "${temp}" ]
     then
-        tfstate_resource_id=$(echo "${temp}" | cut -d= -f2)
+        tfstate_resource_id=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
         if [ "${deployment_system}" != sap_deployer ]
         then
             tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
@@ -180,7 +180,7 @@ else
     if [ ! -z "${temp}" ]
     then
         # Deployer state was specified in ~/.sap_deployment_automation library config
-        deployer_tfstate_key=$(echo "${temp}" | cut -d= -f2)
+        deployer_tfstate_key=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
         
         deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
 

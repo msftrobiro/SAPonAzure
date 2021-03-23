@@ -221,7 +221,7 @@ locals {
   // If custom image is used, we do not overwrite os reference with default value
   // If no publisher or no custom image is specified use the custom image from the app if specified
   scs_custom_image = try(var.application.scs_os.source_image_id, "") == "" && !local.app_custom_image ? false : true
-  scs_ostype       = upper(try(var.application.scs_os.offer), "") == "WINDOWSSERVER" ? "WINDOWS" : try(var.application.scs_os.os_type, local.app_ostype)
+  scs_ostype       = try(upper(var.application.scs_os.offer, "")) == "WINDOWSSERVER" ? "WINDOWS" : try(var.application.scs_os.os_type, local.app_ostype)
 
   scs_os = {
     "os_type"         = local.scs_ostype

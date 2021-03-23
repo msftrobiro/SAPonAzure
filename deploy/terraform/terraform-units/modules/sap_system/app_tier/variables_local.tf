@@ -476,7 +476,39 @@ locals {
   web_zone_count       = length(local.web_zones)
   //If we deploy more than one server in zone put them in an availability set
   use_web_avset = local.webdispatcher_count > 0 ? (!local.web_zonal_deployment || local.webdispatcher_count != local.web_zone_count) : false
+  
+  winha_ips = [
+    {
+      name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_feip)
+      subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
+      private_ip_address            = local.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 2 + local.ip_offsets.scs_lb)))
+      private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
+
+    },
+    {
+      name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_feip)
+      subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
+      private_ip_address            = local.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 3 + local.ip_offsets.scs_lb)))
+      private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
+    }
+  ]
 
 
+  std_ips = [
+    {
+      name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_alb_feip)
+      subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
+      private_ip_address            = local.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 0 + local.ip_offsets.scs_lb)))
+      private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
+    },
+    {
+      name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_feip)
+      subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
+      private_ip_address            = local.use_DHCP ? (null) : (try(local.scs_lb_ips[1], cidrhost(local.sub_app_prefix, 1 + local.ip_offsets.scs_lb)))
+      private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
+    },
+  ]
+
+  fpips = (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? concat(local.std_ips, local.winha_ips) : local.std_ips
 
 }

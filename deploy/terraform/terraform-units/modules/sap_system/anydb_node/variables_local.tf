@@ -85,8 +85,7 @@ locals {
   offset = try(var.options.resource_offset, 0)
 
   //Allowing to keep the old nic order
-  legacy_nic_order = try(var.options.legacy_nic_order, "false") == "true"
-
+  legacy_nic_order = try(var.options.legacy_nic_order, false)
   // Availability Set 
   availabilityset_arm_ids = try(local.anydb.avset_arm_ids, [])
   availabilitysets_exist  = length(local.availabilityset_arm_ids) > 0 ? true : false

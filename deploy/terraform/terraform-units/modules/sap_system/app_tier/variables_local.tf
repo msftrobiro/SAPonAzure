@@ -90,8 +90,8 @@ locals {
   offset = try(var.options.resource_offset, 0)
 
   //Allowing to keep the old nic order
-  legacy_nic_order = try(var.options.legacy_nic_order, "false") == "true"
-
+  legacy_nic_order = try(var.options.legacy_nic_order, false)
+  
   faultdomain_count = try(tonumber(compact(
     [for pair in local.faults :
       upper(pair.Location) == upper(local.region) ? pair.MaximumFaultDomainCount : ""

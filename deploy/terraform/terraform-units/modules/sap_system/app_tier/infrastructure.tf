@@ -65,24 +65,16 @@ resource "azurerm_lb" "scs" {
   location            = var.resource_group[0].location
   sku                 = "Standard"
 
-  frontend_ip_configuration {
-    name      = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_alb_feip)
-    subnet_id = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
-    private_ip_address = local.use_DHCP ? (
-      null) : (
-      try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 0 + local.ip_offsets.scs_lb))
-    )
-    private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
-  }
+  dynamic "frontend_ip_configuration" {
+    iterator = pub
+    for_each = local.fpips
+    content {
+      name                          = pub.value.name
+      subnet_id                     = pub.value.subnet_id
+      private_ip_address            = pub.value.private_ip_address
+      private_ip_address_allocation = pub.value.private_ip_address_allocation
+    }
 
-  frontend_ip_configuration {
-    name      = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_feip)
-    subnet_id = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
-    private_ip_address = local.use_DHCP ? (
-      null) : (
-      try(local.scs_lb_ips[1], cidrhost(local.sub_app_prefix, 1 + local.ip_offsets.scs_lb))
-    )
-    private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
   }
 }
 
@@ -255,7 +247,7 @@ resource "random_integer" "app_priority" {
 # Create a Azure Firewall Network Rule for Azure Management API
 resource "azurerm_firewall_network_rule_collection" "firewall-azure-app" {
   provider            = azurerm.deployer
-  count               = local.firewall_exists && !local.sub_app_exists? 1 : 0
+  count               = local.firewall_exists && !local.sub_app_exists ? 1 : 0
   name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.firewall_rule_app)
   azure_firewall_name = local.firewall_name
   resource_group_name = local.firewall_rgname

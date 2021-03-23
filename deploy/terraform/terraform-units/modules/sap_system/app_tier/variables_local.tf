@@ -91,7 +91,7 @@ locals {
 
   //Allowing to keep the old nic order
   legacy_nic_order = try(var.options.legacy_nic_order, false)
-  
+
   faultdomain_count = try(tonumber(compact(
     [for pair in local.faults :
       upper(pair.Location) == upper(local.region) ? pair.MaximumFaultDomainCount : ""
@@ -221,7 +221,7 @@ locals {
   // If custom image is used, we do not overwrite os reference with default value
   // If no publisher or no custom image is specified use the custom image from the app if specified
   scs_custom_image = try(var.application.scs_os.source_image_id, "") == "" && !local.app_custom_image ? false : true
-  scs_ostype       = upper(var.application.scs_os.offer) == "WINDOWSSERVER" ? "WINDOWS" : try(var.application.scs_os.os_type, local.app_ostype)
+  scs_ostype       = upper(try(var.application.scs_os.offer), "") == "WINDOWSSERVER" ? "WINDOWS" : try(var.application.scs_os.os_type, local.app_ostype)
 
   scs_os = {
     "os_type"         = local.scs_ostype
@@ -245,7 +245,7 @@ locals {
   // If custom image is used, we do not overwrite os reference with default value
   // If no publisher or no custom image is specified use the custom image from the app if specified
   web_custom_image = try(var.application.web_os.source_image_id, "") == "" && !local.app_custom_image ? false : true
-  web_ostype       = upper(var.application.web_os.offer) == "WINDOWSSERVER" ? "WINDOWS" : try(var.application.web_os.os_type, local.app_ostype)
+  web_ostype       = upper(try(var.application.web_os.offer, "")) == "WINDOWSSERVER" ? "WINDOWS" : try(var.application.web_os.os_type, local.app_ostype)
   web_os = {
     "os_type"         = local.web_ostype
     "source_image_id" = try(var.application.web_os.source_image_id, local.web_custom_image ? local.app_os.source_image_id : null)

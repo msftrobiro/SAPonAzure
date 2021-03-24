@@ -130,6 +130,36 @@ resource "azurerm_lb_rule" "ers" {
   enable_floating_ip             = true
 }
 
+resource "azurerm_lb_rule" "clst" {
+  provider                       = azurerm.main
+  count                          = local.enable_deployment && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? 1 : 0
+  resource_group_name            = var.resource_group[0].name
+  loadbalancer_id                = azurerm_lb.scs[0].id
+  name                           = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_rule)
+  protocol                       = "All"
+  frontend_port                  = 0
+  backend_port                   = 0
+  frontend_ip_configuration_name = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_feip)
+  backend_address_pool_id        =  azurerm_lb_backend_address_pool.scs[0].id
+  probe_id                       =  azurerm_lb_probe.scs[0].id
+  enable_floating_ip             = true
+}
+
+resource "azurerm_lb_rule" "fs" {
+  provider                       = azurerm.main
+  count                          = local.enable_deployment && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? 1 : 0
+  resource_group_name            = var.resource_group[0].name
+  loadbalancer_id                = azurerm_lb.scs[0].id
+  name                           = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_rule)
+  protocol                       = "All"
+  frontend_port                  = 0
+  backend_port                   = 0
+  frontend_ip_configuration_name = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_feip)
+  backend_address_pool_id        =  azurerm_lb_backend_address_pool.scs[0].id
+  probe_id                       =  azurerm_lb_probe.scs[1].id
+  enable_floating_ip             = true
+}
+
 # Create the SCS Availability Set
 resource "azurerm_availability_set" "scs" {
   count                        = local.enable_deployment && local.use_scs_avset ? max(length(local.scs_zones), 1) : 0

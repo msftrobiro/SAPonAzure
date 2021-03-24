@@ -138,7 +138,7 @@ Licensed under the MIT license.
     $repo = $iniContent["Common"]["repo"].Trim() 
 
     if ($null -eq $landscape_tfstate_key -or "" -eq $landscape_tfstate_key) {
-        $landscape_tfstate_key = Read-Host -Prompt "Please enter the subscription for the deployment"
+        $landscape_tfstate_key = Read-Host -Prompt "Please enter the landscape statefile for the deployment"
         if ($Type -eq "sap_system") {
             $iniContent[$combined]["Landscape"] = $landscape_tfstate_key.Trim()
         }

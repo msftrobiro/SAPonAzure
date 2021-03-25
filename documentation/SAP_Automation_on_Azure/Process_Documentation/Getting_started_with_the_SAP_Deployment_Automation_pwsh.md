@@ -1,4 +1,5 @@
-﻿# Running the automation from a Windows PC
+﻿# ![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework** #
+# Running the automation from a Windows PC
 
 To run the automation from a local Windows PC, following components need to be installed.
 

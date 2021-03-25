@@ -1,9 +1,5 @@
-<!-- TODO: 
-Remove files and maintain here in documentation
-deploy/terraform/run/sap_system/sapsystem_full.json
-deploy/terraform/run/sap_system/sapsystem.json
--->
-### <img src="../assets/images/UnicornSAPBlack256x256.png" width="64px"> SAP Deployment Automation Framework ###
+
+# ![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework** #
 
 # Configuration - SAP Deployment Unit #
 

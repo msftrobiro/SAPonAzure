@@ -1,3 +1,4 @@
+# ![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework** #
 # Using custom disk sizing #
 
 By default the automation will deploy the correct disk configuration for the Hana deployments. For the AnyDB deployments the default disklayout is defined based on the size of the database and for Hana deployments it is typically tied to the VM size. See [product_documentation-sap_deployment_unit.md] (../Software_Documentation/product_documentation-sap_deployment_unit.md) for more info

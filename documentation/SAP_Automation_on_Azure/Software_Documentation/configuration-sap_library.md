@@ -1,11 +1,5 @@
-<!-- TODO: 
-Remove files and maintain here in documentation
-deploy/terraform/bootstrap/sap_library/saplibrary_full.json
-deploy/terraform/bootstrap/sap_library/saplibrary.json
-deploy/terraform/run/sap_library/saplibrary_full.json
-deploy/terraform/run/sap_library/saplibrary.json
--->
-### <img src="../assets/images/UnicornSAPBlack256x256.png" width="64px"> SAP Deployment Automation Framework <!-- omit in toc --> ###
+
+# ![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework** #
 
 # Configuration - SAP Library <!-- omit in toc --> #
 
@@ -24,7 +18,7 @@ The configuration of the SAP Library infrastructure is achieved using a json for
 
 ### JSON structure ###
 
-```json
+```
 {                                                                                 <-- JSON opening tag
   "infrastructure": {
     "environment"                     : "NP",                                     <-- Required Parameter
@@ -39,6 +33,7 @@ The configuration of the SAP Library infrastructure is achieved using a json for
     "environment"                     : "NP",                                     <-- Required Parameter
     "region"                          : "eastus2",                                <-- Required Parameter
     "vnet"                            : "DEP00"                                   <-- Required Parameter
+    "use"                             : true                                      <-- Optional parameter
   },
   "key_vault":{
     "kv_user_id"                      : "",                                       <-- Optional
@@ -80,6 +75,7 @@ The configuration of the SAP Library infrastructure is achieved using a json for
 | deployer.                                     | `environment`                 | **required**  | -------- | This represents the environment of the deployer. Typically this will be the same as the `infrastructure.environment`. When multi-subscription is supported, this can be set to a different value. |
 | deployer.                                     | `region`                      | **required**  | -------- | Azure Region in which the Deployer was deployed. |
 | deployer.                                     | `vnet`                       | **required**  | -------- | Designator used for the Deployer VNET. |
+| deployer.                                     | `use`                       | optional  | -------- | Flag to control if the deployment will include a "Deployer" |
 | | <br/> |
 | key_vault.                     | `kv_user_id`                                | optional      |          |If provided, the Key Vault resource ID of the user Key Vault to be used.  |
 | key_vault.                     | `kv_prvt_id`                                | optional      |          |If provided, the Key Vault resource ID of the private Key Vault to be used. |
@@ -127,9 +123,11 @@ storage_account_tfstate.tfstate_blob_container. | `is_existing`                |
     "environment"                     : "NP",
     "region"                          : "eastus2",
     "vnet"                            : "DEP00"
+    "use"                            : true
   },
   "key_vault":{
     "kv_user_id"                      : "",
+    "kv_snp_id"                       : "",
     "kv_prvt_id"                      : ""
   },
   "storage_account_sapbits": {

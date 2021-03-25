@@ -1,5 +1,6 @@
-﻿# Running the automation from Linux
+﻿# ![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework** #
 
+# Running the automation from Linux
 
 ## **Pre-Requisites**
 

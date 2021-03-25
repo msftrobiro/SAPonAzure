@@ -91,7 +91,7 @@ Licensed under the MIT license.
         New-SAPDeployer -Parameterfile $fInfo.Name 
     }
     catch {
-        $errors_occurred = true
+        $errors_occurred = $true
     }
     Set-Location -Path $curDir
     if ($errors_occurred) {
@@ -118,11 +118,8 @@ Licensed under the MIT license.
             Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault  -Workload $false
         }
         catch {
-            $errors_occurred = true
-            return
+            $errors_occurred = $true
         }
-    
-        
     }
 
     $fileDir = $dirInfo.ToString() + $LibraryParameterfile
@@ -132,7 +129,7 @@ Licensed under the MIT license.
         New-SAPLibrary -Parameterfile $fInfo.Name -DeployerFolderRelativePath $DeployerRelativePath
     }
     catch {
-        $errors_occurred = true
+        $errors_occurred = $true
     }
 
     Set-Location -Path $curDir
@@ -147,7 +144,7 @@ Licensed under the MIT license.
         New-SAPSystem -Parameterfile $fInfo.Name -Type [SAP_Types]::sap_deployer
     }
     catch {
-        $errors_occurred = true
+        $errors_occurred = $true
     }
 
     Set-Location -Path $curDir
@@ -162,7 +159,7 @@ Licensed under the MIT license.
         New-SAPSystem -Parameterfile $fInfo.Name -Type [SAP_Types]::sap_library
     }
     catch {
-        $errors_occurred = true
+        $errors_occurred = $true
     }
 
     Set-Location -Path $curDir

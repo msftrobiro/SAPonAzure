@@ -1,3 +1,4 @@
+# ![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework** #
 # Implementing custom naming for the SAP on Azure Automation solution #
 
 Although the SAP Automation provides a naming convention designed for enterprise usage it is possible for customers to implement their own naming logic and still use the automation to deploy the Azure resources.

@@ -6,7 +6,7 @@
 
 <br/>
 
-**SAP\_Automation\_on\_Azure**
+**SAP Automation on Azure**
 
 Welcome to the [**SAP on Azure Deployment Automation Framework**](https://github.com/Azure/sap-hana/blob/documentation/v2.3/documentation/SAP_Automation_on_Azure/table_of_contents.md) repository. This repository contains code that will support the automated deployments of SAP platforms in the Azure Cloud.
 

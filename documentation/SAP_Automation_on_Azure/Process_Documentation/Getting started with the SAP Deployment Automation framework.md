@@ -1,4 +1,6 @@
-﻿# Getting started with the SAP Deployment Automation framework #
+﻿# ![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework** #
+
+# Getting started with the SAP Deployment Automation framework #
 
 The SAP Deployment Automation Framework provides both Terraform templates and Ansible playbooks which can be used to build and configure the environments to run SAP on Azure.
 

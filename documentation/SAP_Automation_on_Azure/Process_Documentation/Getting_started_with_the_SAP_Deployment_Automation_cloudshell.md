@@ -1,4 +1,6 @@
-﻿# Running the automation from Azure cloud shell
+﻿# ![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework** #
+
+# Running the automation from Azure cloud shell
 
 The Azure cloud shell has all the prerequisites for deployment, as it as both the Azure CLI and Terraform installed.
 

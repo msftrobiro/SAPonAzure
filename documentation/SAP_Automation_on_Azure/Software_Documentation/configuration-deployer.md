@@ -1,10 +1,4 @@
-<!-- TODO: 
-Remove files and maintain here in documentation
-deploy/terraform/bootstrap/sap_deployer/deployer_full.json
-deploy/terraform/bootstrap/sap_deployer/deployer.json
-deploy/terraform/run/sap_deployer/deployer_full.json
-deploy/terraform/run/sap_deployer/deployer.json
--->
+
 # ![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework** #
 
 ## Configuration <!-- omit in toc --> ##

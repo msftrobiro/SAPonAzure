@@ -1,48 +1,44 @@
 
-## What it is ##
-		High level, links to details
-##	What can it do ##
-		High level, links to details
-		Picture 
-## How do you use it ##
-		High level, links to details
-		Scripts
-##	How do you configure it  ##
-		High level, links to details
-	How do you customize it -> naming, disk sizes
-		High level, links to details
+# Process documentation #
 
 
+The SAP Deployment Automation Framework provides both Terraform templates and Ansible playbooks which can be used to build and configure the environments to run SAP on Azure.
+It allows to create an Azure landing zone for the SAP environment (SBX, DEV, QA, PROD), the SAP systems (virtual machine, storage) intended for running HANA, AnyDB and the Premium storage solutions like Premium disks and the automated SAP installation by using Ansible.
 
-### Process overview ###
-# Process overview #
-
+The automation framework allows greenfield and brownfield approach. The Terraform scripts used for infrastructure deployment are documented [software documentation](https://github.com/Azure/sap-hana/tree/documentation-updates/documentation/SAP_Automation_on_Azure/Software_Documentation) for information purposes, they should not be changed in order to avoid unwanted deployment results.
 This document describes the overall process flow and the design activities needed to prepare and deploy an SAP estate to Azure.
 
 ## Architectural overview ##
 
 [SAP Estate](./assets/SAP_estate.jpg)
 
-## Preparing the environment ##
+### Process overview ###
+The process consists out of different steps
+- deployment of management infrastructure 
+- preparing the details for the deployment
+- deployment of SAP environment and systems
 
-Before we can deploy the SAP Systems to Azure we need to prepare the environments in Azure that they will be deployed to.
+#### Deployment of the management infrastructure ####
 
-## Technical details needed before starting the SAP infrastructure deployment ##
+A Terraform (deployment) environment needs to be setup, this is a one-time step achieved by using [scripts](https://github.com/Azure/sap-hana/blob/documentation-updates/documentation/SAP_Automation_on_Azure/Process_Documentation/Deployment_scripts.md)
+Here is the overview on how the [repository](https://github.com/Azure/sap-hana/blob/documentation-updates/documentation/SAP_Automation_on_Azure/Process_Documentation/Deployment_folder_structure.md) will look like after running the initial scripts.
 
-the following information should be available before starting the deployment
+#### Preparing the details for the deployment ####
 
-## Customizing the deployment ##
+The following [information](https://github.com/Azure/sap-hana/blob/documentation-updates/documentation/SAP_Automation_on_Azure/Process_Documentation/customer_requirements.md) should be available before starting the deployment. It might be necessary to change naming conventions or disk sizings.
 
-It is possible to customize some of the deployment aspects. 
+#### Changing the naming convention ####
 
-### Changing the naming convention ###
+The automation uses a default naming convention which is defined in the Standard naming convention document [standards-naming.md](.//Software_Documentation/standards-naming.md)
+[naming conventions for the deployment](https://github.com/Azure/sap-hana/blob/documentation-updates/documentation/SAP_Automation_on_Azure/Process_Documentation/Changing_the_naming_convention.md) should be defined upfront and can be customized according the needs.
 
-The automation uses a default naming convention which is defined in the Standard naming conventin document [standards-naming.md](.//Software_Documentation/standards-naming.md)
-
-It is possible to implement a customer specific naming convention, for more details see [Changing_the_naming_convention.md](./Changing_the_naming_convention.md)
-
-Using marketplace images or custom images
-
-### Changing disk sizing ###
+#### Changing disk sizing ####
 
  [Using_custom_disk_sizing.md](./Using_custom_disk_sizing.md)
+
+
+#### Deployment of SAP environment and systems ####
+
+Parameterization for the specific SAP environment/systems is achieved by customization of JSON scripts [WORKSPACE](https://github.com/Azure/sap-hana/tree/documentation-updates/documentation/SAP_Automation_on_Azure/Process_Documentation/WORKSPACES).
+
+

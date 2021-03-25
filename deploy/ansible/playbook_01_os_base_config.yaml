@@ -50,9 +50,6 @@
       name:     roles-os/1.4-packages                           # TODO: Review and Refactoring Needed
 
   - include_role:
-      name:     roles-os/preparation                            # TODO: Review and Refactoring Needed
-
-  - include_role:
       name:     roles-os/1.20-prometheus                        # TODO: Review and Refactoring Needed
     when:   prometheus
             and             ansible_os_family|upper == "SUSE"

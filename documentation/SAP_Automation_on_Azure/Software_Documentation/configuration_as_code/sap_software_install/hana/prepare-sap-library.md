@@ -52,19 +52,19 @@ sapbits
 |   |-- S4HANA_2020_ISS_v001/
 |   |   |-- bom.yml
 |   |   |-- stackfiles/
-|   |       |-- MP_Excel_1001034051_20200921_SWC.xls
-|   |       |-- MP_Plan_1001034051_20200921_.pdf
-|   |       |-- MP_Stack_1001034051_20200921_.txt
-|   |       |-- MP_Stack_1001034051_20200921_.xml
-|   |       |-- myDownloadBasketFiles.txt
-|   |       |-- downloadBasket.json
-|   |       |-- templates
-|   |           |-- S4HANA_2020_ISS_v001.inifile.params
+|   |   |   |-- MP_Excel_1001034051_20200921_SWC.xls
+|   |   |   |-- MP_Plan_1001034051_20200921_.pdf
+|   |   |   |-- MP_Stack_1001034051_20200921_.txt
+|   |   |   |-- MP_Stack_1001034051_20200921_.xml
+|   |   |   |-- myDownloadBasketFiles.txt
+|   |   |   |-- downloadBasket.json
+|   |   |-- templates
+|   |       |-- S4HANA_2020_ISS_v001.inifile.params
 |   |
-|   |-- S4HANA_2020_ISS_v001/
+|   |-- HANA_2_00_052_v001git /
 |       |-- bom.yml
 |       |-- stackfiles
-|           |-- myDownloadBasketFiles.txt
+|       |   |-- myDownloadBasketFiles.txt
 |       |-- templates
 |           |-- HANA_2_00_052_v001.params
 |           |-- HANA_2_00_052_v001.params.xml

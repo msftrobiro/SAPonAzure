@@ -758,7 +758,7 @@ Licensed under the MIT license.
         }
 
         if ($Type -eq "sap_library") {
-            New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""local"" {}`n}" -Force 
+            New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""azurerm"" {}`n}" -Force 
 
             $Command = " output remote_state_resource_group_name"
             $Cmd = "terraform $Command"

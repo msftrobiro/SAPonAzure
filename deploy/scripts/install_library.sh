@@ -67,7 +67,7 @@ fi
 #Persisting the parameters across executions
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-library_config_information="${automation_config_directory}""${region}"
+library_config_information="${automation_config_directory}""${environment}""${region}"
 
 arm_config_stored=false
 config_stored=false

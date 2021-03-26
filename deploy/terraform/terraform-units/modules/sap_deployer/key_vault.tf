@@ -73,13 +73,13 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
   object_id = azurerm_user_assigned_identity.deployer.principal_id
 
   secret_permissions = [
-    "Delete",
-    "Get",
-    "List",
-    "Set",
-    "Restore",
-    "Recover",
-    "Purge"
+   "Get",
+   "List",
+   "Set",
+   "Delete",
+   "Recover",
+   "Restore",
+   "Purge"
   ]
 }
 

@@ -84,9 +84,9 @@ then
     printf -v val %-40.40s "$parameterfile"
     echo ""
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#               Parameter file does not exist: ${val} #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     exit
 fi
@@ -95,8 +95,7 @@ fi
 
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-library_config_information="${automation_config_directory}""${region}"
-workload_config_information="${automation_config_directory}""${environment}"
+system_config_information="${automation_config_directory}""${environment}""${region}"
 
 if [ ! -d ${automation_config_directory} ]
 then
@@ -109,7 +108,7 @@ then
     fi
     if [ -n "$ARM_SUBSCRIPTION_ID" ]; then
         # Store ARM Subscription info in ~/.sap_deployment_automation
-        echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> "${library_config_information}"
+        echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> "${system_config_information}"
         arm_config_stored=1
     fi
 else
@@ -118,13 +117,13 @@ else
     then
         # Repo path was specified in ~/.sap_deployment_automation/config
         DEPLOYMENT_REPO_PATH=$(echo "${temp}" | cut -d= -f2)
-
+        
         config_stored=1
     else
         config_stored=0
     fi
-
-    temp=$(grep "tfstate_resource_id" "${library_config_information}")
+    
+    temp=$(grep "tfstate_resource_id" "${system_config_information}")
     if [ ! -z "${temp}" ]
     then
         tfstate_resource_id=$(echo "${temp}" | cut -d= -f2)
@@ -133,8 +132,8 @@ else
             tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
         fi
     fi
-
-    temp=$(grep "deployer_tfstate_key" "${library_config_information}")
+    
+    temp=$(grep "deployer_tfstate_key" "${system_config_information}")
     if [ ! -z "${temp}" ]
     then
         # Deployer state was specified in ~/.sap_deployment_automation library config
@@ -142,19 +141,23 @@ else
         
         if [ "${deployment_system}" != sap_deployer ]
         then
-            deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+            if [ ! -n "$=${deployer_tfstate_key}" ]; then
+                deployer_tfstate_key_parameter=" "
+            else
+                deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+                deployer_tfstate_key_exists=true
+            fi
         fi
-
-        deployer_tfstate_key_exists=true
-
+        
+        
     fi
-
-    temp=$(grep "landscape_tfstate_key" "${workload_config_information}")
+    
+    temp=$(grep "landscape_tfstate_key" "${system_config_information}")
     if [ ! -z "${temp}" ]
     then
         # Landscape state was specified in ~/.sap_deployment_automation library config
         landscape_tfstate_key=$(echo "${temp}" | cut -d= -f2)
-
+        
         if [ $deployment_system == sap_system ]
         then
             landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
@@ -226,5 +229,23 @@ echo "##########################################################################
 echo ""
 
 terraform destroy -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory
+
+if [ $deployment_system == sap_deployer ]
+then
+    sed -i /deployer_tfstate_key/d  "${system_config_information}"
+fi
+
+if [ $deployment_system == sap_landscape ]
+then
+    sed -i /landscape_tfstate_key/d  "${system_config_information}"
+fi
+
+if [ $deployment_system == sap_library ]
+then
+    sed -i /REMOTE_STATE_RG/d  "${system_config_information}"
+    sed -i /REMOTE_STATE_SA/d  "${system_config_information}"
+    sed -i /tfstate_resource_id/d  "${system_config_information}"
+fi
+
 
 exit 0

@@ -60,29 +60,80 @@ Licensed under the MIT license.
     $Environment = $jsonData.infrastructure.environment
     $region = $jsonData.infrastructure.region
     $combined = $Environment + $region
+
     $changed = $false
 
-    $envkey = $fInfo.Name.replace(".json", ".terraform.tfstate")
-
-    if ($null -eq $iniContent[$region]) {
-        Write-Error "The region data is not available"
-        $deployer_tfstate_key = Read-Host ("Please provide the deployer state file name for the " + $region + " region")
-        $Category1 = @{"Deployer" = $deployer_tfstate_key }
-        $iniContent += @{$region = $Category1 }
-    }
-    else {
-        $deployer_tfstate_key = $iniContent[$region]["Deployer"].Trim()
-    }
-
-    if ($null -ne $iniContent[$combined] ) {
-        $iniContent[$combined]["Landscape"] = $envkey
+    if ($null -eq $iniContent["Common"]) {
+        $repo = Read-Host -Prompt "Please enter path to the repo"
+        $Category1 = @{"repo" = $repo }
+        $iniContent += @{"Common" = $Category1 }
         $changed = $true
     }
     else {
-        $Category1 = @{"Landscape" = $envkey; "Subscription" = "" }
+        $repo = $iniContent["Common"]["repo"].Trim()
+        if ($null -eq $repo -or "" -eq $repo) {
+            $repo = Read-Host -Prompt "Please enter path to the repo"
+            $iniContent["Common"]["repo"] = $repo
+            $changed = $true
+        }
+
+    }
+
+    if ($changed) {
+        Out-IniFile -InputObject $iniContent -Path $fileINIPath
+    }
+
+
+    $changed = $false
+
+    $landscape_tfstate_key = $fInfo.Name.replace(".json", ".terraform.tfstate")
+
+    if ($null -eq $iniContent[$combined]) {
+        Write-Error "The Terraform state information is not available"
+
+        $saName = Read-Host -Prompt "Please specify the storage account name for the terraform storage account"
+        $rID = Get-AzResource -Name $saName
+        $rgName = $rID.ResourceGroupName
+
+        $tfstate_resource_id = $rID.ResourceId
+
+        $Category1 = @{"REMOTE_STATE_RG" = $rgName; "REMOTE_STATE_SA" = $saName; "tfstate_resource_id" = $tfstate_resource_id ; "Landscape" = $landscape_tfstate_key }
         $iniContent += @{$combined = $Category1 }
-        $changed = $true
+        if ($Type -eq "sap_landscape") {
+            $iniContent[$combined].Landscape = $landscapeKey
+        }
+        Out-IniFile -InputObject $iniContent -Path $filePath
+        $iniContent = Get-IniContent -Path $filePath
     }
+    else {
+        $deployer_tfstate_key = $iniContent[$combined]["Deployer"].Trim()
+    }
+
+    # Subscription
+    $sub = $iniContent[$combined]["subscription"].Trim() 
+
+
+    if ($null -eq $sub -or "" -eq $sub) {
+        $sub = Read-Host -Prompt "Please enter the subscription for the deployment"
+        $iniContent[$combined]["subscription"] = $sub.Trim() 
+        $changed = $true
+
+        $Command = " account set --sub " + $sub
+        $Cmd = "az $Command"
+        & ([ScriptBlock]::Create($Cmd)) 
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
+    }
+    else {
+        $Command = " account set --sub " + $sub
+        $Cmd = "az $Command"
+        & ([ScriptBlock]::Create($Cmd)) 
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
+    }
+
 
     if ($changed) {
         Out-IniFile -InputObject $iniContent -Path $fileINIPath
@@ -90,11 +141,11 @@ Licensed under the MIT license.
 
     $ans = Read-Host -Prompt "Do you want to enter the Workload SPN secrets Y/N?"
     if ("Y" -eq $ans) {
-        $vault = $iniContent[$region]["Vault"]
+        $vault = $iniContent[$combined]["Vault"]
 
         if (($null -eq $vault ) -or ("" -eq $vault)) {
             $vault = Read-Host -Prompt "Please enter the vault name"
-            $iniContent[$region]["Vault"] = $vault 
+            $iniContent[$combined]["Vault"] = $vault 
             Out-IniFile -InputObject $iniContent -Path $fileINIPath
     
         }
@@ -107,31 +158,9 @@ Licensed under the MIT license.
         }
     }
 
-    $rgName = $iniContent[$region]["REMOTE_STATE_RG"].Trim() 
-    $saName = $iniContent[$region]["REMOTE_STATE_SA"].Trim() 
-    $tfstate_resource_id = $iniContent[$region]["tfstate_resource_id"].Trim()
-
-    # Subscription
-    $sub = $iniContent[$combined]["subscription"].Trim() 
-    $repo = $iniContent["Common"]["repo"].Trim()
-
-    $changed = $false
-
-    if ($null -eq $sub -or "" -eq $sub) {
-        $sub = Read-Host -Prompt "Please enter the subscription"
-        $iniContent[$combined]["Subscription"] = $sub
-        $changed = $true
-    }
-
-    if ($null -eq $repo -or "" -eq $repo) {
-        $repo = Read-Host -Prompt "Please enter path to the repo"
-        $iniContent["Common"]["repo"] = $repo
-        $changed = $true
-    }
-
-    if ($changed) {
-        Out-IniFile -InputObject $iniContent -Path $fileINIPath
-    }
+    $rgName = $iniContent[$combined]["REMOTE_STATE_RG"].Trim() 
+    $saName = $iniContent[$combined]["REMOTE_STATE_SA"].Trim() 
+    $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"].Trim()
 
     $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\run\$Type"
 

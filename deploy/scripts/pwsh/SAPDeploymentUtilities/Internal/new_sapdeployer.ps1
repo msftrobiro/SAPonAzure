@@ -55,10 +55,13 @@ Licensed under the MIT license.
     $iniContent = Get-IniContent -Path $filePath
 
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
+    $Environment = $jsonData.infrastructure.environment
     $region = $jsonData.infrastructure.region
+    $combined = $Environment + $region
 
-    if ($null -ne $iniContent[$region] ) {
-        $sub = $iniContent[$region]["subscription"] 
+
+    if ($null -ne $iniContent[$combined] ) {
+        $sub = $iniContent[$combined]["subscription"] 
     }
     else {
         $Category1 = @{"subscription" = "" }
@@ -68,14 +71,14 @@ Licensed under the MIT license.
     
     # Subscription & repo path
 
-    $sub = $iniContent[$region]["subscription"] 
+    $sub = $iniContent[$combined]["subscription"] 
     $repo = $iniContent["Common"]["repo"]
 
     $changed = $false
 
     if ($null -eq $sub -or "" -eq $sub) {
         $sub = Read-Host -Prompt "Please enter the subscription"
-        $iniContent[$region]["subscription"] = $sub
+        $iniContent[$combined]["subscription"] = $sub
         $changed = $true
     }
 
@@ -182,7 +185,7 @@ Licensed under the MIT license.
         }
 
         Write-Host $kvName.Replace("""", "")
-        $iniContent[$region]["Vault"] = $kvName.Replace("""", "")
+        $iniContent[$combined]["Vault"] = $kvName.Replace("""", "")
         Out-IniFile -InputObject $iniContent -Path $filePath
 
         if (Test-Path ".\backend.tf" -PathType Leaf) {

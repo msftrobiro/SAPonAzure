@@ -86,8 +86,6 @@ if [ -z $deployer_parameter_file ]; then
     exit -1
 fi
 
-echo $deployer_parameter_file
-
 if [ -z $library_parameter_file ]; then
     missing_value='library parameter file'
     missing
@@ -152,10 +150,12 @@ fi
 
 
 # Helper variables
+environment=$(cat "${deployer_parameter_file}" | jq .infrastructure.environment | tr -d \")
+region=$(cat "${deployer_parameter_file}" | jq .infrastructure.region | tr -d \")
 
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-deployer_config_information="${automation_config_directory}""${region}"
+deployer_config_information="${automation_config_directory}""${environment}""${region}"
 
 if [ ! -d "${automation_config_directory}" ]
 then
@@ -241,13 +241,7 @@ fi
 deployer_dirname=$(dirname "${deployer_parameter_file}")
 deployer_file_parametername=$(basename "${deployer_parameter_file}")
 
-# Read environment
-environment=$(cat "${deployer_parameter_file}" | jq .infrastructure.environment | tr -d \")
-region=$(cat "${deployer_parameter_file}" | jq .infrastructure.region | tr -d \")
-
 deployer_key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
-library_config_information="${automation_config_directory}""${region}"
-touch $library_config_information
 
 library_dirname=$(dirname "${library_parameter_file}")
 library_file_parametername=$(basename "${library_parameter_file}")
@@ -301,7 +295,7 @@ read -p "Do you want to specify the SPN Details Y/N?"  ans
 answer=${ans^^}
 if [ $answer == 'Y' ]; then
 echo $library_config_information
-    temp=$(grep "keyvault=" $library_config_information)
+    temp=$(grep "keyvault=" $deployer_config_information)
     if [ ! -z $temp ]
     then
         # Key vault was specified in ~/.sap_deployment_automation in the deployer file

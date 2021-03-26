@@ -65,7 +65,7 @@ fi
 #Persisting the parameters across executions
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-deployer_config_information="${automation_config_directory}""${region}"
+deployer_config_information="${automation_config_directory}""${environment}""${region}"
 
 arm_config_stored=false
 config_stored=false
@@ -182,7 +182,7 @@ else
             fi
         fi
         
-        terraform init -upgrade=true -reconfigure "${terraform_module_directory}"
+        terraform init -upgrade=true  "${terraform_module_directory}"
         terraform refresh -var-file="${parameterfile}" "${terraform_module_directory}"
     else
         exit 0

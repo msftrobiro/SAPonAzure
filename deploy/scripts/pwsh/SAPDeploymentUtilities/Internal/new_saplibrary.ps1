@@ -61,18 +61,20 @@ Licensed under the MIT license.
     $iniContent = Get-IniContent -Path $filePath
 
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
+    $Environment = $jsonData.infrastructure.environment
     $region = $jsonData.infrastructure.region
+    $combined = $Environment + $region
 
     # Subscription & repo path
 
-    $sub = $iniContent[$region]["subscription"] 
+    $sub = $iniContent[$combined]["subscription"] 
     $repo = $iniContent["Common"]["repo"]
 
     $changed = $false
 
     if ($null -eq $sub -or "" -eq $sub) {
         $sub = Read-Host -Prompt "Please enter the subscription"
-        $iniContent[$region]["subscription"] = $sub
+        $iniContent[$combined]["subscription"] = $sub
         $changed = $true
     }
 
@@ -181,7 +183,7 @@ Licensed under the MIT license.
         if ($LASTEXITCODE -ne 0) {
             throw "Error executing command: $Cmd"
         }
-        $iniContent[$region]["REMOTE_STATE_RG"] = $rgName.Replace("""", "")
+        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName.Replace("""", "")
 
         $Command = " output remote_state_storage_account_name"
         $Cmd = "terraform $Command"
@@ -189,7 +191,7 @@ Licensed under the MIT license.
         if ($LASTEXITCODE -ne 0) {
             throw "Error executing command: $Cmd"
         }
-        $iniContent[$region]["REMOTE_STATE_SA"] = $saName.Replace("""", "")
+        $iniContent[$combined]["REMOTE_STATE_SA"] = $saName.Replace("""", "")
 
         $Command = " output tfstate_resource_id"
         $Cmd = "terraform $Command"
@@ -197,7 +199,7 @@ Licensed under the MIT license.
         if ($LASTEXITCODE -ne 0) {
             throw "Error executing command: $Cmd"
         }
-        $iniContent[$region]["tfstate_resource_id"] = $tfstate_resource_id
+        $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
 
         Out-IniFile -InputObject $iniContent -Path $filePath
 

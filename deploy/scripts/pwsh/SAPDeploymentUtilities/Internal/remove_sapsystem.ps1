@@ -71,13 +71,13 @@ Licensed under the MIT license.
     $region = $jsonData.infrastructure.region
     $combined = $Environment + $region
 
-    $deployer_tfstate_key = $iniContent[$region]["Deployer"]
+    $deployer_tfstate_key = $iniContent[$combined]["Deployer"]
     $landscape_tfstate_key = $iniContent[$combined]["Landscape"]
 
-    $tfstate_resource_id = $iniContent[$region]["tfstate_resource_id"] 
+    $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"] 
 
     # Subscription
-    $sub = $iniContent[$region]["subscription"] 
+    $sub = $iniContent[$combined]["subscription"] 
     if ($Type -eq "sap_landscape" -or $Type -eq "sap_system" ) {
         $sub = $iniContent[$combined]["subscription"] 
     }
@@ -145,6 +145,21 @@ Licensed under the MIT license.
 
     if (Test-Path ".\backend.tf" -PathType Leaf) {
         Remove-Item -Path ".\backend.tf"  -Force 
+    }
+
+    if ($Type -eq "sap_library") {
+        $iniContent[$combined]["REMOTE_STATE_RG"] = "[DELETED]"
+        $iniContent[$combined]["REMOTE_STATE_SA"] = "[DELETED]"
+        $iniContent[$combined]["tfstate_resource_id"] = "[DELETED]"
+        Out-IniFile -InputObject $iniContent -Path $filePath
+    }
+
+    if ($Type -eq "sap_landscape") {
+        $iniContent[$combined]["Landscape"] = "[DELETED]"
+        Out-IniFile -InputObject $iniContent -Path $filePath
+    }
+    if ($Type -eq "sap_deployer") {
+        $iniContent[$combined]["Deployer"] = "[DELETED]"
     }
 
 }

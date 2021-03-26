@@ -84,58 +84,60 @@ Licensed under the MIT license.
     $region = $jsonData.infrastructure.region
     $combined = $Environment + $region
 
-    if ($null -eq $iniContent[$region]) {
-        Write-Error "The region data is not available"
-
-        $rgName = Read-Host -Prompt "Please specify the resource group name for the terraform storage account"
-        $saName = Read-Host -Prompt "Please specify the storage account name for the terraform storage account"
-
-        $tfstate_resource_id = Read-Host -Prompt "Please specify the storage account resource ID for the terraform storage account"
-        
-        $Category1 = @{"REMOTE_STATE_RG" = $rgName; "REMOTE_STATE_SA" = $saName; "tfstate_resource_id" = $tfstate_resource_id }
-        $iniContent += @{$region = $Category1 }
-        Out-IniFile -InputObject $iniContent -Path $filePath
-
-    }
-
     if ($null -eq $iniContent[$combined]) {
-        $Category1 = @{"Landscape" = $landscapeKey; "Subscription" = "" }
-        $iniContent += @{$combined = $Category1 }
-        Out-IniFile -InputObject $iniContent -Path $filePath
+        Write-Error "The Terraform state information is not available"
+
+        $saName = Read-Host -Prompt "Please specify the storage account name for the terraform storage account"
+        $rID = Get-AzResource -Name $saName
+        $rgName = $rID.ResourceGroupName
+
+        $tfstate_resource_id = $rID.ResourceId
+
+        if ($Type -eq "sap_system") {
+            $landscape_tfstate_key = Read-Host -Prompt "Please enter the landscape statefile for the deployment"
+            $Category1 = @{"REMOTE_STATE_RG" = $rgName; "REMOTE_STATE_SA" = $saName; "tfstate_resource_id" = $tfstate_resource_id ; "Landscape" = $landscape_tfstate_key}
+            $iniContent += @{$combined = $Category1 }
+            if ($Type -eq "sap_landscape") {
+                $iniContent[$combined].Landscape = $landscapeKey
+            }
+            Out-IniFile -InputObject $iniContent -Path $filePath
+            $iniContent = Get-IniContent -Path $filePath
+        }
+        else {
+            $Category1 = @{"REMOTE_STATE_RG" = $rgName; "REMOTE_STATE_SA" = $saName; "tfstate_resource_id" = $tfstate_resource_id }
+            $iniContent += @{$combined = $Category1 }
+            if ($Type -eq "sap_landscape") {
+                $iniContent[$combined].Landscape = $landscapeKey
+            }
+            Out-IniFile -InputObject $iniContent -Path $filePath
+            $iniContent = Get-IniContent -Path $filePath
+                
+        }
     }
 
-    
     if ("sap_deployer" -eq $Type) {
-        $iniContent[$region]["Deployer"] = $key.Trim()
+        $iniContent[$combined]["Deployer"] = $key.Trim()
         Out-IniFile -InputObject $iniContent -Path $filePath
         $iniContent = Get-IniContent -Path $filePath
     }
     else {
-        $deployer_tfstate_key = $iniContent[$region]["Deployer"].Trim()    
+        $deployer_tfstate_key = $iniContent[$combined]["Deployer"].Trim()    
     }
 
-    if ($Type -eq "sap_system") {
-        if ($null -ne $iniContent[$combined] ) {
-            $landscape_tfstate_key = $iniContent[$combined]["Landscape"].Trim()
-        }
-        else {
-            Write-Host -ForegroundColor Red "The workload zone for " $environment "in " $region " is not deployed"
-        }
-    }
-
-    $rgName = $iniContent[$region]["REMOTE_STATE_RG"].Trim() 
-    $saName = $iniContent[$region]["REMOTE_STATE_SA"].Trim()  
-    $tfstate_resource_id = $iniContent[$region]["tfstate_resource_id"].Trim() 
+    $rgName = $iniContent[$combined]["REMOTE_STATE_RG"].Trim() 
+    $saName = $iniContent[$combined]["REMOTE_STATE_SA"].Trim()  
+    $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"].Trim() 
 
     # Subscription
     if ($Type -eq "sap_system" -or $Type -eq "sap_landscape") {
-        $sub = $iniContent[$environment]["subscription"].Trim()  
+        $sub = $iniContent[$combined]["subscription"].Trim()  
     }
     else {
-        $sub = $iniContent[$region]["subscription"].Trim()  
+        $sub = $iniContent[$combined]["subscription"].Trim()  
     }
     
     $repo = $iniContent["Common"]["repo"].Trim() 
+    
     if ($Type -eq "sap_system") {
         if ($null -eq $landscape_tfstate_key -or "" -eq $landscape_tfstate_key) {
             $landscape_tfstate_key = Read-Host -Prompt "Please enter the landscape statefile for the deployment"
@@ -149,13 +151,23 @@ Licensed under the MIT license.
 
     if ($null -eq $sub -or "" -eq $sub) {
         $sub = Read-Host -Prompt "Please enter the subscription for the deployment"
-        if ($Type -eq "sap_system" -or $Type -eq "sap_landscape") {
-            $iniContent[$environment]["subscription"] = $sub.Trim() 
-        }
-        else {
-            $iniContent[$region]["subscription"] = $sub.Trim()  
-        }
+        $iniContent[$combined]["subscription"] = $sub.Trim() 
         $changed = $true
+
+        $Command = " account set --sub "+ $sub
+        $Cmd = "az $Command"
+        & ([ScriptBlock]::Create($Cmd)) 
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
+    }
+    else {
+        $Command = " account set --sub "+ $sub
+        $Cmd = "az $Command"
+        & ([ScriptBlock]::Create($Cmd)) 
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
     }
 
     if ($null -eq $repo -or "" -eq $repo) {
@@ -167,7 +179,6 @@ Licensed under the MIT license.
     if ($changed) {
         Out-IniFile -InputObject $iniContent -Path $filePath
     }
-
     
     $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\run\$Type"
 
@@ -318,7 +329,7 @@ Licensed under the MIT license.
             if ($LASTEXITCODE -ne 0) {
                 throw "Error executing command: $Cmd"
             }
-            $iniContent[$region]["REMOTE_STATE_RG"] = $rgName.Replace("""", "")
+            $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName.Replace("""", "")
     
             $Command = " output remote_state_storage_account_name"
             $Cmd = "terraform $Command"
@@ -326,7 +337,7 @@ Licensed under the MIT license.
             if ($LASTEXITCODE -ne 0) {
                 throw "Error executing command: $Cmd"
             }
-            $iniContent[$region]["REMOTE_STATE_SA"] = $saName.Replace("""", "")
+            $iniContent[$combined]["REMOTE_STATE_SA"] = $saName.Replace("""", "")
     
             $Command = " output tfstate_resource_id"
             $Cmd = "terraform $Command"
@@ -334,7 +345,7 @@ Licensed under the MIT license.
             if ($LASTEXITCODE -ne 0) {
                 throw "Error executing command: $Cmd"
             }
-            $iniContent[$region]["tfstate_resource_id"] = $tfstate_resource_id
+            $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
     
             Out-IniFile -InputObject $iniContent -Path $filePath
         }

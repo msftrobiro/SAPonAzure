@@ -56,7 +56,7 @@ if [ ! -n "${environment}" ]; then
 fi
 
 
-environment_config_information="${automation_config_directory}""${environment}"
+environment_config_information="${automation_config_directory}""${environment}""${region}"
 touch "${environment_config_information}"
 
 if [ ! -d "${automation_config_directory}" ]

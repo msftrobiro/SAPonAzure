@@ -175,6 +175,7 @@ then
     fi
 
 else
+    touch "${deployer_config_information}"
     temp=$(grep "DEPLOYMENT_REPO_PATH" "${generic_config_information}")
     if [ $temp ]
     then

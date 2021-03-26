@@ -71,16 +71,16 @@ Licensed under the MIT license.
     $region = $jsonData.infrastructure.region
     $combined = $Environment + $region
 
-    Write-Host $combined
-
-    $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
     $deployer_tfstate_key = $iniContent[$region]["Deployer"]
     $landscape_tfstate_key = $iniContent[$combined]["Landscape"]
 
     $tfstate_resource_id = $iniContent[$region]["tfstate_resource_id"] 
 
     # Subscription
-    $sub = $iniContent[$combined]["subscription"] 
+    $sub = $iniContent[$region]["subscription"] 
+    if ($Type -eq "sap_landscape" -or $Type -eq "sap_system" ) {
+        $sub = $iniContent[$combined]["subscription"] 
+    }
     $repo = $iniContent["Common"]["repo"]
     $changed = $false
 
@@ -100,7 +100,7 @@ Licensed under the MIT license.
         Out-IniFile -InputObject $iniContent -Path $filePath
     }
     
-    $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\run\$Type"$terraform_module_directory = $repo + "\deploy\terraform\run\" + $Type
+    $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\run\$Type"
 
     if ($Type -ne "sap_deployer") {
         $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
@@ -108,7 +108,12 @@ Licensed under the MIT license.
 
     if ($Type -eq "sap_landscape") {
         $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
-        $deployer_tfstate_key_parameter = " -var deployer_tfstate_key=" + $deployer_tfstate_key
+        if($deployer_tfstate_key.Length -gt 0) {
+            $deployer_tfstate_key_parameter = " -var deployer_tfstate_key=" + $deployer_tfstate_key
+        }
+        else {
+            $deployer_tfstate_key_parameter = " "
+        }
     }
 
     if ($Type -eq "sap_library") {
@@ -118,7 +123,12 @@ Licensed under the MIT license.
 
     if ($Type -eq "sap_system") {
         $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
-        $deployer_tfstate_key_parameter = " -var deployer_tfstate_key=" + $deployer_tfstate_key
+        if($deployer_tfstate_key.Length -gt 0) {
+            $deployer_tfstate_key_parameter = " -var deployer_tfstate_key=" + $deployer_tfstate_key
+        }
+        else {
+            $deployer_tfstate_key_parameter = " "
+        }
         $landscape_tfstate_key_parameter = " -var landscape_tfstate_key=" + $landscape_tfstate_key
     }
 

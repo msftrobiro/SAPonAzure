@@ -43,7 +43,20 @@ A sample configuration for this is available here
 | Workload  | [Workload](./WORKSPACES//DEPLOYMENT-ORCHESTRATION/LANDSCAPE/DEV-WEEU-SAP01-INFRASTRUCTURE/DEV-WEEU-SAP01-INFRASTRUCTURE.json)
 | System  | [Library](./WORKSPACES/DEPLOYMENT-ORCHESTRATION/SYSTEM/DEV-WEEU-SAP01-ZZZ/DEV-WEEU-SAP01-ZZZ.json)
 
-The scenario requires an existing key vault that contain the SPN credentials for the workload zone SPN.
+The scenario requires an existing key vault that contain the SPN credentials for the workload zone SPN. This can be defined in the parameter file with the kv_spn_id parameter.
+
+```json
+"key_vault" : {
+    "kv_spn_id": "<ARMresourceID>"
+} 
+
+By providing false in the "use" attribute in the deployer section, the automation will not use the information from the deployer state file.
+
+```json
+"deployer" : {
+    "use": false
+} 
+```
 
 
 ## Brownfield deployment ##

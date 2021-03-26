@@ -40,7 +40,10 @@ Licensed under the MIT license.
     Write-Host -ForegroundColor green ""
     $Type = "sap_landscape"
     Write-Host -ForegroundColor green "Deploying the" $Type
-
+  
+    Add-Content -Path "deployment.log" -Value ("Deploying the: " + $Type)
+    Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
+  
     $fInfo = Get-ItemProperty -Path $Parameterfile
 
     if ($false -eq $fInfo.Exists ) {
@@ -164,6 +167,8 @@ Licensed under the MIT license.
     $Command = " output automation_version"
 
     $Cmd = "terraform $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
+
     $versionLabel = & ([ScriptBlock]::Create($Cmd)) | Out-String 
 
     Write-Host $versionLabel
@@ -196,6 +201,7 @@ Licensed under the MIT license.
     $Command = " plan -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
 
     $Cmd = "terraform $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
     $planResults = & ([ScriptBlock]::Create($Cmd)) | Out-String 
     
     if ($LASTEXITCODE -ne 0) {
@@ -229,6 +235,7 @@ Licensed under the MIT license.
     if ($PSCmdlet.ShouldProcess($Parameterfile)) {
         Write-Host -ForegroundColor green "Running apply"
         $Command = " apply -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
+        Add-Content -Path "deployment.log" -Value $Cmd
 
         $Cmd = "terraform $Command"
         & ([ScriptBlock]::Create($Cmd))  

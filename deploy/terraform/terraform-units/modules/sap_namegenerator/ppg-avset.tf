@@ -2,7 +2,7 @@ locals {
 
   ppg_names = local.zonal_deployment ? (
     [for idx in range(length(local.zones)) :
-      format("z%s%s", local.zones[idx], "-ppg")
+      format("-z%s%s", local.zones[idx], "-ppg")
     ]) : (
     [format("%s", "-ppg")]
   )

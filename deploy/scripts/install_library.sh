@@ -308,7 +308,11 @@ then
     if [ -z $temp ]
     then
         sed -i /tfstate_resource_id/d  "${library_config_information}"
+        sed -i /STATE_SUBSCRIPTION/d  "${library_config_information}"
+        STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
         echo "tfstate_resource_id=${tfstate_resource_id}" >> "${library_config_information}"
+        echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${library_config_information}"
+
     fi
 fi
 

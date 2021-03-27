@@ -173,6 +173,13 @@ else
         fi
     fi
     
+    STATE_SUBSCRIPTION=ARM_SUBSCRIPTION_ID
+    temp=$(grep "STATE_SUBSCRIPTION" "${system_config_information}")
+    if [ ! -z "${temp}" ]
+    then
+        STATE_SUBSCRIPTION=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
+    fi
+    
     deployer_tfstate_key_parameter=''
     if [ "${deployment_system}" != sap_deployer ]
     then
@@ -285,7 +292,7 @@ EOF
 if [ ! -d ./.terraform/ ];
 then
     terraform init -upgrade=true -force-copy \
-    --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
+    --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
     --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
     --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
     --backend-config "container_name=tfstate" \
@@ -296,7 +303,7 @@ else
     if [ ! -z "${temp}" ]
     then
         terraform init -upgrade=true -force-copy \
-        --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
+        --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
         --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
         --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
         --backend-config "container_name=tfstate" \
@@ -513,7 +520,10 @@ then
         if [ -z $temp ]
         then
             sed -i /tfstate_resource_id/d  "${system_config_information}"
+            sed -i /STATE_SUBSCRIPTION/d  "${system_config_information}"
+            STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
             echo "tfstate_resource_id=${tfstate_resource_id}" >> "${system_config_information}"
+            echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${system_config_information}"
         fi
     fi
 fi

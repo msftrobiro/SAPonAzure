@@ -72,7 +72,6 @@ landscape_tfstate_key_exists=false
 
 parameterfile_name=$(basename "${parameterfile}")
 
-
 # Read environment
 environment=$(cat "${parameterfile}" | jq .infrastructure.environment | tr -d \")
 region=$(cat "${parameterfile}" | jq .infrastructure.region | tr -d \")
@@ -123,7 +122,7 @@ else
         config_stored=0
     fi
     
-    temp=$(grep "tfstate_resource_id" "${system_config_information}")
+    temp=$(grep "tfstate_resource_id" -m1 "${system_config_information}")
     if [ ! -z "${temp}" ]
     then
         tfstate_resource_id=$(echo "${temp}" | cut -d= -f2)
@@ -133,12 +132,12 @@ else
         fi
     fi
     
-    temp=$(grep "deployer_tfstate_key" "${system_config_information}")
+    temp=$(grep "deployer_tfstate_key" -m1 "${system_config_information}")
     if [ ! -z "${temp}" ]
     then
         # Deployer state was specified in ~/.sap_deployment_automation library config
         deployer_tfstate_key=$(echo "${temp}" | cut -d= -f2)
-        
+
         if [ "${deployment_system}" != sap_deployer ]
         then
             if [ ! -n "$=${deployer_tfstate_key}" ]; then
@@ -172,6 +171,23 @@ if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     exit -1
 fi
 
+# Checking for valid az session
+az account show > stdout.az 2>&1
+temp=$(grep "az login" stdout.az)
+if [ -n "${temp}" ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Please login using az login                                 #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    rm stdout.az
+    exit -1
+else
+    rm stdout.az
+fi
+
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
 
 if [ ! -d "${terraform_module_directory}" ]
@@ -198,23 +214,6 @@ new_deployment=false
 if [ -f backend.tf ]
 then
     rm backend.tf
-fi
-
-# Checking for valid az session
-az account show > stdout.az 2>&1
-temp=$(grep "az login" stdout.az)
-if [ -n "${temp}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                           Please login using az login                                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    rm stdout.az
-    exit -1
-else
-    rm stdout.az
 fi
 
 check_output=0

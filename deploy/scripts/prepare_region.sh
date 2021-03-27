@@ -309,8 +309,6 @@ echo $library_config_information
     
     allParams="${env_param}""${keyvault_param}""${region_param}"
 
-    echo $allParams
-
     "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh $allParams
     if [ $? -eq 255 ]
         then

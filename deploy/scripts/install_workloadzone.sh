@@ -51,6 +51,7 @@ while getopts ":p:t:i:d:h" option; do
     case "${option}" in
         p) parameterfile=${OPTARG};;
         i) approve="--auto-approve";;
+        d) deployer_tfstate_key=${OPTARG};;
         h) showhelp
             exit 3
         ;;
@@ -63,7 +64,6 @@ done
 tfstate_resource_id=""
 tfstate_parameter=""
 
-deployer_tfstate_key=""
 deployer_tfstate_key_parameter=""
 deployer_tfstate_key_exists=false
 landscape_tfstate_key=""
@@ -86,9 +86,9 @@ then
     printf -v val %-40.40s "$workload_file_parametername"
     echo ""
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#               Parameter file does not exist: ${val} #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     exit
 fi
@@ -97,32 +97,48 @@ fi
 
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-library_config_information="${automation_config_directory}""${region}"
-workload_config_information="${automation_config_directory}""${environment}"
-
+workload_config_information="${automation_config_directory}""${environment}""${region}"
 touch $workload_config_information
+
+# Checking for valid az session
+az account show > stdout.az 2>&1
+temp=$(grep "az login" stdout.az)
+if [ -n "${temp}" ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Please login using az login                                 #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    rm stdout.az
+    exit -1
+else
+    rm stdout.az
+fi
+
 
 read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
 answer=${ans^^}
 if [ $answer == 'Y' ]; then
-    temp=$(grep "keyvault=" $library_config_information)
+    temp=$(grep "keyvault=" $workload_config_information)
     if [ ! -z $temp ]
     then
         # Key vault was specified in ~/.sap_deployment_automation in the deployer file
         keyvault_name=$(echo $temp | cut -d= -f2 | tr -d \" | xargs)
         keyvault_param=$(printf " -v %s " $keyvault_name)
-    fi    
+    fi
     
-    env_param=$(printf " -e %s " $environment)
-    region_param=$(printf " -r %s " $region)
+    env_param=$(printf " -e %s " "${environment}")
+    region_param=$(printf " -r %s " "${region}")
     
-    allParams=${env_param}${keyvault_param}${region_param}
-
-    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh $allParams 
+    allParams="${env_param}""${keyvault_param}""${region_param}"
+    
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh $allParams
     if [ $? -eq 255 ]
-        then
+    then
         exit $?
-    fi 
+    fi
 fi
 
 
@@ -137,7 +153,7 @@ then
     fi
     if [ -n "$ARM_SUBSCRIPTION_ID" ]; then
         # Store ARM Subscription info in ~/.sap_deployment_automation
-        echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> "${library_config_information}"
+        echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> "${workload_config_information}"
         arm_config_stored=1
     fi
 else
@@ -146,27 +162,27 @@ else
     then
         # Repo path was specified in ~/.sap_deployment_automation/config
         DEPLOYMENT_REPO_PATH=$(echo "${temp}" | cut -d= -f2)
-
+        
         config_stored=1
     else
         config_stored=0
     fi
-
-    temp=$(grep "REMOTE_STATE_RG" "${library_config_information}")
+    
+    temp=$(grep "REMOTE_STATE_RG" "${workload_config_information}")
     if [ ! -z "${temp}" ]
     then
         # Remote state storage group was specified in ~/.sap_deployment_automation library config
         REMOTE_STATE_RG=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
     fi
-
-    temp=$(grep "REMOTE_STATE_SA" "${library_config_information}")
+    
+    temp=$(grep "REMOTE_STATE_SA" "${workload_config_information}")
     if [ ! -z "${temp}" ]
     then
         # Remmote state storage group was specified in ~/.sap_deployment_automation library config
         REMOTE_STATE_SA=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
     fi
-
-    temp=$(grep "tfstate_resource_id" "${library_config_information}")
+    
+    temp=$(grep "tfstate_resource_id" "${workload_config_information}")
     if [ ! -z "${temp}" ]
     then
         tfstate_resource_id=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
@@ -175,19 +191,32 @@ else
             tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
         fi
     fi
-
-    temp=$(grep "deployer_tfstate_key" "${library_config_information}")
-    if [ ! -z "${temp}" ]
+    
+    if [ -z "${deployer_tfstate_key}" ]
     then
-        # Deployer state was specified in ~/.sap_deployment_automation library config
-        deployer_tfstate_key=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
-        
+        temp=$(grep "deployer_tfstate_key" "${workload_config_information}")
+        if [ ! -z "${temp}" ]
+        then
+            # Deployer state was specified in ~/.sap_deployment_automation library config
+            deployer_tfstate_key=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
+            
+            deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+            
+            deployer_tfstate_key_exists=true
+        else
+            read -p "Deployer state file name (empty for no deployer) :"  deployer_tfstate_key
+            deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+            sed -i /deployer_tfstate_key/d  "${workload_config_information}"
+            echo "deployer_tfstate_key=${deployer_tfstate_key}" >> "${workload_config_information}"
+            
+        fi
+    else
         deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
-
-        deployer_tfstate_key_exists=true
-
+        sed -i /deployer_tfstate_key/d  "${workload_config_information}"
+        echo "deployer_tfstate_key=${deployer_tfstate_key}" >> "${workload_config_information}"
+        
     fi
-
+    
 fi
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
@@ -202,17 +231,55 @@ if [ ! -n "${ARM_SUBSCRIPTION_ID}" ]; then
     exit -1
 fi
 
-if [ ! -n "${REMOTE_STATE_RG}" ]; then
-    option="REMOTE_STATE_RG"
-    missing
-    exit -1
-fi
-
 if [ ! -n "${REMOTE_STATE_SA}" ]; then
     option="REMOTE_STATE_SA"
-    missing
-    exit -1
+    read -p "Remote state storage account name:"  REMOTE_STATE_SA
+    REMOTE_STATE_RG=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].resourceGroup  | tr -d \" | xargs)
+    tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
+
+    sed -i /REMOTE_STATE_SA/d  "${workload_config_information}"
+    sed -i /REMOTE_STATE_RG/d  "${workload_config_information}"
+    sed -i /tfstate_resource_id/d  "${workload_config_information}"
+    sed -i /STATE_SUBSCRIPTION/d  "${workload_config_information}"
+
+    echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> "${workload_config_information}"
+    echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${workload_config_information}"
+    echo "tfstate_resource_id=${tfstate_resource_id}" >> "${workload_config_information}"
+    STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
+
+    echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${workload_config_information}"
+    
+    tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+    
 fi
+
+
+if [ ! -n "${REMOTE_STATE_RG}" ]; then
+    if [  -n "${REMOTE_STATE_SA}" ]; then
+        REMOTE_STATE_RG=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].resourceGroup  | tr -d \" | xargs)
+        tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
+
+        sed -i /REMOTE_STATE_SA/d  "${workload_config_information}"
+        sed -i /REMOTE_STATE_RG/d  "${workload_config_information}"
+        sed -i /tfstate_resource_id/d  "${workload_config_information}"
+        sed -i /STATE_SUBSCRIPTION/d  "${workload_config_information}"
+
+        echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> "${workload_config_information}"
+        echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${workload_config_information}"
+        echo "tfstate_resource_id=${tfstate_resource_id}" >> "${workload_config_information}"
+        STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
+        echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${workload_config_information}"
+        
+        tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+    else
+        
+        option="REMOTE_STATE_RG"
+        read -p "Remote state resource group name:"  REMOTE_STATE_RG
+        echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${workload_config_information}"
+    fi
+fi
+
+echo "tfstate_resource_id=${tfstate_resource_id}"
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
 
@@ -239,26 +306,9 @@ then
     rm backend.tf
 fi
 
-# Checking for valid az session
-az account show > stdout.az 2>&1
-temp=$(grep "az login" stdout.az)
-if [ -n "${temp}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                           Please login using az login                                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    rm stdout.az
-    exit -1
-else
-    rm stdout.az
-fi
-
 check_output=0
 
-if [ ! -d ./.terraform/ ]; 
+if [ ! -d ./.terraform/ ];
 then
     terraform init -upgrade=true -force-copy --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
     --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
@@ -281,7 +331,7 @@ else
         terraform init -upgrade=true $terraform_module_directory
         check_output=1
     fi
-
+    
 fi
 cat <<EOF > backend.tf
 ####################################################
@@ -310,7 +360,7 @@ then
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
-
+        
         deployed_using_version=$(terraform output automation_version)
         if [ ! -n "${deployed_using_version}" ]; then
             echo ""
@@ -323,7 +373,7 @@ then
             echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
             echo "#                                                                                       #"
             echo "#########################################################################################"
-
+            
             read -p "Do you want to continue Y/N?"  ans
             answer=${ans^^}
             if [ $answer == 'Y' ]; then
@@ -332,7 +382,7 @@ then
                 exit 1
             fi
         else
-
+            
             echo ""
             echo "#########################################################################################"
             echo "#                                                                                       #"
@@ -352,8 +402,10 @@ echo "#                             Running Terraform plan                      
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
-
-terraform plan -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory > plan_output.log
+echo $tfstate_parameter
+echo $deployer_tfstate_key_parameter
+echo $terraform_module_directory
+terraform plan -var-file=${parameterfile} $tfstate_parameter $deployer_tfstate_key_parameter $terraform_module_directory > plan_output.log
 
 if ! $new_deployment; then
     if grep "No changes" plan_output.log ; then
@@ -365,7 +417,7 @@ if ! $new_deployment; then
         echo "#########################################################################################"
         echo ""
         rm plan_output.log
-
+        
         if [ $deployment_system == sap_landscape ]
         then
             if [ $landscape_tfstate_key_exists == false ]
@@ -387,7 +439,7 @@ if ! $new_deployment; then
         echo "#########################################################################################"
         echo ""
         read -n 1 -r -s -p $'Press enter to continue...\n'
-
+        
         cat plan_output.log
         read -p "Do you want to continue with the deployment Y/N?"  ans
         answer=${ans^^}
@@ -402,9 +454,9 @@ if ! $new_deployment; then
 fi
 
 if [ $ok_to_proceed ]; then
-
+    
     rm plan_output.log
-
+    
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -412,7 +464,7 @@ if [ $ok_to_proceed ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-
+    
     terraform apply ${approve} -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory
 fi
 
@@ -421,7 +473,7 @@ then
     if [ $landscape_tfstate_key_exists == false ]
     then
         sed -i /landscape_tfstate_key/d  "${workload_config_information}"
-
+        
         echo "landscape_tfstate_key=${key}.terraform.tfstate" >> $workload_config_information
     fi
 fi

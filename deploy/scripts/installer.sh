@@ -121,7 +121,6 @@ automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region}"
 
-
 if [ ! -d ${automation_config_directory} ]
 then
     # No configuration directory exists
@@ -162,7 +161,16 @@ else
         # Remote state storage group was specified in ~/.sap_deployment_automation library config
         REMOTE_STATE_SA=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
     fi
-    
+
+    temp=$(grep "subscription" "${system_config_information}")
+    if [ ! -z "${temp}" ]
+    then
+        # Remote state storage group was specified in ~/.sap_deployment_automation library config
+        ARM_SUBSCRIPTION_ID=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
+    fi
+
+    STATE_SUBSCRIPTION=ARM_SUBSCRIPTION_ID
+
     temp=$(grep "tfstate_resource_id" "${system_config_information}")
     if [ ! -z "${temp}" ]
     then
@@ -173,7 +181,7 @@ else
         fi
     fi
     
-    STATE_SUBSCRIPTION=ARM_SUBSCRIPTION_ID
+    
     temp=$(grep "STATE_SUBSCRIPTION" "${system_config_information}")
     if [ ! -z "${temp}" ]
     then

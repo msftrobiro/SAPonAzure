@@ -227,12 +227,16 @@ else
             read -p "Workload terraform statefile name :" landscape_tfstate_key
             landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
             landscape_tfstate_key_exists=true
-            echo "landscape_tfstate_key=${key}.terraform.tfstate" >> $system_config_information
+            echo "landscape_tfstate_key=${landscape_tfstate_key}" >> $system_config_information
+
             landscape_tfstate_key_exists=true
         fi
     fi
     
 fi
+
+echo $landscape_tfstate_key_parameter
+echo ${STATE_SUBSCRIPTION}
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     option="DEPLOYMENT_REPO_PATH"

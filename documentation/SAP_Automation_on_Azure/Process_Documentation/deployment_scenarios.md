@@ -8,7 +8,7 @@ The SAP Deployment Automation Framework support the following deployment models
 
 In this scenario All Azure artifacts will be created by the automation
 
-### Greenfield deployment using the deployer ###
+### **Greenfield deployment using the deployer** ###
 
 This scenario contains the following deployments
 
@@ -26,7 +26,7 @@ A sample configuration for this is available here
 | Workload  | [Workload](./WORKSPACES//DEPLOYMENT-ORCHESTRATION/LANDSCAPE/DEV-WEEU-SAP01-INFRASTRUCTURE/DEV-WEEU-SAP01-INFRASTRUCTURE.json)
 | System  | [Library](./WORKSPACES/DEPLOYMENT-ORCHESTRATION/SYSTEM/DEV-WEEU-SAP01-ZZZ/DEV-WEEU-SAP01-ZZZ.json)
 
-### Greenfield deployment without the deployer ###
+### **Greenfield deployment without the deployer** ###
 
 This scenario contains the following deployments:
 

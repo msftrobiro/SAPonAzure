@@ -88,6 +88,18 @@ resource "azurerm_route_table" "rt" {
   disable_bgp_route_propagation = false
 }
 
+resource "azurerm_route" "admin" {
+  provider               = azurerm.main
+  count                  = length(local.firewall_ip) > 0 ? 1 : 0
+  name                   = format("%s%s%s", local.prefix, var.naming.separator, "fw-route")
+  resource_group_name    = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  route_table_name       = azurerm_route_table.rt.name
+  address_prefix         = "0.0.0.0/0"
+  next_hop_type          = "VirtualAppliance"
+  next_hop_in_ip_address = local.firewall_ip
+}
+
+
 // Creates witness storage account
 resource "azurerm_storage_account" "witness_storage" {
   provider                  = azurerm.main

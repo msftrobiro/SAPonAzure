@@ -39,6 +39,7 @@ locals {
 
   deployer_tfstate = var.deployer_tfstate
   vnet_mgmt_id     = try(local.deployer_tfstate.vnet_mgmt_id, try(local.deployer_tfstate.vnet_mgmt.id, ""))
+  firewall_ip = try(var.deployer_tfstate.firewall_ip, "")
 
   // Resource group
   var_rg    = try(local.var_infra.resource_group, {})

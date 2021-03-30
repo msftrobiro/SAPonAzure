@@ -57,15 +57,18 @@ Licensed under the MIT license.
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
     $Environment = $jsonData.infrastructure.environment
     $region = $jsonData.infrastructure.region
-    $combined = $Environment + $region
 
+    Write-Host "Region:"$region
+    Write-Host "Environment:"$Environment
+
+    $combined = $Environment + $region
 
     if ($null -ne $iniContent[$combined] ) {
         $sub = $iniContent[$combined]["subscription"] 
     }
     else {
         $Category1 = @{"subscription" = "" }
-        $iniContent += @{$region = $Category1 }
+        $iniContent += @{$combined = $Category1 }
         Out-IniFile -InputObject $iniContent -Path $filePath
     }
     

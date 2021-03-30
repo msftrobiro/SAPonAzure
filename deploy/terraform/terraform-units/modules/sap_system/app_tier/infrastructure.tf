@@ -98,6 +98,31 @@ resource "azurerm_lb_probe" "scs" {
   number_of_probes    = 2
 }
 
+resource "azurerm_lb_probe" "clst" {
+  provider            = azurerm.main
+  count               = local.enable_deployment && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? 1 : 0
+  resource_group_name = var.resource_group[0].name
+  loadbalancer_id     = azurerm_lb.scs[0].id
+  name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_hp)
+  port                = local.hp_ports[count.index]
+  protocol            = "Tcp"
+  interval_in_seconds = 5
+  number_of_probes    = 2
+}
+
+resource "azurerm_lb_probe" "fs" {
+  provider            = azurerm.main
+  count               = local.enable_deployment && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? 1 : 0
+  resource_group_name = var.resource_group[0].name
+  loadbalancer_id     = azurerm_lb.scs[0].id
+  name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_hp)
+  port                = local.hp_ports[count.index]
+  protocol            = "Tcp"
+  interval_in_seconds = 5
+  number_of_probes    = 2
+}
+
+
 # Create the SCS Load Balancer Rules
 resource "azurerm_lb_rule" "scs" {
   provider                       = azurerm.main
@@ -140,8 +165,8 @@ resource "azurerm_lb_rule" "clst" {
   frontend_port                  = 0
   backend_port                   = 0
   frontend_ip_configuration_name = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_feip)
-  backend_address_pool_id        =  azurerm_lb_backend_address_pool.scs[0].id
-  probe_id                       =  azurerm_lb_probe.scs[0].id
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.scs[0].id
+  probe_id                       = azurerm_lb_probe.clst[0].id
   enable_floating_ip             = true
 }
 
@@ -155,8 +180,8 @@ resource "azurerm_lb_rule" "fs" {
   frontend_port                  = 0
   backend_port                   = 0
   frontend_ip_configuration_name = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_feip)
-  backend_address_pool_id        =  azurerm_lb_backend_address_pool.scs[0].id
-  probe_id                       =  azurerm_lb_probe.scs[1].id
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.scs[0].id
+  probe_id                       = azurerm_lb_probe.fs[1].id
   enable_floating_ip             = true
 }
 

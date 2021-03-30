@@ -84,6 +84,22 @@ Licensed under the MIT license.
     catch {
         
     }
+    try {
+        if ($null -ne $iniContent[$combined] ) {
+            $iniContent[$combined]["Deployer"] = $key
+        }
+        else {
+            $Category1 = @{"Deployer" = $key }
+            $iniContent += @{$combined = $Category1 }
+            Out-IniFile -InputObject $iniContent -Path $filePath                    
+        }
+                
+    }
+    catch {
+        
+    }
+
+
 
     $errors_occurred = $false
     Set-Location -Path $fInfo.Directory.FullName

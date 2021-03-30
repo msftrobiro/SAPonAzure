@@ -166,6 +166,7 @@ Licensed under the MIT license.
 
     if ("sap_deployer" -eq $Type) {
         $iniContent[$combined]["Deployer"] = $key.Trim()
+        $deployer_tfstate_key = $key
         $changed = $true
     }
     else {
@@ -187,7 +188,7 @@ Licensed under the MIT license.
         }
     }
 
-    if ($null -ne $TFStateStorageAccountName) {
+    if ($null -ne $TFStateStorageAccountName -and "" -ne $TFStateStorageAccountName) {
         $saName = $TFStateStorageAccountName
         $rID = Get-AzResource -Name $saName
         $rgName = $rID.ResourceGroupName
@@ -210,11 +211,10 @@ Licensed under the MIT license.
         $tfstate_resource_id = $rID.ResourceId
 
         $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
-        $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
+        $iniContent[$combined]["REMOTE_STATE_SA"] = $saNameF
         $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
         $changed = $true
     }
-
     else {
         $rgName = $iniContent[$combined]["REMOTE_STATE_RG"]
         $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"]
@@ -237,7 +237,7 @@ Licensed under the MIT license.
     }
 
     if ($null -eq $sub -or "" -eq $sub) {
-        $sub=$tfstate_resource_id.Split("/")[2]
+        $sub = $tfstate_resource_id.Split("/")[2]
         $iniContent[$combined]["kvsubscription"] = $sub.Trim() 
         $changed = $true
 

@@ -36,7 +36,7 @@ Licensed under the MIT license.
         #Parameter file
         [Parameter(Mandatory = $true)][string]$Parameterfile, 
         #Deployer state file
-        [Parameter(Mandatory = $true)][string]$Deployerstatefile 
+        [Parameter(Mandatory = $false)][string]$Deployerstatefile 
     )
 
     Write-Host -ForegroundColor green ""

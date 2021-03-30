@@ -170,6 +170,22 @@ Licensed under the MIT license.
     catch {
         
     }
+    try {
+        if ($null -ne $iniContent[$combined] ) {
+            $iniContent[$combined]["Deployer"] = $key
+        }
+        else {
+            $Category1 = @{"Deployer" = $key }
+            $iniContent += @{$combined = $Category1 }
+            Out-IniFile -InputObject $iniContent -Path $filePath                    
+        }
+                
+    }
+    catch {
+        
+    }
+
+
 
     $errors_occurred = $false
     Set-Location -Path $fInfo.Directory.FullName
@@ -313,15 +329,18 @@ Licensed under the MIT license.
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
     $Environment = $jsonData.infrastructure.environment
     $region = $jsonData.infrastructure.region
-    $combined = $Environment + $region
 
+    Write-Host "Region:"$region
+    Write-Host "Environment:"$Environment
+
+    $combined = $Environment + $region
 
     if ($null -ne $iniContent[$combined] ) {
         $sub = $iniContent[$combined]["subscription"] 
     }
     else {
         $Category1 = @{"subscription" = "" }
-        $iniContent += @{$region = $Category1 }
+        $iniContent += @{$combined = $Category1 }
         Out-IniFile -InputObject $iniContent -Path $filePath
     }
     
@@ -617,6 +636,7 @@ Licensed under the MIT license.
 
     if ("sap_deployer" -eq $Type) {
         $iniContent[$combined]["Deployer"] = $key.Trim()
+        $deployer_tfstate_key = $key
         $changed = $true
     }
     else {
@@ -638,7 +658,7 @@ Licensed under the MIT license.
         }
     }
 
-    if ($null -ne $TFStateStorageAccountName) {
+    if ($null -ne $TFStateStorageAccountName -and "" -ne $TFStateStorageAccountName) {
         $saName = $TFStateStorageAccountName
         $rID = Get-AzResource -Name $saName
         $rgName = $rID.ResourceGroupName
@@ -661,11 +681,10 @@ Licensed under the MIT license.
         $tfstate_resource_id = $rID.ResourceId
 
         $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
-        $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
+        $iniContent[$combined]["REMOTE_STATE_SA"] = $saNameF
         $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
         $changed = $true
     }
-
     else {
         $rgName = $iniContent[$combined]["REMOTE_STATE_RG"]
         $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"]
@@ -688,7 +707,7 @@ Licensed under the MIT license.
     }
 
     if ($null -eq $sub -or "" -eq $sub) {
-        $sub=$tfstate_resource_id.Split("/")[2]
+        $sub = $tfstate_resource_id.Split("/")[2]
         $iniContent[$combined]["kvsubscription"] = $sub.Trim() 
         $changed = $true
 
@@ -1140,7 +1159,7 @@ Licensed under the MIT license.
         #Parameter file
         [Parameter(Mandatory = $true)][string]$Parameterfile, 
         #Deployer state file
-        [Parameter(Mandatory = $true)][string]$Deployerstatefile 
+        [Parameter(Mandatory = $false)][string]$Deployerstatefile 
     )
 
     Write-Host -ForegroundColor green ""

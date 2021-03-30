@@ -1973,19 +1973,8 @@ Licensed under the MIT license.
 
     $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"] 
 
-    # Subscription
-    $sub = $iniContent[$combined]["subscription"] 
-    if ($Type -eq "sap_landscape" -or $Type -eq "sap_system" ) {
-        $sub = $iniContent[$combined]["subscription"] 
-    }
     $repo = $iniContent["Common"]["repo"]
     $changed = $false
-
-    if ($null -eq $sub -or "" -eq $sub) {
-        $sub = Read-Host -Prompt "Please enter the subscription"
-        $iniContent[$combined]["Subscription"] = $sub
-        $changed = $true
-    }
 
     if ($null -eq $repo -or "" -eq $repo) {
         $repo = Read-Host -Prompt "Please enter the subscription"
@@ -2048,6 +2037,7 @@ Licensed under the MIT license.
         $iniContent[$combined]["REMOTE_STATE_RG"] = "[DELETED]"
         $iniContent[$combined]["REMOTE_STATE_SA"] = "[DELETED]"
         $iniContent[$combined]["tfstate_resource_id"] = "[DELETED]"
+        $iniContent[$combined]["kvsubscription"] = "[DELETED]"
         Out-IniFile -InputObject $iniContent -Path $filePath
     }
 
@@ -2057,6 +2047,7 @@ Licensed under the MIT license.
     }
     if ($Type -eq "sap_deployer") {
         $iniContent[$combined]["Deployer"] = "[DELETED]"
+        $iniContent[$combined]["kvsubscription"] = "[DELETED]"
     }
 
 }

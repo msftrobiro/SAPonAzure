@@ -154,12 +154,14 @@ Licensed under the MIT license.
     }
 
     $fileDir = $dirInfo.ToString() + $DeployerParameterfile
+
     [IO.FileInfo] $fInfo = $fileDir
     Set-Location -Path $fInfo.Directory.FullName
     try {
-        New-SAPSystem -Parameterfile $fInfo.Name -Type [SAP_Types]::sap_deployer
+        New-SAPSystem -Parameterfile $fInfo.Name -Type sap_deployer
     }
     catch {
+        Write-Error $_
         $errors_occurred = $true
     }
 
@@ -172,7 +174,7 @@ Licensed under the MIT license.
     [IO.FileInfo] $fInfo = $fileDir
     Set-Location -Path $fInfo.Directory.FullName
     try {
-        New-SAPSystem -Parameterfile $fInfo.Name -Type [SAP_Types]::sap_library
+        New-SAPSystem -Parameterfile $fInfo.Name -Type sap_library
     }
     catch {
         $errors_occurred = $true

@@ -240,12 +240,14 @@ Licensed under the MIT license.
     }
 
     $fileDir = $dirInfo.ToString() + $DeployerParameterfile
+
     [IO.FileInfo] $fInfo = $fileDir
     Set-Location -Path $fInfo.Directory.FullName
     try {
-        New-SAPSystem -Parameterfile $fInfo.Name -Type [SAP_Types]::sap_deployer
+        New-SAPSystem -Parameterfile $fInfo.Name -Type sap_deployer
     }
     catch {
+        Write-Error $_
         $errors_occurred = $true
     }
 
@@ -258,7 +260,7 @@ Licensed under the MIT license.
     [IO.FileInfo] $fInfo = $fileDir
     Set-Location -Path $fInfo.Directory.FullName
     try {
-        New-SAPSystem -Parameterfile $fInfo.Name -Type [SAP_Types]::sap_library
+        New-SAPSystem -Parameterfile $fInfo.Name -Type sap_library
     }
     catch {
         $errors_occurred = $true
@@ -640,7 +642,7 @@ Licensed under the MIT license.
         $changed = $true
     }
     else {
-        if ($null -ne $DeployerStateFileKeyName) {
+        if ($null -ne $DeployerStateFileKeyName -and "" -ne $DeployerStateFileKeyName) {
             $deployer_tfstate_key = $DeployerStateFileKeyName
             $iniContent[$combined]["Deployer"] = $deployer_tfstate_key.Trim()
             $changed = $true
@@ -649,7 +651,6 @@ Licensed under the MIT license.
             $deployer_tfstate_key = $iniContent[$combined]["Deployer"]
         }
     }
-
     if (!$spn_kvSpecified) {
         if ($null -eq $deployer_tfstate_key -or "" -eq $deployer_tfstate_key) {
             $deployer_tfstate_key = Read-Host -Prompt "Please specify the deployer state file name"

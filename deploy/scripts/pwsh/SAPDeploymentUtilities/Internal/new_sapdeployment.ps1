@@ -170,7 +170,7 @@ Licensed under the MIT license.
         $changed = $true
     }
     else {
-        if ($null -ne $DeployerStateFileKeyName) {
+        if ($null -ne $DeployerStateFileKeyName -and "" -ne $DeployerStateFileKeyName) {
             $deployer_tfstate_key = $DeployerStateFileKeyName
             $iniContent[$combined]["Deployer"] = $deployer_tfstate_key.Trim()
             $changed = $true
@@ -179,7 +179,6 @@ Licensed under the MIT license.
             $deployer_tfstate_key = $iniContent[$combined]["Deployer"]
         }
     }
-
     if (!$spn_kvSpecified) {
         if ($null -eq $deployer_tfstate_key -or "" -eq $deployer_tfstate_key) {
             $deployer_tfstate_key = Read-Host -Prompt "Please specify the deployer state file name"

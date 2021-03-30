@@ -257,7 +257,7 @@ variable "resource_suffixes" {
     "scs_ers_hp"          = "scsErs-hp"
     "scs_ers_rule"        = "scsErs-rule"
     "scs_fs_feip"         = "scsFs-feip"
-    "scs_Fs_hp"           = "scsFs-hp"
+    "scs_fs_hp"           = "scsFs-hp"
     "scs_fs_rule"         = "scsFs-rule"
     "scs_scs_rule"        = "scsScs-rule_"
     "sdu_rg"              = ""

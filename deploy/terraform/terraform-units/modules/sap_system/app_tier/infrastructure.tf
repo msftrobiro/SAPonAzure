@@ -181,7 +181,7 @@ resource "azurerm_lb_rule" "fs" {
   backend_port                   = 0
   frontend_ip_configuration_name = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_feip)
   backend_address_pool_id        = azurerm_lb_backend_address_pool.scs[0].id
-  probe_id                       = azurerm_lb_probe.fs[1].id
+  probe_id                       = azurerm_lb_probe.fs[0].id
   enable_floating_ip             = true
 }
 

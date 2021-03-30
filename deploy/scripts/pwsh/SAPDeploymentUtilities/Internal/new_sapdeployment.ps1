@@ -153,7 +153,7 @@ Licensed under the MIT license.
     }
     else {
         if ($Type -eq "sap_system") {
-            if ($null -ne $LandscapeStateFileKeyName) {
+            if ($null -ne $LandscapeStateFileKeyName -and "" -ne $LandscapeStateFileKeyName) {
                 $landscape_tfstate_key = $LandscapeStateFileKeyName
                 $iniContent[$combined].Landscape = $LandscapeStateFileKeyName
                 $changed = $true

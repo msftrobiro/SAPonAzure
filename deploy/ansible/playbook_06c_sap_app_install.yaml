@@ -5,6 +5,8 @@
 # +-------------------------------------4--------------------------------------*/
 ---
 
+# TODO: Playbook not yet written
+
 - hosts:          "{{ sap_sid|upper }}_APP"
 
   name:           SAP Installation - APP

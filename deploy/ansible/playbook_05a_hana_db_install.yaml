@@ -5,6 +5,8 @@
 # +-------------------------------------4--------------------------------------*/
 ---
 
+# TODO: Playbook not yet written
+
 - hosts:          scs                                           # TODO: Replace this with new inventory group; Change to correct group
 
   name:           DB Installation - HANA

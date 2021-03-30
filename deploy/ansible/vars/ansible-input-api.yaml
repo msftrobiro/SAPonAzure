@@ -13,10 +13,10 @@
 
 # BoM Processing variables
 sapbits_location_base_path:   ""                                                        # REQUIRED
-sapbits_bom_files:            "sapfiles"
+sapbits_bom_files:            "sapfiles"                                                # Default
 bom_base_name:                ""                                                        # REQUIRED
-target_media_location:        "/usr/sap/install"
-sapbits_sas_token:            ""
+target_media_location:        "/usr/sap/install"                                        # Default
+sapbits_sas_token:            ""                                                        # Optional
 
 # SAP Configuration for templates and install
 aas_hostname:                 ""

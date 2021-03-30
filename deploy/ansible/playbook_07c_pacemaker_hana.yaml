@@ -1,13 +1,19 @@
 # /*----------------------------------------------------------------------------8
 # |                                                                             |
-# |                      Playbook for HANA DB Install                           |
+# |                      Playbook for PACEMAKER config of HANA                  |
 # |                                                                             |
 # +-------------------------------------4--------------------------------------*/
 ---
 
-- hosts:          scs                                   # TODO: Replace this with new inventory group; Change to correct group
+# TODO: Playbook not yet written
+#       This is a placeholder 
+#       This should probably be two playbooks:
+#       1) HSR Configuration
+#       2) PACEMAKER Config
 
-  name:           DB Installation - HANA
+- hosts:          scs                                           # TODO: Replace this with new inventory group; Change to correct group
+
+  name:           PACEMAKER - HANA
   remote_user:    "{{ orchestration_ansible_user }}"                
   become:         yes
   become_user:    root

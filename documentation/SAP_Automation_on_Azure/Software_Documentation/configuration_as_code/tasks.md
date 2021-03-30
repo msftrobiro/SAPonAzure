@@ -1,40 +1,91 @@
 
-- OS Playbook Task 1.x
-- SAP OS Playbook Task 2.x
-- BOM Processing Task 3.x
-- DB Install - HANA Task 4.0.x
-- DB Install - DB2  Task 4.1.x
-- SAP Install - SCS Task 5.0.x
-- SAP Install - DBLOAD Task 5.1.x
-- SAP Install - PAS Task 5.2.x
-- SAP Install - APP Task 5.3.x
-- SAP Install - WEB Task 5.4.x
-- Pacemaker Task 6.0.x
-- Pacemaker DB HANA Task 6.1.0.x
-- Pacemaker DB DB2  Task 6.1.1.x
-- SAP Notes Task 7.x
+
+| Task #   | Description Short | Playbook         | role | OS              | Description |
+| -------- | ----------------- | ---------------- | ---- | --------------- | ----------- |
+|  1       | ----------------- | OS               | ---- | --------------- | ----------- |
+| *1.0     | sudoers           |                  |      |                 |             |
+|  1.1     | swap              |                  |      |                 |             |
+|  1.2     | hostname          |                  |      |                 |             |
+|  1.3     | repository        |                  |      |                 |             |
+|  1.4     | packages          |                  |      |                 |             |
+|  1.5     | os-disk-setup     |                  |      |                 |             |
+|  1.6     | Install Packages  |                  |      | RHEL<br/>SLES   | Install Packages |
+|  1.7     |                   |                  |      |                 |             |
+|  1.8     |                   |                  |      |                 |             |
+|  1.9     |                   |                  |      |                 |             |
+|  1.10    |                   |                  |      |                 |             |
+|  1.20    | Prometheus        |                  |      |                 |             |
+
+---
+<br><br>
 
 
-|Task #  |Description Short |Playbook|role|OS             |Description|
-|--------|----------------- |--------|----|---------------|-----------|
-|*1.0    | sudoers          |        |    |               |           |
-| 1.1    | swap             |        |    |               |           |
-| 1.2    | hostname         |        |    |               |           |
-| 1.3    | repository       |        |    |               |           |
-| 1.4    | packages         |        |    |               |           |
-| 1.5    | os-disk-setup    |        |    |               |           |
-| 1.6    | Install Packages |        |    | RHEL<br/>SLES | Install Packages |
-| 1.7    |                  |        |    |               |           |
-| 1.8    |                  |        |    |               |           |
-| 1.9    |                  |        |    |               |           |
-| 1.10   |                  |        |    |               |           |
-| 1.20   | Prometheus       |        |    |               |           |
-| 2.0    | sap-disk-setup   |        |    |               |           |
-| 2.1    | packages         |        |    |               |           |
-| 2.10.0 | SAP Notes        |        |    |               |           |
+
+| Task #   | Description Short | Playbook         | role | OS              | Description |
+| -------- | ----------------- | ---------------- | ---- | --------------- | ----------- |
+|  2       | ----------------- | SAP OS           | ---- | --------------- | ----------- |
+|  2.0     | sap-disk-setup    |                  |      |                 |             |
+|  2.1     | packages          |                  |      |                 |             |
+|  2.10.0  | SAP Notes         |                  |      |                 |             |
+
+---
+<br><br>
 
 
-- 
-- 
-- 
-- 
+
+| Task #   | Description Short | Playbook         | role | OS              | Description |
+| -------- | ----------------- | ---------------- | ---- | --------------- | ----------- |
+|  3       | ----------------- | BOM              | ---- | --------------- | ----------- |
+
+---
+<br><br>
+
+
+
+| Task #   | Description Short | Playbook         | role | OS              | Description |
+| -------- | ----------------- | ---------------- | ---- | --------------- | ----------- |
+|  4.0.0   | ----------------- | DB HANA          | ---- | --------------- | ----------- |
+|  4.0.1   | ----------------- | DB HANA HSR      | ---- | --------------- | ----------- |
+|  4.1     | ----------------- | DB DB2           | ---- | --------------- | ----------- |
+
+---
+<br><br>
+
+
+
+| Task #   | Description Short | Playbook         | role | OS              | Description |
+| -------- | ----------------- | ---------------- | ---- | --------------- | ----------- |
+|  5.0.0   | ----------------- | SAP SCS          | ---- | --------------- | ----------- |
+|  5.0.1   | ----------------- | SAP ERS          | ---- | --------------- | ----------- |
+|  5.1     | ----------------- | SAP DB LOAD      | ---- | --------------- | ----------- |
+|  5.2     | ----------------- | SAP PAS          | ---- | --------------- | ----------- |
+|  5.3     | ----------------- | SAP APP          | ---- | --------------- | ----------- |
+|  5.4     | ----------------- | SAP WEB          | ---- | --------------- | ----------- |
+
+---
+<br><br>
+
+
+
+| Task #   | Description Short | Playbook         | role | OS              | Description |
+| -------- | ----------------- | ---------------- | ---- | --------------- | ----------- |
+|  6.0     | ----------------- | PACEMAKER        | ---- | --------------- | ----------- |
+|  6.1     | ----------------- | PACEMAKER - SCS  | ---- | --------------- | ----------- |
+|  6.2     | ----------------- | PACEMAKER - HANA | ---- | --------------- | ----------- |
+|  6.3     | ----------------- | PACEMAKER - DB2  | ---- | --------------- | ----------- |
+
+---
+<br><br>
+
+
+
+| Task #   | Description Short | Playbook         | role | OS              | Description |
+| -------- | ----------------- | ---------------- | ---- | --------------- | ----------- |
+|  7       | ----------------- | SAP Notes        | ---- | --------------- | ----------- |
+
+---
+<br><br>
+
+
+
+

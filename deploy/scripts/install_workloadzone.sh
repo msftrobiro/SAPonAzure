@@ -250,12 +250,9 @@ else
                 echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${workload_config_information}"
                 echo "tfstate_resource_id=${tfstate_resource_id}" >> "${workload_config_information}"
                 STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
-                
+     
                 echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${workload_config_information}"
-
-                
             else
-                
                 read -p "Deployer state file name (empty for no deployer): "  deployer_tfstate_key
                 deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
                 sed -i /deployer_tfstate_key/d  "${workload_config_information}"
@@ -285,7 +282,7 @@ fi
 
 if [ ! -n "${REMOTE_STATE_SA}" ]; then
     option="REMOTE_STATE_SA"
-    read -p "Remote state storage account name:"  REMOTE_STATE_SA
+    read -p "Terraform state storage account name:"  REMOTE_STATE_SA
     REMOTE_STATE_RG=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].resourceGroup  | tr -d \" | xargs)
     tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
     

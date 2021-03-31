@@ -248,6 +248,28 @@ if [ ! -n "${ARM_SUBSCRIPTION_ID}" ]; then
     exit -1
 fi
 
+if [ ! -n "${REMOTE_STATE_SA}" ]; then
+    option="REMOTE_STATE_SA"
+    read -p "Terraform state storage account name:"  REMOTE_STATE_SA
+    REMOTE_STATE_RG=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].resourceGroup  | tr -d \" | xargs)
+    tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
+    
+    sed -i /REMOTE_STATE_SA/d  "${system_config_information}"
+    sed -i /REMOTE_STATE_RG/d  "${system_config_information}"
+    sed -i /tfstate_resource_id/d  "${system_config_information}"
+    sed -i /STATE_SUBSCRIPTION/d  "${system_config_information}"
+    
+    echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> "${system_config_information}"
+    echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${system_config_information}"
+    echo "tfstate_resource_id=${tfstate_resource_id}" >> "${system_config_information}"
+    STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
+    
+    echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${system_config_information}"
+    
+    tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+    
+fi
+
 if [ ! -n "${REMOTE_STATE_RG}" ]; then
     option="REMOTE_STATE_RG"
     missing

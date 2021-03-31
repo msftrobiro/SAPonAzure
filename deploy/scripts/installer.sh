@@ -235,8 +235,6 @@ else
     
 fi
 
-echo $landscape_tfstate_key_parameter
-echo ${STATE_SUBSCRIPTION}
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     option="DEPLOYMENT_REPO_PATH"

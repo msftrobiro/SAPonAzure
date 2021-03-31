@@ -23,7 +23,7 @@ module "sap_namegenerator" {
   location         = var.infrastructure.region
   codename         = lower(try(var.infrastructure.codename, ""))
   random_id        = module.common_infrastructure.random_id
-  sap_vnet_name    = local.vnet_sap_name_part
+  sap_vnet_name    = local.vnet_logical_name
   sap_sid          = local.sap_sid
   db_sid           = local.db_sid
   app_ostype       = local.app_ostype
@@ -39,6 +39,7 @@ module "sap_namegenerator" {
   db_zones         = local.db_zones
   resource_offset  = try(var.options.resource_offset, 0)
 }
+
 ```
 
 ## Naming structure ##
@@ -55,7 +56,7 @@ The naming module is used by the 4 deployment types in the automation.
 The output from the module is a data structure containing all the names that will be passed in to the other Terraform modules.
 
 ```ruby
-output naming {
+output "naming" {
   value = {
     prefix = {
       DEPLOYER = local.deployer_name
@@ -66,7 +67,11 @@ output naming {
     storageaccount_names = {
       DEPLOYER = local.deployer_storageaccount_name
       SDU      = local.sdu_storageaccount_name
-      VNET     = local.landscape_storageaccount_name
+      VNET = {
+        landscape_storageaccount_name = local.landscape_storageaccount_name
+        witness_storageaccount_name   = local.witness_storageaccount_name
+      }
+
       LIBRARY = {
         library_storageaccount_name        = local.library_storageaccount_name
         terraformstate_storageaccount_name = local.terraformstate_storageaccount_name
@@ -115,11 +120,19 @@ output naming {
       WEB_VMNAME               = local.web_server_vm_names
     }
 
+    ppg_names = local.ppg_names
+    
+    app_avset_names = local.app_avset_names
+    scs_avset_names = local.scs_avset_names
+    web_avset_names = local.web_avset_names
+    db_avset_names  = local.db_avset_names
+
     resource_suffixes = var.resource_suffixes
 
     separator = local.separator
   }
 }
+
 ```
 
 ## Preparing the Terraform environment ##

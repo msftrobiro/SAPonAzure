@@ -40,7 +40,7 @@ Navigate to the ~/Azure_SAP_Automated_Deployment/WORKSPACES/DEPLOYMENT-ORCHESTRA
 
 The deployment will need the Service Principal details (application id, secret and tenant ID)
 
-## **Listing the contents of the deployment**
+## **Listing the contents of the deployment** ##
 
 For a highlevel overview of what will be deployed use the validate.sh script to list the resources deployed by the deployment. **Note** The list does not contain all artifacts
 
@@ -128,7 +128,7 @@ A sample output is listed below
 
 ```
 
-## **Preparing the region**
+## **Preparing the region** ##
 
 For deploying the supporting infrastructure for the Azure region(Deployer, Library) use the prepare_region.sh script
 
@@ -139,7 +139,7 @@ ${DEPLOYMENT_REPO_PATH}deploy/scripts/prepare_region.sh
 
 The script will deploy the deployment infrastructure and create the Azure keyvault for storing the Service Principal details. If prompted for the environment details enter "MGMT" and enter the Service Principal details. The script will then deploy the rest of the resources required.
 
-## **Deploying the DEV environment**
+## **Deploying the DEV environment** ##
 
 For deploying the DEV environment (vnet & keyvaults) navigate to the folder(LANDSCAPE/DEV-WEEU-SAP01-INFRASTRUCTURE) containing the DEV-WEEU-SAP01-INFRASTRUCTURE.json parameter file and use the install_workloadzone script.
 
@@ -147,11 +147,10 @@ For deploying the DEV environment (vnet & keyvaults) navigate to the folder(LAND
 ${DEPLOYMENT_REPO_PATH}deploy/scripts/install_workloadzone.sh -p DEV-WEEU-SAP01-INFRASTRUCTURE.json 
 ```
 
-When prompted for the Workload SPN Details choose Y and enter the Service Principal details. 
-If prompted enter "MGMT" for the Deployer environment name. 
+When prompted for the Workload SPN Details choose Y and enter the Service Principal details.
+If prompted enter "MGMT" for the Deployer environment name.
 
-
-## **Deploying the SAP system**
+## **Deploying the SAP system** ##
 
 For deploying the SAP system navigate to the folder(DEV-WEEU-SAP01-ZZZ) containing the DEV-WEEU-SAP01-ZZZ.json parameter file and use the installer.sh script.
 
@@ -159,12 +158,10 @@ For deploying the SAP system navigate to the folder(DEV-WEEU-SAP01-ZZZ) containi
 ${DEPLOYMENT_REPO_PATH}deploy/scripts/installer.sh -p DEV-WEEU-SAP01-ZZZ.json -t sap_system
 ```
 
-## **Removing the SAP system**
+## **Removing the SAP system** ##
 
 For removing the SAP system navigate to the folder(DEV-WEEU-SAP01-ZZZ) containing the DEV-WEEU-SAP01-ZZZ.json parameter file and use the remover.sh script.
 
 ```bash
 ${DEPLOYMENT_REPO_PATH}deploy/scripts/remover.sh -p DEV-WEEU-SAP01-ZZZ.json -t sap_system
 ```
-
-

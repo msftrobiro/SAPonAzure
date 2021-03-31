@@ -1,9 +1,9 @@
 ﻿# ![SAP Deployment Automation Framework](../assets/images/UnicornSAPBlack64x64.png)**SAP Deployment Automation Framework** #
-# Running the automation from a Windows PC
+# Running the automation from a Windows PC #
 
 To run the automation from a local Windows PC, following components need to be installed.
 
-## **Pre-Requisites**
+## **Pre-Requisites** ##
 
 1. **Terraform** - Terraform can be downloaded from [Download Terraform - Terraform by HashiCorp](https://www.terraform.io/downloads.html). Once downloaded and extracted, ensure that the Terraform.exe executable is in a directory which is included in the SYSTEM PATH variable.
 2. **Git** - Git can be installed from [Git (git-scm.com)](https://git-scm.com/)
@@ -11,7 +11,7 @@ To run the automation from a local Windows PC, following components need to be i
 4. **Azure PowerShell** - Azure PowerShell can be installed from [Install Azure PowerShell with PowerShellGet | Microsoft Docs](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps?view=azps-5.5.0)
 5. **The latest Azure PowerShell modules** - If you already have Azure PowerShell modules, you can update to the latest version from here [Update the Azure PowerShell module](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps?view=azps-5.5.0#update-the-azure-powershell-module)
 
-## **Setting up the samples for execution**
+## **Setting up the samples for execution** ##
 
 Once the pre-requisites are met, proceed with the next steps.
 
@@ -34,7 +34,7 @@ Once the pre-requisites are met, proceed with the next steps.
 
 6. Kindly note, that triggering the deployment will need the Service Principal details (application id, secret and tenant ID)
 
-## **Listing the contents of the deployment**
+## **Listing the contents of the deployment** ##
 
 For a highlevel overview of what will be deployed use the Read-SAPDeploymentTemplate cmdlet to list the resources deployed by the deployment. **Note** The list does not contain all artifacts
 
@@ -122,7 +122,7 @@ A sample output is listed below
 
 ```
 
-## **Preparing the region**
+## **Preparing the region** ##
 
 This step will deploy the deployment infrastructure and the shared library to the region specified in the parameter files.
 
@@ -135,16 +135,16 @@ Import-Module  C:\Azure_SAP_Automated_Deployment\sap-hana\deploy\scripts\pwsh\SA
 For preparing the region (Deployer, Library) use the New-SAPAutomationRegion cmdlet
 
 ```PowerShell
-New-SAPAutomationRegion -DeployerParameterfile .\DEPLOYER\DEV-WEEU-DEP00-INFRASTRUCTURE\DEV-WEEU-DEP00-INFRASTRUCTURE.json  -LibraryParameterfile .\LIBRARY\DEV-WEEU-SAP_LIBRARY\DEV-WEEU-SAP_LIBRARY.json
+New-SAPAutomationRegion -DeployerParameterfile .\DEPLOYER\MGMT-WEEU-DEP00-INFRASTRUCTURE\MGMT-WEEU-DEP00-INFRASTRUCTURE.json  -LibraryParameterfile .\LIBRARY\MGMT-WEEU-SAP_LIBRARY\MGMT-WEEU-SAP_LIBRARY.json
 ```
 
 The script will deploy the deployment infrastructure and create the Azure keyvault for storing the Service Principal details.
 
-When prompted for the environment details enter "DEV" and then enter the Service Principal details.
+If prompted for the environment details enter "MGMT" and enter the Service Principal details.
 
 The script will them deploy the rest of the resources required.
 
-## **Preparing the "DEV" environment**
+## **Preparing the "DEV" environment** ##
 
 For deploying the SAP system navigate to the folder(LANDSCAPE/DEV-WEEU-SAP01-INFRASTRUCTURE) containing the DEV-WEEU-SAP01-INFRASTRUCTURE.json parameter file and use the New-SAPWorkloadZone cmdlet
 
@@ -152,7 +152,10 @@ For deploying the SAP system navigate to the folder(LANDSCAPE/DEV-WEEU-SAP01-INF
 New-SAPWorkloadZone -Parameterfile .\DEV-WEEU-SAP01-INFRASTRUCTURE.json
 ```
 
-## **Deploying the SAP system**
+When prompted for the Workload SPN Details choose Y and enter the Service Principal details.
+If prompted enter "MGMT" for the Deployer environment name.
+
+## **Deploying the SAP system** ##
 
 For deploying the SAP system navigate to the folder(DEV-WEEU-SAP01-ZZZ) containing the DEV-WEEU-SAP01-ZZZ.json parameter file and use the New-SAPSystem cmdlet
 
@@ -160,69 +163,8 @@ For deploying the SAP system navigate to the folder(DEV-WEEU-SAP01-ZZZ) containi
 New-SAPSystem -Parameterfile .\DEV-WEEU-SAP01-ZZZ.json -Type sap_system
 ```
 
-## **Clean up the deployment**
-
-The script below removes the two deployments and their supporting terraform files.
+## **Clean up the deployment** ##
 
 ```PowerShell
-Remove-Module SAPDeploymentUtilities -ErrorAction SilentlyContinue
-
-function Remove-TfDeploymentItems {
-    param (
-        $rgName,
-        $dirname
-    )
-
-    Write-Host "Cleaning up " $rgName " and " $dirname
-    $rg = Get-AzResourceGroup -n $rgname -ErrorAction SilentlyContinue
-    if ($null -ne $rg) {
-        Remove-AzResourceGroup -Name $rgname -Force
-        Write-Host $rgName " removed"
-    }
-
-    if (Test-Path $dirname".terraform" -PathType Container) {
-        remove-item $dirname".terraform" -Recurse
-
-        Write-Host  $dirname".terraform" " removed"
-    }
-    else {
-        Write-Host  $dirname".terraform" " not found"
-    }
-    if (Test-Path $dirname"terraform.tfstate" -PathType Leaf) {
-        remove-item $dirname"terraform.tfstate" -Recurse
-    }
-    if (Test-Path $dirname"backend.tf" -PathType Leaf) {
-        remove-item $dirname"backend.tf" -Recurse
-    }
-    if (Test-Path $dirname"terraform.tfstate.backup" -PathType Leaf) {
-        remove-item $dirname"terraform.tfstate.backup" -Recurse
-    }
-
-    Write-Host "Leaving Remove-Items"
-    return
-
-}
-
-$rgname = "DEV-WEEU-SAP00-ZZZ"
-$dirname = "SYSTEM\DEV-WEEU-SAP00-ZZZ\"
-
-Remove-TfDeploymentItems -rgName $rgname -dirname $dirname
-
-$rgname = "DEV-WEEU-SAP01-INFRASTRUCTURE"
-$dirname = "LANDSCAPE\DEV-WEEU-SAP01-INFRASTRUCTURE\"
-
-Remove-TfDeploymentItems -rgName $rgname -dirname $dirname
-
-$rgname = "WEEU-DEP00-INFRASTRUCTURE"
-$dirname = "DEPLOYER\DEV-WEEU-DEP00-INFRASTRUCTURE\"
-
-Remove-TfDeploymentItems -rgName $rgname -dirname $dirname
-
-$rgname = "WEEU-SAP_LIBRARY"
-$dirname = "LIBRARY\DEV-WEEU-SAP_LIBRARY\"
-
-Remove-TfDeploymentItems -rgName $rgname -dirname $dirname
-
-
-Get-Module -Name SAPDeploymentUtilities #should not return any result
+Remove-SAPSystem -Parameterfile .\DEV-WEEU-SAP01-ZZZ.json -Type sap_system
 ```

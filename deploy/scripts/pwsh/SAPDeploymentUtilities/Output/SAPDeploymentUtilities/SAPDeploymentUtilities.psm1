@@ -737,6 +737,9 @@ Licensed under the MIT license.
             throw "Error executing command: $Cmd"
         }
     }
+    
+    $sub = $tfstate_resource_id.Split("/")[2]
+    
 
     $Command = " init -upgrade=true -force-copy -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$key"" " + $terraform_module_directory
 
@@ -1246,22 +1249,7 @@ Licensed under the MIT license.
         $sub = Read-Host -Prompt "Please enter the subscription for the deployment"
         $iniContent[$combined]["subscription"] = $sub
         $changed = $true
-
-        $Command = " account set --sub " + $sub
-        $Cmd = "az $Command"
-        & ([ScriptBlock]::Create($Cmd)) 
-        if ($LASTEXITCODE -ne 0) {
-            throw "Error executing command: $Cmd"
-        }
-    }
-    else {
-        $Command = " account set --sub " + $sub
-        $Cmd = "az $Command"
-        & ([ScriptBlock]::Create($Cmd)) 
-        if ($LASTEXITCODE -ne 0) {
-            throw "Error executing command: $Cmd"
-        }
-    }
+   }
 
     if ($changed) {
         Out-IniFile -InputObject $iniContent -Path $fileINIPath
@@ -1304,6 +1292,8 @@ Licensed under the MIT license.
         $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"]
     }
 
+    $sub = $tfstate_resource_id.Split("/")[2]
+    
     $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\run\$Type"
 
     Write-Host -ForegroundColor green "Initializing Terraform"

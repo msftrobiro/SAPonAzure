@@ -265,6 +265,9 @@ Licensed under the MIT license.
             throw "Error executing command: $Cmd"
         }
     }
+    
+    $sub = $tfstate_resource_id.Split("/")[2]
+    
 
     $Command = " init -upgrade=true -force-copy -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$key"" " + $terraform_module_directory
 

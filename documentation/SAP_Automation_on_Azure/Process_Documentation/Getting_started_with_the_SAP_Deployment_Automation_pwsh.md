@@ -157,7 +157,7 @@ New-SAPWorkloadZone -Parameterfile .\DEV-WEEU-SAP01-INFRASTRUCTURE.json
 For deploying the SAP system navigate to the folder(DEV-WEEU-SAP01-ZZZ) containing the DEV-WEEU-SAP01-ZZZ.json parameter file and use the New-SAPSystem cmdlet
 
 ```PowerShell
-New-SAPSystem -Parameterfile .\DEV-WEEU-SAP01-ZZZ.json -Type sap\_system
+New-SAPSystem -Parameterfile .\DEV-WEEU-SAP01-ZZZ.json -Type sap_system
 ```
 
 ## **Clean up the deployment**

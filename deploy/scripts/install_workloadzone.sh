@@ -242,6 +242,9 @@ else
                 sed -i /REMOTE_STATE_RG/d  "${workload_config_information}"
                 sed -i /tfstate_resource_id/d  "${workload_config_information}"
                 sed -i /STATE_SUBSCRIPTION/d  "${workload_config_information}"
+                sed -i /deployer_tfstate_key/d  "${workload_config_information}"
+  
+                echo "deployer_tfstate_key=${deployer_tfstate_key}" >> "${workload_config_information}"
                 
                 echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> "${workload_config_information}"
                 echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${workload_config_information}"
@@ -276,9 +279,8 @@ if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
 fi
 
 if [ ! -n "${ARM_SUBSCRIPTION_ID}" ]; then
-    option="ARM_SUBSCRIPTION_ID"
-    missing
-    exit -1
+    read -p "Please provide the subscription id for the workload:" ARM_SUBSCRIPTION_ID
+    echo "subscription=${ARM_SUBSCRIPTION_ID}" >> "${workload_config_information}"
 fi
 
 if [ ! -n "${REMOTE_STATE_SA}" ]; then

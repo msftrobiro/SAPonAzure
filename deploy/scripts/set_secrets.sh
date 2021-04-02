@@ -92,7 +92,7 @@ else
         tenant_exists=0
     fi
 
-    temp=$(grep "Subscription" "${environment_config_information}")
+    temp=$(grep "subscription=" "${environment_config_information}")
     if [ ! -z "${temp}" ]
     then
         subscription=$(echo "${temp}" | cut -d= -f2)
@@ -165,8 +165,8 @@ fi
 
 if [ $subscription_exists -eq 0 ]
     then
-    sed -i /Subscription/d  "{$environment_config_information}"
-    echo "Subscription=${subscription}" >> "${environment_config_information}"
+    sed -i /subscription/d  "{$environment_config_information}"
+    echo "subscription=${subscription}" >> "${environment_config_information}"
 fi
 
 

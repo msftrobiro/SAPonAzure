@@ -78,7 +78,6 @@ landscape_tfstate_key_exists=false
 
 parameterfile_name=$(basename "${parameterfile}")
 
-
 # Read environment
 environment=$(cat "${parameterfile}" | jq .infrastructure.environment | tr -d \")
 region=$(cat "${parameterfile}" | jq .infrastructure.region | tr -d \")
@@ -96,24 +95,6 @@ then
     echo "#########################################################################################"
     exit
 fi
-az account show 
-# Checking for valid az session
-az account show > stdout.az 2>&1
-temp=$(grep "az login" stdout.az)
-if [ -n "${temp}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                           Please login using az login                                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    rm stdout.az
-    exit -1
-else
-    rm stdout.az
-fi
-
 
 #Persisting the parameters across executions
 
@@ -162,16 +143,17 @@ else
         REMOTE_STATE_SA=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
     fi
     
-    temp=$(grep "subscription" "${system_config_information}")
+    temp=$(grep "subscription=" "${system_config_information}")
+
     if [ ! -z "${temp}" ]
     then
         # Remote state storage group was specified in ~/.sap_deployment_automation library config
         ARM_SUBSCRIPTION_ID=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
     fi
-    
+
     STATE_SUBSCRIPTION=ARM_SUBSCRIPTION_ID
     
-    temp=$(grep "tfstate_resource_id" "${system_config_information}")
+    temp=$(grep -m1 "tfstate_resource_id" "${system_config_information}")
     if [ ! -z "${temp}" ]
     then
         tfstate_resource_id=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
@@ -181,7 +163,7 @@ else
         fi
     fi
     
-    temp=$(grep "STATE_SUBSCRIPTION" "${system_config_information}")
+    temp=$(grep -m1 "STATE_SUBSCRIPTION" "${system_config_information}")
     if [ ! -z "${temp}" ]
     then
         STATE_SUBSCRIPTION=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
@@ -190,7 +172,7 @@ else
     deployer_tfstate_key_parameter=''
     if [ "${deployment_system}" != sap_deployer ]
     then
-        temp=$(grep "deployer_tfstate_key" "${system_config_information}")
+        temp=$(grep -m1 "deployer_tfstate_key" "${system_config_information}")
         if [ ! -z "${temp}" ]
         then
             # Deployer state was specified in ~/.sap_deployment_automation library config
@@ -263,7 +245,6 @@ if [ ! -n "${REMOTE_STATE_SA}" ]; then
     
     echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${system_config_information}"
     
-    $(az account set --sub ${STATE_SUBSCRIPTION})
     if [ "${deployment_system}" != sap_deployer ]
     then
         tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
@@ -426,15 +407,12 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-echo $tfstate_parameter
-echo $landscape_tfstate_key_parameter
-echo $deployer_tfstate_key_parameter
-echo $terraform_module_directory
-
-terraform plan -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory > plan_output.log
+terraform plan -var-file=$parameterfile $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory > plan_output.log
 
 if ! $new_deployment; then
-    if grep "No changes" plan_output.log ; then
+    str1=$(grep "0 to add, 0 to change, 0 to destroy" plan_output.log)
+    str2=$(grep "No changes" plan_output.log)
+    if [ -n "$str1"] || [ -n "$str2" ]; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"

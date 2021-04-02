@@ -379,12 +379,20 @@ Licensed under the MIT license.
 
     $planResultsPlain = $planResults -replace '\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]', ''
 
-    if ( $planResultsPlain.Contains('Infrastructure is up-to-date')) {
+    if ( $planResultsPlain.Contains('No changes')) {
         Write-Host ""
         Write-Host -ForegroundColor Green "Infrastructure is up to date"
         Write-Host ""
         return;
     }
+
+    if ( $planResultsPlain.Contains('0 to add, 0 to change, 0 to destroy')) {
+        Write-Host ""
+        Write-Host -ForegroundColor Green "Infrastructure is up to date"
+        Write-Host ""
+        return;
+    }
+
 
     Write-Host $planResults
     if (-not $planResultsPlain.Contains('0 to change, 0 to destroy') ) {

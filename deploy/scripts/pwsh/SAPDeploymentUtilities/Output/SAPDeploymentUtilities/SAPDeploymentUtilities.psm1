@@ -854,12 +854,20 @@ Licensed under the MIT license.
 
     $planResultsPlain = $planResults -replace '\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]', ''
 
-    if ( $planResultsPlain.Contains('Infrastructure is up-to-date')) {
+    if ( $planResultsPlain.Contains('No changes')) {
         Write-Host ""
         Write-Host -ForegroundColor Green "Infrastructure is up to date"
         Write-Host ""
         return;
     }
+
+    if ( $planResultsPlain.Contains('0 to add, 0 to change, 0 to destroy')) {
+        Write-Host ""
+        Write-Host -ForegroundColor Green "Infrastructure is up to date"
+        Write-Host ""
+        return;
+    }
+
 
     Write-Host $planResults
     if (-not $planResultsPlain.Contains('0 to change, 0 to destroy') ) {
@@ -1440,11 +1448,19 @@ Licensed under the MIT license.
 function Read-KVNode {
     param(
         [Parameter(Mandatory = $true)][String]$source,
-        [Parameter(Mandatory = $true)][PSCustomObject]$kv
+        [Parameter(Mandatory = $true)][PSCustomObject]$kv,
+        [Parameter(Mandatory = $false)][bool]$CheckIDs = $false
     )
 
     if ($null -ne $kv.kv_spn_id) {
         Write-Host -ForegroundColor White ("SPN keyvault".PadRight(25, ' ') + $kv.kv_spn_id)
+        if($CheckIDs) {
+            $res = Get-AzResource -ResourceId $kv.kv_spn_id -ErrorAction SilentlyContinue
+            if($null -eq $res){
+                Write-Error "The resource" $kv.kv_spn_id "does not exist"
+            }
+        }
+
     }
     else {
         Write-Host -ForegroundColor White ("SPN keyvault".PadRight(25, ' ') + "Deployer")
@@ -1452,12 +1468,25 @@ function Read-KVNode {
 
     if ($null -ne $kv.kv_user_id) {
         Write-Host -ForegroundColor White ("User keyvault".PadRight(25, ' ') + $kv.kv_user_id)
+        if($CheckIDs) {
+            $res = Get-AzResource -ResourceId $kv.kv_user_id -ErrorAction SilentlyContinue
+            if($null -eq $res){
+                Write-Error "The resource" $kv.kv_user_id "does not exist"
+            }
+        }
     }
     else {
         Write-Host -ForegroundColor White ("User keyvault".PadRight(25, ' ') + $source)
     }
     if ($null -ne $kv.kv_prvt_id) {
         Write-Host -ForegroundColor White ("Automation keyvault".PadRight(25, ' ') + $kv.kv_prvt_id)
+        if($CheckIDs) {
+            $res = Get-AzResource -ResourceId $kv.kv_prvt_id -ErrorAction SilentlyContinue
+            if($null -eq $res){
+                Write-Error "The resource" $kv.kv_prvt_id "does not exist"
+            }
+        }
+
     }
     else {
         Write-Host -ForegroundColor White ("Automation keyvault".PadRight(25, ' ') + $source)
@@ -1467,11 +1496,18 @@ function Read-KVNode {
 function Read-OSNode {
     param(
         [Parameter(Mandatory = $true)][string]$Nodename,
-        [Parameter(Mandatory = $true)][PSCustomObject]$os
+        [Parameter(Mandatory = $true)][PSCustomObject]$os,
+        [Parameter(Mandatory = $false)][bool]$CheckIDs = $false
     )
 
     if ($null -ne $os.source_image_id) {
         Write-Host -ForegroundColor White (($Nodename + " Custom image:").PadRight(25, ' ') + $os.source_image_id)
+        if($CheckIDs) {
+            $res = Get-AzResource -ResourceId $os.source_image_id -ErrorAction SilentlyContinue
+            if($null -eq $res){
+                Write-Error "The resource" $os.source_image_id "does not exist"
+            }
+        }
 
         if ($null -ne $os.os_type) {
             Write-Host -ForegroundColor White (($Nodename + " Custom image os type:").PadRight(25, ' ') + $os.os_type)
@@ -1481,8 +1517,6 @@ function Read-OSNode {
         }
     }
     else {
-        
-    
         if ($null -ne $os.publisher) {
             Write-Host -ForegroundColor White (($Nodename + " publisher:").PadRight(25, ' ') + $os.publisher)
         }
@@ -1496,17 +1530,23 @@ function Read-OSNode {
             Write-Host -ForegroundColor White (($Nodename + " version:").PadRight(25, ' ') + $os.version)
         }
     }
-
 }
 
 function Read-SubnetNode {
     param(
         [Parameter(Mandatory = $true)][string]$Nodename,
-        [Parameter(Mandatory = $true)][PSCustomObject]$subnet
+        [Parameter(Mandatory = $true)][PSCustomObject]$subnet,
+        [Parameter(Mandatory = $false)][bool]$CheckIDs = $false
     )
     
     if ($null -ne $subnet.arm_id) {
         Write-Host -ForegroundColor White (($Nodename + " subnet:").PadRight(25, ' ') + $subnet.arm_id)
+        if($CheckIDs) {
+            $res = Get-AzResource -ResourceId $subnet.arm_id -ErrorAction SilentlyContinue
+            if($null -eq $res){
+                Write-Error "The resource" $subnet.arm_id "does not exist"
+            }
+        }
     }
     else {
         if ($null -ne $subnet.name) {
@@ -1524,6 +1564,12 @@ function Read-SubnetNode {
     }
     if ($null -ne $subnet.nsg.arm_id) {
         Write-Host -ForegroundColor White (($NodeName + " subnet nsg:").PadRight(25, ' ') + $subnet.nsg.arm_id)
+        if($CheckIDs) {
+            $res = Get-AzResource -ResourceId $subnet.nsg.arm_id -ErrorAction SilentlyContinue
+            if($null -eq $res){
+                Write-Error "The resource" $subnet.nsg.arm_id "does not exist"
+            }
+        }
     }
     else {
         if ($null -ne $subnet.nsg.name) {
@@ -1532,9 +1578,7 @@ function Read-SubnetNode {
         else {
             Write-Host -ForegroundColor White (("" + $NodeName + " subnet nsg:").PadRight(25, ' ') + "(name defined by automation")    
         }
-        
     }
-
 
 }
 
@@ -1551,6 +1595,9 @@ function Read-SAPDeploymentTemplate {
 
     .PARAMETER Type
         This is the type of the system
+
+    .PARAMETER CheckIDs
+        Boolean flag indicating if the ARM Ids should be validated
 
     .EXAMPLE 
 
@@ -1586,7 +1633,8 @@ Licensed under the MIT license.
     param(
         #Parameter file
         [Parameter(Mandatory = $true)][string]$Parameterfile ,
-        [Parameter(Mandatory = $true)][string]$Type
+        [Parameter(Mandatory = $true)][string]$Type,
+        [Parameter(Mandatory = $false)][bool]$CheckIDs = $false
     )
 
     Write-Host -ForegroundColor green ""
@@ -1600,13 +1648,19 @@ Licensed under the MIT license.
 
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
 
-
     $Environment = $jsonData.infrastructure.environment
     $region = $jsonData.infrastructure.region
-    $db_zone_count = $jsonData.databases[0].zones.Length
-    $app_zone_count = $jsonData.application.app_zones.Length
-    $scs_zone_count = $jsonData.application.scs_zones.Length
-    $web_zone_count = $jsonData.application.web_zones.Length
+    $db_zone_count = 0
+    $app_zone_count = 0
+    $scs_zone_count = 0
+    $web_zone_count = 0
+
+    if ("sap_system" -eq $Type) {
+        $db_zone_count = $jsonData.databases[0].zones.Length
+        $app_zone_count = $jsonData.application.app_zones.Length
+        $scs_zone_count = $jsonData.application.scs_zones.Length
+        $web_zone_count = $jsonData.application.web_zones.Length
+    }
     $zone_count = ($db_zone_count, $app_zone_count, $scs_zone_count, $web_zone_count | Measure-Object -Max).Maximum
 
     Write-Host -ForegroundColor White "Deployment information"
@@ -1616,6 +1670,12 @@ Licensed under the MIT license.
     Write-Host "-".PadRight(120, '-')
     if ($null -ne $jsonData.infrastructure.resource_group.arm_id) {
         Write-Host -ForegroundColor White ("Resource group:".PadRight(25, ' ') + $jsonData.infrastructure.resource_group.arm_id)
+        if($CheckIDs) {
+            $res = Get-AzResource -ResourceId $jsonData.infrastructure.resource_group.arm_id -ErrorAction SilentlyContinue
+            if($null -eq $res){
+                Write-Error "The resource" $jsonData.infrastructure.resource_group.arm_id "does not exist"
+            }
+        }
     }
     else {
         if ($null -ne $jsonData.infrastructure.resource_group.name) {
@@ -1635,6 +1695,12 @@ Licensed under the MIT license.
     if ("sap_deployer" -eq $Type) {
         if ($null -ne $jsonData.infrastructure.vnets.management.armid) {
             Write-Host -ForegroundColor White ("Virtual Network:".PadRight(25, ' ') + $jsonData.infrastructure.vnets.management.armid)
+            if($CheckIDs) {
+                $res = Get-AzResource -ResourceId $jsonData.infrastructure.vnets.management.armid -ErrorAction SilentlyContinue
+                if($null -eq $res){
+                    Write-Error "The resource" $jsonData.infrastructure.vnets.management.armid "does not exist"
+                }
+            }
         }
         else {
             Write-Host -ForegroundColor White ("Virtual Network:".PadRight(25, ' ') + " (Name defined by automation")
@@ -1646,16 +1712,16 @@ Licensed under the MIT license.
             }
         }
         # Management subnet
-        Read-SubnetNode -Nodename "management" -subnet $jsonData.infrastructure.vnets.management.subnet_mgmt
+        Read-SubnetNode -Nodename "management" -subnet $jsonData.infrastructure.vnets.management.subnet_mgmt -CheckIDs $CheckIDs
 
         if ($null -ne $jsonData.infrastructure.vnets.management.subnet_fw) {
             # Web subnet
-            Read-SubnetNode -Nodename "firewall" -subnet $jsonData.infrastructure.vnets.management.subnet_fw
+            Read-SubnetNode -Nodename "firewall" -subnet $jsonData.infrastructure.vnets.management.subnet_fw -CheckIDs $CheckIDs
         }
 
         if ($null -ne $jsonData.deployers) {
             if ($null -ne $jsonData.deployers[0].os) {
-                Read-OSNode -Nodename "  Image" -os $jsonData.deployers[0].os
+                Read-OSNode -Nodename "  Image" -os $jsonData.deployers[0].os -CheckIDs $CheckIDs
             }
             if ($null -ne $jsonData.deployers[0].size) {
                 Write-Host -ForegroundColor White ("  sku:".PadRight(25, ' ') + $jsonData.deployers[0].size)    
@@ -1666,7 +1732,7 @@ Licensed under the MIT license.
         Write-Host -ForegroundColor White "Keyvault"
         Write-Host "-".PadRight(120, '-')
         if ($null -ne $jsonData.key_vault) {
-            Read-KVNode -source "Deployer Keyvault" -kv $jsonData.key_vault
+            Read-KVNode -source "Deployer Keyvault" -kv $jsonData.key_vault -CheckIDs $CheckIDs
         }
 
         if ($null -ne $jsonData.firewall_deployment) {
@@ -1681,7 +1747,7 @@ Licensed under the MIT license.
         Write-Host -ForegroundColor White "Keyvault"
         Write-Host "-".PadRight(120, '-')
         if ($null -ne $jsonData.key_vault) {
-            Read-KVNode -source "Library Keyvault" -kv $jsonData.key_vault
+            Read-KVNode -source "Library Keyvault" -kv $jsonData.key_vault -CheckIDs $CheckIDs
         }
 
     }
@@ -1694,6 +1760,13 @@ Licensed under the MIT license.
         }
         if ($null -ne $jsonData.infrastructure.vnets.sap.armid) {
             Write-Host -ForegroundColor White ("Virtual Network:".PadRight(25, ' ') + $jsonData.infrastructure.vnets.sap.armid)
+            if($CheckIDs) {
+                $res = Get-AzResource -ResourceId $jsonData.infrastructure.vnets.sap.armid -ErrorAction SilentlyContinue
+                if($null -eq $res){
+                    Write-Error "The resource" $jsonData.infrastructure.vnets.sap.armid "does not exist"
+                }
+            }
+
         }
         else {
             Write-Host -ForegroundColor White ("Virtual Network:".PadRight(25, ' ') + " (Name defined by automation")
@@ -1708,7 +1781,7 @@ Licensed under the MIT license.
         Write-Host -ForegroundColor White "Keyvault"
         Write-Host "-".PadRight(120, '-')
         if ($null -ne $jsonData.key_vault) {
-            Read-KVNode -source "Workload keyvault" -kv $jsonData.key_vault
+            Read-KVNode -source "Workload keyvault" -kv $jsonData.key_vault -CheckIDs $CheckIDs
         }
 
     }
@@ -1725,15 +1798,15 @@ Licensed under the MIT license.
         }
 
         # Admin subnet
-        Read-SubnetNode -Nodename "admin" -subnet $jsonData.infrastructure.vnets.sap.subnet_admin
+        Read-SubnetNode -Nodename "admin" -subnet $jsonData.infrastructure.vnets.sap.subnet_admin -CheckIDs $CheckIDs
         # Database subnet
-        Read-SubnetNode -Nodename "database" -subnet $jsonData.infrastructure.vnets.sap.subnet_db
+        Read-SubnetNode -Nodename "database" -subnet $jsonData.infrastructure.vnets.sap.subnet_db -CheckIDs $CheckIDs
         # Application subnet
-        Read-SubnetNode -Nodename "database" -subnet $jsonData.infrastructure.vnets.sap.subnet_app
+        Read-SubnetNode -Nodename "database" -subnet $jsonData.infrastructure.vnets.sap.subnet_app -CheckIDs $CheckIDs
 
         if ($null -ne $jsonData.infrastructure.vnets.sap.subnet_web) {
             # Web subnet
-            Read-SubnetNode -Nodename "web" -subnet $jsonData.infrastructure.vnets.sap.subnet_web
+            Read-SubnetNode -Nodename "web" -subnet $jsonData.infrastructure.vnets.sap.subnet_web -CheckIDs $CheckIDs
         }
         
         Write-Host
@@ -1751,7 +1824,7 @@ Licensed under the MIT license.
     
         Write-Host -ForegroundColor White ("Number of servers:".PadRight(25, ' ') + $jsonData.databases[0].dbnodes.Length)
         Write-Host -ForegroundColor White ("Database sizing:".PadRight(25, ' ') + $jsonData.databases[0].size)
-        Read-OSNode -Nodename "Image" -os $jsonData.databases[0].os
+        Read-OSNode -Nodename "Image" -os $jsonData.databases[0].os -CheckIDs $CheckIDs
         if ($jsonData.databases[0].zones.Length -gt 0) {
             Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Zonal")    
             $Zones = "["
@@ -1808,7 +1881,7 @@ Licensed under the MIT license.
             Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(name defined by automation")
         }
         Write-Host -ForegroundColor White ("  Number of servers:".PadRight(25, ' ') + $jsonData.application.application_server_count)    
-        Read-OSNode -Nodename "  Image" -os $jsonData.application.os
+        Read-OSNode -Nodename "  Image" -os $jsonData.application.os -CheckIDs $CheckIDs
         if ($null -ne $jsonData.application.app_sku) {
             Write-Host -ForegroundColor White ("  sku:".PadRight(25, ' ') + $jsonData.application.app_sku)    
         }
@@ -1837,10 +1910,10 @@ Licensed under the MIT license.
             Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(name defined by automation")
         }
         if ($null -ne $jsonData.application.scs_os) {
-            Read-OSNode -Nodename "  Image" -os $jsonData.application.scs_os
+            Read-OSNode -Nodename "  Image" -os $jsonData.application.scs_os -CheckIDs $CheckIDs
         }
         else {
-            Read-OSNode -Nodename "  Image" -os $jsonData.application.os
+            Read-OSNode -Nodename "  Image" -os $jsonData.application.os -CheckIDs $CheckIDs
         }
         if ($null -ne $jsonData.application.scs_sku) {
             Write-Host -ForegroundColor White ("  sku:".PadRight(25, ' ') + $jsonData.application.scs_sku)    
@@ -1868,10 +1941,10 @@ Licensed under the MIT license.
             Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(name defined by automation")
         }
         if ($null -ne $jsonData.application.web_os) {
-            Read-OSNode -Nodename "  Image" -os $jsonData.application.web_os
+            Read-OSNode -Nodename "  Image" -os $jsonData.application.web_os -CheckIDs $CheckIDs
         }
         else {
-            Read-OSNode -Nodename "  Image" -os $jsonData.application.os
+            Read-OSNode -Nodename "  Image" -os $jsonData.application.os -CheckIDs $CheckIDs
         }
         if ($null -ne $jsonData.application.web_sku) {
             Write-Host -ForegroundColor White ("  sku:".PadRight(25, ' ') + $jsonData.application.web_sku)    
@@ -1894,13 +1967,9 @@ Licensed under the MIT license.
         Write-Host -ForegroundColor White "Keyvault"
         Write-Host "-".PadRight(120, '-')
         if ($null -ne $jsonData.key_vault) {
-            Read-KVNode -source "Workload keyvault" -kv $jsonData.key_vault
+            Read-KVNode -source "Workload keyvault" -kv $jsonData.key_vault -CheckIDs $CheckIDs
         }
-
     }
-
-
-    
 }
 function Remove-SAPSystem {
     <#

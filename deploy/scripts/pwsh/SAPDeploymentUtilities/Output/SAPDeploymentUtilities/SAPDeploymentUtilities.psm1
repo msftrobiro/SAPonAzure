@@ -185,8 +185,11 @@ Licensed under the MIT license.
         
     }
 
-
-
+    $ctx= Get-AzContext
+    if($null -eq $ctx) {
+        Connect-AzAccount
+    }
+ 
     $errors_occurred = $false
     Set-Location -Path $fInfo.Directory.FullName
     try {
@@ -550,15 +553,18 @@ Licensed under the MIT license.
     Write-Host -ForegroundColor green ""
     Write-Host -ForegroundColor green "Deploying the" $Type
 
+    Add-Content -Path "deployment.log" -Value ("Deploying the: " + $Type)
+    Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
+
+
     $fInfo = Get-ItemProperty -Path $Parameterfile
 
     if ($false -eq $fInfo.Exists ) {
         Write-Error ("File " + $Parameterfile + " does not exist")
+        Add-Content -Path "deployment.log" -Value ("File " + $Parameterfile + " does not exist")
         return
     }
 
-    Add-Content -Path "deployment.log" -Value ("Deploying the: " + $Type)
-    Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
     
     $mydocuments = [environment]::getfolderpath("mydocuments")
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
@@ -568,6 +574,7 @@ Licensed under the MIT license.
     if ($Parameterfile.StartsWith(".\")) {
         if ($Parameterfile.Substring(2).Contains("\")) {
             Write-Error "Please execute the script from the folder containing the json file and not from a parent folder"
+            Add-Content -Path "deployment.log" -Value "Please execute the script from the folder containing the json file and not from a parent folder"
             return;
         }
     }
@@ -577,7 +584,12 @@ Licensed under the MIT license.
     if ($Type -eq "sap_landscape") {
         $landscapeKey = $key
     }
-  
+
+    
+    $ctx= Get-AzContext
+    if($null -eq $ctx) {
+        Connect-AzAccount 
+    }
     
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
 
@@ -1215,6 +1227,11 @@ Licensed under the MIT license.
     $changed = $false
 
     $landscape_tfstate_key = $fInfo.Name.replace(".json", ".terraform.tfstate")
+
+    $ctx= Get-AzContext
+    if($null -eq $ctx) {
+        Connect-AzAccount 
+    }
 
     if ($null -eq $iniContent[$combined]) {
         Write-Error "The Terraform state information is not available"
@@ -2128,17 +2145,26 @@ Licensed under the MIT license.
         $iniContent += @{$combined = $Category1 }
     }
 
-    $UserUPN = ([ADSI]"LDAP://<SID=$([System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value)>").UserPrincipalName
-    If ($UserUPN) {
-        $UPNAsString = $UserUPN.ToString()
-        Set-AzKeyVaultAccessPolicy -VaultName $VaultName -UserPrincipalName $UPNAsString -PermissionsToSecrets Get, List, Set, Recover, Restore
-    }
-
+    
     # Subscription
     $sub = $iniContent[$combined]["subscription"]
     if ($null -eq $sub -or "" -eq $sub) {
         $sub = Read-Host -Prompt "Please enter the subscription for the key vault"
         $iniContent[$combined]["subscription"] = $sub
+    }
+
+    $ctx= Get-AzContext
+    if($null -eq $ctx) {
+        Connect-AzAccount -Subscription $sub
+    }
+ 
+    
+
+
+    $UserUPN = ([ADSI]"LDAP://<SID=$([System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value)>").UserPrincipalName
+    If ($UserUPN) {
+        $UPNAsString = $UserUPN.ToString()
+        Set-AzKeyVaultAccessPolicy -VaultName $VaultName -UserPrincipalName $UPNAsString -PermissionsToSecrets Get, List, Set, Recover, Restore
     }
 
     Write-Host "Setting the secrets for " $Environment

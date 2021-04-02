@@ -96,7 +96,7 @@ then
     echo "#########################################################################################"
     exit
 fi
-
+az account show 
 # Checking for valid az session
 az account show > stdout.az 2>&1
 temp=$(grep "az login" stdout.az)
@@ -161,16 +161,16 @@ else
         # Remote state storage group was specified in ~/.sap_deployment_automation library config
         REMOTE_STATE_SA=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
     fi
-
+    
     temp=$(grep "subscription" "${system_config_information}")
     if [ ! -z "${temp}" ]
     then
         # Remote state storage group was specified in ~/.sap_deployment_automation library config
         ARM_SUBSCRIPTION_ID=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
     fi
-
+    
     STATE_SUBSCRIPTION=ARM_SUBSCRIPTION_ID
-
+    
     temp=$(grep "tfstate_resource_id" "${system_config_information}")
     if [ ! -z "${temp}" ]
     then
@@ -180,7 +180,6 @@ else
             tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
         fi
     fi
-    
     
     temp=$(grep "STATE_SUBSCRIPTION" "${system_config_information}")
     if [ ! -z "${temp}" ]
@@ -228,13 +227,11 @@ else
             landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
             landscape_tfstate_key_exists=true
             echo "landscape_tfstate_key=${landscape_tfstate_key}" >> $system_config_information
-
+            
             landscape_tfstate_key_exists=true
         fi
     fi
-    
 fi
-
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     option="DEPLOYMENT_REPO_PATH"
@@ -266,7 +263,11 @@ if [ ! -n "${REMOTE_STATE_SA}" ]; then
     
     echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${system_config_information}"
     
-    tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+    $(az account set --sub ${STATE_SUBSCRIPTION})
+    if [ "${deployment_system}" != sap_deployer ]
+    then
+        tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+    fi
     
 fi
 
@@ -353,15 +354,14 @@ else
         answer=${ans^^}
         if [ $answer == 'Y' ]; then
             ok_to_proceed=true
-            
         else
             exit 1
         fi
-        terraform init -upgrade=true $terraform_module_directory
+
+        terraform init -upgrade=true -var-file="${parameterfile}" $terraform_module_directory
         check_output=1
         
     fi
-    
 fi
 
 if [ 1 == $check_output ]
@@ -425,6 +425,11 @@ echo "#                             Running Terraform plan                      
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
+
+echo $tfstate_parameter
+echo $landscape_tfstate_key_parameter
+echo $deployer_tfstate_key_parameter
+echo $terraform_module_directory
 
 terraform plan -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory > plan_output.log
 

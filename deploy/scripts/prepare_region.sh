@@ -290,6 +290,7 @@ if [ $? -eq 255 ]
    then
    exit $?
 fi 
+"./post_deployment.sh"
 cd "${curdir}"
 
 read -p "Do you want to specify the SPN Details Y/N?"  ans

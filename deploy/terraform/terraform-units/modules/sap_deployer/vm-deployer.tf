@@ -130,9 +130,9 @@ resource "null_resource" "prepare-deployer" {
     inline = local.deployers[count.index].os.source_image_id != "" ? [] : [
       // Prepare folder structure
       "mkdir -p $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/LOCAL/${azurerm_resource_group.deployer[0].name}",
-      "mkdir $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/SAP_LIBRARY",
-      "mkdir $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/SAP_SYSTEM",
-      "mkdir $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/SAP_LANDSCAPE",
+      "mkdir $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/LIBRARY",
+      "mkdir $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/SYSTEM",
+      "mkdir $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/LANDSCAPE",
       "mkdir $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/DEPLOYER",
       // Clones project repository
       "git clone https://github.com/Azure/sap-hana.git $HOME/Azure_SAP_Automated_Deployment/sap-hana",
@@ -150,6 +150,7 @@ resource "null_resource" "prepare-deployer" {
       "sudo sh -c \"echo export ARM_USE_MSI=true >> /etc/profile.d/deploy_server.sh\"",
       "sudo sh -c \"echo export ARM_SUBSCRIPTION_ID=${data.azurerm_subscription.primary.subscription_id} >> /etc/profile.d/deploy_server.sh\"",
       "sudo sh -c \"echo export ARM_TENANT_ID=${data.azurerm_subscription.primary.tenant_id} >> /etc/profile.d/deploy_server.sh\"",
+      "sudo sh -c \"echo export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-hana/ >> /etc/profile.d/deploy_server.sh\"",
       "sudo sh -c \"echo az login --identity --output none >> /etc/profile.d/deploy_server.sh\"",
       // Set env for ansible
       "sudo sh -c \"echo export ANSIBLE_HOST_KEY_CHECKING=False >> /etc/profile.d/deploy_server.sh\"",

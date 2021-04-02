@@ -78,15 +78,18 @@ Licensed under the MIT license.
     Write-Host -ForegroundColor green ""
     Write-Host -ForegroundColor green "Deploying the" $Type
 
+    Add-Content -Path "deployment.log" -Value ("Deploying the: " + $Type)
+    Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
+
+
     $fInfo = Get-ItemProperty -Path $Parameterfile
 
     if ($false -eq $fInfo.Exists ) {
         Write-Error ("File " + $Parameterfile + " does not exist")
+        Add-Content -Path "deployment.log" -Value ("File " + $Parameterfile + " does not exist")
         return
     }
 
-    Add-Content -Path "deployment.log" -Value ("Deploying the: " + $Type)
-    Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
     
     $mydocuments = [environment]::getfolderpath("mydocuments")
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
@@ -96,6 +99,7 @@ Licensed under the MIT license.
     if ($Parameterfile.StartsWith(".\")) {
         if ($Parameterfile.Substring(2).Contains("\")) {
             Write-Error "Please execute the script from the folder containing the json file and not from a parent folder"
+            Add-Content -Path "deployment.log" -Value "Please execute the script from the folder containing the json file and not from a parent folder"
             return;
         }
     }
@@ -105,7 +109,12 @@ Licensed under the MIT license.
     if ($Type -eq "sap_landscape") {
         $landscapeKey = $key
     }
-  
+
+    
+    $ctx= Get-AzContext
+    if($null -eq $ctx) {
+        Connect-AzAccount 
+    }
     
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
 

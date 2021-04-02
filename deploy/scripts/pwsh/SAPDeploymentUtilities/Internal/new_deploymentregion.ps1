@@ -99,8 +99,11 @@ Licensed under the MIT license.
         
     }
 
-
-
+    $ctx= Get-AzContext
+    if($null -eq $ctx) {
+        Connect-AzAccount
+    }
+ 
     $errors_occurred = $false
     Set-Location -Path $fInfo.Directory.FullName
     try {

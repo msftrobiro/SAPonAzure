@@ -40,6 +40,7 @@
     "region": "westeurope",
     "vnets": {
       "sap": {
+        "name": "SAP01",
         "subnet_admin": {
           "prefix": "10.110.0.0/27"
         },

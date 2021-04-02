@@ -85,17 +85,26 @@ Licensed under the MIT license.
         $iniContent += @{$combined = $Category1 }
     }
 
-    $UserUPN = ([ADSI]"LDAP://<SID=$([System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value)>").UserPrincipalName
-    If ($UserUPN) {
-        $UPNAsString = $UserUPN.ToString()
-        Set-AzKeyVaultAccessPolicy -VaultName $VaultName -UserPrincipalName $UPNAsString -PermissionsToSecrets Get, List, Set, Recover, Restore
-    }
-
+    
     # Subscription
     $sub = $iniContent[$combined]["subscription"]
     if ($null -eq $sub -or "" -eq $sub) {
         $sub = Read-Host -Prompt "Please enter the subscription for the key vault"
         $iniContent[$combined]["subscription"] = $sub
+    }
+
+    $ctx= Get-AzContext
+    if($null -eq $ctx) {
+        Connect-AzAccount -Subscription $sub
+    }
+ 
+    
+
+
+    $UserUPN = ([ADSI]"LDAP://<SID=$([System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value)>").UserPrincipalName
+    If ($UserUPN) {
+        $UPNAsString = $UserUPN.ToString()
+        Set-AzKeyVaultAccessPolicy -VaultName $VaultName -UserPrincipalName $UPNAsString -PermissionsToSecrets Get, List, Set, Recover, Restore
     }
 
     Write-Host "Setting the secrets for " $Environment

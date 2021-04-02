@@ -89,6 +89,11 @@ Licensed under the MIT license.
 
     $landscape_tfstate_key = $fInfo.Name.replace(".json", ".terraform.tfstate")
 
+    $ctx= Get-AzContext
+    if($null -eq $ctx) {
+        Connect-AzAccount 
+    }
+
     if ($null -eq $iniContent[$combined]) {
         Write-Error "The Terraform state information is not available"
 

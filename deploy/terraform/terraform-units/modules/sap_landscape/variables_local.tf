@@ -11,18 +11,23 @@ variable "service_principal" {
   description = "Current service principal used to authenticate to Azure"
 }
 
-variable naming {
+variable "naming" {
   description = "Defines the names for the resources"
+}
+
+variable "use_deployer" {
+  description = "Use the deployer"
 }
 
 locals {
   // Resources naming
-  vnet_prefix              = var.naming.prefix.VNET
-  storageaccount_name      = var.naming.storageaccount_names.VNET
-  landscape_keyvault_names = var.naming.keyvault_names.VNET
-  sid_keyvault_names       = var.naming.keyvault_names.SDU
-  virtualmachine_names     = var.naming.virtualmachine_names.ISCSI_COMPUTERNAME
-  resource_suffixes        = var.naming.resource_suffixes
+  vnet_prefix                 = var.naming.prefix.VNET
+  storageaccount_name         = var.naming.storageaccount_names.VNET.landscape_storageaccount_name
+  witness_storageaccount_name = var.naming.storageaccount_names.VNET.witness_storageaccount_name
+  landscape_keyvault_names    = var.naming.keyvault_names.VNET
+  sid_keyvault_names          = var.naming.keyvault_names.SDU
+  virtualmachine_names        = var.naming.virtualmachine_names.ISCSI_COMPUTERNAME
+  resource_suffixes           = var.naming.resource_suffixes
 }
 
 locals {
@@ -32,11 +37,9 @@ locals {
   region = try(local.var_infra.region, "")
   prefix = try(var.infrastructure.resource_group.name, var.naming.prefix.VNET)
 
-  // Retrieve information about Deployer from tfstate file
   deployer_tfstate = var.deployer_tfstate
-  vnet_mgmt        = local.deployer_tfstate.vnet_mgmt
-  subnet_mgmt      = local.deployer_tfstate.subnet_mgmt
-  nsg_mgmt         = local.deployer_tfstate.nsg_mgmt
+  vnet_mgmt_id     = try(local.deployer_tfstate.vnet_mgmt_id, try(local.deployer_tfstate.vnet_mgmt.id, ""))
+  firewall_ip = try(var.deployer_tfstate.firewall_ip, "")
 
   // Resource group
   var_rg    = try(local.var_infra.resource_group, {})
@@ -59,6 +62,7 @@ locals {
       "sku"       = try(local.var_iscsi.os.sku, "gen1")
       "version"   = try(local.var_iscsi.os.version, "latest")
   })
+
   iscsi_auth_type     = local.enable_iscsi ? try(local.var_iscsi.authentication.type, "key") : ""
   iscsi_auth_username = local.enable_iscsi ? (local.iscsi_username_exist ? data.azurerm_key_vault_secret.iscsi_username[0].value : try(local.var_iscsi.authentication.username, "azureadm")) : ""
   iscsi_nic_ips       = local.sub_iscsi_exists ? try(local.var_iscsi.iscsi_nic_ips, []) : []
@@ -87,13 +91,13 @@ locals {
   var_vnet_sap    = try(local.var_infra.vnets.sap, {})
   vnet_sap_arm_id = try(local.var_vnet_sap.arm_id, "")
   vnet_sap_exists = length(local.vnet_sap_arm_id) > 0 ? true : false
-  vnet_sap_name   = local.vnet_sap_exists ? try(split("/", local.vnet_sap_arm_id)[8], "") : try(local.var_vnet_sap.name, format("%s%s", local.vnet_prefix, local.resource_suffixes.vnet))
+  vnet_sap_name   = local.vnet_sap_exists ? try(split("/", local.vnet_sap_arm_id)[8], "") : format("%s%s", local.vnet_prefix, local.resource_suffixes.vnet)
   vnet_sap_addr   = local.vnet_sap_exists ? "" : try(local.var_vnet_sap.address_space, "")
 
   // By default, Ansible ssh key for SID uses generated public key. Provide sshkey.path_to_public_key and path_to_private_key overides it
-  
-  sid_public_key      = local.sid_key_exist ? data.azurerm_key_vault_secret.sid_pk[0].value : try(file(var.authentication.path_to_public_key), tls_private_key.sid[0].public_key_openssh) 
-  sid_private_key     = local.sid_key_exist ? data.azurerm_key_vault_secret.sid_ppk[0].value : try(file(var.authentication.path_to_private_key), tls_private_key.sid[0].private_key_pem) 
+
+  sid_public_key  = local.sid_key_exist ? data.azurerm_key_vault_secret.sid_pk[0].value : try(file(var.authentication.path_to_public_key), tls_private_key.sid[0].public_key_openssh)
+  sid_private_key = local.sid_key_exist ? data.azurerm_key_vault_secret.sid_ppk[0].value : try(file(var.authentication.path_to_private_key), tls_private_key.sid[0].private_key_pem)
 
   // iSCSI subnet
   var_sub_iscsi    = try(local.var_vnet_sap.subnet_iscsi, null)
@@ -160,7 +164,7 @@ locals {
   )
 
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of creating new key vaults
-  
+
   user_key_vault_id = try(var.key_vault.kv_user_id, "")
   prvt_key_vault_id = try(var.key_vault.kv_prvt_id, "")
   user_kv_exist     = length(local.user_key_vault_id) > 0
@@ -173,9 +177,9 @@ locals {
   input_sid_private_key_secret_name = try(var.key_vault.kv_sid_sshkey_prvt, "")
   sid_key_exist                     = try(length(local.input_sid_public_key_secret_name) > 0, false)
 
-  input_sid_username    = try(var.authentication.username, "azureadm")
-  input_sid_password    = length(try(var.authentication.password,"")) > 0 ? var.authentication.password : random_password.created_password.result
-  
+  input_sid_username = try(var.authentication.username, "azureadm")
+  input_sid_password = length(try(var.authentication.password, "")) > 0 ? var.authentication.password : random_password.created_password.result
+
 
   input_iscsi_public_key_secret_name  = try(var.key_vault.kv_iscsi_sshkey_pub, "")
   input_iscsi_private_key_secret_name = try(var.key_vault.kv_iscsi_sshkey_prvt, "")
@@ -188,13 +192,13 @@ locals {
   sid_ppk_name = local.sid_key_exist ? local.input_sid_private_key_secret_name : format("%s-sid-sshkey", local.prefix)
   sid_pk_name  = local.sid_key_exist ? local.input_sid_public_key_secret_name : format("%s-sid-sshkey-pub", local.prefix)
 
-  
-  input_sid_username_secret_name    = try(var.key_vault.kv_sid_username, "")
-  input_sid_password_secret_name    = try(var.key_vault.kv_sid_pwd, "")
-  sid_credentials_secret_exist      = length(local.input_sid_username_secret_name) > 0
 
-  sid_username_secret_name = local.sid_credentials_secret_exist ? local.input_sid_username_secret_name : trimprefix(format("%s-sid-username", local.prefix),"-")
-  sid_password_secret_name = local.sid_credentials_secret_exist ? local.input_sid_password_secret_name : trimprefix(format("%s-sid-password", local.prefix),"-")
+  input_sid_username_secret_name = try(var.key_vault.kv_sid_username, "")
+  input_sid_password_secret_name = try(var.key_vault.kv_sid_pwd, "")
+  sid_credentials_secret_exist   = length(local.input_sid_username_secret_name) > 0
+
+  sid_username_secret_name = local.sid_credentials_secret_exist ? local.input_sid_username_secret_name : trimprefix(format("%s-sid-username", local.prefix), "-")
+  sid_password_secret_name = local.sid_credentials_secret_exist ? local.input_sid_password_secret_name : trimprefix(format("%s-sid-password", local.prefix), "-")
 
   iscsi_ppk_name      = local.iscsi_key_exist ? local.input_iscsi_private_key_secret_name : format("%s-iscsi-sshkey", local.prefix)
   iscsi_pk_name       = local.iscsi_key_exist ? local.input_iscsi_public_key_secret_name : format("%s-iscsi-sshkey-pub", local.prefix)

@@ -1,6 +1,6 @@
 {
   "infrastructure": {
-    "region": "eastus",
+    "region": "westeurope",
     "environment": "np",
     "vnets": {
       "management": {
@@ -11,5 +11,12 @@
         }
       }
     }
-  }
+  },
+  "deployers": [
+    {
+      "size": "Standard_D4ds_v4",
+      "disk_type": "Premium_LRS",
+      "use_DHCP": true
+    }
+  ]
 }

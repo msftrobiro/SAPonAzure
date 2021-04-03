@@ -1,0 +1,22 @@
+{
+    "authentication": {
+        "username": "azureadm"
+    },
+    "infrastructure": {
+        "environment": "PROD",
+        "region": "westeurope",
+        "vnets": {
+            "sap": {
+                "name" :"SAP00",
+                "arm_id": "<arm_id>"
+            }
+        }
+    },
+    "options": {},
+    "key_vault" : 
+    {
+        "kv_user_id": "<arm_id>",
+        "kv_prvt_id": "<arm_id>",
+        "kv_spn_id": "<arm_id>"
+    }
+}

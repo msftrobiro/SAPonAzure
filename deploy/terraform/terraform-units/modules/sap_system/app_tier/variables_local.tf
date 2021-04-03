@@ -22,7 +22,7 @@ variable "ppg" {
   description = "Details of the proximity placement group"
 }
 
-variable naming {
+variable "naming" {
   description = "Defines the names for the resources"
 }
 
@@ -47,6 +47,14 @@ variable "sid_kv_user_id" {
 
 variable "sdu_public_key" {
   description = "Public key used for authentication"
+}
+
+variable "route_table_id" {
+  description = "Route table (if any) id"
+}
+
+variable "firewall_id" {
+  description = "Firewall (if any) id"
 }
 
 variable "sid_password" {
@@ -81,6 +89,13 @@ locals {
   //Allowing changing the base for indexing, default is zero-based indexing, if customers want the first disk to start with 1 they would change this
   offset = try(var.options.resource_offset, 0)
 
+  //Flag to control if nsg is creates in virtual network resource group
+  nsg_asg_with_vnet = try(var.options.nsg_asg_with_vnet, false) 
+
+  //Allowing to keep the old nic order
+  legacy_nic_order = try(var.options.legacy_nic_order, false)
+
+
   faultdomain_count = try(tonumber(compact(
     [for pair in local.faults :
       upper(pair.Location) == upper(local.region) ? pair.MaximumFaultDomainCount : ""
@@ -89,19 +104,6 @@ locals {
   sid     = upper(try(var.application.sid, ""))
   prefix  = try(var.infrastructure.resource_group.name, trimspace(var.naming.prefix.SDU))
   rg_name = try(var.infrastructure.resource_group.name, format("%s%s", local.prefix, local.resource_suffixes.sdu_rg))
-
-  // Zones
-  app_zones            = try(var.application.app_zones, [])
-  app_zonal_deployment = length(local.app_zones) > 0 ? true : false
-  app_zone_count       = length(local.app_zones)
-
-  scs_zones            = try(var.application.scs_zones, [])
-  scs_zonal_deployment = length(local.scs_zones) > 0 ? true : false
-  scs_zone_count       = length(local.scs_zones)
-
-  web_zones            = try(var.application.web_zones, [])
-  web_zonal_deployment = length(local.web_zones) > 0 ? true : false
-  web_zone_count       = length(local.web_zones)
 
   sid_auth_type        = try(var.application.authentication.type, upper(local.app_ostype) == "LINUX" ? "key" : "password")
   enable_auth_password = local.enable_deployment && local.sid_auth_type == "password"
@@ -114,10 +116,11 @@ locals {
   }
 
   // SAP vnet
-  vnet_sap                     = try(var.vnet_sap, {})
-  vnet_sap_name                = try(local.vnet_sap.name, "")
-  vnet_sap_resource_group_name = try(local.vnet_sap.resource_group_name, "")
-  vnet_sap_address_space       = try(local.vnet_sap.address_space, [])
+  vnet_sap                         = try(var.vnet_sap, {})
+  vnet_sap_name                    = try(local.vnet_sap.name, "")
+  vnet_sap_resource_group_name     = try(local.vnet_sap.resource_group_name, "")
+  vnet_sap_resource_group_location = try(local.vnet_sap.location, "")
+  vnet_sap_address_space           = try(local.vnet_sap.address_space, [])
 
   // APP subnet
   var_sub_app    = try(var.infrastructure.vnets.sap.subnet_app, {})
@@ -127,7 +130,8 @@ locals {
     try(split("/", local.sub_app_arm_id)[10], "")) : (
     try(local.var_sub_app.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet))
   )
-  sub_app_prefix = try(local.var_sub_app.prefix, "")
+
+  sub_app_prefix = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] : try(local.var_sub_app.prefix, "")
 
   // APP NSG
   var_sub_app_nsg    = try(local.var_sub_app.nsg, {})
@@ -149,7 +153,7 @@ locals {
     try(local.sub_web.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet))
   )
 
-  sub_web_prefix = try(local.sub_web.prefix, "")
+  sub_web_prefix = local.sub_web_exists ? data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0] : try(local.sub_web.prefix, "")
   sub_web_deployed = try(local.sub_web_defined ? (
     local.sub_web_exists ? data.azurerm_subnet.subnet_sap_web[0] : azurerm_subnet.subnet_sap_web[0]) : (
     local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0] : azurerm_subnet.subnet_sap_app[0]), null
@@ -169,6 +173,12 @@ locals {
     local.sub_app_nsg_exists ? data.azurerm_network_security_group.nsg_app[0] : azurerm_network_security_group.nsg_app[0]), null
   )
 
+  firewall_exists = length(var.firewall_id) > 0
+  firewall_name   = local.firewall_exists ? try(split("/", var.firewall_id)[8], "") : ""
+  firewall_rgname = local.firewall_exists ? try(split("/", var.firewall_id)[4], "") : ""
+
+  firewall_service_tags = format("AzureCloud.%s", local.region)
+
   application_sid          = try(var.application.sid, "")
   enable_deployment        = try(var.application.enable_deployment, false)
   scs_instance_number      = try(var.application.scs_instance_number, "01")
@@ -177,15 +187,21 @@ locals {
   application_server_count = try(var.application.application_server_count, 0)
   scs_server_count         = try(var.application.scs_server_count, 1) * (local.scs_high_availability ? 2 : 1)
   webdispatcher_count      = try(var.application.webdispatcher_count, 0)
-  vm_sizing                = try(var.application.vm_sizing, "Default")
-  app_nic_ips              = try(var.application.app_nic_ips, [])
-  app_admin_nic_ips        = try(var.application.app_admin_nic_ips, [])
-  scs_lb_ips               = try(var.application.scs_lb_ips, [])
-  scs_nic_ips              = try(var.application.scs_nic_ips, [])
-  scs_admin_nic_ips        = try(var.application.scs_admin_nic_ips, [])
-  web_lb_ips               = try(var.application.web_lb_ips, [])
-  web_nic_ips              = try(var.application.web_nic_ips, [])
-  web_admin_nic_ips        = try(var.application.web_admin_nic_ips, [])
+
+  app_nic_ips       = try(var.application.app_nic_ips, [])
+  app_admin_nic_ips = try(var.application.app_admin_nic_ips, [])
+  scs_lb_ips        = try(var.application.scs_lb_ips, [])
+  scs_nic_ips       = try(var.application.scs_nic_ips, [])
+  scs_admin_nic_ips = try(var.application.scs_admin_nic_ips, [])
+  web_lb_ips        = try(var.application.web_lb_ips, [])
+  web_nic_ips       = try(var.application.web_nic_ips, [])
+  web_admin_nic_ips = try(var.application.web_admin_nic_ips, [])
+
+  app_size = try(var.application.app_sku, "")
+  scs_size = try(var.application.scs_sku, local.app_size)
+  web_size = try(var.application.web_sku, local.app_size)
+
+  vm_sizing = length(local.app_size) > 0 ? "New" : "Default"
 
   use_DHCP = try(var.application.use_DHCP, false)
 
@@ -209,8 +225,8 @@ locals {
   // OS image for all SCS VMs
   // If custom image is used, we do not overwrite os reference with default value
   // If no publisher or no custom image is specified use the custom image from the app if specified
-  scs_custom_image = try(var.application.scs_os.source_image_id, "") == "" && ! local.app_custom_image ? false : true
-  scs_ostype       = try(var.application.scs_os.os_type, local.app_ostype)
+  scs_custom_image = try(var.application.scs_os.source_image_id, "") == "" && !local.app_custom_image ? false : true
+  scs_ostype       = upper(try(var.application.scs_os.offer, "")) == "WINDOWSSERVER" ? "WINDOWS" : try(var.application.scs_os.os_type, local.app_ostype)
 
   scs_os = {
     "os_type"         = local.scs_ostype
@@ -233,9 +249,8 @@ locals {
   // OS image for all WebDispatcher VMs
   // If custom image is used, we do not overwrite os reference with default value
   // If no publisher or no custom image is specified use the custom image from the app if specified
-  web_custom_image = try(var.application.web_os.source_image_id, "") == "" && ! local.app_custom_image ? false : true
-  web_ostype       = try(var.application.web_os.os_type, local.app_ostype)
-
+  web_custom_image = try(var.application.web_os.source_image_id, "") == "" && !local.app_custom_image ? false : true
+  web_ostype       = upper(try(var.application.web_os.offer, "")) == "WINDOWSSERVER" ? "WINDOWS" : try(var.application.web_os.os_type, local.app_ostype)
   web_os = {
     "os_type"         = local.web_ostype
     "source_image_id" = try(var.application.web_os.source_image_id, local.web_custom_image ? local.app_os.source_image_id : null)
@@ -387,7 +402,7 @@ locals {
 
   scs_data_disks = flatten([
     for vm_counter in range(local.scs_server_count) : [
-      for idx, datadisk in local.app_data_disk_per_dbnode : {
+      for idx, datadisk in local.scs_data_disk_per_dbnode : {
         suffix                    = datadisk.suffix
         vm_index                  = vm_counter
         caching                   = datadisk.caching
@@ -447,4 +462,58 @@ locals {
   full_webserver_names = flatten([for vm in local.web_virtualmachine_names :
     format("%s%s%s%s", local.prefix, var.naming.separator, vm, local.resource_suffixes.vm)]
   )
+
+  // Zones
+  app_zones            = try(var.application.app_zones, [])
+  app_zonal_deployment = length(local.app_zones) > 0 ? true : false
+  app_zone_count       = length(local.app_zones)
+  //If we deploy more than one server in zone put them in an availability set
+  use_app_avset = local.application_server_count > 0 ? !local.app_zonal_deployment || local.application_server_count != local.app_zone_count : false
+
+  scs_zones            = try(var.application.scs_zones, [])
+  scs_zonal_deployment = length(local.scs_zones) > 0 ? true : false
+  scs_zone_count       = length(local.scs_zones)
+  //If we deploy more than one server in zone put them in an availability set
+  use_scs_avset = local.scs_server_count > 0 ? (!local.scs_zonal_deployment || local.scs_server_count != local.scs_zone_count) : false
+
+  web_zones            = try(var.application.web_zones, [])
+  web_zonal_deployment = length(local.web_zones) > 0 ? true : false
+  web_zone_count       = length(local.web_zones)
+  //If we deploy more than one server in zone put them in an availability set
+  use_web_avset = local.webdispatcher_count > 0 ? (!local.web_zonal_deployment || local.webdispatcher_count != local.web_zone_count) : false
+  
+  winha_ips = [
+    {
+      name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_feip)
+      subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
+      private_ip_address            = local.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 2 + local.ip_offsets.scs_lb)))
+      private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
+
+    },
+    {
+      name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_feip)
+      subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
+      private_ip_address            = local.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 3 + local.ip_offsets.scs_lb)))
+      private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
+    }
+  ]
+
+
+  std_ips = [
+    {
+      name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_alb_feip)
+      subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
+      private_ip_address            = local.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 0 + local.ip_offsets.scs_lb)))
+      private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
+    },
+    {
+      name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_feip)
+      subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
+      private_ip_address            = local.use_DHCP ? (null) : (try(local.scs_lb_ips[1], cidrhost(local.sub_app_prefix, 1 + local.ip_offsets.scs_lb)))
+      private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
+    },
+  ]
+
+  fpips = (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? concat(local.std_ips, local.winha_ips) : local.std_ips
+
 }

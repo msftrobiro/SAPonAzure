@@ -14,7 +14,7 @@ steps:
         deployer_prefix=${deployer_env}
       fi
 
-      deployer_rg="${deployer_prefix}-EAUS-DEP00-INFRASTRUCTURE"
+      deployer_rg="${deployer_prefix}-WEEU-DEP00-INFRASTRUCTURE"
 
       # Modify environment value so it starts with u and with length of 5
       sapsystem_env=${{parameters.sapsystem_env}}
@@ -62,7 +62,7 @@ steps:
         deployer_prefix=${deployer_env}
       fi
 
-      deployer_rg="${deployer_prefix}-EAUS-DEP00-INFRASTRUCTURE"
+      deployer_rg="${deployer_prefix}-WEEU-DEP00-INFRASTRUCTURE"
 
       # Modify environment value so it starts with u and with length of 5
       saplib_env=${{parameters.saplib_env}}
@@ -74,7 +74,7 @@ steps:
         saplib_prefix=${saplib_env}
       fi
 
-      saplib_rg="${saplib_prefix}-EAUS-SAP_LIBRARY"
+      saplib_rg="${saplib_prefix}-WEEU-SAP_LIBRARY"
 
       # Modify environment value so it starts with u and with length of 5
       saplandscape_env=${{parameters.saplandscape_env}}
@@ -86,7 +86,7 @@ steps:
         saplandscape_prefix=${saplandscape_env}
       fi
 
-      saplandscape_rg="${saplandscape_prefix}-EAUS-SAP0-INFRASTRUCTURE"
+      saplandscape_rg="${saplandscape_prefix}-WEEU-SAP0-INFRASTRUCTURE"
       saplandscape_sap_vnet_arm_id=$(az network vnet list --resource-group ${saplandscape_rg} | jq -r .[].id)
       saplandscape_sap_vnet_prefix=$(az network vnet list --resource-group ${saplandscape_rg} | jq -r "'".[].addressSpace.addressPrefixes[0]"'")
       IFS=. sap_vnet_prefix_parts=(${saplandscape_sap_vnet_prefix##})
@@ -125,8 +125,8 @@ steps:
       subnet_db_prefix="10.${sap_vnet_prefix_idx}.${idx}.32/27"
       subnet_app_prefix="10.${sap_vnet_prefix_idx}.${idx}.96/27"
 
-      sapsystem_rg="${sapsystem_prefix}-EAUS-SAP-PRD"
-      sapland_rg="UNIT-EAUS-SAP0-INFRASTRUCTURE"
+      sapsystem_rg="${sapsystem_prefix}-WEEU-SAP-PRD"
+      sapland_rg="UNIT-WEEU-SAP0-INFRASTRUCTURE"
 
       # If no osImage provided, deploy SLES12SP5
       [ -z "${{parameters.osImage_offer}}" ] && osImage_offer="sles-sap-12-sp5" || osImage_offer=${{parameters.osImage_offer}}
@@ -204,6 +204,8 @@ steps:
         --backend-config "container_name=tfstate" \
         --backend-config "key=${sap_system_key}" \
         ${repo_dir}/deploy/terraform/run/sap_system/
+      
+      terraform refresh -auto-approve -var-file=${input} ${repo_dir}/deploy/terraform/run/sap_system/
       terraform apply -auto-approve -var-file=${input} ${repo_dir}/deploy/terraform/run/sap_system/
       '
     displayName: "Deploy new sap system: Branch ${{parameters.branch_name}}"

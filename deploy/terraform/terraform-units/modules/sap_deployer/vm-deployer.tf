@@ -6,8 +6,8 @@ Description:
   Define 0..n Deployer(s).
 */
 
-data azurerm_subscription "primary" {}
-data azurerm_client_config "current" {}
+data "azurerm_subscription" "primary" {}
+data "azurerm_client_config" "current" {}
 
 // Public IP addresse and nic for Deployer
 resource "azurerm_public_ip" "deployer" {
@@ -16,6 +16,7 @@ resource "azurerm_public_ip" "deployer" {
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   allocation_method   = "Static"
+  sku                 = "Basic"
 }
 
 resource "azurerm_network_interface" "deployer" {
@@ -27,8 +28,8 @@ resource "azurerm_network_interface" "deployer" {
   ip_configuration {
     name                          = "ipconfig1"
     subnet_id                     = local.sub_mgmt_deployed.id
-    private_ip_address            = local.deployers[count.index].private_ip_address
-    private_ip_address_allocation = "static"
+    private_ip_address            = local.deployers[count.index].use_DHCP ? "" : local.deployers[count.index].private_ip_address
+    private_ip_address_allocation = local.deployers[count.index].use_DHCP ? "Dynamic" : "Static"
     public_ip_address_id          = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[count.index].id : ""
   }
 }
@@ -40,8 +41,9 @@ resource "azurerm_user_assigned_identity" "deployer" {
   name                = format("%s%s", local.prefix, local.resource_suffixes.msi)
 }
 
-// Add role to be able to deploy resources
+# // Add role to be able to deploy resources
 resource "azurerm_role_assignment" "sub_contributor" {
+  count                = var.assign_subscription_permissions ? 1 : 0
   scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Contributor"
   principal_id         = azurerm_user_assigned_identity.deployer.principal_id
@@ -128,24 +130,27 @@ resource "null_resource" "prepare-deployer" {
     inline = local.deployers[count.index].os.source_image_id != "" ? [] : [
       // Prepare folder structure
       "mkdir -p $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/LOCAL/${azurerm_resource_group.deployer[0].name}",
-      "mkdir $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/SAP_LIBRARY",
-      "mkdir $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/SAP_SYSTEM",
-      "mkdir $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/SAP_LANDSCAPE",
+      "mkdir $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/LIBRARY",
+      "mkdir $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/SYSTEM",
+      "mkdir $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/LANDSCAPE",
       "mkdir $HOME/Azure_SAP_Automated_Deployment/WORKSPACES/DEPLOYER",
       // Clones project repository
       "git clone https://github.com/Azure/sap-hana.git $HOME/Azure_SAP_Automated_Deployment/sap-hana",
       // Install terraform for all users
       "sudo apt-get install unzip",
-      "sudo mkdir -p /opt/terraform/terraform_0.13.5",
+      "tfversion=",
+      "tfdir=0.14.7",
+      "sudo mkdir -p /opt/terraform/terraform_0.14.7",
       "sudo mkdir -p /opt/terraform/bin/",
-      "sudo wget -P /opt/terraform/terraform_0.13.5 https://releases.hashicorp.com/terraform/0.13.5/terraform_0.13.5_linux_amd64.zip",
-      "sudo unzip /opt/terraform/terraform_0.13.5/terraform_0.13.5_linux_amd64.zip -d /opt/terraform/terraform_0.13.5/",
-      "sudo ln -s /opt/terraform/terraform_0.13.5/terraform /opt/terraform/bin/terraform",
+      "sudo wget -P /opt/terraform/terraform_0.14.7 https://releases.hashicorp.com/terraform/0.14.7/terraform_0.14.7_linux_amd64.zip",
+      "sudo unzip /opt/terraform/terraform_0.14.7/terraform_0.14.7_linux_amd64.zip -d /opt/terraform/terraform_0.14.7/",
+      "sudo ln -s /opt/terraform/terraform_0.14.7/terraform /opt/terraform/bin/terraform",
       "sudo sh -c \"echo export PATH=$PATH:/opt/terraform/bin > /etc/profile.d/deploy_server.sh\"",
       // Set env for MSI
       "sudo sh -c \"echo export ARM_USE_MSI=true >> /etc/profile.d/deploy_server.sh\"",
       "sudo sh -c \"echo export ARM_SUBSCRIPTION_ID=${data.azurerm_subscription.primary.subscription_id} >> /etc/profile.d/deploy_server.sh\"",
       "sudo sh -c \"echo export ARM_TENANT_ID=${data.azurerm_subscription.primary.tenant_id} >> /etc/profile.d/deploy_server.sh\"",
+      "sudo sh -c \"echo export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-hana/ >> /etc/profile.d/deploy_server.sh\"",
       "sudo sh -c \"echo az login --identity --output none >> /etc/profile.d/deploy_server.sh\"",
       // Set env for ansible
       "sudo sh -c \"echo export ANSIBLE_HOST_KEY_CHECKING=False >> /etc/profile.d/deploy_server.sh\"",

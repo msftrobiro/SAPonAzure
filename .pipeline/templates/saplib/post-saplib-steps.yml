@@ -16,7 +16,7 @@ steps:
         deployer_prefix=${deployer_env}
       fi
 
-      deployer_rg="${deployer_prefix}-EAUS-DEP00-INFRASTRUCTURE"
+      deployer_rg="${deployer_prefix}-WEEU-DEP00-INFRASTRUCTURE"
 
       # Modify environment value so it starts with u and with length of 5
       saplib_env=${{parameters.saplib_env}}
@@ -28,7 +28,7 @@ steps:
         saplib_prefix=${saplib_env}
       fi
 
-      saplib_rg="${saplib_prefix}-EAUS-SAP_LIBRARY"
+      saplib_rg="${saplib_prefix}-WEEU-SAP_LIBRARY"
       
       repo_dir=$HOME/${saplib_rg}/sap-hana
 
@@ -98,7 +98,7 @@ steps:
         deployer_prefix=${deployer_env}
       fi
 
-      deployer_rg="${deployer_prefix}-EAUS-DEP00-INFRASTRUCTURE"
+      deployer_rg="${deployer_prefix}-WEEU-DEP00-INFRASTRUCTURE"
 
       deployer_kv_name=$(az keyvault list --resource-group ${deployer_rg} | jq -r '.[] | select(.name | contains("user")).name')  
       az keyvault set-policy --name ${deployer_kv_name} --secret-permissions get list set delete recover --object-id $(hana-pipeline-spn-objId) --output none

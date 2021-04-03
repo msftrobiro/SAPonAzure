@@ -30,11 +30,11 @@ output "kv_prvt" {
 }
 
 output "sid_public_key_secret_name" {
-  value = local.sid_pk_name 
+  value = local.sid_pk_name
 }
 
 output "sid_private_key_secret_name" {
-  value = local.sid_ppk_name 
+  value = local.sid_ppk_name
 }
 
 
@@ -78,3 +78,23 @@ output "storage_bootdiag_endpoint" {
 output "dns_info_vms" {
   value = local.iscsi_count > 0 ? zipmap(local.full_iscsiserver_names, azurerm_network_interface.iscsi[*].private_ip_address) : null
 }
+
+output "route_table_id" {
+  value = local.vnet_sap_exists ? "" : azurerm_route_table.rt[0].id
+}
+
+//Witness Info
+output "witness_storage_account" {
+  value = length(var.witness_storage_account.arm_id) > 0 ? (
+    split("/", var.witness_storage_account.arm_id)[8]) : (
+    local.witness_storageaccount_name
+  )
+}
+
+output "witness_storage_account_key" {
+  value = length(var.witness_storage_account.arm_id) > 0 ? (
+    data.azurerm_storage_account.witness_storage[0].primary_access_key) : (
+    azurerm_storage_account.witness_storage[0].primary_access_key
+  )
+}
+

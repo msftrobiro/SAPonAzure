@@ -44,3 +44,21 @@ output "storageaccount_rg_name" {
 output "dns_info_iscsi" {
   value = module.sap_landscape.dns_info_vms
 }
+
+output "route_table_id" {
+  value = module.sap_landscape.route_table_id
+}
+
+output "automation_version" {
+  value = local.version_label
+}
+
+//Witness
+output "witness_storage_account" {
+  value = module.sap_landscape.witness_storage_account
+}
+
+output "witness_storage_account_key" {
+  value = module.sap_landscape.witness_storage_account_key
+}
+

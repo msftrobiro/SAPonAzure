@@ -412,7 +412,7 @@ terraform plan -var-file=$parameterfile $tfstate_parameter $landscape_tfstate_ke
 if ! $new_deployment; then
     str1=$(grep "0 to add, 0 to change, 0 to destroy" plan_output.log)
     str2=$(grep "No changes" plan_output.log)
-    if [ -n "$str1"] || [ -n "$str2" ]; then
+    if [ ! -n "$str1"] || [ ! -n "$str2" ]; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"

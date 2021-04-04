@@ -164,7 +164,9 @@ resource "null_resource" "prepare-deployer" {
       // Install pip3
       "sudo apt -y install python3-pip",
       // Installs Ansible
-      "sudo -H pip3 install \"ansible>=2.8,<2.9\"",
+      "sudo -H pip3 install \"ansible>=2.10,<2.11\"",
+      "sudo -H pip3 install -r requirements-azure.txt",
+      "sudo ansible-galaxy collection install azure.azcollection",
       // Install pywinrm
       "sudo -H pip3 install \"pywinrm>=0.3.0\"",
       // Install yamllint

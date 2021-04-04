@@ -6,4 +6,5 @@
       vars:
         url: 'https://MGMTWEEUDEP00user16A.vault.azure.net/'
         secretname: 'MGMT-client-id'
-      debug: msg="the value {{lookup('azure_keyvault_secret',secretname,vault_url=url)}}"
+      debug: msg="the value {{lookup('azure_keyvault_secret',secretname)}}"
+      delegate_to: localhost

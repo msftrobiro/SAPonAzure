@@ -89,7 +89,11 @@ variable "app_tier_os_types" {
   description = "Defines the app tier os types"
 }
 
-variable naming {
+variable "naming" {
+  description = "Defines the names for the resources"
+}
+
+variable "sid_kv_user_id" {
   description = "Defines the names for the resources"
 }
 
@@ -98,6 +102,8 @@ locals {
   tfstate_resource_id          = try(var.tfstate_resource_id, "")
   tfstate_storage_account_name = split("/", local.tfstate_resource_id)[8]
   ansible_container_name       = try(var.naming.resource_suffixes.ansible, "ansible")
+
+  kv_name = split("/", var.sid_kv_user_id)[8]
 
   landscape_tfstate = var.landscape_tfstate
   ips_iscsi         = var.iscsi_private_ip
@@ -176,6 +182,10 @@ locals {
     ])
     if adatabase != {}
   ])
+
+  uname_secret = trimprefix(format("%s-sid-username", var.naming.prefix.VNET), "-")
+  pwd_secret   = trimprefix(format("%s-sid-password", var.naming.prefix.VNET), "-")
+  key_secret   = trimprefix(format("%s-sid-sshkey", var.naming.prefix.VNET), "-")
 
   // Downloader for Ansible use
   sap_user     = try(var.software.downloader.credentials.sap_user, "sap_smp_user")

@@ -54,7 +54,7 @@ ${DEPLOYMENT_REPO_PATH}deploy/scripts/validate.sh -p LIBRARY/MGMT-WEEU-SAP_LIBRA
 
 ${DEPLOYMENT_REPO_PATH}deploy/scripts/validate.sh -p LANDSCAPE/DEV-WEEU-SAP01-INFRASTRUCTURE/DEV-WEEU-SAP01-INFRASTRUCTURE.json -t sap_landscape
 
-${DEPLOYMENT_REPO_PATH}deploy/scripts/validate.sh -p SYSTEM/DEV-WEEU-SAP01-ZZZ/DEV-WEEU-SAP01-ZZZ.json -t sap_system
+${DEPLOYMENT_REPO_PATH}deploy/scripts/validate.sh -p SYSTEM/DEV-WEEU-SAP01-X00/DEV-WEEU-SAP01-X00.json -t sap_system
 
 ```
 
@@ -156,18 +156,18 @@ If prompted enter "MGMT" for the Deployer environment name.
 
 ## **Deploying the SAP system**
 
-For deploying the SAP system navigate to the folder(DEV-WEEU-SAP01-ZZZ) containing the DEV-WEEU-SAP01-ZZZ.json parameter file and use the installer.sh script.
+For deploying the SAP system navigate to the folder(DEV-WEEU-SAP01-X00) containing the DEV-WEEU-SAP01-X00.json parameter file and use the installer.sh script.
 
 ```bash
-${DEPLOYMENT_REPO_PATH}deploy/scripts/installer.sh -p DEV-WEEU-SAP01-ZZZ.json -t sap_system
+${DEPLOYMENT_REPO_PATH}deploy/scripts/installer.sh -p DEV-WEEU-SAP01-X00.json -t sap_system
 ```
 
 ## **Removing the SAP system**
 
-For removing the SAP system navigate to the folder(DEV-WEEU-SAP01-ZZZ) containing the DEV-WEEU-SAP01-ZZZ.json parameter file and use the remover.sh script.
+For removing the SAP system navigate to the folder(DEV-WEEU-SAP01-X00) containing the DEV-WEEU-SAP01-X00.json parameter file and use the remover.sh script.
 
 ```bash
-${DEPLOYMENT_REPO_PATH}deploy/scripts/remover.sh -p DEV-WEEU-SAP01-ZZZ.json -t sap_system
+${DEPLOYMENT_REPO_PATH}deploy/scripts/remover.sh -p DEV-WEEU-SAP01-X00.json -t sap_system
 ```
 
 

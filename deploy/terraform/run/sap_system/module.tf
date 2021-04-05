@@ -170,4 +170,5 @@ module "output_files" {
   tfstate_resource_id       = var.tfstate_resource_id
   naming                    = module.sap_namegenerator.naming
   app_tier_os_types         = module.app_tier.app_tier_os_types
+  sid_kv_user_id            = module.common_infrastructure.sid_kv_user_id
 }

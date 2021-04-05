@@ -231,7 +231,7 @@ For more details on the configuration of the SAP Library see [Workload Zone Conf
 
 The SAP System is the actual SAP Application, it contains all the Azure artifacts required to host the SAP Application.
 
-A sample SAP System configuration is specified in [SAP System](WORKSPACES/DEPLOYMENT-ORCHESTRATION/SYSTEM/DEV-WEEU-SAP00-ZZZ/DEV-WEEU-SAP01-ZZZ.json)
+A sample SAP System configuration is specified in [SAP System](WORKSPACES/DEPLOYMENT-ORCHESTRATION/SYSTEM/DEV-WEEU-SAP00-X00/DEV-WEEU-SAP01-X00.json)
 
 The deployment will create a SAP system that has an Hana database server, 2 application servers, 1 central services server and a web dispatcher and two key vaults (which can be ignored for now).
 

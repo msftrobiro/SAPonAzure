@@ -164,13 +164,14 @@ resource "null_resource" "prepare-deployer" {
       "sudo -H pip3 pip install setuptools-rust",
       // Install pip
       "sudo apt -y install python3-pip",
+      "sudo -H pip3 install --upgrade pip",
+      "sudo -H pip3 pip install msal",
       // Installs Ansible
-      "sudo apt -y install \"ansible>=2.9,<2.10\"",
-      "sudo apt -y install ansible[azure]",
+      "sudo -H pip3 install \"ansible>=2.9,<2.10\"",
+      "sudo -H pip3 install ansible[azure]",
       "sudo wget -nv -q https://raw.githubusercontent.com/ansible-collections/azure/dev/requirements-azure.txt",
       "sudo -H pip3 install -r requirements-azure.txt",
       "sudo ansible-galaxy collection install azure.azcollection --force",
-      "sudo -H pip3 pip install msal",
       // Install pywinrm
       "sudo -H pip3 install \"pywinrm>=0.3.0\"",     
       // Install yamllint

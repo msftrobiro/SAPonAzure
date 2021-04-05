@@ -119,7 +119,7 @@ then
         arm_config_stored=1
     fi
 else
-    temp=$(grep "DEPLOYMENT_REPO_PATH" "${generic_config_information}")
+    temp=$(grep  -m1 "DEPLOYMENT_REPO_PATH" "${generic_config_information}")
     if [ ! -z "${temp}" ]
     then
         # Repo path was specified in ~/.sap_deployment_automation/config
@@ -129,28 +129,28 @@ else
         config_stored=0
     fi
     
-    temp=$(grep "REMOTE_STATE_RG" "${system_config_information}")
+    temp=$(grep -m1 "REMOTE_STATE_RG" "${system_config_information}")
     if [ ! -z "${temp}" ]
     then
         # Remote state storage group was specified in ~/.sap_deployment_automation library config
         REMOTE_STATE_RG=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
     fi
     
-    temp=$(grep "REMOTE_STATE_SA" "${system_config_information}")
+    temp=$(grep -m1 "REMOTE_STATE_SA" "${system_config_information}")
     if [ ! -z "${temp}" ]
     then
         # Remote state storage group was specified in ~/.sap_deployment_automation library config
         REMOTE_STATE_SA=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
     fi
     
-    temp=$(grep "subscription=" "${system_config_information}")
-
+    temp=$(grep -m1 "subscription=" "${system_config_information}")
+    
     if [ ! -z "${temp}" ]
     then
         # Remote state storage group was specified in ~/.sap_deployment_automation library config
         ARM_SUBSCRIPTION_ID=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
     fi
-
+    
     STATE_SUBSCRIPTION=ARM_SUBSCRIPTION_ID
     
     temp=$(grep -m1 "tfstate_resource_id" "${system_config_information}")
@@ -196,7 +196,7 @@ else
     landscape_tfstate_key_parameter=''
     if [ $deployment_system == sap_system ]
     then
-        temp=$(grep "landscape_tfstate_key" "${system_config_information}")
+        temp=$(grep -m1 "landscape_tfstate_key" "${system_config_information}")
         if [ ! -z "${temp}" ]
         then
             # Landscape state was specified in ~/.sap_deployment_automation workload configuration
@@ -208,6 +208,7 @@ else
             read -p "Workload terraform statefile name :" landscape_tfstate_key
             landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
             landscape_tfstate_key_exists=true
+            sed -i /landscape_tfstate_key/d  "${system_config_information}"
             echo "landscape_tfstate_key=${landscape_tfstate_key}" >> $system_config_information
             
             landscape_tfstate_key_exists=true
@@ -241,8 +242,8 @@ if [ ! -n "${REMOTE_STATE_SA}" ]; then
     echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> "${system_config_information}"
     echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${system_config_information}"
     echo "tfstate_resource_id=${tfstate_resource_id}" >> "${system_config_information}"
-    STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
     
+    STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
     echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${system_config_information}"
     
     if [ "${deployment_system}" != sap_deployer ]
@@ -338,7 +339,7 @@ else
         else
             exit 1
         fi
-
+        
         terraform init -upgrade=true -var-file="${parameterfile}" $terraform_module_directory
         check_output=1
         
@@ -504,10 +505,10 @@ if [ $deployment_system == sap_library ]
 then
     
     REMOTE_STATE_RG=$(terraform output remote_state_resource_group_name | tr -d \")
-    temp=$(echo "${REMOTE_STATE_RG}" | grep "Warning")
+    temp=$(echo "${REMOTE_STATE_RG}" | grep -m1 "Warning")
     if [ -z "${temp}" ]
     then
-        temp=$(echo "${REMOTE_STATE_RG}" | grep "Backend reinitialization required")
+        temp=$(echo "${REMOTE_STATE_RG}" | grep -m1 "Backend reinitialization required")
         if [ -z "${temp}" ]
         then
             sed -i /REMOTE_STATE_RG/d  "${system_config_information}"
@@ -516,10 +517,10 @@ then
     fi
     
     REMOTE_STATE_SA=$(terraform output remote_state_storage_account_name| tr -d \")
-    temp=$(echo "${REMOTE_STATE_SA}" | grep "Warning")
+    temp=$(echo "${REMOTE_STATE_SA}" | grep -m1 "Warning")
     if [ -z "${temp}" ]
     then
-        temp=$(echo "${REMOTE_STATE_SA}" | grep "Backend reinitialization required")
+        temp=$(echo "${REMOTE_STATE_SA}" | grep -m1 "Backend reinitialization required")
         if [ -z "${temp}" ]
         then
             sed -i /REMOTE_STATE_SA/d  "${system_config_information}"
@@ -528,10 +529,10 @@ then
     fi
     
     tfstate_resource_id=$(terraform output tfstate_resource_id| tr -d \")
-    temp=$(echo "${tfstate_resource_id}" | grep "Warning" -m1 )
+    temp=$(echo "${tfstate_resource_id}" | grep -m1 "Warning" -m1 )
     if [ -z "${temp}" ]
     then
-        temp=$(echo $tfstate_resource_id | grep "Backend reinitialization required" -m1 )
+        temp=$(echo $tfstate_resource_id | grep -m1 "Backend reinitialization required" -m1 )
         if [ -z $temp ]
         then
             sed -i /tfstate_resource_id/d  "${system_config_information}"

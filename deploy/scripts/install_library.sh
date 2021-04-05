@@ -277,10 +277,10 @@ terraform {
 EOF
 
 REMOTE_STATE_RG=$(terraform output remote_state_resource_group_name | tr -d \")
-temp=$(echo "${REMOTE_STATE_RG}" | grep "Warning")
+temp=$(echo "${REMOTE_STATE_RG}" | grep -m1 "Warning")
 if [ -z "${temp}" ]
 then
-    temp=$(echo "${REMOTE_STATE_RG}" | grep "Backend reinitialization required")
+    temp=$(echo "${REMOTE_STATE_RG}" | grep -m1 "Backend reinitialization required")
     if [ -z "${temp}" ]
     then
         sed -i /REMOTE_STATE_RG/d  "${library_config_information}"
@@ -289,7 +289,7 @@ then
 fi
 
 REMOTE_STATE_SA=$(terraform output remote_state_storage_account_name| tr -d \")
-temp=$(echo "${REMOTE_STATE_SA}" | grep "Warning")
+temp=$(echo "${REMOTE_STATE_SA}" | grep -m1 "Warning")
 if [ -z "${temp}" ]
 then
     temp=$(echo "${REMOTE_STATE_SA}" | grep "Backend reinitialization required")
@@ -301,10 +301,11 @@ then
 fi
 
 tfstate_resource_id=$(terraform output tfstate_resource_id| tr -d \")
-temp=$(echo "${tfstate_resource_id}" | grep "Warning" -m1 )
+temp=$(echo "${tfstate_resource_id}" | grep  -m1 "Warning" )
+echo $temp
 if [ -z "${temp}" ]
 then
-    temp=$(echo $tfstate_resource_id | grep "Backend reinitialization required" -m1 )
+    temp=$(echo $tfstate_resource_id | grep -m1 "Backend reinitialization required"  )
     if [ -z $temp ]
     then
         sed -i /tfstate_resource_id/d  "${library_config_information}"
@@ -314,7 +315,6 @@ then
         echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${library_config_information}"
 
     fi
-fi
 
 rm backend.tf
 exit 0

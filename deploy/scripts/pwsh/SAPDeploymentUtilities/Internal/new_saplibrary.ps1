@@ -60,6 +60,7 @@ Licensed under the MIT license.
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
     $iniContent = Get-IniContent -Path $filePath
 
+
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
     $Environment = $jsonData.infrastructure.environment
     $region = $jsonData.infrastructure.region
@@ -67,7 +68,11 @@ Licensed under the MIT license.
 
     # Subscription & repo path
 
-    $sub = $iniContent[$combined]["subscription"] 
+    $sub = $null
+    if ($null -ne $iniContent[$combined]) {
+        $sub = $iniContent[$combined]["subscription"]
+    }
+     
     $repo = $iniContent["Common"]["repo"]
 
     $changed = $false
@@ -88,6 +93,7 @@ Licensed under the MIT license.
         Out-IniFile -InputObject $iniContent -Path $filePath
     }
 
+    Write-Host $terraform_module_directory
     $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\bootstrap\sap_library"
 
     Write-Host -ForegroundColor green "Initializing Terraform"

@@ -123,13 +123,13 @@ Licensed under the MIT license.
     $ans = Read-Host -Prompt "Do you want to enter the SPN secrets Y/N?"
     if ("Y" -eq $ans) {
         $vault = ""
-        if ($null -ne $iniContent[$region] ) {
-            $vault = $iniContent[$region]["Vault"]
+        if ($null -ne $iniContent[$combined] ) {
+            $vault = $iniContent[$combined]["Vault"]
         }
 
         if (($null -eq $vault ) -or ("" -eq $vault)) {
             $vault = Read-Host -Prompt "Please enter the vault name"
-            $iniContent[$region]["Vault"] = $vault 
+            $iniContent[$combined]["Vault"] = $vault 
             Out-IniFile -InputObject $iniContent -Path $filePath
     
         }

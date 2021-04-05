@@ -161,8 +161,8 @@ if [ ! -d "${automation_config_directory}" ]
 then
     # No configuration directory exists
     mkdir "${automation_config_directory}"
-    touch "${deployer_config_information}
-    touch "${generic_config_information}
+    touch "${deployer_config_information}"
+    touch "${generic_config_information}"
     if [ -n "${DEPLOYMENT_REPO_PATH}" ]; then
         # Store repo path in ~/.sap_deployment_automation/config
         echo "DEPLOYMENT_REPO_PATH=${DEPLOYMENT_REPO_PATH}" >> "${generic_config_information}"
@@ -175,6 +175,7 @@ then
     fi
 
 else
+    touch "${generic_config_information}"
     touch "${deployer_config_information}"
     temp=$(grep "DEPLOYMENT_REPO_PATH" "${generic_config_information}")
     if [ $temp ]
@@ -290,8 +291,6 @@ if [ $? -eq 255 ]
    then
    exit $?
 fi 
-"./post_deployment.sh"
-cd "${curdir}"
 
 read -p "Do you want to specify the SPN Details Y/N?"  ans
 answer=${ans^^}
@@ -316,6 +315,9 @@ echo $library_config_information
         exit $?
     fi 
 fi
+
+"./post_deployment.sh"
+cd "${curdir}"
 
 echo ""
 echo "#########################################################################################"

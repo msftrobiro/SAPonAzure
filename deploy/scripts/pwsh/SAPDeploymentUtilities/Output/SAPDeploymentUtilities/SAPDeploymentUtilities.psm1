@@ -209,13 +209,13 @@ Licensed under the MIT license.
     $ans = Read-Host -Prompt "Do you want to enter the SPN secrets Y/N?"
     if ("Y" -eq $ans) {
         $vault = ""
-        if ($null -ne $iniContent[$region] ) {
-            $vault = $iniContent[$region]["Vault"]
+        if ($null -ne $iniContent[$combined] ) {
+            $vault = $iniContent[$combined]["Vault"]
         }
 
         if (($null -eq $vault ) -or ("" -eq $vault)) {
             $vault = Read-Host -Prompt "Please enter the vault name"
-            $iniContent[$region]["Vault"] = $vault 
+            $iniContent[$combined]["Vault"] = $vault 
             Out-IniFile -InputObject $iniContent -Path $filePath
     
         }
@@ -996,6 +996,7 @@ Licensed under the MIT license.
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
     $iniContent = Get-IniContent -Path $filePath
 
+
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
     $Environment = $jsonData.infrastructure.environment
     $region = $jsonData.infrastructure.region
@@ -1003,7 +1004,11 @@ Licensed under the MIT license.
 
     # Subscription & repo path
 
-    $sub = $iniContent[$combined]["subscription"] 
+    $sub = $null
+    if ($null -ne $iniContent[$combined]) {
+        $sub = $iniContent[$combined]["subscription"]
+    }
+     
     $repo = $iniContent["Common"]["repo"]
 
     $changed = $false
@@ -1024,6 +1029,7 @@ Licensed under the MIT license.
         Out-IniFile -InputObject $iniContent -Path $filePath
     }
 
+    Write-Host $terraform_module_directory
     $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\bootstrap\sap_library"
 
     Write-Host -ForegroundColor green "Initializing Terraform"
@@ -2227,9 +2233,6 @@ Licensed under the MIT license.
         Connect-AzAccount -Subscription $sub
     }
  
-    
-
-
     $UserUPN = ([ADSI]"LDAP://<SID=$([System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value)>").UserPrincipalName
     If ($UserUPN) {
         $UPNAsString = $UserUPN.ToString()

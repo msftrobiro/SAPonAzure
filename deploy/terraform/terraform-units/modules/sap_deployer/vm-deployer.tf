@@ -156,23 +156,29 @@ resource "null_resource" "prepare-deployer" {
       "sudo sh -c \"echo export ANSIBLE_HOST_KEY_CHECKING=False >> /etc/profile.d/deploy_server.sh\"",
       // Install az cli
       "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash",
-      // Install Git
       "sudo apt update",
+      // Install Git
       "sudo apt-get install git=1:2.17.1-1ubuntu0.7",
       // install jq
-      "sudo apt -y install jq=1.5+dfsg-2",
-      // Install pip3
+      "sudo apt -y install jq",
+      "sudo -H pip3 pip install setuptools-rust",
+      // Install pip
       "sudo apt -y install python3-pip",
       // Installs Ansible
-      "sudo -H pip3 install \"ansible>=2.10,<2.11\"",
+      "sudo apt install software-properties-common",
+      "sudo apt-add-repository --yes --update ppa:ansible/ansible",
+      "sudo apt -y install \"ansible>=2.9,<2.10\"",
+      "sudo wget -nv -q https://raw.githubusercontent.com/ansible-collections/azure/dev/requirements-azure.txt",
       "sudo -H pip3 install -r requirements-azure.txt",
-      "sudo ansible-galaxy collection install azure.azcollection",
+      "sudo ansible-galaxy collection install azure.azcollection --force",
       // Install pywinrm
       "sudo -H pip3 install \"pywinrm>=0.3.0\"",
       // Install yamllint
-      "sudo -H pip3 install \"yamllint==1.25.0\"",
+      "sudo -H pip3 install yamllint",
       // Install ansible-lint
-      "sudo -H pip3 install \"ansible-lint==4.3.7\""
+      "sudo -H pip3 install ansible-lint \"ansible>=2.9,<2.10\"",
+      "sudo -H pip3 install argcomplete",
+      "sudo activate-global-python-argcomplete"
     ]
   }
 }

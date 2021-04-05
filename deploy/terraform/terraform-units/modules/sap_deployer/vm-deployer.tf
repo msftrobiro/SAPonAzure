@@ -165,14 +165,14 @@ resource "null_resource" "prepare-deployer" {
       // Install pip
       "sudo apt -y install python3-pip",
       // Installs Ansible
-      "sudo apt install software-properties-common",
-      "sudo apt-add-repository --yes --update ppa:ansible/ansible",
       "sudo apt -y install \"ansible>=2.9,<2.10\"",
+      "sudo apt -y install ansible[azure]",
       "sudo wget -nv -q https://raw.githubusercontent.com/ansible-collections/azure/dev/requirements-azure.txt",
       "sudo -H pip3 install -r requirements-azure.txt",
       "sudo ansible-galaxy collection install azure.azcollection --force",
+      "sudo -H pip3 pip install msal",
       // Install pywinrm
-      "sudo -H pip3 install \"pywinrm>=0.3.0\"",
+      "sudo -H pip3 install \"pywinrm>=0.3.0\"",     
       // Install yamllint
       "sudo -H pip3 install yamllint",
       // Install ansible-lint

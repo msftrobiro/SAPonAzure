@@ -98,9 +98,6 @@ Licensed under the MIT license.
         Connect-AzAccount -Subscription $sub
     }
  
-    
-
-
     $UserUPN = ([ADSI]"LDAP://<SID=$([System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value)>").UserPrincipalName
     If ($UserUPN) {
         $UPNAsString = $UserUPN.ToString()

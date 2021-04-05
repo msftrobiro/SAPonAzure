@@ -94,7 +94,7 @@ variable naming {
 }
 
 variable sid_kv_user_id {
-  description = "Defines the names for the resources";
+  description = "Defines the names for the resources"
 }
 
 locals {

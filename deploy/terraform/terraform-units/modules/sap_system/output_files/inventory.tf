@@ -92,7 +92,7 @@ resource "local_file" "ansible_inventory" {
     ips_app           = local.ips_app,
     ips_web           = local.ips_web
     anydbnodes        = local.anydb_vms,
-    ips_anydbnodes    = local.ips_anydbnodes,
+    ips_anydbnodes    = local.ips_anydbnodes
     }
   )
   filename             = "${path.cwd}/ansible_config_files/hosts"
@@ -149,10 +149,10 @@ resource "local_file" "ansible_inventory_new_yml" {
   directory_permission = "0770"
 }
 
-resource "local_file" "ansible_inventory_new_yml" {
+resource "local_file" "sap-parameters_yml" {
   content = templatefile("${path.module}/sap-parameters.yml.tmpl", {
-    sid=var.hdb_sid
-    environment=var.infrastructure.environment
+    sid=var.hdb_sid,
+    environment=var.infrastructure.environment,
     kv_uri=local.kv_name
     }
   )

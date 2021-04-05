@@ -89,11 +89,11 @@ variable "app_tier_os_types" {
   description = "Defines the app tier os types"
 }
 
-variable naming {
+variable "naming" {
   description = "Defines the names for the resources"
 }
 
-variable sid_kv_user_id {
+variable "sid_kv_user_id" {
   description = "Defines the names for the resources"
 }
 
@@ -182,6 +182,10 @@ locals {
     ])
     if adatabase != {}
   ])
+
+  uname_secret = trimprefix(format("%s-sid-username", var.naming.prefix.VNET), "-")
+  pwd_secret   = trimprefix(format("%s-sid-password", var.naming.prefix.VNET), "-")
+  key_secret   = trimprefix(format("%s-sid-sshkey", var.naming.prefix.VNET), "-")
 
   // Downloader for Ansible use
   sap_user     = try(var.software.downloader.credentials.sap_user, "sap_smp_user")

@@ -158,7 +158,7 @@ function Read-SAPDeploymentTemplate {
     #
     # Import the module
     Import-Module "SAPDeploymentUtilities.psd1"
-    Read-SAPDeploymemtTemplat -Parameterfile .\PROD-WEEU-SAP00-ZZZ.json -Type sap_system
+    Read-SAPDeploymemtTemplat -Parameterfile .\PROD-WEEU-SAP00-X00.json -Type sap_system
 
     .EXAMPLE 
 

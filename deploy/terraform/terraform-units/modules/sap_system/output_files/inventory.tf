@@ -149,6 +149,19 @@ resource "local_file" "ansible_inventory_new_yml" {
   directory_permission = "0770"
 }
 
+resource "local_file" "ansible_inventory_new_yml" {
+  content = templatefile("${path.module}/sap-parameters.yml.tmpl", {
+    sid=var.hdb_sid
+    environment=var.infrastructure.environment
+    kv_uri=local.kv_name
+    }
+  )
+  filename             = "${path.cwd}/ansible_config_files/sap-parameters.yaml"
+  file_permission      = "0660"
+  directory_permission = "0770"
+}
+
+
 resource "azurerm_storage_blob" "hosts_yaml" {
   provider             = azurerm.deployer
   name                 = format("%s_hosts.yml", trimspace(var.naming.prefix.SDU))

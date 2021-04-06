@@ -90,7 +90,7 @@ locals {
   offset = try(var.options.resource_offset, 0)
 
   //Flag to control if nsg is creates in virtual network resource group
-  nsg_asg_with_vnet = try(var.options.nsg_asg_with_vnet, false) 
+  nsg_asg_with_vnet = try(var.options.nsg_asg_with_vnet, false)
 
   //Allowing to keep the old nic order
   legacy_nic_order = try(var.options.legacy_nic_order, false)
@@ -131,7 +131,7 @@ locals {
     try(local.var_sub_app.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet))
   )
 
-  sub_app_prefix = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] : try(local.var_sub_app.prefix, "")
+  sub_app_prefix = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] : try(local.var_sub_app.prefix, "")) : ""
 
   // APP NSG
   var_sub_app_nsg    = try(local.var_sub_app.nsg, {})
@@ -153,7 +153,7 @@ locals {
     try(local.sub_web.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet))
   )
 
-  sub_web_prefix = local.sub_web_exists ? data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0] : try(local.sub_web.prefix, "")
+  sub_web_prefix = local.enable_deployment ? (local.sub_web_exists ? data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0] : try(local.sub_web.prefix, "")) : ""
   sub_web_deployed = try(local.sub_web_defined ? (
     local.sub_web_exists ? data.azurerm_subnet.subnet_sap_web[0] : azurerm_subnet.subnet_sap_web[0]) : (
     local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0] : azurerm_subnet.subnet_sap_app[0]), null
@@ -481,7 +481,7 @@ locals {
   web_zone_count       = length(local.web_zones)
   //If we deploy more than one server in zone put them in an availability set
   use_web_avset = local.webdispatcher_count > 0 ? (!local.web_zonal_deployment || local.webdispatcher_count != local.web_zone_count) : false
-  
+
   winha_ips = [
     {
       name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_feip)

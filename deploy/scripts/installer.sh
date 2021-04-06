@@ -264,17 +264,34 @@ if [ ! -n "${REMOTE_STATE_SA}" ]; then
     
 fi
 
-if [ ! -n "${REMOTE_STATE_RG}" ]; then
-    option="REMOTE_STATE_RG"
-    missing
-    exit -1
-fi
 
 if [ ! -n "${REMOTE_STATE_SA}" ]; then
     option="REMOTE_STATE_SA"
     missing
     exit -1
 fi
+
+if [ ! -n "${REMOTE_STATE_RG}" ]; then
+    REMOTE_STATE_RG=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].resourceGroup  | tr -d \" | xargs)
+    sed -i /REMOTE_STATE_RG/d  "${system_config_information}"
+    echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${system_config_information}"
+fi
+
+
+if [ "${deployment_system}" != sap_deployer ]
+then
+    if [ ! -n "${tfstate_resource_id}" ]; then
+        tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
+        tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+        STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
+        sed -i /tfstate_resource_id/d  "${system_config_information}"
+        sed -i /STATE_SUBSCRIPTION/d  "${system_config_information}"
+
+        echo "tfstate_resource_id=${tfstate_resource_id}" >> "${system_config_information}"
+        echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${system_config_information}"
+    fi
+fi
+
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
 
@@ -424,7 +441,7 @@ terraform plan -var-file=$parameterfile $tfstate_parameter $landscape_tfstate_ke
 if ! $new_deployment; then
     str1=$(grep "0 to add, 0 to change, 0 to destroy" plan_output.log)
     str2=$(grep "No changes" plan_output.log)
-    if [ ! -n "$str1"] || [ ! -n "$str2" ]; then
+    if [ ! -n "${str1}" ] || [ ! -n "${str2}" ]; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"

@@ -210,12 +210,12 @@ fi
 
 
 secretname="${environment}"-client-id
-az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value $client_id
-
-secretname="${environment}"-client-secret
-az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value $client_secret
+az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${client_id}"
 
 secretname="${environment}"-tenant-id
-az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value $tenant
+az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${tenant}"
+
+secretname="${environment}"-client-secret
+az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${client_secret}"
 
 

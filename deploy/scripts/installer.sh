@@ -77,6 +77,17 @@ landscape_tfstate_key_parameter=""
 landscape_tfstate_key_exists=false
 
 parameterfile_name=$(basename "${parameterfile}")
+param_dirname=$(dirname "${parameterfile}")
+
+if [ $param_dirname != '.' ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#   Please run this command from the folder containing the parameter file               #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    exit 3
+fi
 
 # Read environment
 environment=$(cat "${parameterfile}" | jq .infrastructure.environment | tr -d \")
@@ -151,7 +162,7 @@ else
         ARM_SUBSCRIPTION_ID=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
     fi
     
-    STATE_SUBSCRIPTION=ARM_SUBSCRIPTION_ID
+    STATE_SUBSCRIPTION=${ARM_SUBSCRIPTION_ID}
     
     temp=$(grep -m1 "tfstate_resource_id" "${system_config_information}")
     if [ ! -z "${temp}" ]

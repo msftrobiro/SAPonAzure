@@ -75,6 +75,17 @@ deployment_system=sap_landscape
 workload_dirname=$(dirname "${parameterfile}")
 workload_file_parametername=$(basename "${parameterfile}")
 
+param_dirname=$(dirname "${parameterfile}")
+
+if [ $param_dirname != '.' ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#   Please run this command from the folder containing the parameter file               #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    exit 3
+fi
 
 # Read environment
 environment=$(cat "${parameterfile}" | jq .infrastructure.environment | tr -d \")

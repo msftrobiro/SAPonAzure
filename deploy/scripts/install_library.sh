@@ -302,15 +302,15 @@ then
         tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
         STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
         
-        sed -i /REMOTE_STATE_SA/d  "${system_config_information}"
-        sed -i /REMOTE_STATE_RG/d  "${system_config_information}"
-        sed -i /tfstate_resource_id/d  "${system_config_information}"
-        sed -i /STATE_SUBSCRIPTION/d  "${system_config_information}"
+        sed -i /REMOTE_STATE_SA/d  "${library_config_information}"
+        sed -i /REMOTE_STATE_RG/d  "${library_config_information}"
+        sed -i /tfstate_resource_id/d  "${library_config_information}"
+        sed -i /STATE_SUBSCRIPTION/d  "${library_config_information}"
         
-        echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> "${system_config_information}"
-        echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${system_config_information}"
-        echo "tfstate_resource_id=${tfstate_resource_id}" >> "${system_config_information}"
-        echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${system_config_information}"
+        echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> "${library_config_information}"
+        echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${library_config_information}"
+        echo "tfstate_resource_id=${tfstate_resource_id}" >> "${library_config_information}"
+        echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${library_config_information}"
     fi
 fi
 

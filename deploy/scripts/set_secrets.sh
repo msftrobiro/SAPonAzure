@@ -51,10 +51,16 @@ done
 
 automation_config_directory=~/.sap_deployment_automation/
 
+if [ ! -d "${automation_config_directory}" ]
+then
+    # No configuration directory exists
+    mkdir "${automation_config_directory}"
+fi
+
+
 if [ ! -n "${environment}" ]; then
     read -p "Environment name:"  environment
 fi
-
 
 environment_config_information="${automation_config_directory}""${environment}""${region}"
 touch "${environment_config_information}"

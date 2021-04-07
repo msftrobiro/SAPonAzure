@@ -9,4 +9,7 @@ key_secret:                    ${key_secret}
 bom_base_name:                 
 sapbits_location_base_path:    
 
-disks:                         yamlencode(${disks})
+disks: 
+%{~ for disk in disks }
+  - ${disk} 
+%{~ endfor }

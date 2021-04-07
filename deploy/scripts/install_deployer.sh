@@ -4,29 +4,29 @@ function showhelp {
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#                                                                                       #" 
-    echo "#   This file contains the logic to deploy the deployer.                                #" 
-    echo "#   The script experts the following exports:                                           #" 
-    echo "#                                                                                       #" 
-    echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #" 
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-hana        #" 
-    echo "#                                                                                       #" 
-    echo "#   The script will persist the parameters needed between the executions in the         #" 
-    echo "#   ~/.sap_deployment_automation folder                                                 #" 
-    echo "#                                                                                       #" 
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
+    echo "#   This file contains the logic to deploy the deployer.                                #"
+    echo "#   The script experts the following exports:                                           #"
+    echo "#                                                                                       #"
+    echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
+    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-hana        #"
+    echo "#                                                                                       #"
+    echo "#   The script will persist the parameters needed between the executions in the         #"
+    echo "#   ~/.sap_deployment_automation folder                                                 #"
+    echo "#                                                                                       #"
+    echo "#                                                                                       #"
     echo "#   Usage: install_deployer.sh                                                          #"
     echo "#    -p deployer parameter file                                                         #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#    -i interactive true/false setting the value to false will not prompt before apply  #"
     echo "#    -h Show help                                                                       #"
-    echo "#                                                                                       #" 
-    echo "#   Example:                                                                            #" 
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
+    echo "#   Example:                                                                            #"
+    echo "#                                                                                       #"
     echo "#   [REPO-ROOT]deploy/scripts/install_deployer.sh \                                     #"
-	echo "#      -p PROD-WEEU-DEP00-INFRASTRUCTURE.json \                                         #"
-	echo "#      -i true                                                                          #" 
-    echo "#                                                                                       #" 
+    echo "#      -p PROD-WEEU-DEP00-INFRASTRUCTURE.json \                                         #"
+    echo "#      -i true                                                                          #"
+    echo "#                                                                                       #"
     echo "#########################################################################################"
 }
 
@@ -35,11 +35,11 @@ while getopts ":p:i:h" option; do
         p) parameterfile=${OPTARG};;
         i) interactive=${OPTARG};;
         h) showhelp
-           exit 3
-           ;;
+            exit 3
+        ;;
         ?) echo "Invalid option: -${OPTARG}."
-           exit 2
-           ;; 
+            exit 2
+        ;;
     esac
 done
 
@@ -55,9 +55,9 @@ then
     printf -v val %-40.40s "$parameterfile"
     echo ""
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#               Parameter file does not exist: ${val} #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     exit
 fi
@@ -69,6 +69,18 @@ deployer_config_information="${automation_config_directory}""${environment}""${r
 
 arm_config_stored=false
 config_stored=false
+
+param_dirname=$(dirname "${parameterfile}")
+
+if [ $param_dirname != '.' ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#   Please run this command from the folder containing the parameter file               #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    exit 3
+fi
 
 if [ ! -d "${automation_config_directory}" ]
 then
@@ -84,7 +96,7 @@ then
         echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> $deployer_config_information
         arm_config_stored=true
     fi
-
+    
 else
     temp=$(grep "DEPLOYMENT_REPO_PATH" "${generic_config_information}")
     if [ $temp ]
@@ -98,13 +110,13 @@ fi
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     echo ""
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#   Missing environment variables (DEPLOYMENT_REPO_PATH)!!!                             #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
     echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-hana))                        #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     exit 4
 else
@@ -118,26 +130,26 @@ temp=$(grep "ARM_SUBSCRIPTION_ID" $deployer_config_information | cut -d= -f2)
 templen=$(echo $temp | wc -c)
 # Subscription length is 37
 
-if [ 37 == $templen ] 
+if [ 37 == $templen ]
 then
     echo "Reading the configuration"
     # ARM_SUBSCRIPTION_ID was specified in ~/.sap_deployment_automation/configuration file for deployer
     ARM_SUBSCRIPTION_ID="${temp}"
     arm_config_stored=true
-else    
+else
     arm_config_stored=false
 fi
 
 if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
     echo ""
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#   Missing environment variables (ARM_SUBSCRIPTION_ID)!!!                              #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
     echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-hana))                        #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     exit 3
 else
@@ -154,29 +166,29 @@ terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/bootstrap/"
 ok_to_proceed=false
 new_deployment=false
 
- if [ ! -d ./.terraform/ ]; then
+if [ ! -d ./.terraform/ ]; then
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#                                   New deployment                                      #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     terraform init -upgrade=true "${terraform_module_directory}"
 else
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#                          .terraform directory already exists!                         #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     read -p "Do you want to redeploy Y/N?"  ans
     answer=${ans^^}
     if [ $answer == 'Y' ]; then
-
+        
         if [ -f ./.terraform/terraform.tfstate ]; then
             if grep "azurerm" ./.terraform/terraform.tfstate ; then
                 echo "#########################################################################################"
-                echo "#                                                                                       #" 
+                echo "#                                                                                       #"
                 echo "#                     The state is already migrated to Azure!!!                         #"
-                echo "#                                                                                       #" 
+                echo "#                                                                                       #"
                 echo "#########################################################################################"
                 return 0
             fi
@@ -187,13 +199,13 @@ else
     else
         exit 0
     fi
- fi
+fi
 
 echo ""
 echo "#########################################################################################"
-echo "#                                                                                       #" 
+echo "#                                                                                       #"
 echo "#                             Running Terraform plan                                    #"
-echo "#                                                                                       #" 
+echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
 
@@ -201,9 +213,9 @@ terraform plan -var-file="${parameterfile}" "$terraform_module_directory"
 
 echo ""
 echo "#########################################################################################"
-echo "#                                                                                       #" 
+echo "#                                                                                       #"
 echo "#                             Running Terraform apply                                   #"
-echo "#                                                                                       #" 
+echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
 
@@ -218,7 +230,7 @@ terraform {
 }
 EOF
 
-kv_name=$(terraform output deployer_kv_user_name | tr -d \") 
+kv_name=$(terraform output deployer_kv_user_name | tr -d \")
 
 temp=$(echo "${kv_name}" | grep "Warning")
 if [ -z "${temp}" ]

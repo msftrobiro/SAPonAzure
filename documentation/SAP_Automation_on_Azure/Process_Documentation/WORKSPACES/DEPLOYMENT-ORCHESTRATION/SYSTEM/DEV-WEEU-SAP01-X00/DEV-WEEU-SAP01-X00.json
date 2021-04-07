@@ -13,7 +13,7 @@
     "scs_high_availability": true,
     "scs_server_count": 1,
     "scs_instance_number": "01",
-    "sid": "ZZZ",
+    "sid": "X00",
     "webdispatcher_count": 1,
     "dual_nics": false,
     "use_DHCP": true

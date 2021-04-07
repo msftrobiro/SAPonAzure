@@ -51,10 +51,16 @@ done
 
 automation_config_directory=~/.sap_deployment_automation/
 
+if [ ! -d "${automation_config_directory}" ]
+then
+    # No configuration directory exists
+    mkdir "${automation_config_directory}"
+fi
+
+
 if [ ! -n "${environment}" ]; then
     read -p "Environment name:"  environment
 fi
-
 
 environment_config_information="${automation_config_directory}""${environment}""${region}"
 touch "${environment_config_information}"
@@ -210,12 +216,12 @@ fi
 
 
 secretname="${environment}"-client-id
-az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value $client_id
-
-secretname="${environment}"-client-secret
-az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value $client_secret
+az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${client_id}"
 
 secretname="${environment}"-tenant-id
-az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value $tenant
+az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${tenant}"
+
+secretname="${environment}"-client-secret
+az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${client_secret}"
 
 

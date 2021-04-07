@@ -32,7 +32,7 @@ function New-SAPSystem {
     #
     # Import the module
     Import-Module "SAPDeploymentUtilities.psd1"
-    New-SAPSystem -Parameterfile .\DEV-WEEU-SAP00-ZZZ.json -Type sap_system
+    New-SAPSystem -Parameterfile .\DEV-WEEU-SAP00-X00.json -Type sap_system
 
     .EXAMPLE 
 
@@ -40,7 +40,7 @@ function New-SAPSystem {
     #
     # Import the module
     Import-Module "SAPDeploymentUtilities.psd1"
-    New-SAPSystem -Parameterfile .\DEV-WEEU-SAP00-ZZZ.json -Type sap_system -DeployerStateFileKeyName MGMT-WEEU-DEP00-INFRASTRUCTURE.terraform.tfstate -LandscapeStateFileKeyName DEV-WEEU-SAP01-INFRASTRUCTURE.terraform.tfstate
+    New-SAPSystem -Parameterfile .\DEV-WEEU-SAP00-X00.json -Type sap_system -DeployerStateFileKeyName MGMT-WEEU-DEP00-INFRASTRUCTURE.terraform.tfstate -LandscapeStateFileKeyName DEV-WEEU-SAP01-INFRASTRUCTURE.terraform.tfstate
 
     .EXAMPLE 
 

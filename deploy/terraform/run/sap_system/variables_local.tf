@@ -34,6 +34,14 @@ variable "deployer_tfstate_key" {
 
 variable "landscape_tfstate_key" {
   description = "The key of sap landscape's remote tfstate file"
+
+   validation {
+    condition = (
+      length(trimspace(try(var.landscape_tfstate_key, ""))) != 0
+    )
+    error_message = "The Landscape state file name must be specified."
+  }
+
 }
 
 locals {

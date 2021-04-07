@@ -90,7 +90,7 @@ locals {
   offset = try(var.options.resource_offset, 0)
 
   //Flag to control if nsg is creates in virtual network resource group
-  nsg_asg_with_vnet = try(var.options.nsg_asg_with_vnet, false) 
+  nsg_asg_with_vnet = try(var.options.nsg_asg_with_vnet, false)
 
   //Allowing to keep the old nic order
   legacy_nic_order = try(var.options.legacy_nic_order, false)
@@ -131,7 +131,7 @@ locals {
     try(local.var_sub_app.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet))
   )
 
-  sub_app_prefix = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] : try(local.var_sub_app.prefix, "")
+  sub_app_prefix = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] : try(local.var_sub_app.prefix, "")) : ""
 
   // APP NSG
   var_sub_app_nsg    = try(local.var_sub_app.nsg, {})
@@ -153,7 +153,7 @@ locals {
     try(local.sub_web.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet))
   )
 
-  sub_web_prefix = local.sub_web_exists ? data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0] : try(local.sub_web.prefix, "")
+  sub_web_prefix = local.enable_deployment ? (local.sub_web_exists ? data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0] : try(local.sub_web.prefix, "")) : ""
   sub_web_deployed = try(local.sub_web_defined ? (
     local.sub_web_exists ? data.azurerm_subnet.subnet_sap_web[0] : azurerm_subnet.subnet_sap_web[0]) : (
     local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0] : azurerm_subnet.subnet_sap_app[0]), null
@@ -360,6 +360,7 @@ locals {
           disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = storage_type.write_accelerator
+          type                      = storage_type.name
         }
       ]
       if storage_type.name != "os"
@@ -378,6 +379,7 @@ locals {
         disk_iops_read_write      = datadisk.disk_iops_read_write
         disk_mbps_read_write      = datadisk.disk_mbps_read_write
         lun                       = idx
+        type                      = "sap"
       }
     ]
   ])
@@ -394,6 +396,7 @@ locals {
           disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = storage_type.write_accelerator
+          type                      = storage_type.name
         }
       ]
       if storage_type.name != "os"
@@ -412,6 +415,7 @@ locals {
         disk_iops_read_write      = datadisk.disk_iops_read_write
         disk_mbps_read_write      = datadisk.disk_mbps_read_write
         lun                       = idx
+        type                      = "sap"
       }
     ]
   ])
@@ -428,6 +432,7 @@ locals {
           disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = storage_type.write_accelerator
+          type                      = storage_type.name
         }
       ]
       if storage_type.name != "os"
@@ -446,10 +451,10 @@ locals {
         disk_iops_read_write      = datadisk.disk_iops_read_write
         disk_mbps_read_write      = datadisk.disk_mbps_read_write
         lun                       = idx
+        type                      = "sap"
       }
     ]
   ])
-
 
   full_appserver_names = flatten([for vm in local.app_virtualmachine_names :
     format("%s%s%s%s", local.prefix, var.naming.separator, vm, local.resource_suffixes.vm)]
@@ -462,6 +467,25 @@ locals {
   full_webserver_names = flatten([for vm in local.web_virtualmachine_names :
     format("%s%s%s%s", local.prefix, var.naming.separator, vm, local.resource_suffixes.vm)]
   )
+
+  //Disks for Ansible
+  // host: xxx, LUN: #, type: sapusr, size: #
+
+  app_disks_ansible = flatten([for vm in local.app_virtualmachine_names : [
+    for idx, datadisk in local.app_data_disk_per_dbnode :
+    format("host: %s, LUN: %d, type: %s", vm, idx, "sap")
+  ]])
+
+  scs_disks_ansible = flatten([for vm in local.scs_virtualmachine_names : [
+    for idx, datadisk in local.scs_data_disk_per_dbnode :
+    format("host: %s, LUN: %d, type: %s", vm, idx, "sap")
+  ]])
+
+  web_disks_ansible = flatten([for vm in local.web_virtualmachine_names : [
+    for idx, datadisk in local.web_data_disk_per_dbnode :
+    format("host: %s, LUN: %d, type: %s", vm, idx, "sap")
+  ]])
+
 
   // Zones
   app_zones            = try(var.application.app_zones, [])
@@ -481,18 +505,18 @@ locals {
   web_zone_count       = length(local.web_zones)
   //If we deploy more than one server in zone put them in an availability set
   use_web_avset = local.webdispatcher_count > 0 ? (!local.web_zonal_deployment || local.webdispatcher_count != local.web_zone_count) : false
-  
+
   winha_ips = [
     {
       name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_feip)
-      subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
+      subnet_id                     = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
       private_ip_address            = local.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 2 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
 
     },
     {
       name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_feip)
-      subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
+      subnet_id                     = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
       private_ip_address            = local.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 3 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
     }
@@ -502,13 +526,13 @@ locals {
   std_ips = [
     {
       name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_alb_feip)
-      subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
+      subnet_id                     = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
       private_ip_address            = local.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 0 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
     },
     {
       name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_feip)
-      subnet_id                     = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
+      subnet_id                     = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
       private_ip_address            = local.use_DHCP ? (null) : (try(local.scs_lb_ips[1], cidrhost(local.sub_app_prefix, 1 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
     },

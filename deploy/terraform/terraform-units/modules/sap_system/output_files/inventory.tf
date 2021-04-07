@@ -92,7 +92,7 @@ resource "local_file" "ansible_inventory" {
     ips_app           = local.ips_app,
     ips_web           = local.ips_web
     anydbnodes        = local.anydb_vms,
-    ips_anydbnodes    = local.ips_anydbnodes,
+    ips_anydbnodes    = local.ips_anydbnodes
     }
   )
   filename             = "${path.cwd}/ansible_config_files/hosts"
@@ -149,10 +149,27 @@ resource "local_file" "ansible_inventory_new_yml" {
   directory_permission = "0770"
 }
 
+resource "local_file" "sap-parameters_yml" {
+  content = templatefile("${path.module}/sap-parameters.yml.tmpl", {
+    sid          = var.hdb_sid,
+    environment  = var.infrastructure.environment,
+    kv_uri       = local.kv_name,
+    uname_secret = local.uname_secret,
+    pwd_secret   = local.pwd_secret,
+    key_secret   = local.key_secret
+    disks        = var.disks
+    }
+  )
+  filename             = "${path.cwd}/ansible_config_files/sap-parameters.yaml"
+  file_permission      = "0660"
+  directory_permission = "0770"
+}
+
+
 resource "azurerm_storage_blob" "hosts_yaml" {
-  provider             = azurerm.deployer
-  name                 = format("%s_hosts.yml", trimspace(var.naming.prefix.SDU))
-  storage_account_name = local.tfstate_storage_account_name
+  provider               = azurerm.deployer
+  name                   = format("%s_hosts.yml", trimspace(var.naming.prefix.SDU))
+  storage_account_name   = local.tfstate_storage_account_name
   storage_container_name = local.ansible_container_name
   type                   = "Block"
   source                 = local_file.ansible_inventory_new_yml.filename

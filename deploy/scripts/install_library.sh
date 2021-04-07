@@ -64,6 +64,19 @@ then
     exit
 fi
 
+param_dirname=$(dirname "${parameterfile}")
+
+if [ $param_dirname != '.' ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#   Please run this command from the folder containing the parameter file               #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    exit 3
+fi
+
+
 #Persisting the parameters across executions
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
@@ -276,18 +289,6 @@ terraform {
 }
 EOF
 
-REMOTE_STATE_RG=$(terraform output remote_state_resource_group_name | tr -d \")
-temp=$(echo "${REMOTE_STATE_RG}" | grep -m1 "Warning")
-if [ -z "${temp}" ]
-then
-    temp=$(echo "${REMOTE_STATE_RG}" | grep -m1 "Backend reinitialization required")
-    if [ -z "${temp}" ]
-    then
-        sed -i /REMOTE_STATE_RG/d  "${library_config_information}"
-        echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${library_config_information}"
-    fi
-fi
-
 REMOTE_STATE_SA=$(terraform output remote_state_storage_account_name| tr -d \")
 temp=$(echo "${REMOTE_STATE_SA}" | grep -m1 "Warning")
 if [ -z "${temp}" ]
@@ -297,24 +298,21 @@ then
     then
         sed -i /REMOTE_STATE_SA/d  "${library_config_information}"
         echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> ${library_config_information}
-    fi
-fi
-
-tfstate_resource_id=$(terraform output tfstate_resource_id| tr -d \")
-temp=$(echo "${tfstate_resource_id}" | grep  -m1 "Warning" )
-echo $temp
-if [ -z "${temp}" ]
-then
-    temp=$(echo $tfstate_resource_id | grep -m1 "Backend reinitialization required"  )
-    if [ -z $temp ]
-    then
+        REMOTE_STATE_RG=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].resourceGroup  | tr -d \" | xargs)
+        tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
+        STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
+        
+        sed -i /REMOTE_STATE_SA/d  "${library_config_information}"
+        sed -i /REMOTE_STATE_RG/d  "${library_config_information}"
         sed -i /tfstate_resource_id/d  "${library_config_information}"
         sed -i /STATE_SUBSCRIPTION/d  "${library_config_information}"
-        STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
+        
+        echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> "${library_config_information}"
+        echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${library_config_information}"
         echo "tfstate_resource_id=${tfstate_resource_id}" >> "${library_config_information}"
         echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${library_config_information}"
-
     fi
+fi
 
 rm backend.tf
 exit 0

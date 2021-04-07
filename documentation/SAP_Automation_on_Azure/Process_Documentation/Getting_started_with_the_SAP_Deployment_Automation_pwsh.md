@@ -45,7 +45,7 @@ Read-SAPDeploymentTemplate -Parameterfile .\LIBRARY\MGMT-WEEU-SAP_LIBRARY\MGMT-W
 
 Read-SAPDeploymentTemplate -Parameterfile .\LANDSCAPE\DEV-WEEU-SAP01-INFRASTRUCTURE\DEV-WEEU-SAP01-INFRASTRUCTURE.json -Type sap_landscape
 
-Read-SAPDeploymentTemplate -Parameterfile .\SYSTEM\DEV-WEEU-SAP01-ZZZ\DEV-WEEU-SAP01-ZZZ.json -Type sap_system
+Read-SAPDeploymentTemplate -Parameterfile .\SYSTEM\DEV-WEEU-SAP01-X00\DEV-WEEU-SAP01-X00.json -Type sap_system
 
 ```
 
@@ -157,14 +157,14 @@ If prompted enter "MGMT" for the Deployer environment name.
 
 ## **Deploying the SAP system** ##
 
-For deploying the SAP system navigate to the folder(DEV-WEEU-SAP01-ZZZ) containing the DEV-WEEU-SAP01-ZZZ.json parameter file and use the New-SAPSystem cmdlet
+For deploying the SAP system navigate to the folder(DEV-WEEU-SAP01-X00) containing the DEV-WEEU-SAP01-X00.json parameter file and use the New-SAPSystem cmdlet
 
 ```PowerShell
-New-SAPSystem -Parameterfile .\DEV-WEEU-SAP01-ZZZ.json -Type sap_system
+New-SAPSystem -Parameterfile .\DEV-WEEU-SAP01-X00.json -Type sap_system
 ```
 
 ## **Clean up the deployment** ##
 
 ```PowerShell
-Remove-SAPSystem -Parameterfile .\DEV-WEEU-SAP01-ZZZ.json -Type sap_system
+Remove-SAPSystem -Parameterfile .\DEV-WEEU-SAP01-X00.json -Type sap_system
 ```

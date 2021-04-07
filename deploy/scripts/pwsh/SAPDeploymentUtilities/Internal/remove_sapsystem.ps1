@@ -18,7 +18,7 @@ function Remove-SAPSystem {
     #
     # Import the module
     Import-Module "SAPDeploymentUtilities.psd1"
-    Remove-System -Parameterfile .\PROD-WEEU-SAP00-ZZZ.json -Type sap_system
+    Remove-System -Parameterfile .\PROD-WEEU-SAP00-X00.json -Type sap_system
 
     .EXAMPLE 
 

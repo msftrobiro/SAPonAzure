@@ -71,6 +71,17 @@ landscape_tfstate_key_parameter=""
 landscape_tfstate_key_exists=false
 
 parameterfile_name=$(basename "${parameterfile}")
+param_dirname=$(dirname "${parameterfile}")
+
+if [ $param_dirname != '.' ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#   Please run this command from the folder containing the parameter file               #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    exit 3
+fi
 
 # Read environment
 environment=$(cat "${parameterfile}" | jq .infrastructure.environment | tr -d \")

@@ -11,14 +11,12 @@
 # --------------------------------------+---------------------------------------8
 
 # SUSE bug 1167134
-- name:     Ensure DHCLIENT_SET_HOSTNAME is set to no for SLES
-
+- name:         "Ensure DHCLIENT_SET_HOSTNAME is set to no for SLES"
   lineinfile:
-    path:     /etc/sysconfig/network/dhcp
-    regexp:   '^DHCLIENT_SET_HOSTNAME='
-    line:     DHCLIENT_SET_HOSTNAME="no"
-
-  when:     ansible_os_family|upper == 'SUSE'
+    path:       /etc/sysconfig/network/dhcp
+    regexp:     '^DHCLIENT_SET_HOSTNAME='
+    line:       DHCLIENT_SET_HOSTNAME="no"
+  when:         ansible_os_family|upper == 'SUSE'
 
 
 # TODO:

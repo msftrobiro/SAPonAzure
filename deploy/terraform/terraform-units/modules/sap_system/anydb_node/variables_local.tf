@@ -335,9 +335,9 @@ locals {
 //Disks for Ansible
   // host: xxx, LUN: #, type: sapusr, size: #
 
-  db_disks_ansible = flatten([for vm in local.computer_names : [
+  db_disks_ansible = flatten([for idx in range(local.db_server_count) : [
     for idx, datadisk in local.data_disk_per_dbnode :
-      format("host: %s, LUN: %d, type: %s", vm, idx, datadisk.type)
+      format("host: %s, LUN: %d, type: %s", local.computer_names[idx], idx, datadisk.type)
   ]])
 
   enable_ultradisk = try(

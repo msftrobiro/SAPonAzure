@@ -10,30 +10,16 @@
 #
 # --------------------------------------+---------------------------------------8
 
-
-# --------------------------------------+---------------------------------------8
-#
-# <Comment Header> 
-#
-# --------------------------------------+---------------------------------------8
 # TODO: 20210127 Review
-
-#----------------------------------------
-# BEGIN - OLD CODE
-#----------------------------------------
+#       1) This could be written to be more efficient
+#       2) waagent config should not run on Baremetal
 
 - name: Ensure variables are available
   include_vars:
     file: "../../../vars/sap-disks.yaml"
 
-# TODO: Rewrite - This is written wrong. it serializes work incorrectly. Tasks should not be in seperate file in a loop.
 - include_tasks: configure.yaml
   loop: "{{ sap_swap }}"
   when: item.tier == "all" or item.tier == tier
-
-#----------------------------------------
-# END - OLD CODE
-#----------------------------------------
-
 
 ...

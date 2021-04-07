@@ -32,6 +32,8 @@
 
 export           ANSIBLE_HOST_KEY_CHECKING=False
 
+./get-sshkey.sh
+
 PS3='Please select playbook: '
 options=(                           \
         "Base OS Config"            \
@@ -72,7 +74,7 @@ do
         ansible-playbook                                                                                                \
           --inventory   X00_hosts.yml                                                                                   \
           --user        azureadm                                                                                        \
-          --private-key sshkey                                                                                          \
+          --private-key "${SSHKEYSAP}"                                                                                          \
           --extra-vars="@sap-parameters.yaml"                                                                           \
           ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/${playbook}
           break

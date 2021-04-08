@@ -79,7 +79,7 @@ landscape_tfstate_key_exists=false
 parameterfile_name=$(basename "${parameterfile}")
 param_dirname=$(dirname "${parameterfile}")
 
-if [ $param_dirname != '.' ]; then
+if [ "${param_dirname}" != '.' ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -113,7 +113,7 @@ automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region}"
 
-if [ ! -d ${automation_config_directory} ]
+if [ ! -d "${automation_config_directory}" ]
 then
     # No configuration directory exists
     mkdir $automation_config_directory
@@ -205,7 +205,7 @@ else
     fi
     
     landscape_tfstate_key_parameter=''
-    if [ $deployment_system == sap_system ]
+    if [ "${deployment_system}" == sap_system ]
     then
         temp=$(grep -m1 "landscape_tfstate_key" "${system_config_information}")
         if [ ! -z "${temp}" ]
@@ -451,16 +451,16 @@ if ! $new_deployment; then
         echo ""
         rm plan_output.log
         
-        if [ $deployment_system == sap_deployer ]
+        if [ "${deployment_system}" == sap_deployer ]
         then
-            if [ $deployer_tfstate_key_exists == false ]
+            if [ "${deployer_tfstate_key_exists}" == false ]
             then
                 echo "Saving the deployer state file name"
                 echo "deployer_tfstate_key=${key}.terraform.tfstate" >> $system_config_information
                 deployer_tfstate_key_exists=true
             fi
         fi
-        if [ $deployment_system == sap_landscape ]
+        if [ "${deployment_system}" == sap_landscape ]
         then
             if [ $landscape_tfstate_key_exists == false ]
             then
@@ -510,7 +510,7 @@ if [ $ok_to_proceed ]; then
     terraform apply ${approve} -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory
 fi
 
-if [ $deployment_system == sap_deployer ]
+if [ "${deployment_system}" == sap_deployer ]
 then
     echo $deployer_tfstate_key_exists
     if [ $deployer_tfstate_key_exists == false ]
@@ -520,7 +520,7 @@ then
     fi
 fi
 
-if [ $deployment_system == sap_landscape ]
+if [ "${deployment_system}" == sap_landscape ]
 then
     if [ $landscape_tfstate_key_exists == false ]
     then
@@ -529,7 +529,7 @@ then
     fi
 fi
 
-if [ $deployment_system == sap_library ]
+if [ "${deployment_system}" == sap_library ]
 then
     
     REMOTE_STATE_RG=$(terraform output remote_state_resource_group_name | tr -d \")

@@ -83,9 +83,54 @@ if [ $param_dirname != '.' ]; then
     exit 3
 fi
 
+
+if [ ! -n "${deployment_system}" ]
+then
+    printf -v val %-40.40s "$deployment_system"
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#   Incorrect system deployment type specified: ${val}#"
+    echo "#                                                                                       #"
+    echo "#     Valid options are:                                                                #"
+    echo "#       sap_deployer                                                                    #"
+    echo "#       sap_library                                                                     #"
+    echo "#       sap_landscape                                                                   #"
+    echo "#       sap_system                                                                      #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit -1
+fi
+
 # Read environment
 environment=$(cat "${parameterfile}" | jq .infrastructure.environment | tr -d \")
 region=$(cat "${parameterfile}" | jq .infrastructure.region | tr -d \")
+
+if [ ! -n "${environment}" ]
+then
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Incorrect parameter file.                                   #"
+    echo "#                                                                                       #"
+    echo "#     The file needs to contain the infrastructure.environment attribute!!              #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit -1
+fi
+
+if [ ! -n "${region}" ]
+then
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Incorrect parameter file.                                   #"
+    echo "#                                                                                       #"
+    echo "#       The file needs to contain the infrastructure.region attribute!!                 #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit -1
+fi
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 

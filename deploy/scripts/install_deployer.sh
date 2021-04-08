@@ -45,11 +45,6 @@ done
 
 deployment_system=sap_deployer
 
-environment=$(cat "${parameterfile}" | jq .infrastructure.environment | tr -d \")
-region=$(cat "${parameterfile}" | jq .infrastructure.region | tr -d \")
-
-key=$(echo "${parameterfile}" | cut -d. -f1)
-
 if [ ! -f "${parameterfile}" ]
 then
     printf -v val %-40.40s "$parameterfile"
@@ -60,6 +55,37 @@ then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     exit
+fi
+
+# Read environment
+environment=$(cat "${parameterfile}" | jq .infrastructure.environment | tr -d \")
+region=$(cat "${parameterfile}" | jq .infrastructure.region | tr -d \")
+key=$(echo "${parameterfile}" | cut -d. -f1)
+
+if [ ! -n "${environment}" ]
+then
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Incorrect parameter file.                                   #"
+    echo "#                                                                                       #"
+    echo "#     The file needs to contain the infrastructure.environment attribute!!              #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit -1
+fi
+
+if [ ! -n "${region}" ]
+then
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Incorrect parameter file.                                   #"
+    echo "#                                                                                       #"
+    echo "#       The file needs to contain the infrastructure.region attribute!!                 #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit -1
 fi
 
 #Persisting the parameters across executions

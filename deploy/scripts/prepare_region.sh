@@ -153,6 +153,32 @@ fi
 environment=$(cat "${deployer_parameter_file}" | jq .infrastructure.environment | tr -d \")
 region=$(cat "${deployer_parameter_file}" | jq .infrastructure.region | tr -d \")
 
+if [ ! -n "${environment}" ]
+then
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Incorrect parameter file.                                   #"
+    echo "#                                                                                       #"
+    echo "#     The file needs to contain the infrastructure.environment attribute!!              #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit -1
+fi
+
+if [ ! -n "${region}" ]
+then
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Incorrect parameter file.                                   #"
+    echo "#                                                                                       #"
+    echo "#       The file needs to contain the infrastructure.region attribute!!                 #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit -1
+fi
+
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 deployer_config_information="${automation_config_directory}""${environment}""${region}"

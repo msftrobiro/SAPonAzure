@@ -11,8 +11,8 @@ resource "azurerm_subnet" "subnet_sap_app" {
 
 resource "azurerm_subnet_route_table_association" "subnet_sap_app" {
   provider       = azurerm.main
-  count          = !local.sub_app_exists && length(var.route_table_id) > 0 ? 1 : 0
-  subnet_id      = azurerm_subnet.subnet_sap_app[0].id
+  count          = !local.sub_app_exists && local.enable_deployment && length(var.route_table_id) > 0 ? 1 : 0
+  subnet_id      = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
   route_table_id = var.route_table_id
 }
 
@@ -37,8 +37,8 @@ resource "azurerm_subnet" "subnet_sap_web" {
 
 resource "azurerm_subnet_route_table_association" "subnet_sap_web" {
   provider       = azurerm.main
-  count          = local.enable_deployment && local.sub_web_defined && length(var.route_table_id) > 0 ? (local.sub_web_exists ? 0 : 1) : 0
-  subnet_id      = azurerm_subnet.subnet_sap_web[0].id
+  count          = local.enable_deployment && local.enable_deployment && local.sub_web_defined && length(var.route_table_id) > 0 ? (local.sub_web_exists ? 0 : 1) : 0
+  subnet_id      = local.sub_web_exists ? data.azurerm_subnet.subnet_sap_web[0].id : azurerm_subnet.subnet_sap_web[0].id
   route_table_id = var.route_table_id
 }
 

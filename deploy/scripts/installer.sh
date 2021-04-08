@@ -107,6 +107,25 @@ then
     exit
 fi
 
+if [ ! -n "${deployment_system}" ]
+then
+    printf -v val %-40.40s "$deployment_system"
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#   Incorrect system deployment type specified: ${val}#"
+    echo "#                                                                                       #"
+    echo "#     Valid options are:                                                                #"
+    echo "#       sap_deployer                                                                    #"
+    echo "#       sap_library                                                                     #"
+    echo "#       sap_landscape                                                                   #"
+    echo "#       sap_system                                                                      #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit -1
+fi
+
+
 #Persisting the parameters across executions
 
 automation_config_directory=~/.sap_deployment_automation/

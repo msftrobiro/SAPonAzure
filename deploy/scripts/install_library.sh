@@ -46,10 +46,6 @@ while getopts ":p:i:d:h" option; do
     esac
 done
 
-# Read environment
-environment=$(cat "${parameterfile}" | jq .infrastructure.environment | tr -d \")
-region=$(cat "${parameterfile}" | jq .infrastructure.region | tr -d \")
-key=$(echo "${parameterfile}" | cut -d. -f1)
 deployment_system=sap_library
 
 if [ ! -f "${parameterfile}" ]
@@ -76,6 +72,36 @@ if [ $param_dirname != '.' ]; then
     exit 3
 fi
 
+# Read environment
+environment=$(cat "${parameterfile}" | jq .infrastructure.environment | tr -d \")
+region=$(cat "${parameterfile}" | jq .infrastructure.region | tr -d \")
+key=$(echo "${parameterfile}" | cut -d. -f1)
+
+if [ ! -n "${environment}" ]
+then
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Incorrect parameter file.                                   #"
+    echo "#                                                                                       #"
+    echo "#     The file needs to contain the infrastructure.environment attribute!!              #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit -1
+fi
+
+if [ ! -n "${region}" ]
+then
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Incorrect parameter file.                                   #"
+    echo "#                                                                                       #"
+    echo "#       The file needs to contain the infrastructure.region attribute!!                 #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit -1
+fi
 
 #Persisting the parameters across executions
 automation_config_directory=~/.sap_deployment_automation/

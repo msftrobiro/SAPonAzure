@@ -7,7 +7,7 @@
         "vnets": {
             "sap": {
                 "name": "SAP01",
-                "address_space": "10.1.0.0/22",
+                "address_space": "10.1.0.0/16",
                 "subnet_admin": {
                     "prefix": "10.1.0.0/25"
                 },
@@ -22,7 +22,7 @@
                 },
                 "subnet_iscsi": {
                     "name": "global-WEEU-SAP01_iscsi-subnet",
-                    "prefix": "10.1.0.0/24"
+                    "prefix": "10.1.10.0/24"
                 }
             }
         },

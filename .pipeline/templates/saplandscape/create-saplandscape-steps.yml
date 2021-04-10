@@ -109,6 +109,8 @@ steps:
       subnet_web_prefix="10.${idx}.3.0/25"
       subnet_iscsi_prefix="10.${idx}.${idx}.64/27"
 
+      echo "${subnet_admin_prefix}"
+
       saplandscape_rg="${saplandscape_prefix}-WEEU-SAP0-INFRASTRUCTURE"
       
       repo_dir=$HOME/${saplandscape_rg}/sap-hana

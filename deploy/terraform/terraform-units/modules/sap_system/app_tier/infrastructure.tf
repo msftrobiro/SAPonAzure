@@ -45,7 +45,7 @@ resource "azurerm_subnet_route_table_association" "subnet_sap_web" {
 # Imports data of existing SAP web dispatcher subnet
 data "azurerm_subnet" "subnet_sap_web" {
   provider             = azurerm.main
-  count                = local.enable_deployment && local.sub_web_defined ? (local.sub_web_exists ? 1 : 0) : 0
+  count                = local.enable_deployment ? (local.sub_web_exists ? 1 : 0) : 0
   name                 = split("/", local.sub_web_arm_id)[10]
   resource_group_name  = split("/", local.sub_web_arm_id)[4]
   virtual_network_name = split("/", local.sub_web_arm_id)[8]
@@ -243,7 +243,6 @@ resource "azurerm_lb_backend_address_pool" "web" {
   provider            = azurerm.main
   count               = local.enable_deployment && local.webdispatcher_count > 0 ? 1 : 0
   name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_alb_bepool)
-  resource_group_name = var.resource_group[0].name
   loadbalancer_id     = azurerm_lb.web[0].id
 }
 

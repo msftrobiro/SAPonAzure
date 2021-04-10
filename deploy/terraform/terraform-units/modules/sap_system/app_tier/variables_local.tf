@@ -68,6 +68,9 @@ variable "sid_username" {
 variable "sap_sid" {
   description = "The SID of the application"
 }
+variable "landscape_tfstate" {
+  description = "Landscape remote tfstate file"
+}
 
 locals {
   // Imports Disk sizing sizing information
@@ -124,19 +127,24 @@ locals {
 
   // APP subnet
   var_sub_app    = try(var.infrastructure.vnets.sap.subnet_app, {})
-  sub_app_arm_id = try(local.var_sub_app.arm_id, "")
-  sub_app_exists = length(local.sub_app_arm_id) > 0 ? true : false
+  sub_app_arm_id = try(local.var_sub_app.arm_id, try(var.landscape_tfstate.app_subnet_id, ""))
+  sub_app_exists = length(trimspace(try(local.var_sub_app.prefix, ""))) > 0 ? (
+    false) : (
+    length(local.sub_app_arm_id) > 0 ? (
+      true) : (
+      false
+    )
+  )
   sub_app_name = local.sub_app_exists ? (
     try(split("/", local.sub_app_arm_id)[10], "")) : (
     try(local.var_sub_app.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet))
   )
-
   sub_app_prefix = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] : try(local.var_sub_app.prefix, "")) : ""
 
   // APP NSG
   var_sub_app_nsg    = try(local.var_sub_app.nsg, {})
-  sub_app_nsg_arm_id = try(local.var_sub_app_nsg.arm_id, "")
-  sub_app_nsg_exists = length(local.sub_app_nsg_arm_id) > 0 ? true : false
+  sub_app_nsg_arm_id = try(local.var_sub_app_nsg.arm_id, try(var.landscape_tfstate.app_nsg_id, ""))
+  sub_app_nsg_exists = local.sub_app_exists ? length(local.sub_app_nsg_arm_id) > 0 : false
   sub_app_nsg_name = local.sub_app_nsg_exists ? (
     try(split("/", local.sub_app_nsg_arm_id)[8], "")) : (
     try(local.var_sub_app_nsg.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet_nsg))
@@ -146,8 +154,14 @@ locals {
   #If subnet_web is not specified deploy into app subnet
   sub_web_defined = try(var.infrastructure.vnets.sap.subnet_web, null) == null ? false : true
   sub_web         = try(var.infrastructure.vnets.sap.subnet_web, {})
-  sub_web_arm_id  = try(local.sub_web.arm_id, "")
-  sub_web_exists  = length(local.sub_web_arm_id) > 0 ? true : false
+  sub_web_arm_id  = try(local.sub_web.arm_id, try(var.landscape_tfstate.web_subnet_id, ""))
+  sub_web_exists = length(trimspace(try(local.sub_web.prefix, ""))) > 0 ? (
+    false) : (
+    length(local.sub_web_arm_id) > 0 ? (
+      true) : (
+      false
+    )
+  )
   sub_web_name = local.sub_web_exists ? (
     try(split("/", local.sub_web_arm_id)[10], "")) : (
     try(local.sub_web.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet))
@@ -161,8 +175,8 @@ locals {
 
   // WEB NSG
   sub_web_nsg        = try(local.sub_web.nsg, {})
-  sub_web_nsg_arm_id = try(local.sub_web_nsg.arm_id, "")
-  sub_web_nsg_exists = length(local.sub_web_nsg_arm_id) > 0 ? true : false
+  sub_web_nsg_arm_id = try(local.sub_web_nsg.arm_id, try(var.landscape_tfstate.web_nsg_id, ""))
+  sub_web_nsg_exists = local.sub_web_exists ? length(local.sub_web_nsg_arm_id) > 0 : false
   sub_web_nsg_name = local.sub_web_nsg_exists ? (
     try(split("/", local.sub_web_nsg_arm_id)[8], "")) : (
     try(local.sub_web_nsg.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet_nsg))

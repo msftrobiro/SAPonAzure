@@ -62,3 +62,35 @@ output "witness_storage_account_key" {
   value = module.sap_landscape.witness_storage_account_key
 }
 
+output "admin_subnet_id" {
+  value = module.sap_landscape.admin_subnet_id
+}
+
+output "app_subnet_id" {
+  value = module.sap_landscape.app_subnet_id
+}
+
+output "db_subnet_id" {
+  value = module.sap_landscape.db_subnet_id
+}
+
+output "web_subnet_id" {
+  value = module.sap_landscape.admin_subnet_id
+}
+
+
+output "admin_nsg_id" {
+  value = module.sap_landscape.admin_nsg_id
+}
+
+output "app_nsg_id" {
+  value = module.sap_landscape.app_nsg_id
+}
+
+output "db_nsg_id" {
+  value = module.sap_landscape.db_nsg_id
+}
+
+output "web_nsg_id" {
+  value = module.sap_landscape.admin_nsg_id
+}

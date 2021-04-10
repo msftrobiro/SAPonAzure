@@ -25,7 +25,6 @@ Node                                   |  Description |
 | authentication|If specified - This node defines the authentication details for the system. The default setup uses the information from the workload zone key vault. |
 | options |If specified - This node defines special settings for the environment |
 
-
 A comprehensive representation of the json is shown below.
 
 JSON structure
@@ -57,17 +56,21 @@ JSON structure
     "vnets": {
       "sap": {
         "name"                        : "",                                       <-- Required Parameter
-        "subnet_db": {
-          "prefix"                    : "10.1.1.0/28"                             <-- Required Parameter
+        "subnet_db": {                                                            <-- Optional block
+          "arm_id"                    : ""                                        <-- Either arm_id or prefix is required if block is specified
+          "prefix"                    : "10.1.1.0/28"                             <-- Either arm_id or prefix is required if block is specified
         },
         "subnet_web": {
-          "prefix"                    : "10.1.1.16/28"                            <-- Required Parameter
+          "arm_id"                    : ""                                        <-- Either arm_id or prefix is required if block is specified
+          "prefix"                    : "10.1.1.16/28"                            <-- Either arm_id or prefix is required if block is specified
         },
         "subnet_app": {
-          "prefix"                    : "10.1.1.32/27"                            <-- Required Parameter
+          "arm_id"                    : ""                                        <-- Either arm_id or prefix is required if block is specified
+          "prefix"                    : "10.1.1.32/28"                            <-- Either arm_id or prefix is required if block is specified
         },
         "subnet_admin": {
-          "prefix"                    : "10.1.1.64/27"                            <-- Required Parameter
+          "arm_id"                    : ""                                        <-- Either arm_id or prefix is required if block is specified
+          "prefix"                    : "10.1.1.48/28"                            <-- Either arm_id or prefix is required if block is specified
         }
       }
     }
@@ -79,6 +82,8 @@ JSON structure
       "db_version"                    : "2.00.050",
       "size"                          : "Default",                                <-- Required Parameter
       "os": {
+        "os_type"                     : "",                                       
+        "source_image_id"             : "",
         "publisher"                   : "SUSE",                                   <-- Required Parameter
         "offer"                       : "sles-sap-12-sp5",                        <-- Required Parameter
         "sku"                         : "gen2"                                    <-- Required Parameter
@@ -92,20 +97,39 @@ JSON structure
   "application": {                                                                <-- Required Block
     "enable_deployment"               : true,                                     <-- Required Parameter
     "sid"                             : "PRD",                                    <-- Required Parameter
+    "use_DHCP"                        : false,                                    <-- Optional Parameter
+    "application_server_count"        : 3,                                        <-- Required Parameter
+    "app_zones"                       : ["1", "2"],                               <-- Optional Parameter
+    "app_sku"                         : "Standard_E4ds_v4",
     "os" : {
+        "os_type"                     : "",                                       
+        "source_image_id"             : "",
         "publisher"                   : "SUSE",                                   <-- Required Parameter
         "offer"                       : "sles-sap-12-sp5",                        <-- Required Parameter
         "sku"                         : "gen2"                                    <-- Required Parameter
       },
+    "scs_high_availability"           : false,                                    <-- Required Parameter
     "scs_instance_number"             : "00",                                     <-- Required Parameter
     "ers_instance_number"             : "10",                                     <-- Required Parameter
-    "scs_high_availability"           : false,                                    <-- Required Parameter
-    "application_server_count"        : 3,                                        <-- Required Parameter
-    "webdispatcher_count"             : 1,                                        <-- Required Parameter
-    "app_zones"                       : ["1", "2"],                               <-- Optional Parameter
     "scs_zones"                       : ["1"],                                    <-- Optional Parameter
+    "scs_sku"                         : "Standard_E4ds_v4",
+    "scs_os" : {                                                                  <-- Optional block
+        "os_type"                     : "",                                       
+        "source_image_id"             : "",
+        "publisher"                   : "SUSE",
+        "offer"                       : "sles-sap-12-sp5",
+        "sku"                         : "gen2"
+      },
+    "webdispatcher_count"             : 1,                                        <-- Required Parameter
     "web_zones"                       : ["1"],                                    <-- Optional Parameter
-    "use_DHCP"                        : false,                                    <-- Optional Parameter
+    "web_sku"                         : "Standard_E4ds_v4"
+    "web_os" : {                                                                  <-- Optional block
+        "os_type"                     : "",                                       
+        "source_image_id"             : "",
+        "publisher"                   : "SUSE",
+        "offer"                       : "sles-sap-12-sp5",
+        "sku"                         : "gen2"
+      },
     "authentication": {
       "type"                          : "key",
     }
@@ -151,68 +175,101 @@ Node                                   | Attribute                     | Type   
 | infrastructure.anchor_vms.                  | `nic_ips`                     | optional      |          | This is the list of IP addresses that the anchor VMs should use. The list needs as many entries as the total Availability Zone count for all the Virtual Machines in the deployment, not needed if use_DCHP is true |
 | infrastructure.anchor_vms.                  | `use_DHCP`                    | optional      | false    | If set to true the IP addresses for the VMs will be provided by the subnet |
 | | <br/> | 
-| infrastructure.vnets.sap.subnet_admin       |`arm_id`                       | **required**  |          | If provided, the Azure resource ID for the admin subnet |
+| infrastructure.vnets.sap.subnet_admin       | `arm_id`                       | **required**  |          | If provided, the Azure resource ID for the admin subnet |
 | | **or** | 
-| infrastructure.vnets.sap.subnet_admin       |`name`                         | **required**  |          | If provided, the name for the admin subnet to be created
-| infrastructure.vnets.sap.subnet_admin       |`prefix`                       | **required**  |          | If provided, the admin subnet address prefix of the subnet |
+| infrastructure.vnets.sap.subnet_admin       | `name`                         | **required**  |          | If provided, the name for the admin subnet to be created
+| infrastructure.vnets.sap.subnet_admin       | `prefix`                       | **required**  |          | If provided, the admin subnet address prefix of the subnet |
 | | <br/> | 
-| infrastructure.vnets.sap.subnet_app         |`arm_id`                       | **required**  |          | If provided, the Azure resource ID for the application subnet |
+| infrastructure.vnets.sap.subnet_app         | `arm_id`                       | **required**  |          | If provided, the Azure resource ID for the application subnet |
 | | **or** | 
-| infrastructure.vnets.sap.subnet_app         |`name`                         | **required**  |          | If provided, the name for the application subnet to be created
-| infrastructure.vnets.sap.subnet_app         |`prefix`                       | **required**  |          | If provided, the application subnet address prefix of the subnet |
+| infrastructure.vnets.sap.subnet_app         | `name`                         | **required**  |          | If provided, the name for the application subnet to be created
+| infrastructure.vnets.sap.subnet_app         | `prefix`                       | **required**  |          | If provided, the application subnet address prefix of the subnet |
 | | <br/> | 
-| infrastructure.vnets.sap.subnet_db          |`arm_id`                       | **required**  |          | If provided, the Azure resource ID for the database subnet |
+| infrastructure.vnets.sap.subnet_db          | `arm_id`                       | **required**  |          | If provided, the Azure resource ID for the database subnet |
 | | **or** | 
-| infrastructure.vnets.sap.subnet_db          |`name`                         | **required**  |          | If provided, the name for the database subnet to be created
-| infrastructure.vnets.sap.subnet_db          |`prefix`                       | **required**  |          | If provided, the database subnet address prefix of the subnet |
+| infrastructure.vnets.sap.subnet_db          | `name`                         | **required**  |          | If provided, the name for the database subnet to be created
+| infrastructure.vnets.sap.subnet_db          | `prefix`                       | **required**  |          | If provided, the database subnet address prefix of the subnet |
 | | <br/> | 
-| infrastructure.vnets.sap.subnet_web         |`arm_id`                       | optional      |          | If provided, the Azure resource ID for the web dispatcher subnet |
+| infrastructure.vnets.sap.subnet_web         | `arm_id`                       | optional      |          | If provided, the Azure resource ID for the web dispatcher subnet |
 | | **or** | 
-| infrastructure.vnets.sap.subnet_web         |`name`                         | optional      |          | If provided, the name for the web dispatcher subnet to be created
-| infrastructure.vnets.sap.subnet_web         |`prefix`                       | optional      |          | If provided, the web dispatcher subnet address prefix of the subnet |
+| infrastructure.vnets.sap.subnet_web         | `name`                         | optional      |          | If provided, the name for the web dispatcher subnet to be created
+| infrastructure.vnets.sap.subnet_web         | `prefix`                       | optional      |          | If provided, the web dispatcher subnet address prefix of the subnet |
 | | <br/> | 
-| databases.[].|`platform`                               | **required**  |          | This field indicates the database type for the backend. Valid options are HANA, DB2, ORACLE; SQLSERVER, ASE or NONE. If NONE is specified then no database tier gest deployed. |
-| databases.[].|`high_availability`                      |               |         | If set to true then the automation will deploy twice the number of servers defined in the count of nodes list. |
-| databases.[].|`size`                                   | **required**  |          | This field maps to the sizing of disks. For HANA this should be the Virtual Machine SKu (M32, M128ms) etc. For AnyDB the sizing is based on the databases size in gigabytes, valid choices are 200, 500, 1024, 2048, 5120, 10240, 15360, 20480, 30720, 40960, 51200. It is also possible to provide custom sizing, see [Custom disk sizing](../Process_Documentation/Using_custom_disk_sizing.md) for more details |
-| databases.[].os.|`publisher`                           |               |          | The publisher of the image used to create the virtual machine.  |
-| databases.[].os.|`offer`                               |               |          | The offer of the image used to create the virtual machine. |
-| databases.[].os.|`sku`                                 |               |          | The SKU of the image used to create the virtual machine. |
-| databases.[].|`zones`                                  |               |          | A list of the Availability Zones into which the Virtual Machines is deployed. |
-| databases.[].<`avset_arm_ids.[]`                       |               |         | If provided, the name of the availability set into which the Virtual Machine is deployed |
-| databases.[].<`use_DHCP`                               |               | false    | If set to true the IP addresses for the VMs will be provided by the subnet |
-| databases.[].dbnodes.[].<`name`                        |               |          | If specified, the name of the Virtual Machine |
+| databases.[].                               | `platform`                     | **required**  |          | This field indicates the database type for the backend. Valid options are HANA, DB2, ORACLE; SQLSERVER, ASE or NONE. If NONE is specified then no database tier gest deployed. |
+| databases.[].                               | `high_availability`            | optional      |          | If set to true then the automation will deploy twice the number of servers defined in the count of nodes list. |
+| databases.[].                               | `size`                         | **required**  |          | This field maps to the sizing of disks. For HANA this should be the Virtual Machine SKu (M32, M128ms) etc. For AnyDB the sizing is based on the databases size in gigabytes, valid choices are 200, 500, 1024, 2048, 5120, 10240, 15360, 20480, 30720, 40960, 51200. It is also possible to provide custom sizing, see [Custom disk sizing](../Process_Documentation/Using_custom_disk_sizing.md) for more details |
+| | <br/> |
+| databases.[].os.                            | `os_type`                      |               |          | Required if custom image ID is provided |
+| databases.[].os.                            | `source_image_id`              |               |          | The resource Id for the custom image to use.  |
+| | or |
+| databases.[].os.                            | `publisher`                    |               |          | The publisher of the image used to create the virtual machine.  |
+| databases.[].os.                            | `offer`                        |               |          | The offer of the image used to create the virtual machine. |
+| databases.[].os.                            | `sku`                          |               |          | The SKU of the image used to create the virtual machine. |
+| databases.[].                               | `zones`                        |               |          | A list of the Availability Zones into which the Virtual Machines is deployed. |
+| databases.[].                               | `avset_arm_ids.[]`             |               |          | If provided, the name of the availability set into which the Virtual Machine is deployed |
+| databases.[].                               | `use_DHCP`                     |               | false    | If set to true the IP addresses for the VMs will be provided by the subnet |
+| databases.[].dbnodes.[].                    | `name`                         |               |          | If specified, the name of the Virtual Machine |
+| | <br/> |
+| application.                                | `enable_deployment`            |               |          | Boolean flag indicating if the application tier will be deployed |
+| application.                                | `sid`                          | **required**  |          | The SAP application SID |
+| application.                                | `application_server_count`     |               |          | The number of application servers to be deployed |
+| application.                                | `app_zones`                    |               |          | A list of the Availability Zones into which the Virtual Machines is deployed. |
+| application.                                | `app_sku`                      |               |          | The Virtual machine SKU to use |
+| | <br/> |
+| application.[].os.                          | `os_type`                      |               |          | Required if custom image ID is provided |
+| application.[].os.                          | `source_image_id`              |               |          | The resource Id for the custom image to use.  |
+| | or |
+| application.[].os.                          | `publisher`                    |               |          | The publisher of the image used to create the virtual machine.  |
+| application.[].os.                          | `offer`                        |               |          | The offer of the image used to create the virtual machine. |
+| application.[].os.                          | `sku`                          |               |          | The SKU of the image used to create the virtual machine. |
+| | <br/> |
+| application.                                | `scs_server_count`             |               |          | The number of SCS servers to be deployed |
+| application.                                | `scs_instance_number`          |               |          | The instance number of SCS|
+| application.                                | `ers_instance_number`          |               |          | The instance number of ERS |
+| application.                                | `scs_high_availability`        |               |          | Boolean flag indicating if SCS should be deployed highly available.  |
+| application.                                | `scs_zones`                    |               |          | A list of the Availability Zones into which the Virtual Machines is deployed. |
+| application.                                | `scs_sku`                      |               |          | The Virtual machine SKU to use |
+| | <br/> |
+| application.[].scs_os.                      | `os_type`                      |               |          | Required if custom image ID is provided |
+| application.[].scs_os.                      | `source_image_id`              |               |          | The resource Id for the custom image to use.  |
+| | or |
+| application.[].scs_os.                      | `publisher`                    |               |          | The publisher of the image used to create the virtual machine.  |
+| application.[].scs_os.                      | `offer`                        |               |          | The offer of the image used to create the virtual machine. |
+| application.[].scs_os.                      | `sku`                          |               |          | The SKU of the image used to create the virtual machine. |
+| | <br/> |
+| application.                                | `webdispatcher_count`          |               |          | The number of web dispatchers to be deployed |
+| application.                                | `web_zones`                    |               |          | A list of the Availability Zones into which the Virtual Machines is deployed. |
+| application.                                | `scs_sku`                      |               |          | The Virtual machine SKU to use |
+| | <br/> |
+| application.[].web_os.                      | `os_type`                      |               |          | Required if custom image ID is provided |
+| application.[].web_os.                      | `source_image_id`              |               |          | The resource Id for the custom image to use.  |
+| | or |
+| application.[].web_os.                      | `publisher`                    |               |          | The publisher of the image used to create the virtual machine.  |
+| application.[].web_os.                      | `offer`                        |               |          | The offer of the image used to create the virtual machine. |
+| application.[].web_os.                      | `sku`                          |               |          | The SKU of the image used to create the virtual machine. |
+| | <br/> |
+| application.                                | `use_DHCP`                     |               | false    | If set to true the IP addresses for the VMs will be provided by the subnet |
+| application.authentication.                 | `type`                         |               |          | The authentication type for the Virtual Machine, valid options are "Password", "Key" |
+| | <br/> |
+| authentication.                             | `username`                     | optional      |          | If specified the default username for the environment |
+| authentication.                             | `password`                     | optional      |          | If specified the password for the environment. <br/>If not specified, Terraform will create a password and store it in keyvault |
+| authentication.                             | `path_to_public_key`           | optional      |          | If specified the path to the SSH public key file. If not specified, Terraform will create  and store it in keyvault |
+| authentication.                             | `path_to_private_key`          | optional      |          | If specified the path to the SSH private key file. If not specified, Terraform will create  and store it in keyvault |
+| | <br/> |
+| options.                                    | `resource_offset`              |               | 0        | The offset used for resource naming when creating multiple resources, for example -disk0, disk1. If changing the resource_offset to 1 the disks will be renamed disk1, disk2 |
+| options.                                    | `disk_encryption_set_id`       |               |          | Disk encryption key to use for encrypting the managed disks |
+| | <br/> |
+| key_vault.                                  | `kv_user_id`                   | optional      |          | If provided, the Key Vault resource ID of the user Key Vault to be used.  |
+| key_vault.                                  | `kv_prvt_id`                   | optional      |          | If provided, the Key Vault resource ID of the private Key Vault to be used. |
+| key_vault.                                  | `kv_spn_id`                    | optional      |          | If provided, the Key Vault resource ID of the private Key Vault containing the SPN details. |
 | | <br/> | 
-| application.|`enable_deployment`                       |               |          | Boolean flag indicating if the application tier will be deployed |
-| application.|`sid`                                     | **required**  |          | The SAP application SID |
-| application.[].os.|`publisher`                           |               |          | The publisher of the image used to create the virtual machine.  |
-| application.[].os.|`offer`                               |               |          | The offer of the image used to create the virtual machine. |
-| application.[].os.|`sku`                                 |               |          | The SKU of the image used to create the virtual machine. |
-| application.|`scs_instance_number`                     |               |          | The instance number of SCS|
-| application.|`ers_instance_number`                     |               |          | The instance number of ERS |
-| application.|`scs_high_availability`                   |               |          | Boolean flag indicating if SCS should be deployed highly available.  |
-| application.|`application_server_count`                |               |          | The number of application servers to be deployed |
-| application.|`scs_server_count`                        |               |          | The number of SCS servers to be deployed |
-| application.|`webdispatcher_count`                     |               |          | The number of web dispatchers to be deployed |
-| application.|`app_zones`                               |               |          | A list of the Availability Zones into which the Virtual Machines is deployed. |
-| application.|`scs_zones`                               |               |          | A list of the Availability Zones into which the Virtual Machines is deployed. |
-| application.|`web_zones`                               |               |          | A list of the Availability Zones into which the Virtual Machines is deployed. |
-| application.|`use_DHCP`                                |               | false    | If set to true the IP addresses for the VMs will be provided by the subnet |
-| application.authentication.|`type`                     |               |          | The authentication type for the Virtual Machine, valid options are "Password", "Key" |
-| | <br/> | 
-| options.|`resource_offset`                             |               | 0        | The offset used for resource naming when creating multiple resources, for example -disk0, disk1. If changing the resource_offset to 1 the disks will be renamed disk1, disk2 |
-| options.|`disk_encryption_set_id`                      |               |          | Disk encryption key to use for encrypting the managed disks |
-| | <br/> | 
-| key_vault.                     | `kv_user_id`                                | optional      |          |If provided, the Key Vault resource ID of the user Key Vault to be used.  |
-| key_vault.                     | `kv_prvt_id`                                | optional      |          |If provided, the Key Vault resource ID of the private Key Vault to be used. |
-| key_vault.                     | `kv_spn_id`                                | optional      |          |If provided, the Key Vault resource ID of the private Key Vault containing the SPN details. |
-| | <br/> | 
-| `tfstate_resource_id`                       |                               | **required**  |          | This is the Azure Resource ID for the Storage Account in which the Statefiles are stored. Typically this is deployed by the SAP Library execution unit. |
-| `deployer_tfstate_key`                      | `Remote State`                | **required**  |          | This is the deployer state file name, used for finding the correct state file.  <br/>**Case-sensitive**  |
-| `landscape_tfstate_key`                     | `Remote State`                | **required**  |          | This is the landscape state file name, used for finding the correct state file.  <br/>**Case-sensitive**   |
+| `tfstate_resource_id`                       |                                | **required**  |          | This is the Azure Resource ID for the Storage Account in which the Statefiles are stored. Typically this is deployed by the SAP Library execution unit. |
+| `deployer_tfstate_key`                      | `Remote State`                 | **required**  |          | This is the deployer state file name, used for finding the correct state file.  <br/>**Case-sensitive**  |
+| `landscape_tfstate_key`                     | `Remote State`                 | **required**  |          | This is the landscape state file name, used for finding the correct state file.  <br/>**Case-sensitive**   |
 
-## Examples
+## Examples ##
 
-## Minimal (Default) input parameter JSON
+## Minimal (Default) input parameter JSON ##
 
 ```json
 {
@@ -221,18 +278,7 @@ Node                                   | Attribute                     | Type   
     "region"                          : "eastus2",
     "vnets": {
       "sap": {
-        "subnet_db": {
-          "prefix"                    : "10.1.1.0/28"
-        },
-        "subnet_web": {
-          "prefix"                    : "10.1.1.16/28"
-        },
-        "subnet_app": {
-          "prefix"                    : "10.1.1.32/27"
-        },
-        "subnet_admin": {
-          "prefix"                    : "10.1.1.64/27"
-        }
+        "name"                        : "SAP-01"           
       }
     }
   },
@@ -257,16 +303,8 @@ Node                                   | Attribute                     | Type   
     "scs_high_availability"           : false,
     "application_server_count"        : 3,
     "webdispatcher_count"             : 1,
-    "app_zones": [],
-    "scs_zones": [],
-    "web_zones": [],
-    "authentication": {
-      "type"                          : "key",
-      "username"                      : "azureadm"
-    }
   },
   "options": {
-    "resource_offset"                 : 0,
   },
   "tfstate_resource_id"               : "",
   "deployer_tfstate_key"              : "",
@@ -276,7 +314,7 @@ Node                                   | Attribute                     | Type   
 
 <br/><br/><br/>
 
-## Complete input parameter JSON
+## Complete input parameter JSON ##
 
 ```json
 {
@@ -356,15 +394,41 @@ Node                                   | Attribute                     | Type   
   "application": {
     "enable_deployment"               : true,
     "sid"                             : "PRD",
+    "application_server_count"        : 3,
+    "app_sku"                         : "Standard_E4ds_v4",
+    "app_zones"                       : ["1", "2"],
+    "os"                              : {
+                                          "os_type": "Linux",
+                                          "offer": "sles-sap-12-sp5",
+                                          "publisher": "SUSE",
+                                          "sku": "gen2",
+                                          "version": "latest"
+                                        },
+    "scs_high_availability"           : false,
+    "scs_server_count"                : 1,
     "scs_instance_number"             : "00",
     "ers_instance_number"             : "10",
-    "scs_high_availability"           : false,
-    "application_server_count"        : 3,
-    "webdispatcher_count"             : 1,
-    "app_zones"                       : ["1", "2"],
+    "scs_sku"                         : "Standard_E4ds_v4",
     "scs_zones"                       : ["1"],
+    "scs_os"                          : {
+                                          "os_type": "Linux",
+                                          "offer": "sles-sap-12-sp5",
+                                          "publisher": "SUSE",
+                                          "sku": "gen2",
+                                          "version": "latest"
+                                        },
+    "webdispatcher_count"             : 1,
+    "web_sku"                         : "Standard_E4ds_v4",
     "web_zones"                       : ["1"],
+    "web_os"                          : {
+                                          "os_type": "Linux",
+                                          "offer": "sles-sap-12-sp5",
+                                          "publisher": "SUSE",
+                                          "sku": "gen2",
+                                          "version": "latest"
+                                        },
     "use_DHCP"                        : false,
+    "dual_nics"                       : false,
     "authentication": {
       "type"                          : "password"
     }
@@ -377,6 +441,7 @@ Node                                   | Attribute                     | Type   
   },
   "options": {
     "resource_offset"                 : 0,
+    "disk_encryption_set_id"          : ""
   },
   "tfstate_resource_id"               : "",
   "deployer_tfstate_key"              : "",

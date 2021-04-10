@@ -1,7 +1,7 @@
 variable "application" {
   description = "Details of the Application layer"
   default     = {}
-  
+
   validation {
     condition = (
       length(trimspace(try(var.application.sid, ""))) != 0
@@ -14,7 +14,7 @@ variable "application" {
 variable "databases" {
   description = "Details of the HANA database nodes"
   default     = []
-  
+
   validation {
     condition = (
       length(trimspace(try(var.databases[0].platform, ""))) != 0
@@ -34,7 +34,7 @@ variable "databases" {
 variable "infrastructure" {
   description = "Details of the Azure infrastructure to deploy the SAP landscape into"
   default     = {}
-  
+
   validation {
     condition = (
       length(trimspace(try(var.infrastructure.region, ""))) != 0
@@ -49,7 +49,7 @@ variable "infrastructure" {
     error_message = "The environment must be specified in the infrastructure.environment field."
   }
 
- validation {
+  validation {
     condition = (
       length(trimspace(try(var.infrastructure.vnets.sap.name, ""))) != 0
     )
@@ -58,21 +58,29 @@ variable "infrastructure" {
 
   validation {
     condition = (
-      length(trimspace(try(var.infrastructure.vnets.sap.subnet_admin.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.vnets.sap.subnet_admin.prefix, ""))) != 0
+      length(try(var.infrastructure.vnets.sap.subnet_admin, {})) > 0 ? (
+        length(trimspace(try(var.infrastructure.vnets.sap.subnet_admin.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.vnets.sap.subnet_admin.prefix, ""))) != 0) : (
+        true
+      )
     )
     error_message = "Either the arm_id or prefix of the Admin subnet must be specified in the infrastructure.vnets.sap.subnet_admin block."
   }
 
   validation {
     condition = (
-      length(trimspace(try(var.infrastructure.vnets.sap.subnet_app.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.vnets.sap.subnet_app.prefix, ""))) != 0
+      length(try(var.infrastructure.vnets.sap.subnet_app, {})) > 0 ? (
+        length(trimspace(try(var.infrastructure.vnets.sap.subnet_app.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.vnets.sap.subnet_app.prefix, ""))) != 0) : (
+        true
+      )
     )
     error_message = "Either the arm_id or prefix of the Application subnet must be specified in the infrastructure.vnets.sap.subnet_app block."
   }
 
   validation {
-    condition = (
-      length(trimspace(try(var.infrastructure.vnets.sap.subnet_db.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.vnets.sap.subnet_db.prefix, ""))) != 0
+    condition = (length(try(var.infrastructure.vnets.sap.subnet_db, {})) > 0 ? (
+      length(trimspace(try(var.infrastructure.vnets.sap.subnet_db.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.vnets.sap.subnet_db.prefix, ""))) != 0) : (
+      true
+      )
     )
     error_message = "Either the arm_id or prefix of the Database subnet must be specified in the infrastructure.vnets.sap.subnet_db block."
   }

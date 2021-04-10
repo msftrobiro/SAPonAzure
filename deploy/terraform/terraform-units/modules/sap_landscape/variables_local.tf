@@ -39,7 +39,7 @@ locals {
 
   deployer_tfstate = var.deployer_tfstate
   vnet_mgmt_id     = try(local.deployer_tfstate.vnet_mgmt_id, try(local.deployer_tfstate.vnet_mgmt.id, ""))
-  firewall_ip = try(var.deployer_tfstate.firewall_ip, "")
+  firewall_ip      = try(var.deployer_tfstate.firewall_ip, "")
 
   // Resource group
   var_rg    = try(local.var_infra.resource_group, {})
@@ -211,5 +211,62 @@ locals {
 
   prvt_kv_name    = local.prvt_kv_exist ? split("/", local.prvt_key_vault_id)[8] : local.landscape_keyvault_names.private_access
   prvt_kv_rg_name = local.prvt_kv_exist ? split("/", local.prvt_key_vault_id)[4] : ""
+
+  // In brownfield scenarios the subnets are often defined in the workload
+  // If subnet information is specified in the parameter file use it
+
+  sub_admin_defined  = try(var.infrastructure.vnets.sap.subnet_admin, null) == null ? false : true
+  sub_admin_id       = local.sub_admin_defined ? try(var.infrastructure.vnets.sap.subnet_admin.arm_id, "") : ""
+  sub_admin_existing = length(local.sub_admin_id) > 0
+  sub_admin_name = local.sub_admin_existing ? (
+    try(split("/", local.sub_admin_id)[10], "")) : (
+    try(var.infrastructure.vnets.sap.subnet_admin.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet))
+  )
+  sub_admin_prefix = local.sub_admin_defined ? try(var.infrastructure.vnets.sap.subnet_admin.prefix, "") : ""
+
+  sub_db_defined  = try(var.infrastructure.vnets.sap.subnet_db, null) == null ? false : true
+  sub_db_id       = local.sub_db_defined ? try(var.infrastructure.vnets.sap.subnet_db.arm_id, "") : ""
+  sub_db_existing = length(local.sub_db_id) > 0
+  sub_db_name = local.sub_db_existing ? (
+    try(split("/", local.sub_db_id)[10], "")) : (
+    try(var.infrastructure.vnets.sap.subnet_db.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_subnet))
+  )
+  sub_db_prefix = local.sub_db_defined ? try(var.infrastructure.vnets.sap.subnet_db.prefix, "") : ""
+
+  sub_app_defined  = try(var.infrastructure.vnets.sap.subnet_app, null) == null ? false : true
+  sub_app_id       = local.sub_app_defined ? try(var.infrastructure.vnets.sap.subnet_app.arm_id, "") : ""
+  sub_app_existing = length(local.sub_app_id) > 0
+  sub_app_name = local.sub_app_existing ? (
+    try(split("/", local.sub_app_id)[10], "")) : (
+    try(var.infrastructure.vnets.sap.subnet_app.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet))
+  )
+  sub_app_prefix = local.sub_app_defined ? try(var.infrastructure.vnets.sap.subnet_app.prefix, "") : ""
+
+  sub_web_defined  = try(var.infrastructure.vnets.sap.subnet_web, null) == null ? false : true
+  sub_web_id       = local.sub_web_defined ? try(var.infrastructure.vnets.sap.subnet_web.arm_id, "") : ""
+  sub_web_existing = length(local.sub_web_id) > 0
+  sub_web_name = local.sub_web_existing ? (
+    try(split("/", local.sub_web_id)[10], "")) : (
+    try(var.infrastructure.vnets.sap.subnet_web.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet))
+  )
+  sub_web_prefix = local.sub_web_defined ? try(var.infrastructure.vnets.sap.subnet_web.prefix, "") : ""
+
+  //NSGs
+
+  sub_admin_nsg_arm_id = local.sub_admin_defined ? try(var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id, "") : ""
+  sub_admin_nsg_exists = length(local.sub_admin_nsg_arm_id) > 0
+  sub_admin_nsg_name   = local.sub_admin_nsg_exists ? try(split("/", local.sub_admin_nsg_arm_id)[8], "") : try(var.infrastructure.vnets.sap.subnet_admin.nsg.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet_nsg))
+
+  sub_db_nsg_arm_id = local.sub_db_defined ? try(var.infrastructure.vnets.sap.subnet_db.nsg.arm_id, "") : ""
+  sub_db_nsg_exists = length(local.sub_db_nsg_arm_id) > 0
+  sub_db_nsg_name   = local.sub_db_nsg_exists ? try(split("/", local.sub_db_nsg_arm_id)[8], "") : try(var.infrastructure.vnets.sap.subnet_db.nsg.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_subnet_nsg))
+
+  sub_app_nsg_arm_id = local.sub_app_defined ? try(var.infrastructure.vnets.sap.subnet_app.nsg.arm_id, "") : ""
+  sub_app_nsg_exists = length(local.sub_app_nsg_arm_id) > 0
+  sub_app_nsg_name   = local.sub_app_nsg_exists ? try(split("/", local.sub_app_nsg_arm_id)[8], "") : try(var.infrastructure.vnets.sap.subnet_app.nsg.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet_nsg))
+
+  sub_web_nsg_arm_id = local.sub_web_defined ? try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, "") : ""
+  sub_web_nsg_exists = length(local.sub_web_nsg_arm_id) > 0
+  sub_web_nsg_name   = local.sub_web_nsg_exists ? try(split("/", local.sub_web_nsg_arm_id)[8], "") : try(var.infrastructure.vnets.sap.subnet_web.nsg.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet_nsg))
 
 }

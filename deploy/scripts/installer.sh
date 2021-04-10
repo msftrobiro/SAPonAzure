@@ -168,6 +168,8 @@ load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
 load_config_vars "${system_config_information}" "tfstate_resource_id"
 load_config_vars "${system_config_information}" "deployer_tfstate_key"
 load_config_vars "${system_config_information}" "landscape_tfstate_key"
+load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+load_config_vars "${system_config_information}" "ARM_SUBSCRIPTION_ID"
 
 deployer_tfstate_key_parameter=''
 if [ "${deployment_system}" != sap_deployer ]
@@ -204,18 +206,56 @@ if [ ! -n "${ARM_SUBSCRIPTION_ID}" ]; then
     exit -1
 fi
 
+# Checking for valid az session
+
+temp=$(grep "az login" stdout.az)
+if [ -n "${temp}" ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Please login using az login                                 #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    if [ -f stdout.az ]
+        rm stdout.az
+    fi
+        exit -1
+else
+    if [ -f stdout.az ]
+        rm stdout.az
+    fi
+    
+fi
+
+account_set=0
+
+if [ ! -z "${STATE_SUBSCRIPTION}" ]
+then
+    $(az account set --sub "${STATE_SUBSCRIPTION}")
+    account_set=1
+fi
+
 if [ ! -n "${REMOTE_STATE_SA}" ]; then
     read -p "Terraform state storage account name:"  REMOTE_STATE_SA
     REMOTE_STATE_RG=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].resourceGroup  | tr -d \" | xargs)
     tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
     STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
-    
-    save_config_vars "${system_config_information}" \
-    REMOTE_STATE_RG \
-    REMOTE_STATE_SA \
-    tfstate_resource_id \
-    STATE_SUBSCRIPTION
-    
+    if [ ! -z "${STATE_SUBSCRIPTION}" ]
+    then
+        if [ $account_set==0 ] 
+        then
+            $(az account set --sub "${STATE_SUBSCRIPTION}")
+            account_set=1
+        fi
+        
+        save_config_vars "${workload_config_information}"
+        REMOTE_STATE_RG \
+        REMOTE_STATE_SA \
+        tfstate_resource_id \
+        STATE_SUBSCRIPTION
+    fi
+
     tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
     
     if [ "${deployment_system}" != sap_deployer ]
@@ -237,10 +277,19 @@ if [ ! -n "${REMOTE_STATE_RG}" ]; then
     tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
     STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
     
-    save_config_vars "${system_config_information}" \
-    REMOTE_STATE_RG \
-    tfstate_resource_id \
-    STATE_SUBSCRIPTION
+    if [ ! -z "${STATE_SUBSCRIPTION}" ]
+    then
+        if [ $account_set==0 ] 
+        then
+            $(az account set --sub "${STATE_SUBSCRIPTION}")
+            account_set=1
+        fi
+        
+        save_config_vars "${workload_config_information}"
+        REMOTE_STATE_RG \
+        tfstate_resource_id \
+        STATE_SUBSCRIPTION
+    fi
     
     tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
     
@@ -263,6 +312,14 @@ then
         
         tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
         
+    fi
+fi
+
+if [ ! -z "${tfstate_resource_id}" ]
+then
+    if [ "${deployment_system}" != sap_deployer ]
+    then
+        tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
     fi
 fi
 
@@ -297,14 +354,11 @@ fi
 
 check_output=0
 
-cat <<EOF > backend.tf
-####################################################
-# To overcome terraform issue                      #
-####################################################
-terraform {
-    backend "azurerm" {}
-}
-EOF
+if [ $account_set==0 ] 
+then
+    $(az account set --sub "${STATE_SUBSCRIPTION}")
+    account_set=1
+fi
 
 if [ ! -d ./.terraform/ ];
 then
@@ -341,12 +395,13 @@ else
         else
             exit 1
         fi
-        
+
         terraform init -upgrade=true -var-file="${parameterfile}" $terraform_module_directory
         check_output=1
         
     fi
 fi
+
 
 if [ 1 == $check_output ]
 then

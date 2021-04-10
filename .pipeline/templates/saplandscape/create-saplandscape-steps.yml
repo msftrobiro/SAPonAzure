@@ -149,9 +149,9 @@ steps:
       | jq --arg deployer_tfstate_key "${deployer_tfstate_key}" .deployer_tfstate_key\ =\ \$deployer_tfstate_key \
       | jq --arg sap_vnet_address_space "${sap_vnet_address_space}" .infrastructure.vnets.sap.address_space\ =\ \$sap_vnet_address_space \
       | jq --arg admin_subnet_prefix "${admin_subnet_prefix}" .infrastructure.vnets.sap.subnet_admin.prefix\ =\ \$admin_subnet_prefix \
-      | jq --arg admin_subnet_prefix "${app_subnet_prefix}" .infrastructure.vnets.sap.subnet_app.prefix\ =\ \$admin_spp_prefix \
-      | jq --arg admin_subnet_prefix "${db_subnet_prefix}" .infrastructure.vnets.sap.subnet_db.prefix\ =\ \$admin_db_prefix \
-      | jq --arg admin_subnet_prefix "${web_subnet_prefix}" .infrastructure.vnets.sap.subnet_web.prefix\ =\ \$admin_web_prefix \
+      | jq --arg app_subnet_prefix "${app_subnet_prefix}" .infrastructure.vnets.sap.subnet_app.prefix\ =\ \$admin_app_prefix \
+      | jq --arg db_subnet_prefix "${db_subnet_prefix}" .infrastructure.vnets.sap.subnet_db.prefix\ =\ \$admin_db_prefix \
+      | jq --arg web_subnet_prefix "${web_subnet_prefix}" .infrastructure.vnets.sap.subnet_web.prefix\ =\ \$admin_web_prefix \
       | jq --arg subnet_iscsi_prefix "${subnet_iscsi_prefix}" .infrastructure.vnets.sap.subnet_iscsi.prefix\ =\ \$subnet_iscsi_prefix \
       > ${input}
 

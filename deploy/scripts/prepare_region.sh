@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+
 ################################################################################################
 #                                                                                              # 
 #   This file contains the logic to deploy the environment to support SAP workloads.           # 
@@ -203,6 +205,9 @@ then
 else
     touch "${generic_config_information}"
     touch "${deployer_config_information}"
+
+    load_config_vars ${generic_config_information} "DEPLOYMENT_REPO_PATH"
+
     temp=$(grep "DEPLOYMENT_REPO_PATH" "${generic_config_information}")
     if [ $temp ]
     then

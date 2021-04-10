@@ -1,4 +1,7 @@
 #!/bin/bash
+
+. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+
 function showhelp {
     echo ""
     echo "#########################################################################################"

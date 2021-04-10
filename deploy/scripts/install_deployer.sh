@@ -109,30 +109,7 @@ if [ $param_dirname != '.' ]; then
     exit 3
 fi
 
-if [ ! -d "${automation_config_directory}" ]
-then
-    # No configuration directory exists
-    mkdir "${automation_config_directory}"
-    if [ -n "${DEPLOYMENT_REPO_PATH}" ]; then
-        # Store repo path in ~/.sap_deployment_automation/config
-        echo "DEPLOYMENT_REPO_PATH=${DEPLOYMENT_REPO_PATH}" >> "${generic_config_information}"
-        config_stored=true
-    fi
-    if [ -n "$ARM_SUBSCRIPTION_ID" ]; then
-        # Store ARM Subscription info in ~/.sap_deployment_automation
-        echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> $deployer_config_information
-        arm_config_stored=true
-    fi
-    
-else
-    temp=$(grep "DEPLOYMENT_REPO_PATH" "${generic_config_information}")
-    if [ $temp ]
-    then
-        # Repo path was specified in ~/.sap_deployment_automation/config
-        DEPLOYMENT_REPO_PATH=$(echo "${temp}" | cut -d= -f2)
-        config_stored=true
-    fi
-fi
+init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     echo ""
@@ -149,21 +126,16 @@ if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
 else
     if [ $config_stored == false ]
     then
-        echo "DEPLOYMENT_REPO_PATH=${DEPLOYMENT_REPO_PATH}" >> ${automation_config_directory}config
+        save_config_var "DEPLOYMENT_REPO_PATH" "${generic_config_information}"
     fi
 fi
 
-temp=$(grep "ARM_SUBSCRIPTION_ID" $deployer_config_information | cut -d= -f2)
-templen=$(echo $temp | wc -c)
-# Subscription length is 37
+load_config_vars ${deployer_config_information} "ARM_SUBSCRIPTION_ID"
 
-if [ 37 == $templen ]
+templen=$(echo "${ARM_SUBSCRIPTION_ID}" | wc -c)
+# Subscription length is 37
+if [ 37 != $templen ]
 then
-    echo "Reading the configuration"
-    # ARM_SUBSCRIPTION_ID was specified in ~/.sap_deployment_automation/configuration file for deployer
-    ARM_SUBSCRIPTION_ID="${temp}"
-    arm_config_stored=true
-else
     arm_config_stored=false
 fi
 
@@ -183,8 +155,7 @@ else
     if [  $arm_config_stored  == false ]
     then
         echo "Storing the configuration"
-        sed -i /ARM_SUBSCRIPTION_ID/d  "${deployer_config_information}"
-        echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> "${deployer_config_information}"
+        save_config_var "ARM_SUBSCRIPTION_ID" "${deployer_config_information}"
     fi
 fi
 
@@ -257,17 +228,16 @@ terraform {
 }
 EOF
 
-kv_name=$(terraform output deployer_kv_user_name | tr -d \")
+keyvault=$(terraform output deployer_kv_user_name | tr -d \")
 
-temp=$(echo "${kv_name}" | grep "Warning")
+temp=$(echo "${keyvault}" | grep "Warning")
 if [ -z "${temp}" ]
 then
-    temp=$(echo "${kv_name}" | grep "Backend reinitialization required")
+    temp=$(echo "${keyvault}" | grep "Backend reinitialization required")
     if [ -z "${temp}" ]
     then
         touch "${deployer_config_information}"
-        sed -i /keyvault/d  "${deployer_config_information}"
-        echo "keyvault=${kv_name}" >> "${deployer_config_information}"
+        save_config_var "keyvault" "${deployer_config_information}"
     fi
 fi
 

@@ -4,29 +4,29 @@ function showhelp {
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#                                                                                       #" 
-    echo "#   This file contains the logic to deploy the deployer.                                #" 
-    echo "#   The script experts the following exports:                                           #" 
-    echo "#                                                                                       #" 
-    echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #" 
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-hana        #" 
-    echo "#                                                                                       #" 
-    echo "#   The script will persist the parameters needed between the executions in the         #" 
-    echo "#   ~/.sap_deployment_automation folder                                                 #" 
-    echo "#                                                                                       #" 
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
+    echo "#   This file contains the logic to deploy the deployer.                                #"
+    echo "#   The script experts the following exports:                                           #"
+    echo "#                                                                                       #"
+    echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
+    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-hana        #"
+    echo "#                                                                                       #"
+    echo "#   The script will persist the parameters needed between the executions in the         #"
+    echo "#   ~/.sap_deployment_automation folder                                                 #"
+    echo "#                                                                                       #"
+    echo "#                                                                                       #"
     echo "#   Usage: install_deployer.sh                                                          #"
     echo "#    -p deployer parameter file                                                         #"
     echo "#    -i interactive true/false setting the value to false will not prompt before apply  #"
     echo "#    -h Show help                                                                       #"
-    echo "#                                                                                       #" 
-    echo "#   Example:                                                                            #" 
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
+    echo "#   Example:                                                                            #"
+    echo "#                                                                                       #"
     echo "#   [REPO-ROOT]deploy/scripts/install_library.sh \                                      #"
-	echo "#      -p PROD-WEEU-SAP_LIBRARY.json \                                                  #"
-	echo "#      -d ../../DEPLOYER/PROD-WEEU-DEP00-INFRASTRUCTURE/ \                              #"
-	echo "#      -i true                                                                          #" 
-    echo "#                                                                                       #" 
+    echo "#      -p PROD-WEEU-SAP_LIBRARY.json \                                                  #"
+    echo "#      -d ../../DEPLOYER/PROD-WEEU-DEP00-INFRASTRUCTURE/ \                              #"
+    echo "#      -i true                                                                          #"
+    echo "#                                                                                       #"
     echo "#########################################################################################"
 }
 
@@ -38,11 +38,11 @@ while getopts ":p:i:d:h" option; do
         i) interactive=${OPTARG};;
         d) deployer_statefile_foldername=${OPTARG};;
         h) showhelp
-           exit 3
-           ;;
+            exit 3
+        ;;
         ?) echo "Invalid option: -${OPTARG}."
-           exit 2
-           ;; 
+            exit 2
+        ;;
     esac
 done
 
@@ -53,9 +53,9 @@ then
     printf -v val %-40.40s "$parameterfile"
     echo ""
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#               Parameter file does not exist: ${val} #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     exit
 fi
@@ -111,87 +111,53 @@ library_config_information="${automation_config_directory}""${environment}""${re
 arm_config_stored=false
 config_stored=false
 
-if [ ! -d "${automation_config_directory}" ]
-then
-    # No configuration directory exists
-    mkdir "$automation_config_directory"
-
-    if [ -n "${DEPLOYMENT_REPO_PATH}" ]; then
-        # Store repo path in ~/.sap_deployment_automation/config
-        echo "DEPLOYMENT_REPO_PATH=${DEPLOYMENT_REPO_PATH}" >> $generic_config_information
-        config_stored=1
-    else
-        config_stored=0
-    fi
-
-    if [ -n "${ARM_SUBSCRIPTION_ID}" ]; then
-        # Store ARM Subscription info in ~/.sap_deployment_automation
-        echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> $library_config_information
-        arm_config_stored=1
-    else    
-        arm_config_stored=0
-    fi
-
-else
-    temp=$(grep "DEPLOYMENT_REPO_PATH" "${generic_config_information}")
-    if [ ! -z $temp ]
-    then
-        # Repo path was specified in ~/.sap_deployment_automation/config
-        DEPLOYMENT_REPO_PATH=$(echo "${temp}" | cut -d= -f2)
-        config_stored=1
-    else
-        config_stored=0
-    fi
-fi
+init "${automation_config_directory}" "${generic_config_information}" "${library_config_information}"
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     echo ""
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#   Missing environment variables (DEPLOYMENT_REPO_PATH)!!!                             #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
     echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-hana))                        #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
-    exit -1
+    exit 4
 else
-    if [ $config_stored -eq 0 ]
+    if [ $config_stored == false ]
     then
-        echo "DEPLOYMENT_REPO_PATH=${DEPLOYMENT_REPO_PATH}" >> ${automation_config_directory}config
+        save_config_var "DEPLOYMENT_REPO_PATH" "${generic_config_information}"
     fi
 fi
 
-temp=$(grep "ARM_SUBSCRIPTION_ID" $library_config_information)
-if [ ! -z $temp ]
+load_config_vars ${library_config_information} "ARM_SUBSCRIPTION_ID"
+
+templen=$(echo "${ARM_SUBSCRIPTION_ID}" | wc -c)
+# Subscription length is 37
+if [ 37 != $templen ]
 then
-    echo "Reading the configuration"
-    # ARM_SUBSCRIPTION_ID was specified in ~/.sap_deployment_automation/configuration file for library
-    ARM_SUBSCRIPTION_ID=$(echo "${temp}" | cut -d= -f2)
-    arm_config_stored=1
-else    
-    echo "No configuration"
-    arm_config_stored=0
+    arm_config_stored=false
 fi
 
-if [ ! -n "${ARM_SUBSCRIPTION_ID}" ]; then
+if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
     echo ""
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#   Missing environment variables (ARM_SUBSCRIPTION_ID)!!!                              #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
     echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-hana))                        #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
-    exit -1
+    exit 3
 else
-    if [ $arm_config_stored -eq 0 ]
+    if [  $arm_config_stored  == false ]
     then
         echo "Storing the configuration"
-        echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> ${library_config_information}
+        save_config_var "ARM_SUBSCRIPTION_ID" "${library_config_information}"
     fi
 fi
 
@@ -204,12 +170,12 @@ terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/bootstrap/"
 if [ ! -d ${terraform_module_directory} ]
 then
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#   Incorrect system deployment type specified :" ${deployment_system} "            #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#   Valid options are:                                                                  #"
     echo "#      sap_library                                                                      #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
     exit -1
@@ -227,9 +193,9 @@ terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/bootstrap/"
 if [ -f ./backend-config.tfvars ]
 then
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#                          The bootstrapping has already been done!                     #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
 else
     sed -i /REMOTE_STATE_RG/d  "${library_config_information}"
@@ -239,22 +205,22 @@ fi
 
 if [ ! -d ./.terraform/ ]; then
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#                                   New deployment                                      #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     terraform init -upgrade=true "${terraform_module_directory}"
     sed -i /REMOTE_STATE_RG/d  "${library_config_information}"
     sed -i /REMOTE_STATE_SA/d  "${library_config_information}"
     sed -i /tfstate_resource_id/d  "${library_config_information}"
-
+    
 else
     if [ $reinitialized -eq 0 ]
     then
         echo "#########################################################################################"
-        echo "#                                                                                       #" 
+        echo "#                                                                                       #"
         echo "#                          .terraform directory already exists!                         #"
-        echo "#                                                                                       #" 
+        echo "#                                                                                       #"
         echo "#########################################################################################"
         read -p "Do you want to redeploy Y/N?"  ans
         answer=${ans^^}
@@ -262,9 +228,9 @@ else
             if [ -f ./.terraform/terraform.tfstate ]; then
                 if grep "azurerm" ./.terraform/terraform.tfstate ; then
                     echo "#########################################################################################"
-                    echo "#                                                                                       #" 
+                    echo "#                                                                                       #"
                     echo "#                     The state is already migrated to Azure!!!                         #"
-                    echo "#                                                                                       #" 
+                    echo "#                                                                                       #"
                     echo "#########################################################################################"
                     exit 0
                 fi
@@ -279,24 +245,24 @@ fi
 
 echo ""
 echo "#########################################################################################"
-echo "#                                                                                       #" 
+echo "#                                                                                       #"
 echo "#                             Running Terraform plan                                    #"
-echo "#                                                                                       #" 
+echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
 
 if [ -n "${deployer_statefile_foldername}" ]; then
     echo "Deployer folder specified: "${deployer_statefile_foldername}
-    terraform plan -var-file="${parameterfile}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${terraform_module_directory}" 
+    terraform plan -var-file="${parameterfile}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${terraform_module_directory}"
 else
     terraform plan -var-file="${parameterfile}" "${terraform_module_directory}"
 fi
 
 echo ""
 echo "#########################################################################################"
-echo "#                                                                                       #" 
+echo "#                                                                                       #"
 echo "#                             Running Terraform apply                                   #"
-echo "#                                                                                       #" 
+echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
 
@@ -322,21 +288,15 @@ then
     temp=$(echo "${REMOTE_STATE_SA}" | grep "Backend reinitialization required")
     if [ -z "${temp}" ]
     then
-        sed -i /REMOTE_STATE_SA/d  "${library_config_information}"
-        echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> ${library_config_information}
         REMOTE_STATE_RG=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].resourceGroup  | tr -d \" | xargs)
         tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
         STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
         
-        sed -i /REMOTE_STATE_SA/d  "${library_config_information}"
-        sed -i /REMOTE_STATE_RG/d  "${library_config_information}"
-        sed -i /tfstate_resource_id/d  "${library_config_information}"
-        sed -i /STATE_SUBSCRIPTION/d  "${library_config_information}"
-        
-        echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> "${library_config_information}"
-        echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${library_config_information}"
-        echo "tfstate_resource_id=${tfstate_resource_id}" >> "${library_config_information}"
-        echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${library_config_information}"
+        save_config_vars "${library_config_information}" \
+            REMOTE_STATE_RG \
+            REMOTE_STATE_SA \
+            tfstate_resource_id \
+            STATE_SUBSCRIPTION
     fi
 fi
 

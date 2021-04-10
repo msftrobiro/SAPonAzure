@@ -161,12 +161,11 @@ fi
 read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
 answer=${ans^^}
 if [ $answer == 'Y' ]; then
-    temp=$(grep "keyvault=" $workload_config_information)
-    if [ ! -z $temp ]
+    load_config_vars ${workload_config_information} "keyvault"
+    if [ ! -z $keyvault ]
     then
         # Key vault was specified in ~/.sap_deployment_automation in the deployer file
-        keyvault_name=$(echo $temp | cut -d= -f2 | tr -d \" | xargs)
-        keyvault_param=$(printf " -v %s " $keyvault_name)
+        keyvault_param=$(printf " -v %s " "${keyvault}")
     fi
     
     env_param=$(printf " -e %s " "${environment}")
@@ -181,131 +180,57 @@ if [ $answer == 'Y' ]; then
     fi
 fi
 
+init "${automation_config_directory}" "${generic_config_information}" "${workload_config_information}"
 
-if [ ! -d ${automation_config_directory} ]
+load_config_vars "${workload_config_information}" "REMOTE_STATE_SA"
+load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
+load_config_vars "${workload_config_information}" "tfstate_resource_id"
+
+if [ -z "${REMOTE_STATE_SA}" ]
 then
-    # No configuration directory exists
-    mkdir $automation_config_directory
-    if [ -n "${DEPLOYMENT_REPO_PATH}" ]; then
-        # Store repo path in ~/.sap_deployment_automation/config
-        echo "DEPLOYMENT_REPO_PATH=${DEPLOYMENT_REPO_PATH}" >> "${generic_config_information}"
-        config_stored=1
-    fi
-    if [ -n "$ARM_SUBSCRIPTION_ID" ]; then
-        # Store ARM Subscription info in ~/.sap_deployment_automation
-        echo "ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" >> "${workload_config_information}"
-        arm_config_stored=1
-    fi
-else
-    temp=$(grep "DEPLOYMENT_REPO_PATH" "${generic_config_information}")
-    if [ ! -z "${temp}" ]
+    # Ask for deployer environment name and try to read the deployer state file and resource group details from the configuration file
+    read -p "Deployer environment name: " deployer_environment
+    
+    deployer_config_information="${automation_config_directory}""${deployer_environment}""${region}"
+    load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
+    load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
+    load_config_vars "${deployer_config_information}" "tfstate_resource_id"
+    STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
+    
+    save_config_vars "${workload_config_information}"
+    REMOTE_STATE_RG \
+    REMOTE_STATE_SA \
+    tfstate_resource_id \
+    STATE_SUBSCRIPTION
+    
+fi
+
+if [ -z "${deployer_tfstate_key}" ]
+then
+    load_config_vars "${workload_config_information}" "deployer_tfstate_key"
+    if [ ! -z "${deployer_tfstate_key}" ]
     then
-        # Repo path was specified in ~/.sap_deployment_automation/config
-        DEPLOYMENT_REPO_PATH=$(echo "${temp}" | cut -d= -f2)
-        
-        config_stored=1
+        # Deployer state was specified in ~/.sap_deployment_automation library config
+        deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+        deployer_tfstate_key_exists=true
     else
-        config_stored=0
-    fi
-    
-    temp=$(grep "REMOTE_STATE_RG" "${workload_config_information}")
-    if [ ! -z "${temp}" ]
-    then
-        # Remote state storage group was specified in ~/.sap_deployment_automation library config
-        REMOTE_STATE_RG=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
-    fi
-    
-    temp=$(grep "REMOTE_STATE_SA" "${workload_config_information}")
-    if [ ! -z "${temp}" ]
-    then
-        # Remmote state storage group was specified in ~/.sap_deployment_automation library config
-        REMOTE_STATE_SA=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
-    fi
-    
-    temp=$(grep "tfstate_resource_id" "${workload_config_information}")
-    if [ ! -z "${temp}" ]
-    then
-        tfstate_resource_id=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
-        if [ "${deployment_system}" != sap_deployer ]
-        then
-            tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
-        fi
-    fi
-    
-    if [ -z "${deployer_tfstate_key}" ]
-    then
-        temp=$(grep "deployer_tfstate_key" "${workload_config_information}")
-        if [ ! -z "${temp}" ]
+        load_config_vars "${deployer_config_information}" "deployer_tfstate_key"
+        if [ ! -z "${deployer_tfstate_key}" ]
         then
             # Deployer state was specified in ~/.sap_deployment_automation library config
-            deployer_tfstate_key=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
             deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
-            
+            save_config_vars "${workload_config_information}" deployer_tfstate_key
             deployer_tfstate_key_exists=true
         else
-            # Ask for deployer environment name and try to read the deployer state file and resource group details from the configuration file
-            read -p "Deployer environment name: " deployer_environment
-            deployer_config_information="${automation_config_directory}""${deployer_environment}""${region}"
-            temp=$(grep "deployer_tfstate_key" "${deployer_config_information}")
-            if [ ! -z "${temp}" ]
-            then
-                # Deployer state was specified in ~/.sap_deployment_automation library config
-                deployer_tfstate_key=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
-                deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
-                deployer_tfstate_key_exists=true
-
-                temp=$(grep "REMOTE_STATE_RG" "${deployer_config_information}")
-                if [ ! -z "${temp}" ]
-                then
-                    # Remote state storage group was specified in ~/.sap_deployment_automation library config
-                    REMOTE_STATE_RG=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
-                fi
-                
-                temp=$(grep "REMOTE_STATE_SA" "${deployer_config_information}")
-                if [ ! -z "${temp}" ]
-                then
-                    # Remmote state storage group was specified in ~/.sap_deployment_automation library config
-                    REMOTE_STATE_SA=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
-                fi
-                
-                temp=$(grep "tfstate_resource_id" "${deployer_config_information}")
-                if [ ! -z "${temp}" ]
-                then
-                    tfstate_resource_id=$(echo "${temp}" | cut -d= -f2 | tr -d \" | xargs)
-                    if [ "${deployment_system}" != sap_deployer ]
-                    then
-                        tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
-                    fi
-                fi
-
-                sed -i /REMOTE_STATE_SA/d  "${workload_config_information}"
-                sed -i /REMOTE_STATE_RG/d  "${workload_config_information}"
-                sed -i /tfstate_resource_id/d  "${workload_config_information}"
-                sed -i /STATE_SUBSCRIPTION/d  "${workload_config_information}"
-                sed -i /deployer_tfstate_key/d  "${workload_config_information}"
-  
-                echo "deployer_tfstate_key=${deployer_tfstate_key}" >> "${workload_config_information}"
-                
-                echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> "${workload_config_information}"
-                echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${workload_config_information}"
-                echo "tfstate_resource_id=${tfstate_resource_id}" >> "${workload_config_information}"
-                STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
-     
-                echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${workload_config_information}"
-            else
-                read -p "Deployer state file name (empty for no deployer): "  deployer_tfstate_key
-                deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
-                sed -i /deployer_tfstate_key/d  "${workload_config_information}"
-                echo "deployer_tfstate_key=${deployer_tfstate_key}" >> "${workload_config_information}"
-            fi
-            
+            read -p "Deployer state file name (empty for no deployer): "  deployer_tfstate_key
+            deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+            save_config_vars "${workload_config_information}" deployer_tfstate_key
         fi
-    else
-        deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
-        sed -i /deployer_tfstate_key/d  "${workload_config_information}"
-        echo "deployer_tfstate_key=${deployer_tfstate_key}" >> "${workload_config_information}"
         
     fi
+else
+    deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+    save_config_vars "${workload_config_information}" deployer_tfstate_key
     
 fi
 
@@ -317,26 +242,20 @@ fi
 
 if [ ! -n "${ARM_SUBSCRIPTION_ID}" ]; then
     read -p "Please provide the subscription id for the workload:" ARM_SUBSCRIPTION_ID
-    echo "subscription=${ARM_SUBSCRIPTION_ID}" >> "${workload_config_information}"
+    save_config_vars "${workload_config_information}" ARM_SUBSCRIPTION_ID
 fi
 
 if [ ! -n "${REMOTE_STATE_SA}" ]; then
-    option="REMOTE_STATE_SA"
     read -p "Terraform state storage account name:"  REMOTE_STATE_SA
     REMOTE_STATE_RG=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].resourceGroup  | tr -d \" | xargs)
     tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
-    
-    sed -i /REMOTE_STATE_SA/d  "${workload_config_information}"
-    sed -i /REMOTE_STATE_RG/d  "${workload_config_information}"
-    sed -i /tfstate_resource_id/d  "${workload_config_information}"
-    sed -i /STATE_SUBSCRIPTION/d  "${workload_config_information}"
-    
-    echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> "${workload_config_information}"
-    echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${workload_config_information}"
-    echo "tfstate_resource_id=${tfstate_resource_id}" >> "${workload_config_information}"
     STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
     
-    echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${workload_config_information}"
+    save_config_vars "${workload_config_information}" \
+    REMOTE_STATE_RG \
+    REMOTE_STATE_SA \
+    tfstate_resource_id \
+    STATE_SUBSCRIPTION
     
     tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
     
@@ -347,28 +266,31 @@ if [ ! -n "${REMOTE_STATE_RG}" ]; then
     if [  -n "${REMOTE_STATE_SA}" ]; then
         REMOTE_STATE_RG=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].resourceGroup  | tr -d \" | xargs)
         tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
-        
-        sed -i /REMOTE_STATE_SA/d  "${workload_config_information}"
-        sed -i /REMOTE_STATE_RG/d  "${workload_config_information}"
-        sed -i /tfstate_resource_id/d  "${workload_config_information}"
-        sed -i /STATE_SUBSCRIPTION/d  "${workload_config_information}"
-        
-        echo "REMOTE_STATE_SA=${REMOTE_STATE_SA}" >> "${workload_config_information}"
-        echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${workload_config_information}"
-        echo "tfstate_resource_id=${tfstate_resource_id}" >> "${workload_config_information}"
         STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
-        echo "STATE_SUBSCRIPTION=${STATE_SUBSCRIPTION}" >> "${workload_config_information}"
+        
+        save_config_vars "${workload_config_information}" \
+        REMOTE_STATE_RG \
+        REMOTE_STATE_SA \
+        tfstate_resource_id \
+        STATE_SUBSCRIPTION
         
         tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
     else
         
         option="REMOTE_STATE_RG"
         read -p "Remote state resource group name:"  REMOTE_STATE_RG
-        echo "REMOTE_STATE_RG=${REMOTE_STATE_RG}" >> "${workload_config_information}"
+        save_config_vars "${workload_config_information}" REMOTE_STATE_RG
     fi
 fi
 
-echo "tfstate_resource_id=${tfstate_resource_id}"
+if [ ! -z "${tfstate_resource_id}" ]
+then
+    if [ "${deployment_system}" != sap_deployer ]
+    then
+        tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+    fi
+fi
+
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
 

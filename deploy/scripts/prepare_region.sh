@@ -264,10 +264,16 @@ if [ -n "${temp}" ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    rm stdout.az
-    exit -1
+    if [ -f stdout.az ]
+    then
+        rm stdout.az
+    fi
+        exit -1
 else
-    rm stdout.az
+    if [ -f stdout.az ]
+    then
+        rm stdout.az
+    fi
 fi
 
 curdir=$(pwd)

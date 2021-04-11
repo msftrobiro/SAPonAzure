@@ -140,6 +140,14 @@ generic_config_information="${automation_config_directory}"config
 workload_config_information="${automation_config_directory}""${environment}""${region}"
 touch $workload_config_information
 
+init "${automation_config_directory}" "${generic_config_information}" "${workload_config_information}"
+
+load_config_vars "${workload_config_information}" "REMOTE_STATE_SA"
+load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
+load_config_vars "${workload_config_information}" "tfstate_resource_id"
+load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
+load_config_vars "${workload_config_information}" "ARM_SUBSCRIPTION_ID"
+
 # Checking for valid az session
 az account show > stdout.az 2>&1
 temp=$(grep "az login" stdout.az)
@@ -151,12 +159,24 @@ if [ -n "${temp}" ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    rm stdout.az
+    if [ -f stdout.az ]
+    then
+        rm stdout.az
+    fi
     exit -1
 else
-    rm stdout.az
+    if [ -f stdout.az ]
+    then
+        rm stdout.az
+    fi
 fi
+account_set=0
 
+if [ ! -z "${STATE_SUBSCRIPTION}" ]
+then
+    $(az account set --sub "${STATE_SUBSCRIPTION}")
+    account_set=1
+fi
 
 read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
 answer=${ans^^}
@@ -180,12 +200,6 @@ if [ $answer == 'Y' ]; then
     fi
 fi
 
-init "${automation_config_directory}" "${generic_config_information}" "${workload_config_information}"
-
-load_config_vars "${workload_config_information}" "REMOTE_STATE_SA"
-load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
-load_config_vars "${workload_config_information}" "tfstate_resource_id"
-
 if [ -z "${REMOTE_STATE_SA}" ]
 then
     # Ask for deployer environment name and try to read the deployer state file and resource group details from the configuration file
@@ -197,12 +211,20 @@ then
     load_config_vars "${deployer_config_information}" "tfstate_resource_id"
     STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
     
-    save_config_vars "${workload_config_information}"
-    REMOTE_STATE_RG \
-    REMOTE_STATE_SA \
-    tfstate_resource_id \
-    STATE_SUBSCRIPTION
-    
+    if [ ! -z "${STATE_SUBSCRIPTION}" ]
+    then
+        if [ ${account_set} == 0 ] 
+        then
+            $(az account set --sub "${STATE_SUBSCRIPTION}")
+            account_set=1
+        fi
+        
+        save_config_vars "${workload_config_information}" \
+        REMOTE_STATE_RG \
+        REMOTE_STATE_SA \
+        tfstate_resource_id \
+        STATE_SUBSCRIPTION
+    fi
 fi
 
 if [ -z "${deployer_tfstate_key}" ]
@@ -250,17 +272,23 @@ if [ ! -n "${REMOTE_STATE_SA}" ]; then
     REMOTE_STATE_RG=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].resourceGroup  | tr -d \" | xargs)
     tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
     STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
-    
-    save_config_vars "${workload_config_information}" \
-    REMOTE_STATE_RG \
-    REMOTE_STATE_SA \
-    tfstate_resource_id \
-    STATE_SUBSCRIPTION
+    if [ ! -z "${STATE_SUBSCRIPTION}" ]
+    then
+        if [ $account_set==0 ] 
+        then
+            $(az account set --sub "${STATE_SUBSCRIPTION}")
+            account_set=1
+        fi
+        
+        save_config_vars "${workload_config_information}" REMOTE_STATE_RG \
+        REMOTE_STATE_SA \
+        tfstate_resource_id \
+        STATE_SUBSCRIPTION
+    fi
     
     tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
     
 fi
-
 
 if [ ! -n "${REMOTE_STATE_RG}" ]; then
     if [  -n "${REMOTE_STATE_SA}" ]; then
@@ -319,9 +347,15 @@ fi
 
 check_output=0
 
+if [ $account_set==0 ] 
+then
+    $(az account set --sub "${STATE_SUBSCRIPTION}")
+    account_set=1
+fi
+
 if [ ! -d ./.terraform/ ];
 then
-    terraform init -upgrade=true -force-copy --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
+    terraform init -upgrade=true -force-copy --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
     --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
     --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
     --backend-config "container_name=tfstate" \
@@ -332,7 +366,7 @@ else
     if [ ! -z "${temp}" ]
     then
         
-        terraform init -upgrade=true -force-copy --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
+        terraform init -upgrade=true -force-copy --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
         --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
         --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
         --backend-config "container_name=tfstate" \
@@ -413,9 +447,7 @@ echo "#                             Running Terraform plan                      
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
-echo $tfstate_parameter
-echo $deployer_tfstate_key_parameter
-echo $terraform_module_directory
+
 terraform plan -var-file=${parameterfile} $tfstate_parameter $deployer_tfstate_key_parameter $terraform_module_directory > plan_output.log
 
 if ! $new_deployment; then
@@ -488,5 +520,6 @@ then
         echo "landscape_tfstate_key=${key}.terraform.tfstate" >> $workload_config_information
     fi
 fi
+
 
 exit 0

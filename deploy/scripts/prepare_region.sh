@@ -265,11 +265,13 @@ if [ -n "${temp}" ]; then
     echo "#########################################################################################"
     echo ""
     if [ -f stdout.az ]
+    then
         rm stdout.az
     fi
         exit -1
 else
     if [ -f stdout.az ]
+    then
         rm stdout.az
     fi
 fi

@@ -319,6 +319,11 @@ then
     fi
 fi
 
+if [ "${deployment_system}" != sap_system ]
+then
+    landscape_tfstate_key_parameter=""
+fi
+
 if [ ! -z "${tfstate_resource_id}" ]
 then
     if [ "${deployment_system}" != sap_deployer ]

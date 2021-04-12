@@ -91,7 +91,16 @@ JSON structure
       "zones"                         : ["1"],                                    <-- Optional Parameter
       "avset_arm_ids"                 : [""],                                     <-- Optional Parameter
       "use_DHCP"                      : false,                                    <-- Optional Parameter
-      "dbnodes"                       : [{},{}]                                   <-- Required Parameter
+      "loadbalancer" : {
+        "frontend_ip"                 : ""                                        <-- Optional Parameter
+      },  
+      "dbnodes" : [                                                               <-- Required Parameter
+          {    
+            "name"                    : "",                                       <-- Optional parameter
+            "db_nic_ips"              : ["",""],                                  <-- Optional parameter
+            "admin_nic_ips"           : ["",""]                                   <-- Optional parameter
+          }
+                  ]             
     }
   ],
   "application": {                                                                <-- Required Block
@@ -108,6 +117,8 @@ JSON structure
         "offer"                       : "sles-sap-12-sp5",                        <-- Required Parameter
         "sku"                         : "gen2"                                    <-- Required Parameter
       },
+    "app_nic_ips"                     : ["", ""],                                 <-- Optional parameter
+    "app_admin_nic_ips"               : ["", ""],                                 <-- Optional parameter
     "scs_high_availability"           : false,                                    <-- Required Parameter
     "scs_instance_number"             : "00",                                     <-- Required Parameter
     "ers_instance_number"             : "10",                                     <-- Required Parameter
@@ -120,6 +131,9 @@ JSON structure
         "offer"                       : "sles-sap-12-sp5",
         "sku"                         : "gen2"
       },
+    "scs_nic_ips"                     : [""],                                     <-- Optional parameter
+    "scs_admin_nic_ips"               : [""],                                     <-- Optional parameter
+    "scs_lb_ips"                      : [""],                                     <-- Optional parameter
     "webdispatcher_count"             : 1,                                        <-- Required Parameter
     "web_zones"                       : ["1"],                                    <-- Optional Parameter
     "web_sku"                         : "Standard_E4ds_v4"
@@ -130,6 +144,9 @@ JSON structure
         "offer"                       : "sles-sap-12-sp5",
         "sku"                         : "gen2"
       },
+    "web_nic_ips"                     : [""],                                     <-- Optional parameter
+    "web_admin_nic_ips"               : [""],                                     <-- Optional parameter
+    "web_lb_ips"                      : [""],                                     <-- Optional parameter
     "authentication": {
       "type"                          : "key",
     }
@@ -209,19 +226,25 @@ Node                                   | Attribute                     | Type   
 | databases.[].                               | `avset_arm_ids.[]`             |               |          | If provided, the name of the availability set into which the Virtual Machine is deployed |
 | databases.[].                               | `use_DHCP`                     |               | false    | If set to true the IP addresses for the VMs will be provided by the subnet |
 | databases.[].dbnodes.[].                    | `name`                         |               |          | If specified, the name of the Virtual Machine |
+| databases.[].dbnodes.[].                    | `db_nic_ips.[]`                |               |          | If specified, the IPs of the Virtual Machine (db nic) |
+| databases.[].dbnodes.[].                    | `admin_nic_ips.[]`             |               |          | If specified, the IPs of the Virtual Machine (admin nic) |
+| databases.[].loadbalancer.                  | `frontend_ip`                  |               |          | The IP of the load balancer |
 | | <br/> |
 | application.                                | `enable_deployment`            |               |          | Boolean flag indicating if the application tier will be deployed |
 | application.                                | `sid`                          | **required**  |          | The SAP application SID |
 | application.                                | `application_server_count`     |               |          | The number of application servers to be deployed |
 | application.                                | `app_zones`                    |               |          | A list of the Availability Zones into which the Virtual Machines is deployed. |
 | application.                                | `app_sku`                      |               |          | The Virtual machine SKU to use |
+| application.                                | `dual_nics`                    |               |          | Boolean flag indicating if the application tier will be deployed with dual network cards |
+| application.                                | `app_nic_ips[]`                |               |          | The list of IP addresses of the application VM (app subnet) |
+| application.                                | `app_admin_nic_ips[]`          |               |          | The list of IP addresses of the application VM (admin subnet) |
 | | <br/> |
-| application.[].os.                          | `os_type`                      |               |          | Required if custom image ID is provided |
-| application.[].os.                          | `source_image_id`              |               |          | The resource Id for the custom image to use.  |
+| application.os.                             | `os_type`                      |               |          | Required if custom image ID is provided |
+| application.os.                             | `source_image_id`              |               |          | The resource Id for the custom image to use.  |
 | | or |
-| application.[].os.                          | `publisher`                    |               |          | The publisher of the image used to create the virtual machine.  |
-| application.[].os.                          | `offer`                        |               |          | The offer of the image used to create the virtual machine. |
-| application.[].os.                          | `sku`                          |               |          | The SKU of the image used to create the virtual machine. |
+| application.os.                             | `publisher`                    |               |          | The publisher of the image used to create the virtual machine.  |
+| application.os.                             | `offer`                        |               |          | The offer of the image used to create the virtual machine. |
+| application.os.                             | `sku`                          |               |          | The SKU of the image used to create the virtual machine. |
 | | <br/> |
 | application.                                | `scs_server_count`             |               |          | The number of SCS servers to be deployed |
 | application.                                | `scs_instance_number`          |               |          | The instance number of SCS|
@@ -229,24 +252,28 @@ Node                                   | Attribute                     | Type   
 | application.                                | `scs_high_availability`        |               |          | Boolean flag indicating if SCS should be deployed highly available.  |
 | application.                                | `scs_zones`                    |               |          | A list of the Availability Zones into which the Virtual Machines is deployed. |
 | application.                                | `scs_sku`                      |               |          | The Virtual machine SKU to use |
+| application.                                | `scs_nic_ips[]`                |               |          | The list of IP addresses of the scs VM (app subnet) |
+| application.                                | `scs_admin_nic_ips[]`          |               |          | The list of IP addresses of the scs VM (admin subnet) |
 | | <br/> |
-| application.[].scs_os.                      | `os_type`                      |               |          | Required if custom image ID is provided |
-| application.[].scs_os.                      | `source_image_id`              |               |          | The resource Id for the custom image to use.  |
+| application.scs_os.                         | `os_type`                      |               |          | Required if custom image ID is provided |
+| application.scs_os.                         | `source_image_id`              |               |          | The resource Id for the custom image to use.  |
 | | or |
-| application.[].scs_os.                      | `publisher`                    |               |          | The publisher of the image used to create the virtual machine.  |
-| application.[].scs_os.                      | `offer`                        |               |          | The offer of the image used to create the virtual machine. |
-| application.[].scs_os.                      | `sku`                          |               |          | The SKU of the image used to create the virtual machine. |
+| application.scs_os.                         | `publisher`                    |               |          | The publisher of the image used to create the virtual machine.  |
+| application.scs_os.                         | `offer`                        |               |          | The offer of the image used to create the virtual machine. |
+| application.scs_os.                         | `sku`                          |               |          | The SKU of the image used to create the virtual machine. |
 | | <br/> |
 | application.                                | `webdispatcher_count`          |               |          | The number of web dispatchers to be deployed |
 | application.                                | `web_zones`                    |               |          | A list of the Availability Zones into which the Virtual Machines is deployed. |
-| application.                                | `scs_sku`                      |               |          | The Virtual machine SKU to use |
+| application.                                | `web_sku`                      |               |          | The Virtual machine SKU to use |
+| application.                                | `web_nic_ips[]`                |               |          | The list of IP addresses of the web dispatcher VM (app/web subnet) |
+| application.                                | `web_admin_nic_ips[]`          |               |          | The list of IP addresses of the web dispatcher VM (admin subnet) |
 | | <br/> |
-| application.[].web_os.                      | `os_type`                      |               |          | Required if custom image ID is provided |
-| application.[].web_os.                      | `source_image_id`              |               |          | The resource Id for the custom image to use.  |
+| application.web_os.                         | `os_type`                      |               |          | Required if custom image ID is provided |
+| application.web_os.                         | `source_image_id`              |               |          | The resource Id for the custom image to use.  |
 | | or |
-| application.[].web_os.                      | `publisher`                    |               |          | The publisher of the image used to create the virtual machine.  |
-| application.[].web_os.                      | `offer`                        |               |          | The offer of the image used to create the virtual machine. |
-| application.[].web_os.                      | `sku`                          |               |          | The SKU of the image used to create the virtual machine. |
+| application.web_os.                         | `publisher`                    |               |          | The publisher of the image used to create the virtual machine.  |
+| application.web_os.                         | `offer`                        |               |          | The offer of the image used to create the virtual machine. |
+| application.web_os.                         | `sku`                          |               |          | The SKU of the image used to create the virtual machine. |
 | | <br/> |
 | application.                                | `use_DHCP`                     |               | false    | If set to true the IP addresses for the VMs will be provided by the subnet |
 | application.authentication.                 | `type`                         |               |          | The authentication type for the Virtual Machine, valid options are "Password", "Key" |
@@ -375,28 +402,27 @@ Node                                   | Attribute                     | Type   
                                           ""
                                         ],
       "use_DHCP"                      : false,
-      "dbnodes": [
-        {
-          "name"                      : "hdb1",
-          "role"                      : "worker"
-        },
-        {
-          "name"                      : "hdb2",
-          "role"                      : "worker"
-        },
-        {
-          "name"                      : "hdb3",
-          "role"                      : "standby"
-        }
-      ]
+      "loadbalancer" : {
+        "frontend_ip"                 : "10.1.1.5"
+      },  
+      "dbnodes" : [
+          {    
+            "name"                    : "dbserver"
+            "db_nic_ips"              : [10.1.1.1, 10.1.1.2]
+            "admin_nic_ips"           : [10.1.1.65, 10.1.1.66]
+          }
+        ]
     }
   ],
   "application": {
     "enable_deployment"               : true,
     "sid"                             : "PRD",
-    "application_server_count"        : 3,
+    "application_server_count"        : 2,
     "app_sku"                         : "Standard_E4ds_v4",
+    "dual_nics"                       : true,
     "app_zones"                       : ["1", "2"],
+    "app_nic_ips"                     : ["10.1.1.33", "10.1.1.34"],
+    "app_admin_nic_ips"               : ["10.1.1.67", "10.1.1.68"],
     "os"                              : {
                                           "os_type": "Linux",
                                           "offer": "sles-sap-12-sp5",
@@ -410,6 +436,9 @@ Node                                   | Attribute                     | Type   
     "ers_instance_number"             : "10",
     "scs_sku"                         : "Standard_E4ds_v4",
     "scs_zones"                       : ["1"],
+    "scs_nic_ips"                     : ["10.1.1.35", "10.1.1.36"],
+    "scs_admin_nic_ips"               : ["10.1.1.69", "10.1.1.70"],
+    "scs_lb_ips"                      : ["10.1.1.37"], 
     "scs_os"                          : {
                                           "os_type": "Linux",
                                           "offer": "sles-sap-12-sp5",
@@ -420,6 +449,9 @@ Node                                   | Attribute                     | Type   
     "webdispatcher_count"             : 1,
     "web_sku"                         : "Standard_E4ds_v4",
     "web_zones"                       : ["1"],
+    "web_nic_ips"                     : ["10.1.1.17"],
+    "web_admin_nic_ips"               : ["10.1.1.72"],
+    "web_lb_ips"                      : ["10.1.1.18"] ,
     "web_os"                          : {
                                           "os_type": "Linux",
                                           "offer": "sles-sap-12-sp5",
@@ -428,7 +460,6 @@ Node                                   | Attribute                     | Type   
                                           "version": "latest"
                                         },
     "use_DHCP"                        : false,
-    "dual_nics"                       : false,
     "authentication": {
       "type"                          : "password"
     }

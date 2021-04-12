@@ -184,7 +184,10 @@ fi
 ok_to_proceed=false
 new_deployment=false
 
-rm backend.tf
+if [ -f backend.tf ]
+then
+    rm backend.tf
+fi
 
 reinitialized=0
 
@@ -253,9 +256,23 @@ echo ""
 
 if [ -n "${deployer_statefile_foldername}" ]; then
     echo "Deployer folder specified: "${deployer_statefile_foldername}
-    terraform plan -var-file="${parameterfile}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${terraform_module_directory}"
+    terraform plan -no-color -var-file="${parameterfile}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${terraform_module_directory}" > plan_output.log 2>&1
 else
-    terraform plan -var-file="${parameterfile}" "${terraform_module_directory}"
+    terraform plan -no-color -var-file="${parameterfile}" "${terraform_module_directory}" > plan_output.log 2>&1
+fi
+
+str1=$(grep "Error: KeyVault " plan_output.log)
+
+if [ -n "${str1}" ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Errors during the plan phase                                #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo $str1
+    exit -1
 fi
 
 echo ""
@@ -272,14 +289,7 @@ else
     terraform apply ${approve} -var-file="${parameterfile}" "${terraform_module_directory}"
 fi
 
-cat <<EOF > backend.tf
-####################################################
-# To overcome terraform issue                      #
-####################################################
-terraform {
-    backend "local" {}
-}
-EOF
+printf "terraform {\n backend \"local\" {} \n}\n" > backend.tf
 
 REMOTE_STATE_SA=$(terraform output remote_state_storage_account_name| tr -d \")
 temp=$(echo "${REMOTE_STATE_SA}" | grep -m1 "Warning")

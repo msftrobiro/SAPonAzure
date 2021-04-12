@@ -69,11 +69,14 @@ function missing {
 }
 
 interactive=false
+force=0
 
-while getopts ":d:l:e:h" option; do
+while getopts ":d:l:e:h:f" option; do
     case "${option}" in
         d) deployer_parameter_file=${OPTARG};;
         l) library_parameter_file=${OPTARG};;
+        f) force=1
+        ;;
         h) showhelp
             exit 3
         ;;
@@ -82,6 +85,7 @@ while getopts ":d:l:e:h" option; do
         ;;
     esac
 done
+
 if [ -z $deployer_parameter_file ]; then
     missing_value='deployer parameter file'
     missing
@@ -136,7 +140,6 @@ if [ ! -n "$tf" ]; then
     exit -1
 fi
 
-
 az --version > stdout.az 2>&1
 az=$(grep "azure-cli" stdout.az)
 if [ ! -n "${az}" ]; then
@@ -149,7 +152,6 @@ if [ ! -n "${az}" ]; then
     echo ""
     exit -1
 fi
-
 
 # Helper variables
 environment=$(cat "${deployer_parameter_file}" | jq .infrastructure.environment | tr -d \")
@@ -185,6 +187,15 @@ automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 deployer_config_information="${automation_config_directory}""${environment}""${region}"
 
+
+if [ $force == 1 ]
+then
+    if [ -f $deployer_config_information ]
+    then
+        rm $deployer_config_information
+    fi
+fi
+
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
@@ -199,11 +210,6 @@ if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     exit 4
-else
-    if [ $config_stored == false ]
-    then
-        save_config_var "DEPLOYMENT_REPO_PATH" "${generic_config_information}"
-    fi
 fi
 
 load_config_vars ${deployer_config_information} "ARM_SUBSCRIPTION_ID"
@@ -276,99 +282,178 @@ else
     fi
 fi
 
+step=0
+load_config_vars "${deployer_config_information}" "step"
+
 curdir=$(pwd)
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                           Bootstrapping the deployer                                  #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+if [ 0 == $step ]
+then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Bootstrapping the deployer                                  #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
 
-cd "${deployer_dirname}"
-"${DEPLOYMENT_REPO_PATH}"deploy/scripts/install_deployer.sh -p $deployer_file_parametername -i true
-if [ $? -eq 255 ]
-   then
-   exit $?
-fi
+    cd "${deployer_dirname}"
 
-read -p "Do you want to specify the SPN Details Y/N?"  ans
-answer=${ans^^}
-if [ $answer == 'Y' ]; then
-    load_config_vars ${deployer_config_information} "keyvault"
-    if [ ! -z $keyvault ]
+    if [ $force == 1 ]
     then
-        # Key vault was specified in ~/.sap_deployment_automation in the deployer file
-        keyvault_param=$(printf " -v %s " "${keyvault}")
+        if [ -d ./.terraform/ ]; then
+            rm .terraform -r
+        fi
+
+        if [ -f terraform.tfstate ]; then
+            rm terraform.tfstate
+        fi
+
+        if [ -f terraform.tfstate.backup ]; then
+            rm terraform.tfstate.backup
+        fi
     fi
 
-    env_param=$(printf " -e %s " "${environment}")
-    region_param=$(printf " -r %s " "${region}")
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/install_deployer.sh -p $deployer_file_parametername -i true
+    if [ $? -eq 255 ]
+    then
+        exit $?
+    fi
 
-    allParams="${env_param}""${keyvault_param}""${region_param}"
+    step=1
+    save_config_vars "${system_config_information}" "step"
+else
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Deployer is bootstrapped                                    #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+fi
 
-    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh $allParams
+if [ 1 == $step ]
+then
+    read -p "Do you want to specify the SPN Details Y/N?"  ans
+    answer=${ans^^}
+    if [ $answer == 'Y' ]; then
+        load_config_vars ${deployer_config_information} "keyvault"
+        if [ ! -z $keyvault ]
+        then
+            # Key vault was specified in ~/.sap_deployment_automation in the deployer file
+            keyvault_param=$(printf " -v %s " "${keyvault}")
+        fi
+
+        env_param=$(printf " -e %s " "${environment}")
+        region_param=$(printf " -r %s " "${region}")
+
+        allParams="${env_param}""${keyvault_param}""${region_param}"
+
+        "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh $allParams
+        if [ $? -eq 255 ]
+        then
+            exit $?
+        fi
+    fi
+
+    if [ -f post_deployment.sh ]; then
+        "./post_deployment.sh"
+    fi
+    cd "${curdir}"
+    step=2
+    save_config_vars "${deployer_config_information}" "step"
+fi
+
+if [ 2 == $step ]
+then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Bootstrapping the library                                   #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+
+    cd "${library_dirname}"
+    if [ $force == 1 ]
+    then
+        if [ -d ./.terraform/ ]; then
+            rm .terraform -r
+        fi
+
+        if [ -f terraform.tfstate ]; then
+            rm terraform.tfstate
+        fi
+
+        if [ -f terraform.tfstate.backup ]; then
+            rm terraform.tfstate.backup
+        fi
+    fi
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/install_library.sh -p $library_file_parametername -i true -d $relative_path$deployer_dirname
     if [ $? -eq 255 ]
         then
         exit $?
     fi
+    cd "${curdir}"
+    step=3
+    save_config_vars "${deployer_config_information}" "step"
+else
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                            Library is bootstrapped                                    #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+
 fi
 
-"./post_deployment.sh"
-cd "${curdir}"
-
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                           Bootstrapping the library                                   #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
-
-cd "${library_dirname}"
-"${DEPLOYMENT_REPO_PATH}"deploy/scripts/install_library.sh -p $library_file_parametername -i true -d $relative_path$deployer_dirname
-if [ $? -eq 255 ]
-    then
-    exit $?
-fi
-cd "${curdir}"
-
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                           Migrating the deployer state                                #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
-
-cd "${deployer_dirname}"
-
-# Remove the script file
-if [ -f post_deployment.sh ]
+if [ 3 == $step ]
 then
-    rm post_deployment.sh
-fi
-"${DEPLOYMENT_REPO_PATH}"deploy/scripts/installer.sh -p $deployer_file_parametername -i true -t sap_deployer
-if [ $? -eq 255 ]
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Migrating the deployer state                                #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+
+    cd "${deployer_dirname}"
+
+    # Remove the script file
+    if [ -f post_deployment.sh ]
     then
-    exit $?
+        rm post_deployment.sh
+    fi
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/installer.sh -p $deployer_file_parametername -i true -t sap_deployer
+    if [ $? -eq 255 ]
+        then
+        exit $?
+    fi
+    cd "${curdir}"
+    step=4
+    save_config_vars "${deployer_config_information}" "step"
 fi
-cd "${curdir}"
 
-echo ""
+if [ 4 == $step ]
+then
 
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                           Migrating the library state                                 #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+    echo ""
 
-cd "${library_dirname}"
-"${DEPLOYMENT_REPO_PATH}"deploy/scripts/installer.sh -p $library_file_parametername  -i true -t sap_library
-if [ $? -eq 255 ]
-    then
-    exit $?
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Migrating the library state                                 #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+
+    cd "${library_dirname}"
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/installer.sh -p $library_file_parametername  -i true -t sap_library
+    if [ $? -eq 255 ]
+        then
+        exit $?
+    fi
+    cd "${curdir}"
+    step=5
+    save_config_vars "${deployer_config_information}" "step"
 fi
-cd "${curdir}"

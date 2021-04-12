@@ -378,14 +378,9 @@ else
     fi
     
 fi
-cat <<EOF > backend.tf
-####################################################
-# To overcome terraform issue                      #
-####################################################
-terraform {
-    backend "azurerm" {}
-}
-EOF
+
+printf "terraform {\n backend \"azurerm\" {} \n}\n" > backend.tf
+
 if [ 1 == $check_output ]
 then
     outputs=$(terraform output)

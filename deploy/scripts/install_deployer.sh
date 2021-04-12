@@ -156,6 +156,8 @@ else
     then
         echo "Storing the configuration"
         save_config_var "ARM_SUBSCRIPTION_ID" "${deployer_config_information}"
+        STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
+        save_config_var "STATE_SUBSCRIPTION" "${deployer_config_information}"
     fi
 fi
 
@@ -219,14 +221,7 @@ echo ""
 
 terraform apply ${approve} -var-file="${parameterfile}" "${terraform_module_directory}"
 
-cat <<EOF > backend.tf
-####################################################
-# To overcome terraform issue                      #
-####################################################
-terraform {
-    backend "local" {}
-}
-EOF
+printf "terraform {\n backend \"local\" {} \n}\n" > backend.tf
 
 keyvault=$(terraform output deployer_kv_user_name | tr -d \")
 

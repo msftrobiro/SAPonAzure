@@ -30,7 +30,10 @@ function load_config_vars() {
     
     for var_name
     do
-        var_value="$(grep -m1 "^${var_name}" "${var_file}" | cut -d'=' -f2 | tr -d '"')"
+        if [ -f "${var_file}" ]
+        then
+            var_value="$(grep -m1 "^${var_name}" "${var_file}" | cut -d'=' -f2 | tr -d '"')"
+        fi
         
         [ -z "${var_value}" ] && continue
         

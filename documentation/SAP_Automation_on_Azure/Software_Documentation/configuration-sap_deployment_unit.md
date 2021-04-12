@@ -170,6 +170,8 @@ JSON structure
   "tfstate_resource_id"               : "",                                       <-- Required Parameter
   "deployer_tfstate_key"              : "",                                       <-- Required Parameter
   "landscape_tfstate_key"             : "",                                       <-- Required Parameter
+  "db_disk_sizes_filename"            : "",                                       <-- Optional Parameter
+  "app_disk_sizes_filename"           : "",                                       <-- Optional Parameter
 }                                                                                 <-- JSON Closing tag
 ```
 
@@ -293,6 +295,8 @@ Node                                   | Attribute                     | Type   
 | `tfstate_resource_id`                       |                                | **required**  |          | This is the Azure Resource ID for the Storage Account in which the Statefiles are stored. Typically this is deployed by the SAP Library execution unit. |
 | `deployer_tfstate_key`                      | `Remote State`                 | **required**  |          | This is the deployer state file name, used for finding the correct state file.  <br/>**Case-sensitive**  |
 | `landscape_tfstate_key`                     | `Remote State`                 | **required**  |          | This is the landscape state file name, used for finding the correct state file.  <br/>**Case-sensitive**   |
+| `db_disk_sizes_filename`                    |                                | optional      |          | If specified the custom disk sizing json file name for the database  |
+| `app_disk_sizes_filename`                   |                                | optional      |          | If specified the custom disk sizing json file name for the app tier  |
 
 ## Examples ##
 
@@ -477,6 +481,8 @@ Node                                   | Attribute                     | Type   
   "tfstate_resource_id"               : "",
   "deployer_tfstate_key"              : "",
   "landscape_tfstate_key"             : "",
+  "app_disk_sizes_filename"           : "custom_size_app.json",
+  "db_disk_sizes_filename"            : "custom_size_db.json"
 
 }
 ```

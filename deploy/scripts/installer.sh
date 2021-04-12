@@ -185,13 +185,15 @@ fi
 landscape_tfstate_key_parameter=''
 if [ "${deployment_system}" == sap_system ]
 then
-    landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
-    landscape_tfstate_key_exists=true
-else
-    read -p "Workload terraform statefile name :" landscape_tfstate_key
-    landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
-    save_config_var "landscape_tfstate_key" "${system_config_information}"
-    landscape_tfstate_key_exists=true
+    if [ -n "$=${landscape_tfstate_key}" ]; then
+        landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
+        landscape_tfstate_key_exists=true
+    else
+        read -p "Workload terraform statefile name :" landscape_tfstate_key
+        landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
+        save_config_var "landscape_tfstate_key" "${system_config_information}"
+        landscape_tfstate_key_exists=true
+    fi
 fi
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then

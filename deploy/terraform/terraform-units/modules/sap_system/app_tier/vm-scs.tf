@@ -47,7 +47,7 @@ resource "azurerm_network_interface" "scs_admin" {
     private_ip_address = local.use_DHCP ? (
       null) : (
       try(local.scs_admin_nic_ips[count.index],
-        cidrhost(var.admin_subnet.id.address_prefixes[0],
+        cidrhost(var.admin_subnet.address_prefixes[0],
           tonumber(count.index) + local.admin_ip_offsets.scs_vm
         )
       )

@@ -225,8 +225,8 @@ locals {
   //Admin subnet
   enable_admin_subnet = try(var.application.dual_nics, false) || try(var.databases[0].dual_nics, false) || (try(upper(local.db.platform), "NONE") == "HANA")
   var_sub_admin       = try(local.var_vnet_sap.subnet_admin, {})
-  sub_admin_arm_id    = try(local.var_sub_admin.arm_id, "")
-  sub_admin_exists    = length(local.sub_admin_arm_id) > 0
+  sub_admin_arm_id    = try(local.var_sub_admin.arm_id, try(var.landscape_tfstate.admin_subnet_id, ""))
+  sub_admin_exists    = length(trimspace(try(local.var_sub_admin.prefix, ""))) > 0 ? false : length(local.sub_admin_arm_id) > 0
 
   sub_admin_name = local.sub_admin_exists ? try(split("/", local.sub_admin_arm_id)[10], "") : try(local.var_sub_admin.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet))
   sub_admin_prefix = local.enable_admin_subnet ? (
@@ -239,26 +239,27 @@ locals {
 
   //Admin NSG
   var_sub_admin_nsg    = try(local.var_sub_admin.nsg, {})
-  sub_admin_nsg_arm_id = try(local.var_sub_admin_nsg.arm_id, "")
-  sub_admin_nsg_exists = length(local.sub_admin_nsg_arm_id) > 0 ? true : false
+  sub_admin_nsg_arm_id = try(var.landscape_tfstate.admin_nsg_id, try(local.var_sub_admin_nsg.arm_id, ""))
+  sub_admin_nsg_exists = local.sub_admin_exists ? length(local.sub_admin_nsg_arm_id) > 0 : false
   sub_admin_nsg_name   = local.sub_admin_nsg_exists ? try(split("/", local.sub_admin_nsg_arm_id)[8], "") : try(local.var_sub_admin_nsg.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet_nsg))
 
   //DB subnet
   var_sub_db    = try(local.var_vnet_sap.subnet_db, {})
-  sub_db_arm_id = try(local.var_sub_db.arm_id, "")
-  sub_db_exists = length(local.sub_db_arm_id) > 0 ? true : false
+  sub_db_arm_id = try(local.var_sub_db.arm_id, try(var.landscape_tfstate.db_subnet_id, ""))
+  sub_db_exists = length(trimspace(try(local.var_sub_db.prefix, ""))) > 0 ? false : length(local.sub_db_arm_id) > 0 ? true : false
+
   sub_db_name   = local.sub_db_exists ? try(split("/", local.sub_db_arm_id)[10], "") : try(local.var_sub_db.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_subnet))
   sub_db_prefix = local.sub_db_exists ? data.azurerm_subnet.db[0].address_prefixes[0] : try(local.var_sub_db.prefix, "")
 
   //DB NSG
   var_sub_db_nsg    = try(local.var_sub_db.nsg, {})
-  sub_db_nsg_arm_id = try(local.var_sub_db_nsg.arm_id, "")
-  sub_db_nsg_exists = length(local.sub_db_nsg_arm_id) > 0 ? true : false
+  sub_db_nsg_arm_id = try(local.var_sub_db_nsg.arm_id, try(var.landscape_tfstate.db_nsg_id, ""))
+  sub_db_nsg_exists = local.sub_db_exists ? length(local.sub_db_nsg_arm_id) > 0 : false
   sub_db_nsg_name   = local.sub_db_nsg_exists ? try(split("/", local.sub_db_nsg_arm_id)[8], "") : try(local.var_sub_db_nsg.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_subnet_nsg))
 
   //APP subnet
   var_sub_app    = try(local.var_vnet_sap.subnet_app, {})
-  sub_app_arm_id = try(local.var_sub_app.arm_id, "")
+  sub_app_arm_id = try(var.landscape_tfstate.app_subnet_id, try(local.var_sub_app.arm_id, ""))
   sub_app_exists = length(local.sub_app_arm_id) > 0 ? true : false
   sub_app_name   = local.sub_app_exists ? "" : try(local.var_sub_app.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet))
   sub_app_prefix = local.sub_app_exists ? "" : try(local.var_sub_app.prefix, "")

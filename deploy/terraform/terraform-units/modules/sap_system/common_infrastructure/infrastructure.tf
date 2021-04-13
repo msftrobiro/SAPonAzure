@@ -32,8 +32,8 @@ resource "azurerm_subnet" "admin" {
 
 resource "azurerm_subnet_route_table_association" "admin" {
   provider       = azurerm.main
-  count          = !local.sub_admin_exists && length(local.route_table_id) > 0 ? 1 : 0
-  subnet_id      = azurerm_subnet.admin[0].id
+  count          = !local.sub_admin_exists && local.enable_admin_subnet && length(local.route_table_id) > 0 ? 1 : 0
+  subnet_id      = local.sub_admin_exists ? data.azurerm_subnet.admin[0].id : azurerm_subnet.admin[0].id
   route_table_id = local.route_table_id
 }
 
@@ -59,8 +59,8 @@ resource "azurerm_subnet" "db" {
 
 resource "azurerm_subnet_route_table_association" "db" {
   provider       = azurerm.main
-  count          = !local.sub_admin_exists && length(local.route_table_id) > 0 ? 1 : 0
-  subnet_id      = azurerm_subnet.db[0].id
+  count          = !local.sub_db_exists && local.enable_db_deployment && length(local.route_table_id) > 0 ? 1 : 0
+  subnet_id      = local.sub_db_exists ? data.azurerm_subnet.db[0].id : azurerm_subnet.db[0].id
   route_table_id = local.route_table_id
 }
 

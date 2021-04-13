@@ -7,7 +7,7 @@
 
 # TODO: Playbook not yet written
 
-- hosts:          scs                                           # TODO: Replace this with new inventory group; Change to correct group
+- hosts:          "{{ sap_sid|upper }}_DB"
 
   name:           DB Installation - HANA
   remote_user:    "{{ orchestration_ansible_user }}"                
@@ -32,12 +32,6 @@
 # TODO: evaluate for inclusion and refactor.
 # SOURCE: sap-playbook
 #----------------------------------------
-
-# --------------------------------------+---------------------------------------8
-#
-# <Comment Header> 
-#
-# --------------------------------------+---------------------------------------8
 
 
 #----------------------------------------
@@ -65,10 +59,6 @@
 #----------------------------------------
 # END
 #----------------------------------------
-
-
-
-
 
 ...
 # /*----------------------------------------------------------------------------8

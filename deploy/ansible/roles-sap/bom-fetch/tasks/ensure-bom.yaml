@@ -1,21 +1,24 @@
 ---
 
-- name: "Ensure {{ bom_base_name }} is available"
+- name:         "Download BOM: {{ bom_base_name }}"
   get_url:
-    url: "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml{{ sapbits_sas_token }}"
-    dest: "{{ inventory_dir }}/{{ bom_base_name }}.yaml"
+    url:        "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml{{ sapbits_sas_token }}"
+    dest:       "{{ inventory_dir }}/{{ bom_base_name }}.yaml"
 # TODO: Investigate this delegate_to
-  delegate_to: localhost
+  delegate_to:  localhost
 
-- name: "Ensure {{ bom_base_name }} is available"
+- name:         "Ensure {{ bom_base_name }} is available"
   include_vars:
-    file: "{{ inventory_dir }}/{{ bom_base_name }}.yaml"
-    name: bom
+    file:       "{{ inventory_dir }}/{{ bom_base_name }}.yaml"
+    name:       bom
 
-- name: "Ensure {{ bom_base_name }} dependencies are available"
-  when: bom_dependencies | length != 0
-  include_tasks: "./ensure-bom.yaml"
+# TODO: Endless loop Troubleshoot
+- name:                 "Ensure {{ bom_base_name }} dependencies are available"
+  when:                 bom_dependencies | length != 0
+  include_tasks:        "./ensure-bom.yaml"
   vars:
-    bom_dependencies: "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) }}"
-    bom_base_name: "{{ item.name }}"
-  loop: "{{ bom_dependencies | flatten(levels=1) }}"
+    bom_dependencies:   "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) }}"
+    bom_base_name:      "{{ item.name }}"
+  loop:                 "{{ bom_dependencies | flatten(levels=1) }}"
+
+...

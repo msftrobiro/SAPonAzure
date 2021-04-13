@@ -1,0 +1,16 @@
+---
+# *====================================4=======================================8
+#   SAP: BOM, Download
+- name:           "Download BOM files"
+  get_url:
+    # url:          "{{ item.url }}{{ sapbom.sasToken }}"
+    # dest:         "{{ item.target }}"
+    url:          "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml{{ sapbits_sas_token }}"
+    dest:         "{{ inventory_dir }}/{{ bom_base_name }}.yaml"
+    mode:         0644
+  register:       result
+  until:          result is succeeded
+  retries:        7
+  delay:          5
+  loop:           "{{ sapbom.BillOfMaterials|flatten(levels=1) }}"
+# *====================================4=======================================8

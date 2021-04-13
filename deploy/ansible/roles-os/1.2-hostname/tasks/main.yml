@@ -6,44 +6,29 @@
 ---
 # --------------------------------------+---------------------------------------8
 #
-# <Comment Header> 
+# Task: 1.2     - hostname setup
 #
 # --------------------------------------+---------------------------------------8
-# TODO: 20210127 Review
-
-#----------------------------------------
-# BEGIN - OLD CODE
-#----------------------------------------
-
-# - name: Check configurations on HANA VMs
-#   any_errors_fatal: true
-#   block:
-#     - import_tasks: hostname_validation.yml
-#     - import_tasks: repo_validation.yml
-
-#----------------------------------------
-# END - OLD CODE
-#----------------------------------------
-
 
 # SUSE bug 1167134
-- name:     Ensure DHCLIENT_SET_HOSTNAME is set to no for SLES
-
+- name:         "Ensure DHCLIENT_SET_HOSTNAME is set to no for SLES"
   lineinfile:
-    path:     /etc/sysconfig/network/dhcp
-    regexp:   '^DHCLIENT_SET_HOSTNAME='
-    line:     DHCLIENT_SET_HOSTNAME="no"
+    path:       /etc/sysconfig/network/dhcp
+    regexp:     '^DHCLIENT_SET_HOSTNAME='
+    line:       DHCLIENT_SET_HOSTNAME="no"
+  when:         ansible_os_family|upper == 'SUSE'
 
-  when:     ansible_os_family|upper == 'SUSE'
 
+# TODO:
+#       1) Validate Relevancy for the tasks below.
+#       2) Refactor as needed.
+#       3) This may not have been structured correctly and should be done in the hosts file instead.
+#       4) Azure seems to set the hostname correctly, by default.
 
 
 
 #----------------------------------------
-# BEGIN
-#
-# TODO: Review and Refactoring Needed.
-#       Validate Relivancy for this Task.
+# BEGIN OLD CODE
 #----------------------------------------
 
 # The intention of the following is to map the hostname to the IP for the Admin NIC
@@ -66,10 +51,7 @@
 #   when: ansible_hostname != hanadbnodes_dict[inventory_hostname]
 
 #----------------------------------------
-# END
-#
-# TODO: Review and Refactoring Needed.
-#       Validate Relivancy for this Task.
+# END OLD CODE
 #----------------------------------------
 
 ...

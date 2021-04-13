@@ -382,8 +382,8 @@ locals {
   ) : []
 
   app_data_disks = flatten([
-    for vm_counter in range(local.application_server_count) : [
-      for idx, datadisk in local.app_data_disk_per_dbnode : {
+    for idx, datadisk in local.app_data_disk_per_dbnode : [
+      for vm_counter in range(local.application_server_count) : {
         suffix                    = datadisk.suffix
         vm_index                  = vm_counter
         caching                   = datadisk.caching
@@ -418,8 +418,8 @@ locals {
   ) : []
 
   scs_data_disks = flatten([
-    for vm_counter in range(local.scs_server_count) : [
-      for idx, datadisk in local.scs_data_disk_per_dbnode : {
+     for idx, datadisk in local.scs_data_disk_per_dbnode : [
+      for vm_counter in range(local.scs_server_count) : {
         suffix                    = datadisk.suffix
         vm_index                  = vm_counter
         caching                   = datadisk.caching
@@ -454,8 +454,8 @@ locals {
   ) : []
 
   web_data_disks = flatten([
-    for vm_counter in range(local.webdispatcher_count) : [
-      for idx, datadisk in local.web_data_disk_per_dbnode : {
+    for idx, datadisk in local.web_data_disk_per_dbnode : [
+      for vm_counter in range(local.webdispatcher_count) : {
         suffix                    = datadisk.suffix
         vm_index                  = vm_counter
         caching                   = datadisk.caching

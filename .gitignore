@@ -25,6 +25,11 @@ set-sp.sh
 
 # ignore any clustering auth scripts
 set-clustering-auth*.sh
+
+#  Local .vscode directories
+
+**/.vscode/*
+.vscode/
 deploy/scripts/pwsh/SAPDeploymentUtilities/Output/stats.json
-.vscode/settings.json
-.vscode/settings.json
+
+

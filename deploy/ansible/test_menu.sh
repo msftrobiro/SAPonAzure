@@ -47,8 +47,8 @@ options=(                           \
         "Pacemaker Setup"           \
         "Pacemaker SCS Setup"       \
         "Pacemaker HANA Setup"      \
-        "BOM Processing - MD"       \
         "Quit"                      \
+        "BOM Processing - MD"       \
 )
 
 

@@ -11,22 +11,23 @@
 #         # export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=Yes
 #         # export           ANSIBLE_KEEP_REMOTE_FILES=1
 #
+# Example of complete run execution:
 #
-#         ansible-playbook                                                                                                \
-#           --inventory   new-hosts.yaml                                                                                  \
-#           --user        azureadm                                                                                        \
-#           --private-key sshkey                                                                                          \
-#           --extra-vars="@sap-parameters.yaml"                                                                           \
-#         playbook_00_transition_start_for_sap_install.yaml                                                               \
-#         playbook_01_os_base_config.yaml                                                                                 \
-#         playbook_02_os_sap_specific_config.yaml                                                                         \
-#         playbook_03_bom_processing.yaml                                                                                 \
-#         playbook_04a_sap_scs_install.yaml                                                                               \
-#         playbook_05a_hana_db_install.yaml                                                                               \
-#         playbook_06a_sap_dbload.yaml                                                                                    \
-#         playbook_06b_sap_pas_install.yaml                                                                               \
-#         playbook_06c_sap_app_install.yaml                                                                               \
-#         playbook_06d_sap_web_install.yaml
+#         ansible-playbook                                                                \
+#           --inventory   X00-hosts.yml                                                   \
+#           --user        azureadm                                                        \
+#           --private-key sshkey                                                          \
+#           --extra-vars="@sap-parameters.yaml"                                           \
+#           playbook_00_transition_start_for_sap_install.yaml                             \
+#           playbook_01_os_base_config.yaml                                               \
+#           playbook_02_os_sap_specific_config.yaml                                       \
+#           playbook_03_bom_processing.yaml                                               \
+#           playbook_04a_sap_scs_install.yaml                                             \
+#           playbook_05a_hana_db_install.yaml                                             \
+#           playbook_06a_sap_dbload.yaml                                                  \
+#           playbook_06b_sap_pas_install.yaml                                             \
+#           playbook_06c_sap_app_install.yaml                                             \
+#           playbook_06d_sap_web_install.yaml
 
 
 
@@ -48,6 +49,7 @@ options=(                           \
         "Pacemaker Setup"           \
         "Pacemaker SCS Setup"       \
         "Pacemaker HANA Setup"      \
+        "BOM Processing - MD"       \
         "Quit"                      \
 )
 
@@ -69,13 +71,18 @@ do
                 "Pacemaker SCS Setup")      playbook=playbook_07b_pacemaker_scs.yaml;;
                 "Pacemaker HANA Setup")     playbook=playbook_07c_pacemaker_hana.yaml;;
                 "Quit")                     break;;
+                "BOM Processing - MD")      playbook=playbook_03_bom_processing-md.yaml;;
         esac
 
+# TODO:
+#       1) Make SID in inventory file name a parameter.
+#       2) Convert file extension to yaml.
+#       3) Find more secure way to handle the ssh private key so it is not exposed.
         ansible-playbook                                                                                                \
-          --inventory   X00_hosts.yml                                                                                   \
-          --user        azureadm                                                                                        \
-          --private-key "${SSHKEYSAP}"                                                                                          \
-          --extra-vars="@sap-parameters.yaml"                                                                           \
+          --inventory   X00_hosts.yml                                                     \
+          --user        azureadm                                                          \
+          --private-key sshkey                                                            \
+          --extra-vars="@sap-parameters.yaml"                                             \
           ~/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible/${playbook}
           break
 done

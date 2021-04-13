@@ -16,14 +16,18 @@
 # *====================================4=======================================8
 #   SAP: Register BOM
 - name:           "Register BOM"
-  include_vars:
-    file:         "{{ target_media_location }}/{{ bom_base_name }}.yaml"
-    name:         sapbom
+#   include_vars:
+#     file:         "{{ target_media_location }}/{{ bom_base_name }}.yaml"
+#     name:         sapbom
+- name:           "Register BOM"
+  command:        /bin/cat "{{ target_media_location }}/{{ bom_base_name }}.yaml"
+  register:       sapbom
+
 
 #------------------<DEBUGGING>-------------------
 - debug:  
-    msg:      "URL: {{ item.url }}"
-  loop:       "{{ sapbom.BillOfMaterials|flatten(levels=1) }}"
+    msg:      "URL: {{ item.archive }}"
+  loop:       "{{ sapbom.materials.media|flatten(levels=1) }}"
 #------------------</DEBUGGING>------------------
 # *====================================4=======================================8
 

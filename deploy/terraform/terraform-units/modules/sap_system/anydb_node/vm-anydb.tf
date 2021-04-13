@@ -52,7 +52,7 @@ resource "azurerm_network_interface" "anydb_admin" {
       null) : (
       try(local.anydb_vms[count.index].admin_nic_ip, false) != false ? (
         local.anydb_vms[count.index].admin_nic_ip) : (
-        cidrhost(var.admin_subnet[0].address_prefixes[0], tonumber(count.index) + local.anydb_ip_offsets.anydb_admin_vm)
+        cidrhost(var.admin_subnet.address_prefixes[0], tonumber(count.index) + local.anydb_ip_offsets.anydb_admin_vm)
       )
     )
     private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"

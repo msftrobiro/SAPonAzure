@@ -54,12 +54,15 @@ function missing {
 }
 
 show_help=false
+force=0
 
-while getopts ":p:t:i:d:h" option; do
+while getopts ":p:t:i:d:h:f" option; do
     case "${option}" in
         p) parameterfile=${OPTARG};;
         t) deployment_system=${OPTARG};;
         i) approve="--auto-approve";;
+        f) force=1
+        ;;
         h) showhelp
             exit 3
         ;;
@@ -120,6 +123,21 @@ then
     echo "#########################################################################################"
     echo ""
     exit -1
+fi
+
+if [ $force == 1 ]
+then
+    if [ -d ./.terraform/ ]; then
+        rm .terraform -r
+    fi
+
+    if [ -f terraform.tfstate ]; then
+        rm terraform.tfstate
+    fi
+
+    if [ -f terraform.tfstate.backup ]; then
+        rm terraform.tfstate.backup
+    fi
 fi
 
 
@@ -419,11 +437,9 @@ else
 
         terraform init -upgrade=true -var-file="${parameterfile}" $terraform_module_directory
         check_output=1
-
         
     fi
 fi
-
 
 if [ 1 == $check_output ]
 then
@@ -448,6 +464,9 @@ then
         printf "terraform {\n backend \"azurerm\" {} \n}\n" > backend.tf
 
         deployed_using_version=$(terraform output automation_version)
+
+        rm backend.tf
+
         if [ ! -n "${deployed_using_version}" ]; then
             echo ""
             echo "#########################################################################################"
@@ -494,9 +513,9 @@ then
     rm plan_output.log
 fi
 
-terraform plan -no-color -var-file=$parameterfile $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory 2>&1  > plan_output.log
+terraform plan -no-color -var-file=$parameterfile $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory 2>error.log 1>plan_output.log 
 
-str1=$(grep "Error: " plan_output.log)
+str1=$(grep "Error: " error.log)
 if [ -n "${str1}" ]
 then
     echo ""
@@ -506,8 +525,12 @@ then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    cat plan_output.log
-    rm plan_output.log
+    cat error.log
+    rm error.log
+    if [ -f plan_output.log ]
+    then
+        rm plan_output.log
+    fi
     exit -1
 fi
 
@@ -562,7 +585,14 @@ fi
 
 if [ $ok_to_proceed ]; then
     
-    rm plan_output.log
+    if [ -f error.log ]
+    then
+        rm error.log
+    fi
+    if [ -f plan_output.log ]
+    then
+        rm plan_output.log
+    fi
     
     echo ""
     echo "#########################################################################################"

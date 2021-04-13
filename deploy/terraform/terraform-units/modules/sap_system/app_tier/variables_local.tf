@@ -284,9 +284,9 @@ locals {
     web_vm = local.sub_web_defined ? (4 + 2) : -3
   }
   admin_ip_offsets = {
-    scs_vm = 4 + 16
-    app_vm = 4 + 11
-    web_vm = 4 + 21
+    app_vm = 4 + 9
+    scs_vm = 4 + 14
+    web_vm = 4 + 19
   }
 
   // Default VM config should be merged with any the user passes in

@@ -59,8 +59,8 @@
   - include_role:
       name:     roles-sap/bom-fetch                             # TODO: Centiq copy (rework needed)
 
-  - include_role:
-      name:     roles-sap/bom-processing                        # TODO: Centiq copy (rework needed)
+  # - include_role:
+  #     name:     roles-sap/bom-processing                        # TODO: Centiq copy (rework needed)
 
 
 

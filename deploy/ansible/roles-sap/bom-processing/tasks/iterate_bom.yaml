@@ -2,21 +2,21 @@
 
 - name: "Ensure {{ bom_base_name }} is used"
   include_vars:
-    file: "{{ inventory_dir }}/{{ bom_base_name }}_bom.yaml"
+    file: "{{ inventory_dir }}/{{ bom_base_name }}.yaml"
     name: bom
   delegate_to: localhost
 
-- name: "Ensure {{ bom_base_name }} is absent"
-  file:
-    path: "{{ inventory_dir }}/{{ bom_base_name }}_bom.yaml"
-    state: absent
-  delegate_to: localhost
+# - name: "Ensure {{ bom_base_name }} is absent"
+#   file:
+#     path: "{{ inventory_dir }}/{{ bom_base_name }}_bom.yaml"
+#     state: absent
+#   delegate_to: localhost
 
-- name:         "Ensure {{ target_media_location }} exists"
-  file:
-    path:       "{{ target_media_location }}"
-    state:      directory
-  check_mode:   "{{ test_mode is defined and test_mode }}"
+# - name:         "Ensure {{ target_media_location }} exists"
+#   file:
+#     path:       "{{ target_media_location }}"
+#     state:      directory
+#   check_mode:   "{{ test_mode is defined and test_mode }}"
 
 # - name:               "Ensure current property is iterated"
 #   include_tasks:      download_media.yaml

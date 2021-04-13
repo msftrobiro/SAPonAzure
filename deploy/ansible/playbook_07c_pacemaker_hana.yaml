@@ -47,7 +47,7 @@
 # BEGIN: Commented Section to enable BOM
 #        Process
 #
-# TODO: evaluate and refactor. DB install, HSR, HA
+# TODO: evaluate and refactor. DB install, HSR, HA Playbooks
 #----------------------------------------
 
 # # Hana DB components install

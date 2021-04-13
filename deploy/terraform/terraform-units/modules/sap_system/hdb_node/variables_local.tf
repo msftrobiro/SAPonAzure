@@ -239,7 +239,7 @@ locals {
   // Note: First 4 IP addresses in a subnet are reserved by Azure
   hdb_ip_offsets = {
     hdb_lb         = 4
-    hdb_admin_vm   = 10
+    hdb_admin_vm   = 6
     hdb_db_vm      = 10
     hdb_storage_vm = 10
   }
@@ -313,7 +313,7 @@ locals {
 
   db_disks_ansible = flatten([for idx, vm in local.hdb_vms : [
     for idx, datadisk in local.data_disk_per_dbnode :
-      format("host: %s, LUN: %d, type: %s", vm.name, idx, datadisk.type)
+      format("{ host: '%s', LUN: %d, type: '%s' }", vm.name, idx, datadisk.type)
   ]])
 
   enable_ultradisk = try(

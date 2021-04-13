@@ -21,9 +21,14 @@
 
 
   tasks:
-
-  # - name: Test Connection                                     # Simple connection test for troubleshooting
-  #   ping:
+# --------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here. 
+#
+# - name: "Simple connection test for troubleshooting"
+#   ping:
+#
+# --------------------------------------+---------------------------------------8
 
 # - role: dependencies-install                                  # --> roles-sap/sap-packages (playbook_02_os_sap_specific_config)
   - include_role:

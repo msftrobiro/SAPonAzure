@@ -1,66 +1,29 @@
 ---
 
-- name:     Ensure Resource disk is mounted
+- name:         "Ensure Resource disk is mounted"
   lineinfile:
     state:      present
     dest:       /etc/waagent.conf
     regexp:     'ResourceDisk.Format='
     line:       'ResourceDisk.Format=y'
-  register: conf_change
 
-- name:     Ensure swap is enabled
+- name:         "Ensure swap is enabled"
   lineinfile:
     state:      present
     dest:       /etc/waagent.conf
     regexp:     'ResourceDisk.EnableSwap='
     line:       'ResourceDisk.EnableSwap=y'
-  register: conf_change
 
-- name:     Ensure swapfile size
+- name:         "Ensure swapfile size"
   lineinfile:
     state:      present
     dest:       /etc/waagent.conf
     regexp:     'ResourceDisk.SwapSizeMB='
     line:       'ResourceDisk.SwapSizeMB={{ item.swap_size_mb }}'
-  register: conf_change
 
-- name:     Ensure waagent is restarted
+- name:         "Ensure waagent is restarted"
   service:
     name:       waagent
     state:      restarted
-  when: conf_change.changed
 
-#----------------------------------------
-# BEGIN
-#
-# TODO: 20210127 Moved in from OS Preparation
-#       Reconcile
-#----------------------------------------
-
-# # If current host is LargeInstance, creating swap will be skipped. 
-# - name: Prepare SWAP
-#   when: hana_database.size != "LargeInstance"
-#   block:
-  
-#   - name: Configure SWAP space
-#     lineinfile:
-#       dest: /etc/waagent.conf
-#       regexp: "^{{ item.prop }}="
-#       line: "{{ item.prop }}={{ item.value }}"
-#     loop:
-#       - { prop: "ResourceDisk.Format", value: "y" }
-#       - { prop: "ResourceDisk.EnableSwap", value: "y" }
-#       - { prop: "ResourceDisk.SwapSizeMB", value: "{{ (hdb_sizes[hana_database.size].compute.swap_size_gb) * 1024|int }}" }
-
-#   - name: Restart waagent
-#     service:
-#       name: waagent 
-#       state: restarted
-
-#----------------------------------------
-# END
-#
-# TODO: 20210127 Moved in from OS Preparation
-#       Reconcile
-#----------------------------------------
 ...

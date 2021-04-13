@@ -21,85 +21,77 @@
   remote_user:        "{{ orchestration_ansible_user }}"                
   become:             yes
   become_user:        root
-  gather_facts:       true
+  gather_facts:       true                                                      # Important to collect hostvars information
   any_errors_fatal:   true
   vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                                               # API Input template with defaults
 
 
   tasks:
-
-  # - name: Test Connection                                     # Simple connection test for troubleshooting
-  #   ping:
-
-# TODO: sudoers Config
-
-  - include_role:
-      name:     roles-os/1.1-swap                               # TODO: Centiq copy (rework needed)
-
-  - include_role:
-      name:     roles-os/1.2-hostname                           # TODO: Review and Refactoring Needed
+# --------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here. 
+#
+# - name: "Simple connection test for troubleshooting"
+#   ping:
+#
+# --------------------------------------+---------------------------------------8
 
   - include_role:
-      name:     roles-os/1.5-disk-setup                         # TODO: Review and Refactoring Needed
+      name:     roles-os/1.1-swap
 
   - include_role:
-      name:     roles-os/1.3-repository                         # TODO: Review and Refactoring Needed
+      name:     roles-os/1.2-hostname
 
   - include_role:
-      name:     roles-os/1.4-packages                           # TODO: Review and Refactoring Needed
+      name:     roles-os/1.5-disk-setup
 
   - include_role:
-      name:     roles-os/1.20-prometheus                        # TODO: Review and Refactoring Needed
+      name:     roles-os/1.3-repository
+
+  - include_role:
+      name:     roles-os/1.4-packages
+
+  - include_role:
+      name:     roles-os/1.20-prometheus
     when:   prometheus
             and             ansible_os_family|upper == "SUSE"
             and (     (     ansible_distribution_major_version == '12'
                         and ansible_distribution_release is search('[3-5]' ) )
                   or  (     ansible_distribution_major_version == '15' ) )
-# TODO: detect large instance
-#       - hana_database.size != "LargeInstance"
-
-
-
-  # - debug:
-  #     var: hostvars['x00scs00l373']
-
-#----------------------------------------
-# BEGIN
-#
-# TODO: evaluate for inclusion and refactor.
-# SOURCE: sap-playbook
-#----------------------------------------
-
-
-# TODO: evaluate and refactor. move to os_base_config and os_sap_config
-
-
-# # Prepare os, disks and mount points on Hana Database servers
-# # - hosts: hanadbnodes
-# √- hosts: X00_DB
-# √  become: true
-# √  become_user: root
-# √  vars_files:
-# √    - "vars/packages.yaml"
-# √  pre_tasks:
-# √    - name: Include SAP HANA DB sizes
-# √      include_vars:
-# √        file: "{{ configs_path }}/hdb_sizes.json"
-# √        name: hdb_sizes
-# √  max_fail_percentage: 0
-# √  roles:
-# √    - role: os-preparation
-# √    - role: os-disk-setup
-# √    - role: enable-prometheus
-# √      when:
-# √        - output.options.enable_prometheus == True
-# √        - ansible_facts['distribution_file_variety'] == 'SUSE'
-# √        - ansible_facts['distribution_version'] is regex("(12\.[3-5]|15\.\d)")
-# √        - hana_database.size != "LargeInstance"
 
 
 ...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
 # +-------------------------------------4--------------------------------------*/
+
+
+
+
+
+
+
+#----------------------------------------
+# BEGIN example reference for refactoring
+#
+# TODO: evaluate for inclusion and refactor.
+#        this is how hdb_sizes was registered
+# SOURCE: sap-playbook
+#----------------------------------------
+
+# √  pre_tasks:
+# √    - name: Include SAP HANA DB sizes
+# √      include_vars:
+# √        file: "{{ configs_path }}/hdb_sizes.json"
+# √        name: hdb_sizes
+
+#----------------------------------------
+# END
+#----------------------------------------
+
+
+
+# # DEBUG: Example of listing hostvars for a specific server.
+  # - debug:
+  #     var: hostvars['x00scs00l373']

@@ -1,15 +1,15 @@
 ---
 # *====================================4=======================================8
 #   SAP: BOM, Download
-- name:           "Download BOM files"
-  get_url:
-    url:          "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml{{ sapbits_sas_token }}"
-    dest:         "{{ target_media_location }}/{{ bom_base_name }}.yaml"
-    mode:         0644
-  register:       result
-  until:          result is succeeded
-  retries:        10
-  delay:          6
+# - name:           "Download BOM files"
+#   get_url:
+#     url:          "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml{{ sapbits_sas_token }}"
+#     dest:         "{{ target_media_location }}/{{ bom_base_name }}.yaml"
+#     mode:         0644
+#   register:       result
+#   until:          result is succeeded
+#   retries:        10
+#   delay:          6
 # *====================================4=======================================8
 
 

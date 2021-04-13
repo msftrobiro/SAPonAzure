@@ -21,9 +21,17 @@
 
   tasks:
 
-  # - name: Test Connection                                     # Simple connection test for troubleshooting
-  #   ping:
+    #   (Role)  SAP: LVM
 
+    #   (Role)  SAP: mounts
+
+    #   (Role)  SAP: packages
+
+    #   (Role)  SAP: Users and Groups
+
+    #   (Role)  SAP: Permissions
+
+    #   (Role)  SAP APP: Install
 
 ...
 # /*----------------------------------------------------------------------------8

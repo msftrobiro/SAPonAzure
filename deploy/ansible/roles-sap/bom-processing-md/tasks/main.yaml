@@ -19,7 +19,6 @@
 #   include_vars:
 #     file:         "{{ target_media_location }}/{{ bom_base_name }}.yaml"
 #     name:         sapbom
-- name:           "Register BOM"
   command:        /bin/cat "{{ target_media_location }}/{{ bom_base_name }}.yaml"
   register:       sapbom
 

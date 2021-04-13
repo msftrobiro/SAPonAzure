@@ -26,7 +26,7 @@
 
 - name: Register sapbom
   set_fact:
-    sapbom: "{{ slurp_sapbom.content|b64decode }}"
+    sapbom: "{{ (slurp_sapbom.content|b64decode).split('\n') }}"
 
 #------------------<DEBUGGING>-------------------
 - debug:  

@@ -27,8 +27,10 @@
 
 #------------------<DEBUGGING>-------------------
 - debug:  
-    msg:      "{{ sapbom['content'] | b64decode }}"
+#    msg:      "{{ sapbom['content'] | b64decode }}"
+    msg:      "{{ item }}"
 #  loop:       "{{ sapbom|flatten(levels=1) }}"
+  loop:       "{{ sapbom['content']|b64decode|flatten(levels=1) }}"
 #------------------</DEBUGGING>------------------
 # *====================================4=======================================8
 

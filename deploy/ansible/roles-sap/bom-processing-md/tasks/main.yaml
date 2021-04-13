@@ -30,8 +30,8 @@
 
 #------------------<DEBUGGING>-------------------
 - debug:  
-    msg:      "{{ item }}"
-  loop:       "{{ sapbom|flatten(levels=1) }}"
+    msg:      "{{ item.archive }}"
+  loop:       "{{ sapbom.materials.media|flatten(levels=1) }}"
 #------------------</DEBUGGING>------------------
 # *====================================4=======================================8
 

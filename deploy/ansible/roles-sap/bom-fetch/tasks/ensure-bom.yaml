@@ -17,9 +17,9 @@
     file:       "{{ inventory_dir }}/{{ bom_base_name }}.yaml"
     name:       bom
 #------------------<DEBUGGING>-------------------
-- debug:  
-    msg:      "{{ item.archive }}"
-  loop:       "{{ bom.materials.media|flatten(levels=1) }}"
+# - debug:  
+#     msg:      "{{ item.archive }}"
+#   loop:       "{{ bom.materials.media|flatten(levels=1) }}"
 #------------------</DEBUGGING>------------------
 # *====================================4=======================================8
 

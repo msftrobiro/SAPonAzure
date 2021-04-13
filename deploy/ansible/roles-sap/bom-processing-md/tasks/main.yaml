@@ -8,8 +8,8 @@
     mode:         0644
   register:       result
   until:          result is succeeded
-  retries:        7
-  delay:          5
+  retries:        10
+  delay:          6
 # *====================================4=======================================8
 
 
@@ -19,7 +19,9 @@
 #   include_vars:
 #     file:         "{{ target_media_location }}/{{ bom_base_name }}.yaml"
 #     name:         sapbom
-  command:        /bin/cat "{{ target_media_location }}/{{ bom_base_name }}.yaml"
+#   command:        /bin/cat "{{ target_media_location }}/{{ bom_base_name }}.yaml"
+  ansible.builtin.slurp:
+    src:          "{{ target_media_location }}/{{ bom_base_name }}.yaml"
   register:       sapbom
 
 

@@ -20,7 +20,7 @@
 #     file:         "{{ target_media_location }}/{{ bom_base_name }}.yaml"
 #     name:         sapbom
 #   command:        /bin/cat "{{ target_media_location }}/{{ bom_base_name }}.yaml"
-  ansible.builtin.slurp:
+  slurp:
     src:          "{{ target_media_location }}/{{ bom_base_name }}.yaml"
   register:       sapbom
 

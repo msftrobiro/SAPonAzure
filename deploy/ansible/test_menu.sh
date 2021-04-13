@@ -47,6 +47,7 @@ options=(                           \
         "Pacemaker Setup"           \
         "Pacemaker SCS Setup"       \
         "Pacemaker HANA Setup"      \
+        "BOM Processing - MD"       \
         "Quit"                      \
 )
 
@@ -68,6 +69,7 @@ do
                 "Pacemaker SCS Setup")      playbook=playbook_07b_pacemaker_scs.yaml;;
                 "Pacemaker HANA Setup")     playbook=playbook_07c_pacemaker_hana.yaml;;
                 "Quit")                     break;;
+                "BOM Processing - MD")      playbook=playbook_03_bom_processing-md.yaml;;
         esac
 
 # TODO:

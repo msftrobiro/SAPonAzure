@@ -27,8 +27,8 @@
 
 #------------------<DEBUGGING>-------------------
 - debug:  
-    msg:      "URL: {{ item }}"
-  loop:       "{{ sapbom|flatten(levels=1) }}"
+    msg:      "{{ sapbom['content'] | b64decode }}"
+#  loop:       "{{ sapbom|flatten(levels=1) }}"
 #------------------</DEBUGGING>------------------
 # *====================================4=======================================8
 

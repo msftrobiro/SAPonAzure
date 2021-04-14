@@ -5,11 +5,11 @@
   get_url:
     url:        "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml{{ sapbits_sas_token }}"
     dest:       "{{ inventory_dir }}/{{ bom_base_name }}.yaml"
-    mode:         0644
-  register:       result
-  until:          result is succeeded
-  retries:        10
-  delay:          6
+    mode:       0644
+  register:     result
+  until:        result is succeeded
+  retries:      10
+  delay:        6
   delegate_to:  localhost
 
 - name:         "Register BOM: {{ bom_base_name }}"
@@ -24,11 +24,32 @@
 # *====================================4=======================================8
 
 
+
+
+
+# *====================================4=======================================8
+- name:         "Download Dependant BOM"
+  get_url:
+    url:        "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ item.name }}/{{ item.name }}.yaml{{ sapbits_sas_token }}"
+    dest:       "{{ inventory_dir }}/{{ item.name }}.yaml"
+    mode:       0644
+  register:     result
+  until:        result is succeeded
+  retries:      10
+  delay:        6
+  delegate_to:  localhost
+  loop:         "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) | flatten(levels=1) }}"
+  when:         "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) | length !=0 }}"
+
 #------------------<DEBUGGING>-------------------
-- debug:  
-    msg:      "{{ item.name }}"
-  loop:       "{{ bom.materials.dependencies|flatten(levels=1) }}"
+# - debug:  
+#     msg:      "{{ item.name }}"
+#   loop:       "{{ bom.materials.dependencies|flatten(levels=1) }}"
 #------------------</DEBUGGING>------------------
+# *====================================4=======================================8
+
+
+
 
 
 

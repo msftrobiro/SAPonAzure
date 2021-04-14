@@ -65,9 +65,9 @@
 # Description:  Download dependant BOM. Check the Main BOM for dependencies
 #               under materials (materials.dependencies)
 #
-#               materials:
+# Example:      materials:
 #                 dependencies:
-#                   - name:
+#                   - name:      HANA_2_00_055_v1
 #
 - name:         "Download Dependent BOM"
   get_url:

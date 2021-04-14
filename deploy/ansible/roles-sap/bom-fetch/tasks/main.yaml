@@ -1,14 +1,14 @@
-# /*----------------------------------------------------------------------------8
-# |                                                                             |
-# |                       Role for downloading the BOM                          |
-# |                                                                             |
-# +-------------------------------------4--------------------------------------*/
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Role for downloading the BOM                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 ---
-# --------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
 #
 # <Comment Header> 
 #
-# --------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
 # TODO: 20210127 Review
 
 - name:   Check required variables are present and not empty
@@ -26,6 +26,51 @@
       - "target_media_location is defined"
       - "target_media_location | trim | length != 0"
 
+# -------------------------------------+---------------------------------------8
+- name:         "Download Main BOM: {{ bom_base_name }}"
+  get_url:
+    url:        "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml{{ sapbits_sas_token }}"
+    dest:       "{{ inventory_dir }}/{{ bom_base_name }}.yaml"
+    mode:       0644
+  register:     result
+  until:        result is succeeded
+  retries:      10
+  delay:        6
+  delegate_to:  localhost
+
+- name:         "Register BOM: {{ bom_base_name }}"
+  include_vars:
+    file:       "{{ inventory_dir }}/{{ bom_base_name }}.yaml"
+    name:       bom
+#------------------<DEBUGGING>-------------------
+# - debug:  
+#     msg:      "{{ item.archive }}"
+#   loop:       "{{ bom.materials.media|flatten(levels=1) }}"
+#------------------</DEBUGGING>------------------
+# -------------------------------------+---------------------------------------8
+
+
+
+# -------------------------------------+---------------------------------------8
+- name:         "Download Dependant BOM"
+  get_url:
+    url:        "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ item.name }}/{{ item.name }}.yaml{{ sapbits_sas_token }}"
+    dest:       "{{ inventory_dir }}/{{ item.name }}.yaml"
+    mode:       0644
+  register:     result
+  until:        result is succeeded
+  retries:      10
+  delay:        6
+  delegate_to:  localhost
+  loop:         "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) | flatten(levels=1) }}"
+  when:         "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) | length !=0 }}"
+
+#------------------<DEBUGGING>-------------------
+# - debug:  
+#     msg:      "{{ item.name }}"
+#   loop:       "{{ bom.materials.dependencies|flatten(levels=1) }}"
+#------------------</DEBUGGING>------------------
+# -------------------------------------+---------------------------------------8
 
 #----------------------------------------
 # BEGIN - OLD CODE
@@ -33,4 +78,4 @@
 
 # - include_tasks: pre_checks.yaml
 
-- include_tasks: ensure-bom.yaml
+# - include_tasks: ensure-bom.yaml

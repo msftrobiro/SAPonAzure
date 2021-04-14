@@ -1,7 +1,7 @@
 ---
 
-# *====================================4=======================================8
-- name:         "Download BOM: {{ bom_base_name }}"
+# -------------------------------------+---------------------------------------8
+- name:         "Download Main BOM: {{ bom_base_name }}"
   get_url:
     url:        "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml{{ sapbits_sas_token }}"
     dest:       "{{ inventory_dir }}/{{ bom_base_name }}.yaml"
@@ -21,13 +21,11 @@
 #     msg:      "{{ item.archive }}"
 #   loop:       "{{ bom.materials.media|flatten(levels=1) }}"
 #------------------</DEBUGGING>------------------
-# *====================================4=======================================8
+# -------------------------------------+---------------------------------------8
 
 
 
-
-
-# *====================================4=======================================8
+# -------------------------------------+---------------------------------------8
 - name:         "Download Dependant BOM"
   get_url:
     url:        "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ item.name }}/{{ item.name }}.yaml{{ sapbits_sas_token }}"
@@ -46,20 +44,6 @@
 #     msg:      "{{ item.name }}"
 #   loop:       "{{ bom.materials.dependencies|flatten(levels=1) }}"
 #------------------</DEBUGGING>------------------
-# *====================================4=======================================8
-
-
-
-
-
-
-# *====================================4=======================================8
-# - name:                 "Ensure {{ bom_base_name }} dependencies are available"
-#   include_tasks:        "./ensure-bom.yaml"
-#   vars:
-#     bom_dependencies:   "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) }}"   # var = ( test | ternary(val_true, val_false) )
-#     bom_base_name:      "{{ item.name }}"
-#   loop:                 "{{ bom_dependencies | flatten(levels=1) }}"
-#   when:                 bom_dependencies | length != 0
+# -------------------------------------+---------------------------------------8
 
 ...

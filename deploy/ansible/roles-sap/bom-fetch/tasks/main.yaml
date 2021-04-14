@@ -78,7 +78,8 @@
   vars:
     bom_dependencies:   "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) }}"
   loop:         "{{ bom_dependencies | flatten(levels=1) }}"
-  when:         "{{ bom_dependencies | length !=0 }}"
+  when:         bom.materials.dependencies is defined
+                and (bom.materials.dependencies|length>0)
 # -------------------------------------+---------------------------------------8
 
 ...

@@ -7,7 +7,7 @@
 
 # -------------------------------------+---------------------------------------8
 #
-# Validation for Prerequisites 
+# Description:  Validation for Prerequisites 
 #
 - name:   Check required variables are present and not empty
   assert:
@@ -74,6 +74,7 @@
   retries:      10
   delay:        6
   delegate_to:  localhost
+  become:       no
   loop:         "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) | flatten(levels=1) }}"
   when:         "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) | length !=0 }}"
 # -------------------------------------+---------------------------------------8

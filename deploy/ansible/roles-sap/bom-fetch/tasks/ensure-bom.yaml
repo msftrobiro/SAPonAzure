@@ -24,15 +24,21 @@
 # *====================================4=======================================8
 
 
+#------------------<DEBUGGING>-------------------
+- debug:  
+    msg:      "{{ item.name }}"
+  loop:       "{{ bom.materials.dependencies|flatten(levels=1) }}"
+#------------------</DEBUGGING>------------------
 
 
-# TODO: Endless loop Troubleshoot
+
+# *====================================4=======================================8
 # - name:                 "Ensure {{ bom_base_name }} dependencies are available"
-#   when:                 bom_dependencies | length != 0
 #   include_tasks:        "./ensure-bom.yaml"
 #   vars:
-#     bom_dependencies:   "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) }}"
+#     bom_dependencies:   "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) }}"   # var = ( test | ternary(val_true, val_false) )
 #     bom_base_name:      "{{ item.name }}"
 #   loop:                 "{{ bom_dependencies | flatten(levels=1) }}"
+#   when:                 bom_dependencies | length != 0
 
 ...

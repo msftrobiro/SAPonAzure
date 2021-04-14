@@ -75,8 +75,10 @@
   delay:        6
   delegate_to:  localhost
   become:       no
-  loop:         "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) | flatten(levels=1) }}"
-  when:         "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) | length !=0 }}"
+  vars:
+    bom_dependencies:   "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) }}"
+  loop:         "{{ bom_dependencies | flatten(levels=1) }}"
+  when:         "{{ bom_dependencies | length !=0 }}"
 # -------------------------------------+---------------------------------------8
 
 ...

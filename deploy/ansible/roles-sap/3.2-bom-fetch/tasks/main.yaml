@@ -75,8 +75,9 @@
 #                 dependencies:
 #                   - name:      HANA_2_00_055_v1
 #
-- name:         "Download Dependent BOM {{ item.name }}"
+- name:         "Download Dependent BOM(s)"
   get_url:
+    name:       "BOM: {{ item.name }}"
     url:        "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ item.name }}/{{ item.name }}.yaml{{ sapbits_sas_token }}"
     dest:       "{{ inventory_dir }}/{{ item.name }}.yaml"
     mode:       0644

@@ -41,6 +41,7 @@
   retries:      10
   delay:        6
   delegate_to:  localhost
+  become:       no
 
 - name:         "Register BOM: {{ bom_base_name }}"
   include_vars:

@@ -4,29 +4,33 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 ---
-# -------------------------------------+---------------------------------------8
-#
-# <Comment Header> 
-#
-# -------------------------------------+---------------------------------------8
-# TODO: 20210127 Review
 
+# -------------------------------------+---------------------------------------8
+#
+# Validation for Prerequisites 
+#
 - name:   Check required variables are present and not empty
   assert:
     that:
-      - "sapbits_location_base_path is defined"
-      - "sapbits_location_base_path | trim | length != 0"
+      - "sapbits_location_base_path is defined"                                 # Has the variable been defined
+      - "sapbits_location_base_path | trim | length != 0"                       #   and given a value
 
-      - "sapbits_bom_files is defined"
-      - "sapbits_bom_files | trim | length != 0"
+      - "sapbits_bom_files is defined"                                          # Has the variable been defined
+      - "sapbits_bom_files | trim | length != 0"                                #   and given a value
 
-      - "bom_base_name is defined"
-      - "bom_base_name | trim | length != 0"
+      - "bom_base_name is defined"                                              # Has the variable been defined
+      - "bom_base_name | trim | length != 0"                                    #   and given a value
 
-      - "target_media_location is defined"
-      - "target_media_location | trim | length != 0"
+      - "target_media_location is defined"                                      # Has the variable been defined
+      - "target_media_location | trim | length != 0"                            #   and given a value
+# -------------------------------------+---------------------------------------8
+
+
 
 # -------------------------------------+---------------------------------------8
+#
+# Description:  Download specified BOM and Register as a dictionary.
+#
 - name:         "Download Main BOM: {{ bom_base_name }}"
   get_url:
     url:        "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml{{ sapbits_sas_token }}"
@@ -46,12 +50,19 @@
 # - debug:  
 #     msg:      "{{ item.archive }}"
 #   loop:       "{{ bom.materials.media|flatten(levels=1) }}"
+#
+# - debug:  
+#     msg:      "{{ item.name }}"
+#   loop:       "{{ bom.materials.dependencies|flatten(levels=1) }}"
 #------------------</DEBUGGING>------------------
 # -------------------------------------+---------------------------------------8
 
 
 
 # -------------------------------------+---------------------------------------8
+#
+# Description:  Download dependant BOM.
+#
 - name:         "Download Dependant BOM"
   get_url:
     url:        "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ item.name }}/{{ item.name }}.yaml{{ sapbits_sas_token }}"
@@ -64,18 +75,6 @@
   delegate_to:  localhost
   loop:         "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) | flatten(levels=1) }}"
   when:         "{{ bom.materials.dependencies is defined | ternary(bom.materials.dependencies, []) | length !=0 }}"
-
-#------------------<DEBUGGING>-------------------
-# - debug:  
-#     msg:      "{{ item.name }}"
-#   loop:       "{{ bom.materials.dependencies|flatten(levels=1) }}"
-#------------------</DEBUGGING>------------------
 # -------------------------------------+---------------------------------------8
 
-#----------------------------------------
-# BEGIN - OLD CODE
-#----------------------------------------
-
-# - include_tasks: pre_checks.yaml
-
-# - include_tasks: ensure-bom.yaml
+...

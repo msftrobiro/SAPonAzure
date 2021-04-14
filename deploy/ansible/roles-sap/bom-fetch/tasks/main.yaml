@@ -62,9 +62,14 @@
 
 # -------------------------------------+---------------------------------------8
 #
-# Description:  Download dependant BOM.
+# Description:  Download dependant BOM. Check the Main BOM for dependencies
+#               under materials (materials.dependencies)
 #
-- name:         "Download Dependant BOM"
+#               materials:
+#                 dependencies:
+#                   - name:
+#
+- name:         "Download Dependent BOM"
   get_url:
     url:        "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ item.name }}/{{ item.name }}.yaml{{ sapbits_sas_token }}"
     dest:       "{{ inventory_dir }}/{{ item.name }}.yaml"

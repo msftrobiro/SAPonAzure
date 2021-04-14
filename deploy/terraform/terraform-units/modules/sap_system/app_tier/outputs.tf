@@ -121,8 +121,8 @@ output "dns_info_loadbalancers" {
       compact([
         local.scs_server_count > 0 ? azurerm_lb.scs[0].private_ip_addresses[0] : "",
         local.scs_server_count > 0 ? azurerm_lb.scs[0].private_ip_addresses[1] : "",
-        local.scs_server_count > 0 && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? azurerm_lb.scs[0].private_ip_addresses[2] : "",
-        local.scs_server_count > 0 && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? azurerm_lb.scs[0].private_ip_addresses[3] : "",
+        local.scs_server_count > 0 && length(azurerm_lb.scs[0].private_ip_addresses) == 4 && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? azurerm_lb.scs[0].private_ip_addresses[2] : "",
+        local.scs_server_count > 0 && length(azurerm_lb.scs[0].private_ip_addresses) == 4 && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? azurerm_lb.scs[0].private_ip_addresses[3] : "",
         local.webdispatcher_count > 0 ? azurerm_lb.web[0].private_ip_address : ""
       ])
     )

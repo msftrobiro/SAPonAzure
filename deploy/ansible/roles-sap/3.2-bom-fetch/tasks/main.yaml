@@ -76,16 +76,18 @@
 #                   - name:      HANA_2_00_055_v1
 #
 - name:         "Download Dependent BOM"
-  get_url:
-    url:        "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ item.name }}/{{ item.name }}.yaml{{ sapbits_sas_token }}"
-    dest:       "{{ inventory_dir }}/{{ item.name }}.yaml"
-    mode:       0644
-  register:     result
-  until:        result is succeeded
-  retries:      10
-  delay:        6
-  delegate_to:  localhost
-  become:       no
+  block:
+    - name:         "Download Dependent BOM {{ item.name }}"
+      get_url:
+        url:        "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ item.name }}/{{ item.name }}.yaml{{ sapbits_sas_token }}"
+        dest:       "{{ inventory_dir }}/{{ item.name }}.yaml"
+        mode:       0644
+      register:     result
+      until:        result is succeeded
+      retries:      10
+      delay:        6
+      delegate_to:  localhost
+      become:       no
   loop:         "{{ bom.materials.dependencies | flatten(levels=1) }}"
   when:         bom.materials.dependencies is defined
                 and (bom.materials.dependencies|length>0)

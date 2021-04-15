@@ -22,12 +22,12 @@
 #           playbook_01_os_base_config.yaml                                               \
 #           playbook_02_os_sap_specific_config.yaml                                       \
 #           playbook_03_bom_processing.yaml                                               \
-#           playbook_04a_sap_scs_install.yaml                                             \
-#           playbook_05a_hana_db_install.yaml                                             \
-#           playbook_06a_sap_dbload.yaml                                                  \
-#           playbook_06b_sap_pas_install.yaml                                             \
-#           playbook_06c_sap_app_install.yaml                                             \
-#           playbook_06d_sap_web_install.yaml
+#           playbook_04_00_00_hana_db_install.yaml                                        \
+#           playbook_05_00_00_sap_scs_install.yaml                                        \
+#           playbook_05_01_sap_dbload.yaml                                                \
+#           playbook_05_02_sap_pas_install.yaml                                           \
+#           playbook_05_03_sap_app_install.yaml                                           \
+#           playbook_05_04_sap_web_install.yaml
 
 
 
@@ -38,8 +38,8 @@ options=(                           \
         "Base OS Config"            \
         "SAP specific OS Config"    \
         "BOM Processing"            \
-        "SCS Install"               \
         "HANA DB Install"           \
+        "SCS Install"               \
         "DB Load"                   \
         "PAS Install"               \
         "APP Install"               \
@@ -48,7 +48,6 @@ options=(                           \
         "Pacemaker SCS Setup"       \
         "Pacemaker HANA Setup"      \
         "Quit"                      \
-        "BOM Processing - MD"       \
 )
 
 
@@ -59,17 +58,16 @@ do
                 "Base OS Config")           playbook=playbook_01_os_base_config.yaml;;
                 "SAP specific OS Config")   playbook=playbook_02_os_sap_specific_config.yaml;;
                 "BOM Processing")           playbook=playbook_03_bom_processing.yaml;;
-                "SCS Install")              playbook=playbook_04a_sap_scs_install.yaml;;
-                "HANA DB Install")          playbook=playbook_05a_hana_db_install.yaml;;
-                "DB Load")                  playbook=playbook_06a_sap_dbload.yaml;;
-                "PAS Install")              playbook=playbook_06b_sap_pas_install.yaml;;
-                "APP Install")              playbook=playbook_06c_sap_app_install.yaml;;
-                "WebDisp Install")          playbook=playbook_06d_sap_web_install.yaml;;
-                "Pacemaker Setup")          playbook=playbook_07a_pacemaker.yaml;;
-                "Pacemaker SCS Setup")      playbook=playbook_07b_pacemaker_scs.yaml;;
-                "Pacemaker HANA Setup")     playbook=playbook_07c_pacemaker_hana.yaml;;
+                "HANA DB Install")          playbook=playbook_04_00_00_hana_db_install.yaml;;
+                "SCS Install")              playbook=playbook_05_00_00_sap_scs_install.yaml;;
+                "DB Load")                  playbook=playbook_05_01_sap_dbload.yaml;;
+                "PAS Install")              playbook=playbook_05_02_sap_pas_install.yaml;;
+                "APP Install")              playbook=playbook_05_03_sap_app_install.yaml;;
+                "WebDisp Install")          playbook=playbook_05_04_sap_web_install.yaml;;
+                "Pacemaker Setup")          playbook=playbook_06_00_00_pacemaker.yaml;;
+                "Pacemaker SCS Setup")      playbook=playbook_06_00_01_pacemaker_scs.yaml;;
+                "Pacemaker HANA Setup")     playbook=playbook_06_00_03_pacemaker_hana.yaml;;
                 "Quit")                     break;;
-                "BOM Processing - MD")      playbook=playbook_03_bom_processing-md.yaml;;
         esac
 
 # TODO:

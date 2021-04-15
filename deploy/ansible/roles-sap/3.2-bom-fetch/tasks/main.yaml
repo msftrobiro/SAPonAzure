@@ -3,14 +3,31 @@
 # |                       Role for downloading the BOM                         |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
----
+# Description:  Download the specified BOM file to the ansible controller.
+#               Download any dependent BOMs, as well.
+#
+#
+# Objects:
+#   External:
+#             sapbits_location_base_path      - URL of Blob Storage
+#             sapbits_bom_files               - path to the root of the sap file store
+#             bom_base_name                   - Name of BOM
+#             sapbits_sas_token               - SAS Token
+#             inventory_dir                   - Path to the inventory location on the ansible controller
+#
+#   Internal:
+#             result                          - objet to store the results of a task execution
+#
+#   Created:
+#             bom                             - object containing the specified BOM
+#
 # -------------------------------------+---------------------------------------8
+# Reviews:
+#
 # 04/14/2021  Morgan Deegan       Reviewed - Complete
 #
 # -------------------------------------+---------------------------------------8
-
-
-
+---
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Validation for Prerequisites 

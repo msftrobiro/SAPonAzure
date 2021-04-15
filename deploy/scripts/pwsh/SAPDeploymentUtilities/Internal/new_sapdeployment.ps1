@@ -71,12 +71,20 @@ Licensed under the MIT license.
         [Parameter(Mandatory = $true)][SAP_Types]$Type,
         [Parameter(Mandatory = $false)][string]$DeployerStateFileKeyName,
         [Parameter(Mandatory = $false)][string]$LandscapeStateFileKeyName,
-        [Parameter(Mandatory = $false)][string]$TFStateStorageAccountName
+        [Parameter(Mandatory = $false)][string]$TFStateStorageAccountName,
+        [Parameter(Mandatory=$false)][Switch]$Force
         
     )
 
     Write-Host -ForegroundColor green ""
     Write-Host -ForegroundColor green "Deploying the" $Type
+
+    if($true -eq $Force)
+    {
+        Remove-Item ".terraform" -ErrorAction SilentlyContinue
+        Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
+        Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
+    }
 
     Add-Content -Path "deployment.log" -Value ("Deploying the: " + $Type)
     Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
@@ -335,7 +343,7 @@ Licensed under the MIT license.
 
     New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""azurerm"" {}`n}" -Force
 
-    $Command = " output automation_version"
+    $Command = " -no-color output automation_version"
 
     $Cmd = "terraform $Command"
     $versionLabel = & ([ScriptBlock]::Create($Cmd)) | Out-String 
@@ -367,7 +375,7 @@ Licensed under the MIT license.
     }
 
     Write-Host -ForegroundColor green "Running plan, please wait"
-    $Command = " plan -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
+    $Command = " plan  -no-color -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
 
     $Cmd = "terraform $Command"
     Add-Content -Path "deployment.log" -Value $Cmd

@@ -39,7 +39,8 @@ Licensed under the MIT license.
     param(
         #Parameter file
         [Parameter(Mandatory = $true)][string]$DeployerParameterfile,
-        [Parameter(Mandatory = $true)][string]$LibraryParameterfile
+        [Parameter(Mandatory = $true)][string]$LibraryParameterfile,
+        [Parameter(Mandatory=$false)][Switch]$Force
     )
 
     Write-Host -ForegroundColor green ""
@@ -61,6 +62,11 @@ Licensed under the MIT license.
 
     $mydocuments = [environment]::getfolderpath("mydocuments")
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
+
+    if($true -eq $Force)
+    {
+        Remove-Item -Path $filePath -ErrorAction SilentlyContinue
+    }
 
     if ( -not (Test-Path -Path $FilePath)) {
         New-Item -Path $mydocuments -Name "sap_deployment_automation.ini" -ItemType "file" -Value "[Common]`nrepo=`nsubscription=`n[$region]`nDeployer=`nLandscape=`n[$Environment]`nDeployer=`n[$combined]`nDeployer=`nSubscription=" -Force
@@ -106,6 +112,15 @@ Licensed under the MIT license.
  
     $errors_occurred = $false
     Set-Location -Path $fInfo.Directory.FullName
+
+    if($true -eq $Force)
+    {
+        Remove-Item ".terraform" -ErrorAction SilentlyContinue
+        Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
+        Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
+
+    }
+
     try {
         New-SAPDeployer -Parameterfile $fInfo.Name 
     }
@@ -144,6 +159,14 @@ Licensed under the MIT license.
     $fileDir = $dirInfo.ToString() + $LibraryParameterfile
     [IO.FileInfo] $fInfo = $fileDir
     Set-Location -Path $fInfo.Directory.FullName
+    if($true -eq $Force)
+    {
+        Remove-Item ".terraform" -ErrorAction SilentlyContinue
+        Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
+        Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
+
+    }
+
     try {
         New-SAPLibrary -Parameterfile $fInfo.Name -DeployerFolderRelativePath $DeployerRelativePath
     }

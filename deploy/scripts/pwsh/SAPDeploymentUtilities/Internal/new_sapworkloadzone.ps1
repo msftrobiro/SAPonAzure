@@ -36,8 +36,16 @@ Licensed under the MIT license.
         #Parameter file
         [Parameter(Mandatory = $true)][string]$Parameterfile, 
         #Deployer state file
-        [Parameter(Mandatory = $false)][string]$Deployerstatefile 
+        [Parameter(Mandatory = $false)][string]$Deployerstatefile,
+        [Parameter(Mandatory=$false)][Switch]$Force 
     )
+
+    if($true -eq $Force)
+    {
+        Remove-Item ".terraform" -ErrorAction SilentlyContinue
+        Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
+        Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
+    }
 
     Write-Host -ForegroundColor green ""
     $Type = "sap_landscape"
@@ -248,7 +256,7 @@ Licensed under the MIT license.
     }
 
     Write-Host -ForegroundColor green "Running plan, please wait"
-    $Command = " plan -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
+    $Command = " plan  -no-color -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
 
     $Cmd = "terraform $Command"
     Add-Content -Path "deployment.log" -Value $Cmd

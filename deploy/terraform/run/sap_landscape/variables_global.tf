@@ -64,6 +64,36 @@ variable "key_vault" {
     kv_user_id = "",
     kv_prvt_id = "",
   }
+  validation {
+    condition = (
+      contains(keys(var.key_vault),"kv_spn_id") ? (
+        length(split("/",var.key_vault.kv_spn_id)) == 9) : (
+        true
+      )
+    )
+    error_message = "If specified, the kv_spn_id needs to be a correctly formed Azure resource ID."
+  }
+  validation {
+    condition = (
+      contains(keys(var.key_vault), "kv_user_id") ? (
+        length(split("/", var.key_vault.kv_user_id)) == 9) : (
+        true
+      )
+    )
+    error_message = "If specified, the kv_user_id needs to be a correctly formed Azure resource ID."
+  }
+
+  validation {
+    condition = (
+      contains(keys(var.key_vault), "kv_prvt_id") ? (
+        length(split("/", var.key_vault.kv_prvt_id)) == 9) : (
+        true
+      )
+    )
+    error_message = "If specified, the kv_prvt_id needs to be a correctly formed Azure resource ID."
+  }
+
+
 }
 
 variable "diagnostics_storage_account" {

@@ -60,6 +60,15 @@ variable "authentication" {
 variable "key_vault" {
   description = "Import existing Azure Key Vaults"
   default     = {}
+  validation {
+    condition = (
+      contains(keys(var.key_vault),"kv_spn_id") ? (
+        length(split("/",var.key_vault.kv_spn_id)) == 9) : (
+        true
+      )
+    )
+    error_message = "If specified, the kv_spn_id needs to be a correctly formed Azure resource ID."
+  }
 }
 
 variable "firewall_deployment" {

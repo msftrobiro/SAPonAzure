@@ -64,7 +64,7 @@ From a privilaged account, create an Service Principal. Use a descriptive name t
     }
  ```
 
-3. Add Role Assignment to SPN.
+3. Add User Access Administrator Role Assignment to SPN.
 
    ```bash
    az role assignment create --assignee <appId> --role "User Access Administrator"
@@ -114,13 +114,13 @@ The deployment configuration file defines the region and the environment name an
    ```json
    {
       "infrastructure": {
-         "region": "westeurope",
-         "environment": "MGMT",
+         "region"                      : "westeurope",
+         "environment"                 : "MGMT",
          "vnets": {
                "management": {
-                  "address_space": "10.10.20.0/25",
+                  "address_space"      : "10.10.20.0/25",
                   "subnet_mgmt": {
-                     "prefix": "10.10.20.64/28"
+                     "prefix"          : "10.10.20.64/28"
                   }
                }
          }
@@ -148,16 +148,16 @@ The SAP Library configuration file defines the region and the environment name .
 ```json
    {
       "infrastructure": {
-         "region": "westeurope",
-         "environment": "MGMT",
+         "region"                   : "westeurope",
+         "environment"              : "MGMT",
          "resource_group": {
-            "name" : "WEEU-SAP_LIBRARY"
+            "name"                  : "WEEU-MGMT-SAP_LIBRARY"
          }
       },
       "deployer": {
-         "environment": "MGMT",
-         "region": "westeurope",
-         "vnet": "MGMT00"
+         "environment"              : "MGMT",
+         "region"                   : "westeurope",
+         "vnet"                     : "MGMT00"
       }
    }
 ```
@@ -205,15 +205,15 @@ The Workload Zone configuration file defines the region and the environment name
 ```json
    {
       "authentication": {
-         "username": "azureadm"
+         "username"                 : "azureadm"
       },
       "infrastructure": {
-         "environment": "DEV",
-         "region": "westeurope",
+         "environment"              : "DEV",
+         "region"                   : "westeurope",
          "vnets": {
                "sap": {
-                  "name" :"SAP01",
-                  "address_space": "10.110.0.0/24"
+                  "name"            : "SAP01",
+                  "address_space"   : "10.110.0.0/24"
                }
          }
       }

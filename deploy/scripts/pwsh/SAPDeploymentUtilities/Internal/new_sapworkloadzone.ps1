@@ -37,12 +37,11 @@ Licensed under the MIT license.
         [Parameter(Mandatory = $true)][string]$Parameterfile, 
         #Deployer state file
         [Parameter(Mandatory = $false)][string]$Deployerstatefile,
-        [Parameter(Mandatory=$false)][Switch]$Force 
+        [Parameter(Mandatory = $false)][Switch]$Force 
     )
 
-    if($true -eq $Force)
-    {
-        Remove-Item ".terraform" -ErrorAction SilentlyContinue
+    if ($true -eq $Force) {
+        Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
         Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
         Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
     }
@@ -66,11 +65,18 @@ Licensed under the MIT license.
     $fileINIPath = $mydocuments + "\sap_deployment_automation.ini"
     $iniContent = Get-IniContent -Path $fileINIPath
 
+
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
 
     $Environment = $jsonData.infrastructure.environment
     $region = $jsonData.infrastructure.region
     $combined = $Environment + $region
+
+    if ($true -eq $Force) {
+        $iniContent.Remove($combined)
+        Out-IniFile -InputObject $iniContent -Path $fileINIPath
+        $iniContent = Get-IniContent -Path $fileINIPath
+    }
 
     $changed = $false
 
@@ -97,8 +103,8 @@ Licensed under the MIT license.
 
     $landscape_tfstate_key = $fInfo.Name.replace(".json", ".terraform.tfstate")
 
-    $ctx= Get-AzContext
-    if($null -eq $ctx) {
+    $ctx = Get-AzContext
+    if ($null -eq $ctx) {
         Connect-AzAccount 
     }
 
@@ -118,12 +124,11 @@ Licensed under the MIT license.
     }
     else {
         $deployer_tfstate_key = $iniContent[$combined]["Deployer"]
-        if($null -eq $deployer_tfstate_key -or "" -eq $deployer_tfstate_key)
-        {
-            $deployer_tfstate_key=$Deployerstatefile
-            $iniContent[$combined]["Deployer"]=$Deployerstatefile
+        if ($null -eq $deployer_tfstate_key -or "" -eq $deployer_tfstate_key) {
+            $deployer_tfstate_key = $Deployerstatefile
+            $iniContent[$combined]["Deployer"] = $Deployerstatefile
         }
-        $iniContent[$combined]["Landscape"]=$landscape_tfstate_key
+        $iniContent[$combined]["Landscape"] = $landscape_tfstate_key
         $changed = $true
 
     }
@@ -135,7 +140,7 @@ Licensed under the MIT license.
         $sub = Read-Host -Prompt "Please enter the subscription for the deployment"
         $iniContent[$combined]["subscription"] = $sub
         $changed = $true
-   }
+    }
 
     if ($changed) {
         Out-IniFile -InputObject $iniContent -Path $fileINIPath
@@ -160,22 +165,31 @@ Licensed under the MIT license.
         }
     }
 
-    $saName = $iniContent[$combined]["REMOTE_STATE_SA"].Trim()  
+    $saName = $iniContent[$combined]["REMOTE_STATE_SA"].Trim()
     if ($null -eq $saName -or "" -eq $saName) {
         $saName = Read-Host -Prompt "Please specify the storage account name for the terraform storage account"
         $rID = Get-AzResource -Name $saName
         $rgName = $rID.ResourceGroupName
         $tfstate_resource_id = $rID.ResourceId
 
-        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
         $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
+        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
         $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
         Out-IniFile -InputObject $iniContent -Path $fileINIPath
     }
 
     else {
-        $rgName = $iniContent[$combined]["REMOTE_STATE_RG"]
-        $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"]
+        $rgName = $iniContent[$combined]["REMOTE_STATE_RG"].Trim()
+        $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"].Trim()
+
+    }
+    if ($null -eq $tfstate_resource_id -or "" -eq $tfstate_resource_id) {
+        $rID = Get-AzResource -Name $saName 
+        $rgName = $rID.ResourceGroupName
+        $tfstate_resource_id = $rID.ResourceId
+        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
+        $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
+        Out-IniFile -InputObject $iniContent -Path $fileINIPath
     }
 
     $sub = $tfstate_resource_id.Split("/")[2]
@@ -186,14 +200,17 @@ Licensed under the MIT license.
 
     $Command = " init -upgrade=true -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$envkey"" " + $terraform_module_directory
     if (Test-Path ".terraform" -PathType Container) {
-        $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
+        if (Test-Path ".\.terraform\terraform.tfstate" -PathType Leaf) {
 
-        if ("azurerm" -eq $jsonData.backend.type) {
-            $Command = " init -upgrade=true"
+            $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
 
-            $ans = Read-Host -Prompt ".terraform already exists, do you want to continue Y/N?"
-            if ("Y" -ne $ans) {
-                return
+            if ("azurerm" -eq $jsonData.backend.type) {
+                $Command = " init -upgrade=true"
+
+                $ans = Read-Host -Prompt ".terraform already exists, do you want to continue Y/N?"
+                if ("Y" -ne $ans) {
+                    return
+                }
             }
         }
     } 
@@ -217,9 +234,6 @@ Licensed under the MIT license.
         }
     }
     
-    Write-Host $Deployerstatefile
-    Write-Host $deployer_tfstate_key_parameter
-
     New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""azurerm"" {}`n}" -Force
 
     $Command = " output automation_version"

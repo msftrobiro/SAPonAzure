@@ -125,7 +125,8 @@ Licensed under the MIT license.
     param(
         #Parameter file
         [Parameter(Mandatory = $true)][string]$DeployerParameterfile,
-        [Parameter(Mandatory = $true)][string]$LibraryParameterfile
+        [Parameter(Mandatory = $true)][string]$LibraryParameterfile,
+        [Parameter(Mandatory=$false)][Switch]$Force
     )
 
     Write-Host -ForegroundColor green ""
@@ -147,6 +148,11 @@ Licensed under the MIT license.
 
     $mydocuments = [environment]::getfolderpath("mydocuments")
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
+
+    if($true -eq $Force)
+    {
+        Remove-Item -Path $filePath -ErrorAction SilentlyContinue
+    }
 
     if ( -not (Test-Path -Path $FilePath)) {
         New-Item -Path $mydocuments -Name "sap_deployment_automation.ini" -ItemType "file" -Value "[Common]`nrepo=`nsubscription=`n[$region]`nDeployer=`nLandscape=`n[$Environment]`nDeployer=`n[$combined]`nDeployer=`nSubscription=" -Force
@@ -192,6 +198,15 @@ Licensed under the MIT license.
  
     $errors_occurred = $false
     Set-Location -Path $fInfo.Directory.FullName
+
+    if($true -eq $Force)
+    {
+        Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
+        Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
+        Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
+
+    }
+
     try {
         New-SAPDeployer -Parameterfile $fInfo.Name 
     }
@@ -230,6 +245,14 @@ Licensed under the MIT license.
     $fileDir = $dirInfo.ToString() + $LibraryParameterfile
     [IO.FileInfo] $fInfo = $fileDir
     Set-Location -Path $fInfo.Directory.FullName
+    if($true -eq $Force)
+    {
+        Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
+        Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
+        Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
+
+    }
+
     try {
         New-SAPLibrary -Parameterfile $fInfo.Name -DeployerFolderRelativePath $DeployerRelativePath
     }
@@ -546,12 +569,20 @@ Licensed under the MIT license.
         [Parameter(Mandatory = $true)][SAP_Types]$Type,
         [Parameter(Mandatory = $false)][string]$DeployerStateFileKeyName,
         [Parameter(Mandatory = $false)][string]$LandscapeStateFileKeyName,
-        [Parameter(Mandatory = $false)][string]$TFStateStorageAccountName
+        [Parameter(Mandatory = $false)][string]$TFStateStorageAccountName,
+        [Parameter(Mandatory=$false)][Switch]$Force
         
     )
 
     Write-Host -ForegroundColor green ""
     Write-Host -ForegroundColor green "Deploying the" $Type
+
+    if($true -eq $Force)
+    {
+        Remove-Item ".terraform" -ErrorAction SilentlyContinue
+        Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
+        Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
+    }
 
     Add-Content -Path "deployment.log" -Value ("Deploying the: " + $Type)
     Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
@@ -810,7 +841,7 @@ Licensed under the MIT license.
 
     New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""azurerm"" {}`n}" -Force
 
-    $Command = " output automation_version"
+    $Command = " -no-color output automation_version"
 
     $Cmd = "terraform $Command"
     $versionLabel = & ([ScriptBlock]::Create($Cmd)) | Out-String 
@@ -842,7 +873,7 @@ Licensed under the MIT license.
     }
 
     Write-Host -ForegroundColor green "Running plan, please wait"
-    $Command = " plan -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
+    $Command = " plan  -no-color -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
 
     $Cmd = "terraform $Command"
     Add-Content -Path "deployment.log" -Value $Cmd
@@ -1189,8 +1220,16 @@ Licensed under the MIT license.
         #Parameter file
         [Parameter(Mandatory = $true)][string]$Parameterfile, 
         #Deployer state file
-        [Parameter(Mandatory = $false)][string]$Deployerstatefile 
+        [Parameter(Mandatory = $false)][string]$Deployerstatefile,
+        [Parameter(Mandatory=$false)][Switch]$Force 
     )
+
+    if($true -eq $Force)
+    {
+        Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
+        Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
+        Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
+    }
 
     Write-Host -ForegroundColor green ""
     $Type = "sap_landscape"
@@ -1211,11 +1250,19 @@ Licensed under the MIT license.
     $fileINIPath = $mydocuments + "\sap_deployment_automation.ini"
     $iniContent = Get-IniContent -Path $fileINIPath
 
+
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
 
     $Environment = $jsonData.infrastructure.environment
     $region = $jsonData.infrastructure.region
     $combined = $Environment + $region
+
+    if($true -eq $Force)
+    {
+        $iniContent.Remove($combined)
+        Out-IniFile -InputObject $iniContent -Path $fileINIPath
+        $iniContent = Get-IniContent -Path $fileINIPath
+    }
 
     $changed = $false
 
@@ -1305,22 +1352,34 @@ Licensed under the MIT license.
         }
     }
 
-    $saName = $iniContent[$combined]["REMOTE_STATE_SA"].Trim()  
+    $saName = $iniContent[$combined]["REMOTE_STATE_SA"].Trim()
     if ($null -eq $saName -or "" -eq $saName) {
         $saName = Read-Host -Prompt "Please specify the storage account name for the terraform storage account"
         $rID = Get-AzResource -Name $saName
         $rgName = $rID.ResourceGroupName
         $tfstate_resource_id = $rID.ResourceId
 
-        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
         $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
+        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
         $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
         Out-IniFile -InputObject $iniContent -Path $fileINIPath
     }
 
     else {
-        $rgName = $iniContent[$combined]["REMOTE_STATE_RG"]
-        $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"]
+        $rgName = $iniContent[$combined]["REMOTE_STATE_RG"].Trim()
+        $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"].Trim()
+
+    }
+
+    Write-Output $saName
+
+    if ($null -eq $tfstate_resource_id -or "" -eq $tfstate_resource_id) {
+        $rID = Get-AzResource -Name $saName -Verbose
+        $rgName = $rID.ResourceGroupName
+        $tfstate_resource_id = $rID.ResourceId
+        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
+        $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
+        Out-IniFile -InputObject $iniContent -Path $fileINIPath
     }
 
     $sub = $tfstate_resource_id.Split("/")[2]
@@ -1401,7 +1460,7 @@ Licensed under the MIT license.
     }
 
     Write-Host -ForegroundColor green "Running plan, please wait"
-    $Command = " plan -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
+    $Command = " plan  -no-color -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
 
     $Cmd = "terraform $Command"
     Add-Content -Path "deployment.log" -Value $Cmd

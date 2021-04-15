@@ -115,7 +115,7 @@ Licensed under the MIT license.
 
     if($true -eq $Force)
     {
-        Remove-Item ".terraform" -ErrorAction SilentlyContinue
+        Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
         Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
         Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
 
@@ -161,7 +161,7 @@ Licensed under the MIT license.
     Set-Location -Path $fInfo.Directory.FullName
     if($true -eq $Force)
     {
-        Remove-Item ".terraform" -ErrorAction SilentlyContinue
+        Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
         Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
         Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
 

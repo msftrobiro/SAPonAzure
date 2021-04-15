@@ -18,7 +18,7 @@ variable "ppg" {
   description = "Details of the proximity placement group"
 }
 
-variable naming {
+variable "naming" {
   description = "Defines the names for the resources"
 }
 
@@ -55,6 +55,10 @@ variable "sap_sid" {
   description = "The SID of the application"
 }
 
+variable "db_asg_id" {
+  description = "Database Application Security Group"
+}
+
 locals {
   // Imports database sizing information
 
@@ -80,11 +84,8 @@ locals {
   //Allowing changing the base for indexing, default is zero-based indexing, if customers want the first disk to start with 1 they would change this
   offset = try(var.options.resource_offset, 0)
 
-  // Zones
-  zones            = try(local.anydb.zones, [])
-  zonal_deployment = length(local.zones) > 0 ? true : false
-  db_zone_count    = length(local.zones)
-
+  //Allowing to keep the old nic order
+  legacy_nic_order = try(var.options.legacy_nic_order, false)
   // Availability Set 
   availabilityset_arm_ids = try(local.anydb.avset_arm_ids, [])
   availabilitysets_exist  = length(local.availabilityset_arm_ids) > 0 ? true : false
@@ -118,7 +119,7 @@ locals {
   // If custom image is used, we do not overwrite os reference with default value
   anydb_custom_image = try(local.anydb.os.source_image_id, "") != "" ? true : false
 
-  anydb_ostype = try(local.anydb.os.os_type, "Linux")
+  anydb_ostype = upper(local.anydb_platform) == "SQLSERVER" ? "WINDOWS" : try(local.anydb.os.os_type, "LINUX")
   anydb_oscode = upper(local.anydb_ostype) == "LINUX" ? "l" : "w"
   anydb_size   = try(local.anydb.size, "Default")
   anydb_sku    = try(lookup(local.sizes, local.anydb_size).compute.vm_size, "Standard_E4s_v3")
@@ -307,6 +308,7 @@ locals {
           disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = storage_type.write_accelerator
+          type                      = storage_type.name
         }
       ]
       if storage_type.name != "os"
@@ -325,9 +327,18 @@ locals {
         disk_iops_read_write      = datadisk.disk_iops_read_write
         disk_mbps_read_write      = datadisk.disk_mbps_read_write
         lun                       = idx
+        type                      = datadisk.type
       }
     ]
   ])
+
+//Disks for Ansible
+  // host: xxx, LUN: #, type: sapusr, size: #
+
+  db_disks_ansible = flatten([for idx, vm in local.anydb_vms : [
+    for idx, datadisk in local.data_disk_per_dbnode :
+      format("{ host: '%s', LUN: %d, type: '%s' }", vm.name, idx, datadisk.type)
+  ]])
 
   enable_ultradisk = try(
     compact(
@@ -337,6 +348,17 @@ locals {
     )[0],
     false
   )
+
+  // Zones
+  zones         = try(local.anydb.zones, [])
+  db_zone_count = length(local.zones)
+
+  //Ultra disk requires zonal deployment
+  zonal_deployment = local.db_zone_count > 0 || local.enable_ultradisk ? true : false
+
+  //If we deploy more than one server in zone put them in an availability set
+  use_avset = !local.zonal_deployment || local.db_server_count != local.db_zone_count
+
 
   full_observer_names = flatten([for vm in local.observer_virtualmachine_names :
     format("%s%s%s%s", local.prefix, var.naming.separator, vm, local.resource_suffixes.vm)]

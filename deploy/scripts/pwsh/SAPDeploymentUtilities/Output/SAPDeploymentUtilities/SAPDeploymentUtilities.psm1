@@ -1,0 +1,2328 @@
+function Get-IniContent {
+    <#
+    .SYNOPSIS
+        Get-IniContent
+
+    
+.LINK
+    https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
+
+    #>
+    <#
+#>
+    [cmdletbinding()]
+    param(
+        #Parameter file
+        [Parameter(Mandatory = $true)][string]$Path
+    )
+    $ini = @{}
+    switch -regex -file $Path {
+        "^\[(.+)\]" {
+            # Section
+            $section = $matches[1]
+            $ini[$section] = @{}
+            $CommentCount = 0
+        }
+        "^\s(0,)(;.*)$" {
+            # Comment
+            $value = $matches[1]
+            $CommentCount = $CommentCount + 1
+            $name = "Comment" + $CommentCount
+            $ini[$section][$name] = $value
+        }
+        "(.+?)\s*=(.*)" {
+            # Key
+            $name, $value = $matches[1..2]
+            $ini[$section][$name] = $value
+        }
+    }
+    return $ini
+}
+
+function Out-IniFile {
+    <#
+        .SYNOPSIS
+            Out-IniContent
+    
+        
+    .LINK
+        https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
+    
+        #>
+    <#
+    #>
+    [cmdletbinding()]
+    param(
+        # Object
+        [Parameter(Mandatory = $true)]$InputObject,
+        #Ini file
+        [Parameter(Mandatory = $true)][string]$Path
+    )
+
+    New-Item -ItemType file -Path $Path -Force
+    $outFile = $Path
+
+    foreach ($i in $InputObject.keys) {
+        if (!($($InputObject[$i].GetType().Name) -eq "Hashtable")) {
+            #No Sections
+            Add-Content -Path $outFile -Value "$i=$($InputObject[$i])"
+        }
+        else {
+            #Sections
+            Add-Content -Path $outFile -Value "[$i]"
+            Foreach ($j in ($InputObject[$i].keys | Sort-Object)) {
+                if ($j -match "^Comment[\d]+") {
+                    Add-Content -Path $outFile -Value "$($InputObject[$i][$j])"
+                }
+                else {
+                    Add-Content -Path $outFile -Value "$j=$($InputObject[$i][$j])"
+                }
+
+            }
+            Add-Content -Path $outFile -Value ""
+        }
+    }
+}
+
+function New-SAPAutomationRegion {
+    <#
+    .SYNOPSIS
+        Deploys a new SAP Environment (Deployer, Library and Workload VNet)
+
+    .DESCRIPTION
+        Deploys a new SAP Environment (Deployer, Library and Workload VNet)
+
+    .PARAMETER DeployerParameterfile
+        This is the parameter file for the Deployer
+
+    .PARAMETER LibraryParameterfile
+        This is the parameter file for the library
+
+    .EXAMPLE 
+
+    #
+    #
+    # Import the module
+    Import-Module "SAPDeploymentUtilities.psd1"
+     New-SAPAutomationRegion -DeployerParameterfile .\DEPLOYER\PROD-WEEU-DEP00-INFRASTRUCTURE\PROD-WEEU-DEP00-INFRASTRUCTURE.json \
+     -LibraryParameterfile .\LIBRARY\PROD-WEEU-SAP_LIBRARY\PROD-WEEU-SAP_LIBRARY.json \
+
+    
+.LINK
+    https://github.com/Azure/sap-hana
+
+.NOTES
+    v0.1 - Initial version
+
+.
+
+    #>
+    <#
+Copyright (c) Microsoft Corporation.
+Licensed under the MIT license.
+#>
+    [cmdletbinding()]
+    param(
+        #Parameter file
+        [Parameter(Mandatory = $true)][string]$DeployerParameterfile,
+        [Parameter(Mandatory = $true)][string]$LibraryParameterfile
+    )
+
+    Write-Host -ForegroundColor green ""
+    Write-Host -ForegroundColor green "Preparing the azure region for the SAP automation"
+
+    $curDir = Get-Location 
+    [IO.DirectoryInfo] $dirInfo = $curDir.ToString()
+
+    $fileDir = $dirInfo.ToString() + $DeployerParameterfile
+    [IO.FileInfo] $fInfo = $fileDir
+
+    $DeployerRelativePath = "..\..\" + $fInfo.Directory.FullName.Replace($dirInfo.ToString() + "\", "")
+
+    $jsonData = Get-Content -Path $DeployerParameterfile | ConvertFrom-Json
+
+    $Environment = $jsonData.infrastructure.environment
+    $region = $jsonData.infrastructure.region
+    $combined = $Environment + $region
+
+    $mydocuments = [environment]::getfolderpath("mydocuments")
+    $filePath = $mydocuments + "\sap_deployment_automation.ini"
+
+    if ( -not (Test-Path -Path $FilePath)) {
+        New-Item -Path $mydocuments -Name "sap_deployment_automation.ini" -ItemType "file" -Value "[Common]`nrepo=`nsubscription=`n[$region]`nDeployer=`nLandscape=`n[$Environment]`nDeployer=`n[$combined]`nDeployer=`nSubscription=" -Force
+    }
+
+    $iniContent = Get-IniContent -Path $filePath
+
+    $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
+    
+    try {
+        if ($null -ne $iniContent[$region] ) {
+            $iniContent[$region]["Deployer"] = $key
+        }
+        else {
+            $Category1 = @{"Deployer" = $key }
+            $iniContent += @{$region = $Category1 }
+            Out-IniFile -InputObject $iniContent -Path $filePath                    
+        }
+                
+    }
+    catch {
+        
+    }
+    try {
+        if ($null -ne $iniContent[$combined] ) {
+            $iniContent[$combined]["Deployer"] = $key
+        }
+        else {
+            $Category1 = @{"Deployer" = $key }
+            $iniContent += @{$combined = $Category1 }
+            Out-IniFile -InputObject $iniContent -Path $filePath                    
+        }
+                
+    }
+    catch {
+        
+    }
+
+    $ctx= Get-AzContext
+    if($null -eq $ctx) {
+        Connect-AzAccount
+    }
+ 
+    $errors_occurred = $false
+    Set-Location -Path $fInfo.Directory.FullName
+    try {
+        New-SAPDeployer -Parameterfile $fInfo.Name 
+    }
+    catch {
+        $errors_occurred = $true
+    }
+    Set-Location -Path $curDir
+    if ($errors_occurred) {
+        return
+    }
+
+    # Re-read ini file
+    $iniContent = Get-IniContent -Path $filePath
+
+    $ans = Read-Host -Prompt "Do you want to enter the SPN secrets Y/N?"
+    if ("Y" -eq $ans) {
+        $vault = ""
+        if ($null -ne $iniContent[$combined] ) {
+            $vault = $iniContent[$combined]["Vault"]
+        }
+
+        if (($null -eq $vault ) -or ("" -eq $vault)) {
+            $vault = Read-Host -Prompt "Please enter the vault name"
+            $iniContent[$combined]["Vault"] = $vault 
+            Out-IniFile -InputObject $iniContent -Path $filePath
+    
+        }
+        try {
+            Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault  -Workload $false
+        }
+        catch {
+            $errors_occurred = $true
+        }
+    }
+
+    $fileDir = $dirInfo.ToString() + $LibraryParameterfile
+    [IO.FileInfo] $fInfo = $fileDir
+    Set-Location -Path $fInfo.Directory.FullName
+    try {
+        New-SAPLibrary -Parameterfile $fInfo.Name -DeployerFolderRelativePath $DeployerRelativePath
+    }
+    catch {
+        $errors_occurred = $true
+    }
+
+    Set-Location -Path $curDir
+    if ($errors_occurred) {
+        return
+    }
+
+    $fileDir = $dirInfo.ToString() + $DeployerParameterfile
+
+    [IO.FileInfo] $fInfo = $fileDir
+    Set-Location -Path $fInfo.Directory.FullName
+    try {
+        New-SAPSystem -Parameterfile $fInfo.Name -Type sap_deployer
+    }
+    catch {
+        Write-Error $_
+        $errors_occurred = $true
+    }
+
+    Set-Location -Path $curDir
+    if ($errors_occurred) {
+        return
+    }
+
+    $fileDir = $dirInfo.ToString() + $LibraryParameterfile
+    [IO.FileInfo] $fInfo = $fileDir
+    Set-Location -Path $fInfo.Directory.FullName
+    try {
+        New-SAPSystem -Parameterfile $fInfo.Name -Type sap_library
+    }
+    catch {
+        $errors_occurred = $true
+    }
+
+    Set-Location -Path $curDir
+    if ($errors_occurred) {
+        return
+    }
+
+}
+
+function New-SAPDeployer {
+    <#
+    .SYNOPSIS
+        Bootstrap a new deployer
+
+    .DESCRIPTION
+        Bootstrap a new deployer
+
+    .PARAMETER Parameterfile
+        This is the parameter file for the deployer
+
+    .EXAMPLE 
+
+    #
+    #
+    # Import the module
+    Import-Module "SAPDeploymentUtilities.psd1"
+    New-SAPDeployer -Parameterfile .\PROD-WEEU-MGMT00-INFRASTRUCTURE.json
+
+    
+.LINK
+    https://github.com/Azure/sap-hana
+
+.NOTES
+    v0.1 - Initial version
+
+.
+
+    #>
+    <#
+Copyright (c) Microsoft Corporation.
+Licensed under the MIT license.
+#>
+    [cmdletbinding(SupportsShouldProcess)]
+    param(
+        #Parameter file
+        [Parameter(Mandatory = $true)][string]$Parameterfile
+    )
+
+    Write-Host -ForegroundColor green ""
+    Write-Host -ForegroundColor green "Bootstrap the deployer"
+
+    $fInfo = Get-ItemProperty -Path $Parameterfile
+    if (!$fInfo.Exists ) {
+        Write-Error ("File " + $Parameterfile + " does not exist")
+        return
+    }
+
+    Add-Content -Path "deployment.log" -Value "Bootstrap the deployer"
+    Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
+
+    $mydocuments = [environment]::getfolderpath("mydocuments")
+    $filePath = $mydocuments + "\sap_deployment_automation.ini"
+    $iniContent = Get-IniContent -Path $filePath
+
+    $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
+    $Environment = $jsonData.infrastructure.environment
+    $region = $jsonData.infrastructure.region
+
+    Write-Host "Region:"$region
+    Write-Host "Environment:"$Environment
+
+    $combined = $Environment + $region
+
+    if ($null -ne $iniContent[$combined] ) {
+        $sub = $iniContent[$combined]["subscription"] 
+    }
+    else {
+        $Category1 = @{"subscription" = "" }
+        $iniContent += @{$combined = $Category1 }
+        Out-IniFile -InputObject $iniContent -Path $filePath
+    }
+    
+    # Subscription & repo path
+
+    $sub = $iniContent[$combined]["subscription"] 
+    $repo = $iniContent["Common"]["repo"]
+
+    $changed = $false
+
+    if ($null -eq $sub -or "" -eq $sub) {
+        $sub = Read-Host -Prompt "Please enter the subscription"
+        $iniContent[$combined]["subscription"] = $sub
+        $changed = $true
+    }
+
+    if ($null -eq $repo -or "" -eq $repo) {
+        $repo = Read-Host -Prompt "Please enter the path to the repository"
+        $iniContent["Common"]["repo"] = $repo
+        $changed = $true
+    }
+
+    if ($changed) {
+        Out-IniFile -InputObject $iniContent -Path $filePath
+    }
+
+    $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\bootstrap\sap_deployer"
+    if (-not (Test-Path $terraform_module_directory) ) {
+        Write-Host -ForegroundColor Red "The repository path: $repo is incorrect!"
+        $iniContent["Common"]["repo"] = ""
+        Out-IniFile -InputObject $iniContent -Path $filePath
+        throw "The repository path: $repo is incorrect!"
+        return
+
+    }
+
+    Write-Host -ForegroundColor green "Initializing Terraform"
+
+    $Command = " init -upgrade=true " + $terraform_module_directory
+    if (Test-Path ".terraform" -PathType Container) {
+        $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
+
+        if ("azurerm" -eq $jsonData.backend.type) {
+            Write-Host -ForegroundColor green "State file already migrated to Azure!"
+            $ans = Read-Host -Prompt "State is already migrated to Azure. Do you want to re-initialize the deployer Y/N?"
+            if ("Y" -ne $ans) {
+                return
+            }
+            else {
+                $Command = " init -upgrade=true -reconfigure " + $terraform_module_directory
+            }
+        }
+        else {
+            $ans = Read-Host -Prompt "The system has already been deployed, do you want to redeploy Y/N?"
+            if ("Y" -ne $ans) {
+                return
+            }
+        }
+    }
+
+    $Cmd = "terraform $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
+    & ([ScriptBlock]::Create($Cmd)) 
+    if ($LASTEXITCODE -ne 0) {
+        throw "Error executing command: $Cmd"
+    }
+
+    Write-Host -ForegroundColor green "Running plan"
+    $Command = " plan -var-file " + $Parameterfile + " " + $terraform_module_directory
+    
+    $Cmd = "terraform $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
+    $planResults = & ([ScriptBlock]::Create($Cmd)) | Out-String 
+    
+    if ($LASTEXITCODE -ne 0) {
+        throw "Error executing command: $Cmd"
+    }
+
+    $planResultsPlain = $planResults -replace '\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]', ''
+
+    if ( $planResultsPlain.Contains('Infrastructure is up-to-date')) {
+        Write-Host ""
+        Write-Host -ForegroundColor Green "Infrastructure is up to date"
+        Write-Host ""
+        return;
+    }
+
+    if ( $planResultsPlain.Contains('Plan: 0 to add, 0 to change, 0 to destroy')) {
+        Write-Host ""
+        Write-Host -ForegroundColor Green "Infrastructure is up to date"
+        Write-Host ""
+        return;
+    }
+
+    Write-Host $planResults
+    
+    if ($PSCmdlet.ShouldProcess($Parameterfile)) {
+        Write-Host -ForegroundColor green "Running apply"
+
+        $Command = " apply -var-file " + $Parameterfile + " " + $terraform_module_directory
+        $Cmd = "terraform $Command"
+        Add-Content -Path "deployment.log" -Value $Cmd
+        & ([ScriptBlock]::Create($Cmd)) 
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
+
+        New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""local"" {}`n}" -Force
+
+        $Command = " output deployer_kv_user_name"
+
+        $Cmd = "terraform $Command"
+        $kvName = & ([ScriptBlock]::Create($Cmd)) | Out-String 
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
+
+        Write-Host $kvName.Replace("""", "")
+        $iniContent[$combined]["Vault"] = $kvName.Replace("""", "")
+        Out-IniFile -InputObject $iniContent -Path $filePath
+
+        if (Test-Path ".\backend.tf" -PathType Leaf) {
+            Remove-Item -Path ".\backend.tf" -Force 
+        }
+    }
+}
+function New-SAPSystem {
+    <#
+    .SYNOPSIS
+        Deploy a new system
+
+    .DESCRIPTION
+        Deploy a new system
+
+    .PARAMETER Parameterfile
+        This is the parameter file for the system
+
+    .PARAMETER Type
+
+        This is the type of the system, valid values are sap_deployer, sap_library, sap_landscape, sap_system
+
+    .PARAMETER DeployerStateFileKeyName
+
+        This is the optional Deployer state file name
+
+    .PARAMETER LandscapeStateFileKeyName
+
+        This is the optional Landscape state file name
+
+    .PARAMETER TFStateStorageAccountName
+
+        This is the optional terraform state file storage account name
+
+
+    .EXAMPLE 
+
+    #
+    #
+    # Import the module
+    Import-Module "SAPDeploymentUtilities.psd1"
+    New-SAPSystem -Parameterfile .\DEV-WEEU-SAP00-X00.json -Type sap_system
+
+    .EXAMPLE 
+
+    #
+    #
+    # Import the module
+    Import-Module "SAPDeploymentUtilities.psd1"
+    New-SAPSystem -Parameterfile .\DEV-WEEU-SAP00-X00.json -Type sap_system -DeployerStateFileKeyName MGMT-WEEU-DEP00-INFRASTRUCTURE.terraform.tfstate -LandscapeStateFileKeyName DEV-WEEU-SAP01-INFRASTRUCTURE.terraform.tfstate
+
+    .EXAMPLE 
+
+    #
+    #
+    # Import the module
+    Import-Module "SAPDeploymentUtilities.psd1"
+    New-SAPSystem -Parameterfile .\MGMT-WEEU-SAP_LIBRARY.json -Type sap_library
+
+    
+.LINK
+    https://github.com/Azure/sap-hana
+
+.NOTES
+    v0.1 - Initial version
+
+.
+
+    #>
+    <#
+Copyright (c) Microsoft Corporation.
+Licensed under the MIT license.
+#>
+    [cmdletbinding(SupportsShouldProcess)]
+    param(
+        #Parameter file
+        [Parameter(Mandatory = $true)][string]$Parameterfile ,
+        [Parameter(Mandatory = $true)][SAP_Types]$Type,
+        [Parameter(Mandatory = $false)][string]$DeployerStateFileKeyName,
+        [Parameter(Mandatory = $false)][string]$LandscapeStateFileKeyName,
+        [Parameter(Mandatory = $false)][string]$TFStateStorageAccountName
+        
+    )
+
+    Write-Host -ForegroundColor green ""
+    Write-Host -ForegroundColor green "Deploying the" $Type
+
+    Add-Content -Path "deployment.log" -Value ("Deploying the: " + $Type)
+    Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
+
+
+    $fInfo = Get-ItemProperty -Path $Parameterfile
+
+    if ($false -eq $fInfo.Exists ) {
+        Write-Error ("File " + $Parameterfile + " does not exist")
+        Add-Content -Path "deployment.log" -Value ("File " + $Parameterfile + " does not exist")
+        return
+    }
+
+    
+    $mydocuments = [environment]::getfolderpath("mydocuments")
+    $filePath = $mydocuments + "\sap_deployment_automation.ini"
+    $iniContent = Get-IniContent -Path $filePath
+    $changed = $false
+
+    if ($Parameterfile.StartsWith(".\")) {
+        if ($Parameterfile.Substring(2).Contains("\")) {
+            Write-Error "Please execute the script from the folder containing the json file and not from a parent folder"
+            Add-Content -Path "deployment.log" -Value "Please execute the script from the folder containing the json file and not from a parent folder"
+            return;
+        }
+    }
+
+    $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
+    $landscapeKey = ""
+    if ($Type -eq "sap_landscape") {
+        $landscapeKey = $key
+    }
+
+    
+    $ctx= Get-AzContext
+    if($null -eq $ctx) {
+        Connect-AzAccount 
+    }
+    
+    $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
+
+    $Environment = $jsonData.infrastructure.environment
+    $region = $jsonData.infrastructure.region
+    $combined = $Environment + $region
+    
+    $spn_kvSpecified = $jsonData.key_vault.kv_spn_id.Length -gt 0
+
+    $changed = $false
+
+    if ($null -eq $iniContent[$combined]) {
+        Write-Error "The Terraform state information is not available"
+
+        $saName = Read-Host -Prompt "Please specify the storage account name for the terraform storage account"
+        $rID = Get-AzResource -Name $saName
+        $rgName = $rID.ResourceGroupName
+
+        $tfstate_resource_id = $rID.ResourceId
+
+        if ($Type -eq "sap_system") {
+            if ($null -ne $LandscapeStateFileKeyName) {
+                $landscape_tfstate_key = $LandscapeStateFileKeyName
+            }
+            else {
+
+                $landscape_tfstate_key = Read-Host -Prompt "Please enter the landscape statefile for the deployment"
+            }
+            $Category1 = @{"REMOTE_STATE_RG" = $rgName; "REMOTE_STATE_SA" = $saName; "tfstate_resource_id" = $tfstate_resource_id ; "Landscape" = $landscape_tfstate_key }
+            $iniContent += @{$combined = $Category1 }
+            if ($Type -eq "sap_landscape") {
+                $iniContent[$combined].Landscape = $landscapeKey
+            }
+            $changed = $true
+        }
+        else {
+            $Category1 = @{"REMOTE_STATE_RG" = $rgName; "REMOTE_STATE_SA" = $saName; "tfstate_resource_id" = $tfstate_resource_id }
+            $iniContent += @{$combined = $Category1 }
+            if ($Type -eq "sap_landscape") {
+                $iniContent[$combined].Landscape = $landscapeKey
+            }
+            $changed = $true
+                
+        }
+    }
+    else {
+        if ($Type -eq "sap_system") {
+            if ($null -ne $LandscapeStateFileKeyName -and "" -ne $LandscapeStateFileKeyName) {
+                $landscape_tfstate_key = $LandscapeStateFileKeyName
+                $iniContent[$combined].Landscape = $LandscapeStateFileKeyName
+                $changed = $true
+            }
+            else {
+                $landscape_tfstate_key = $iniContent[$combined].Landscape
+            }
+        }
+    }
+
+    if ("sap_deployer" -eq $Type) {
+        $iniContent[$combined]["Deployer"] = $key.Trim()
+        $deployer_tfstate_key = $key
+        $changed = $true
+    }
+    else {
+        if ($null -ne $DeployerStateFileKeyName -and "" -ne $DeployerStateFileKeyName) {
+            $deployer_tfstate_key = $DeployerStateFileKeyName
+            $iniContent[$combined]["Deployer"] = $deployer_tfstate_key.Trim()
+            $changed = $true
+        }
+        else {
+            $deployer_tfstate_key = $iniContent[$combined]["Deployer"]
+        }
+    }
+    if (!$spn_kvSpecified) {
+        if ($null -eq $deployer_tfstate_key -or "" -eq $deployer_tfstate_key) {
+            $deployer_tfstate_key = Read-Host -Prompt "Please specify the deployer state file name"
+            $iniContent[$combined]["Deployer"] = $deployer_tfstate_key.Trim()
+            $changed = $true
+        }
+    }
+
+    if ($null -ne $TFStateStorageAccountName -and "" -ne $TFStateStorageAccountName) {
+        $saName = $TFStateStorageAccountName
+        $rID = Get-AzResource -Name $saName
+        $rgName = $rID.ResourceGroupName
+        $tfstate_resource_id = $rID.ResourceId
+
+        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
+        $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
+        $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
+        $changed = $true
+
+    }
+    else {
+        $saName = $iniContent[$combined]["REMOTE_STATE_SA"]
+    }
+    
+    if ($null -eq $saName -or "" -eq $saName) {
+        $saName = Read-Host -Prompt "Please specify the storage account name for the terraform storage account"
+        $rID = Get-AzResource -Name $saName
+        $rgName = $rID.ResourceGroupName
+        $tfstate_resource_id = $rID.ResourceId
+
+        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
+        $iniContent[$combined]["REMOTE_STATE_SA"] = $saNameF
+        $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
+        $changed = $true
+    }
+    else {
+        $rgName = $iniContent[$combined]["REMOTE_STATE_RG"]
+        $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"]
+    }
+
+    # Subscription
+    $sub = $iniContent[$combined]["kvsubscription"]
+    
+    $repo = $iniContent["Common"]["repo"]
+
+    if ($Type -eq "sap_system") {
+        if ($null -eq $landscape_tfstate_key -or "" -eq $landscape_tfstate_key) {
+            $landscape_tfstate_key = Read-Host -Prompt "Please enter the landscape statefile for the deployment"
+            if ($Type -eq "sap_system") {
+                $iniContent[$combined]["Landscape"] = $landscape_tfstate_key.Trim()
+            }
+    
+            $changed = $true
+        }
+    }
+
+    if ($null -eq $sub -or "" -eq $sub) {
+        $sub = $tfstate_resource_id.Split("/")[2]
+        $iniContent[$combined]["kvsubscription"] = $sub.Trim() 
+        $changed = $true
+
+    }
+
+    if ($null -eq $repo -or "" -eq $repo) {
+        $repo = Read-Host -Prompt "Please enter the path to the repo"
+        $iniContent["Common"]["repo"] = $repo.Trim() 
+        $changed = $true
+    }
+
+    if ($changed) {
+        Out-IniFile -InputObject $iniContent -Path $filePath
+    }
+    
+    $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\run\$Type"
+
+    Write-Host -ForegroundColor green "Initializing Terraform"
+
+    if ($tfstate_resource_id.Length -gt 0) {
+        $Command = " account set --sub " + $tfstate_resource_id.Split("/")[2]
+        $Cmd = "az $Command"
+        Add-Content -Path "deployment.log" -Value $Cmd
+        & ([ScriptBlock]::Create($Cmd)) 
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
+    }
+    
+    $sub = $tfstate_resource_id.Split("/")[2]
+    
+
+    $Command = " init -upgrade=true -force-copy -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$key"" " + $terraform_module_directory
+
+    if (Test-Path ".terraform" -PathType Container) {
+        $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
+        if ("azurerm" -eq $jsonData.backend.type) {
+            $Command = " init -upgrade=true"
+
+            $ans = Read-Host -Prompt "The system has already been deployed and the statefile is in Azure, do you want to redeploy Y/N?"
+            if ("Y" -ne $ans) {
+                return
+            }
+        }
+    } 
+
+    $Cmd = "terraform $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
+
+    & ([ScriptBlock]::Create($Cmd)) 
+    if ($LASTEXITCODE -ne 0) {
+        throw "Error executing command: $Cmd"
+    }
+
+    if ($Type -ne "sap_deployer") {
+        $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
+    }
+    else {
+        # Removing the bootsrap shell script
+        if (Test-Path ".\post_deployment.sh" -PathType Leaf) {
+            Remove-Item -Path ".\post_deployment.sh"  -Force 
+        }
+    }
+
+    if ($Type -eq "sap_landscape") {
+        $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
+        $deployer_tfstate_key_parameter = " -var deployer_tfstate_key=" + $deployer_tfstate_key
+    }
+
+    if ($Type -eq "sap_library") {
+        $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
+        if ($false -eq $jsonData.deployer.use) {
+            $deployer_tfstate_key_parameter = ""
+        }
+        else {
+            $deployer_tfstate_key_parameter = " -var deployer_tfstate_key=" + $deployer_tfstate_key    
+        }
+   
+            
+    }
+
+    if ($Type -eq "sap_system") {
+        $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
+        $deployer_tfstate_key_parameter = " -var deployer_tfstate_key=" + $deployer_tfstate_key
+        $landscape_tfstate_key_parameter = " -var landscape_tfstate_key=" + $landscape_tfstate_key
+    }
+
+    New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""azurerm"" {}`n}" -Force
+
+    $Command = " output automation_version"
+
+    $Cmd = "terraform $Command"
+    $versionLabel = & ([ScriptBlock]::Create($Cmd)) | Out-String 
+
+    Write-Host $versionLabel
+    if ("" -eq $versionLabel) {
+        Write-Host ""
+        Write-Host -ForegroundColor red "The environment was deployed using an older version of the Terrafrom templates"
+        Write-Host ""
+        Write-Host -ForegroundColor red "!!! Risk for Data loss !!!"
+        Write-Host ""
+        Write-Host -ForegroundColor red "Please inspect the output of Terraform plan carefully before proceeding" 
+        Write-Host ""
+        if ($PSCmdlet.ShouldProcess($Parameterfile , $Type)) {
+            $ans = Read-Host -Prompt "Do you want to continue Y/N?"
+            if ("Y" -eq $ans) {
+    
+            }
+            else {
+                return 
+            }        
+        }
+    }
+    else {
+        Write-Host ""
+        Write-Host -ForegroundColor green "The environment was deployed using the $versionLabel version of the Terrafrom templates"
+        Write-Host ""
+        Write-Host ""
+    }
+
+    Write-Host -ForegroundColor green "Running plan, please wait"
+    $Command = " plan -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
+
+    $Cmd = "terraform $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
+    $planResults = & ([ScriptBlock]::Create($Cmd)) | Out-String 
+    
+    if ($LASTEXITCODE -ne 0) {
+        throw "Error executing command: $Cmd"
+    }
+
+    $planResultsPlain = $planResults -replace '\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]', ''
+
+    if ( $planResultsPlain.Contains('No changes')) {
+        Write-Host ""
+        Write-Host -ForegroundColor Green "Infrastructure is up to date"
+        Write-Host ""
+        return;
+    }
+
+    if ( $planResultsPlain.Contains('0 to add, 0 to change, 0 to destroy')) {
+        Write-Host ""
+        Write-Host -ForegroundColor Green "Infrastructure is up to date"
+        Write-Host ""
+        return;
+    }
+
+
+    Write-Host $planResults
+    if (-not $planResultsPlain.Contains('0 to change, 0 to destroy') ) {
+        Write-Host ""
+        Write-Host -ForegroundColor red "!!! Risk for Data loss !!!"
+        Write-Host ""
+        Write-Host -ForegroundColor red "Please inspect the output of Terraform plan carefully before proceeding" 
+        Write-Host ""
+        if ($PSCmdlet.ShouldProcess($Parameterfile , $Type)) {
+            $ans = Read-Host -Prompt "Do you want to continue Y/N?"
+            if ("Y" -ne $ans) {
+                return 
+            }
+        }
+
+    }
+
+    if ($PSCmdlet.ShouldProcess($Parameterfile , $Type)) {
+
+        Write-Host -ForegroundColor green "Running apply"
+        $Command = " apply -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
+
+        $Cmd = "terraform $Command"
+        Add-Content -Path "deployment.log" -Value $Cmd
+        & ([ScriptBlock]::Create($Cmd))  
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
+
+        if ($Type -eq "sap_library") {
+            New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""azurerm"" {}`n}" -Force 
+
+            $Command = " output remote_state_resource_group_name"
+            $Cmd = "terraform $Command"
+            $rgName = & ([ScriptBlock]::Create($Cmd)) | Out-String 
+            if ($LASTEXITCODE -ne 0) {
+                throw "Error executing command: $Cmd"
+            }
+            $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName.Replace("""", "")
+    
+            $Command = " output remote_state_storage_account_name"
+            $Cmd = "terraform $Command"
+            $saName = & ([ScriptBlock]::Create($Cmd)) | Out-String 
+            if ($LASTEXITCODE -ne 0) {
+                throw "Error executing command: $Cmd"
+            }
+            $iniContent[$combined]["REMOTE_STATE_SA"] = $saName.Replace("""", "")
+    
+            $Command = " output tfstate_resource_id"
+            $Cmd = "terraform $Command"
+            $tfstate_resource_id = & ([ScriptBlock]::Create($Cmd)) | Out-String 
+            if ($LASTEXITCODE -ne 0) {
+                throw "Error executing command: $Cmd"
+            }
+            $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
+    
+            Out-IniFile -InputObject $iniContent -Path $filePath
+        }
+    
+    }
+
+    if (Test-Path ".\backend.tf" -PathType Leaf) {
+        Remove-Item -Path ".\backend.tf"  -Force 
+    }
+
+}
+function New-SAPLibrary {
+    <#
+    .SYNOPSIS
+        Bootstrap a new SAP Library
+
+    .DESCRIPTION
+        Bootstrap a new SAP Library
+
+    .PARAMETER Parameterfile
+        This is the parameter file for the library
+
+    .PARAMETER DeployerFolderRelativePath
+        This is the relative folder path to the folder containing the deployerparameter terraform.tfstate file
+
+
+    .EXAMPLE 
+
+    #
+    #
+    # Import the module
+    Import-Module "SAPDeploymentUtilities.psd1"
+    New-SAPLibrary -Parameterfile .\PROD-WEEU-SAP_LIBRARY.json -DeployerFolderRelativePath ..\..\DEPLOYER\PROD-WEEU-DEP00-INFRASTRUCTURE\
+
+    
+.LINK
+    https://github.com/Azure/sap-hana
+
+.NOTES
+    v0.1 - Initial version
+
+.
+
+    #>
+    <#
+Copyright (c) Microsoft Corporation.
+Licensed under the MIT license.
+#>
+    [cmdletbinding(SupportsShouldProcess)]
+    param(
+        #Parameter file
+        [Parameter(Mandatory = $true)][string]$Parameterfile,
+        #Deployer parameterfile
+        [Parameter(Mandatory = $true)][string]$DeployerFolderRelativePath
+    )
+
+    Write-Host -ForegroundColor green ""
+    Write-Host -ForegroundColor green "Bootstrap the library"
+
+    $fInfo = Get-ItemProperty -Path $Parameterfile
+    if (!$fInfo.Exists ) {
+        Write-Error ("File " + $Parameterfile + " does not exist")
+        return
+    }
+
+    Add-Content -Path "deployment.log" -Value "Bootstrap the library"
+    Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
+    
+
+    $mydocuments = [environment]::getfolderpath("mydocuments")
+    $filePath = $mydocuments + "\sap_deployment_automation.ini"
+    $iniContent = Get-IniContent -Path $filePath
+
+
+    $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
+    $Environment = $jsonData.infrastructure.environment
+    $region = $jsonData.infrastructure.region
+    $combined = $Environment + $region
+
+    # Subscription & repo path
+
+    $sub = $null
+    if ($null -ne $iniContent[$combined]) {
+        $sub = $iniContent[$combined]["subscription"]
+    }
+     
+    $repo = $iniContent["Common"]["repo"]
+
+    $changed = $false
+
+    if ($null -eq $sub -or "" -eq $sub) {
+        $sub = Read-Host -Prompt "Please enter the subscription"
+        $iniContent[$combined]["subscription"] = $sub
+        $changed = $true
+    }
+
+    if ($null -eq $repo -or "" -eq $repo) {
+        $repo = Read-Host -Prompt "Please enter the path to the repository"
+        $iniContent["Common"]["repo"] = $repo
+        $changed = $true
+    }
+
+    if ($changed) {
+        Out-IniFile -InputObject $iniContent -Path $filePath
+    }
+
+    Write-Host $terraform_module_directory
+    $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\bootstrap\sap_library"
+
+    Write-Host -ForegroundColor green "Initializing Terraform"
+
+    $Command = " init -upgrade=true " + $terraform_module_directory
+    if (Test-Path ".terraform" -PathType Container) {
+        $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
+
+        if ("azurerm" -eq $jsonData.backend.type) {
+            Write-Host -ForegroundColor green "State file already migrated to Azure!"
+            $ans = Read-Host -Prompt "State is already migrated to Azure. Do you want to re-initialize the library Y/N?"
+            if ("Y" -ne $ans) {
+                return
+            }
+            else {
+                $Command = " init -upgrade=true -reconfigure " + $terraform_module_directory
+            }
+        }
+        else {
+            if ($PSCmdlet.ShouldProcess($Parameterfile, $DeployerFolderRelativePath)) {
+                $ans = Read-Host -Prompt "The system has already been deployed, do you want to redeploy Y/N?"
+                if ("Y" -ne $ans) {
+                    return
+                }
+            }
+        }
+    }
+    
+    $Cmd = "terraform $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
+    & ([ScriptBlock]::Create($Cmd)) 
+    if ($LASTEXITCODE -ne 0) {
+        throw "Error executing command: $Cmd"
+    }
+
+    Write-Host -ForegroundColor green "Running plan"
+    if ($DeployerFolderRelativePath -eq "") {
+        $Command = " plan -var-file " + $Parameterfile + " " + $terraform_module_directory
+    }
+    else {
+        $Command = " plan -var-file " + $Parameterfile + " -var deployer_statefile_foldername=" + $DeployerFolderRelativePath + " " + $terraform_module_directory
+    }
+
+    
+    $Cmd = "terraform $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
+    $planResults = & ([ScriptBlock]::Create($Cmd)) | Out-String 
+    
+    if ($LASTEXITCODE -ne 0) {
+        throw "Error executing command: $Cmd"
+    }
+
+    $planResultsPlain = $planResults -replace '\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]', ''
+
+    if ( $planResultsPlain.Contains('Infrastructure is up-to-date')) {
+        Write-Host ""
+        Write-Host -ForegroundColor Green "Infrastructure is up to date"
+        Write-Host ""
+        return;
+    }
+
+    if ( $planResultsPlain.Contains('Plan: 0 to add, 0 to change, 0 to destroy')) {
+        Write-Host ""
+        Write-Host -ForegroundColor Green "Infrastructure is up to date"
+        Write-Host ""
+        return;
+    }
+
+    Write-Host $planResults
+
+    if ($PSCmdlet.ShouldProcess($Parameterfile, $DeployerFolderRelativePath)) {
+    
+        Write-Host -ForegroundColor green "Running apply"
+        if ($DeployerFolderRelativePath -eq "") {
+            $Command = " apply -var-file " + $Parameterfile + " " + $terraform_module_directory
+        }
+        else {
+            $Command = " apply -var-file " + $Parameterfile + " -var deployer_statefile_foldername=" + $DeployerFolderRelativePath + " " + $terraform_module_directory
+        }
+
+        $Cmd = "terraform $Command"
+        Add-Content -Path "deployment.log" -Value $Cmd
+        & ([ScriptBlock]::Create($Cmd))  
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
+
+        New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""local"" {}`n}" -Force 
+
+        $Command = " output remote_state_resource_group_name"
+        $Cmd = "terraform $Command"
+        $rgName = & ([ScriptBlock]::Create($Cmd)) | Out-String 
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
+        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName.Replace("""", "")
+
+        $Command = " output remote_state_storage_account_name"
+        $Cmd = "terraform $Command"
+        $saName = & ([ScriptBlock]::Create($Cmd)) | Out-String 
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
+        $iniContent[$combined]["REMOTE_STATE_SA"] = $saName.Replace("""", "")
+
+        $Command = " output tfstate_resource_id"
+        $Cmd = "terraform $Command"
+        $tfstate_resource_id = & ([ScriptBlock]::Create($Cmd)) | Out-String 
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
+        $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
+
+        Out-IniFile -InputObject $iniContent -Path $filePath
+
+        if (Test-Path ".\backend.tf" -PathType Leaf) {
+            Remove-Item -Path ".\backend.tf" -Force 
+        }
+    }
+
+}
+function New-SAPWorkloadZone {
+    <#
+    .SYNOPSIS
+        Deploy a new SAP Workload Zone
+
+    .DESCRIPTION
+        Deploy a new SAP Workload Zone
+
+    .PARAMETER Parameterfile
+        This is the parameter file for the system
+
+    .EXAMPLE 
+
+    #
+    #
+    # Import the module
+    Import-Module "SAPDeploymentUtilities.psd1"
+    New-SAPWorkloadZone -Parameterfile .\PROD-WEEU-SAP00-infrastructure.json 
+
+    
+.LINK
+    https://github.com/Azure/sap-hana
+
+.NOTES
+    v0.1 - Initial version
+
+.
+
+    #>
+    <#
+Copyright (c) Microsoft Corporation.
+Licensed under the MIT license.
+#>
+    [cmdletbinding(SupportsShouldProcess)]
+    param(
+        #Parameter file
+        [Parameter(Mandatory = $true)][string]$Parameterfile, 
+        #Deployer state file
+        [Parameter(Mandatory = $false)][string]$Deployerstatefile 
+    )
+
+    Write-Host -ForegroundColor green ""
+    $Type = "sap_landscape"
+    Write-Host -ForegroundColor green "Deploying the" $Type
+  
+    Add-Content -Path "deployment.log" -Value ("Deploying the: " + $Type)
+    Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
+  
+    $fInfo = Get-ItemProperty -Path $Parameterfile
+    $envkey = $fInfo.Name.replace(".json", ".terraform.tfstate")
+
+    if ($false -eq $fInfo.Exists ) {
+        Write-Error ("File " + $Parameterfile + " does not exist")
+        return
+    }
+
+    $mydocuments = [environment]::getfolderpath("mydocuments")
+    $fileINIPath = $mydocuments + "\sap_deployment_automation.ini"
+    $iniContent = Get-IniContent -Path $fileINIPath
+
+    $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
+
+    $Environment = $jsonData.infrastructure.environment
+    $region = $jsonData.infrastructure.region
+    $combined = $Environment + $region
+
+    $changed = $false
+
+    if ($null -eq $iniContent["Common"]) {
+        $repo = Read-Host -Prompt "Please enter path to the repo"
+        $Category1 = @{"repo" = $repo }
+        $iniContent += @{"Common" = $Category1 }
+        $changed = $true
+    }
+    else {
+        $repo = $iniContent["Common"]["repo"]
+        if ($null -eq $repo -or "" -eq $repo) {
+            $repo = Read-Host -Prompt "Please enter path to the repo"
+            $iniContent["Common"]["repo"] = $repo
+            $changed = $true
+        }
+    }
+
+    if ($changed) {
+        Out-IniFile -InputObject $iniContent -Path $fileINIPath
+    }
+
+    $changed = $false
+
+    $landscape_tfstate_key = $fInfo.Name.replace(".json", ".terraform.tfstate")
+
+    $ctx= Get-AzContext
+    if($null -eq $ctx) {
+        Connect-AzAccount 
+    }
+
+    if ($null -eq $iniContent[$combined]) {
+        Write-Error "The Terraform state information is not available"
+
+        $saName = Read-Host -Prompt "Please specify the storage account name for the terraform storage account"
+        $rID = Get-AzResource -Name $saName
+        $rgName = $rID.ResourceGroupName
+
+        $tfstate_resource_id = $rID.ResourceId
+
+        $Category1 = @{"REMOTE_STATE_RG" = $rgName; "REMOTE_STATE_SA" = $saName; "tfstate_resource_id" = $tfstate_resource_id ; "Landscape" = $landscape_tfstate_key }
+        $iniContent += @{$combined = $Category1 }
+        Out-IniFile -InputObject $iniContent -Path $fileINIPath
+        $iniContent = Get-IniContent -Path $fileINIPath
+    }
+    else {
+        $deployer_tfstate_key = $iniContent[$combined]["Deployer"]
+        if($null -eq $deployer_tfstate_key -or "" -eq $deployer_tfstate_key)
+        {
+            $deployer_tfstate_key=$Deployerstatefile
+            $iniContent[$combined]["Deployer"]=$Deployerstatefile
+        }
+        $iniContent[$combined]["Landscape"]=$landscape_tfstate_key
+        $changed = $true
+
+    }
+
+    # Subscription
+    $sub = $iniContent[$combined]["subscription"]
+
+    if ($null -eq $sub -or "" -eq $sub) {
+        $sub = Read-Host -Prompt "Please enter the subscription for the deployment"
+        $iniContent[$combined]["subscription"] = $sub
+        $changed = $true
+   }
+
+    if ($changed) {
+        Out-IniFile -InputObject $iniContent -Path $fileINIPath
+    }
+
+    $ans = Read-Host -Prompt "Do you want to enter the Workload SPN secrets Y/N?"
+    if ("Y" -eq $ans) {
+        $vault = $iniContent[$combined]["Vault"]
+
+        if (($null -eq $vault ) -or ("" -eq $vault)) {
+            $vault = Read-Host -Prompt "Please enter the vault name"
+            $iniContent[$combined]["Vault"] = $vault 
+            Out-IniFile -InputObject $iniContent -Path $fileINIPath
+    
+        }
+        try {
+            Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault -Workload $true
+            $iniContent = Get-IniContent -Path $fileINIPath
+        }
+        catch {
+            return
+        }
+    }
+
+    $saName = $iniContent[$combined]["REMOTE_STATE_SA"].Trim()  
+    if ($null -eq $saName -or "" -eq $saName) {
+        $saName = Read-Host -Prompt "Please specify the storage account name for the terraform storage account"
+        $rID = Get-AzResource -Name $saName
+        $rgName = $rID.ResourceGroupName
+        $tfstate_resource_id = $rID.ResourceId
+
+        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
+        $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
+        $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
+        Out-IniFile -InputObject $iniContent -Path $fileINIPath
+    }
+
+    else {
+        $rgName = $iniContent[$combined]["REMOTE_STATE_RG"]
+        $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"]
+    }
+
+    $sub = $tfstate_resource_id.Split("/")[2]
+    
+    $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\run\$Type"
+
+    Write-Host -ForegroundColor green "Initializing Terraform"
+
+    $Command = " init -upgrade=true -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$envkey"" " + $terraform_module_directory
+    if (Test-Path ".terraform" -PathType Container) {
+        $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
+
+        if ("azurerm" -eq $jsonData.backend.type) {
+            $Command = " init -upgrade=true"
+
+            $ans = Read-Host -Prompt ".terraform already exists, do you want to continue Y/N?"
+            if ("Y" -ne $ans) {
+                return
+            }
+        }
+    } 
+
+    $Cmd = "terraform $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
+
+    & ([ScriptBlock]::Create($Cmd)) 
+    if ($LASTEXITCODE -ne 0) {
+        throw "Error executing command: $Cmd"
+    }
+
+    $deployer_tfstate_key_parameter = ""
+    $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
+    if ($Deployerstatefile.Length -gt 0) {
+        $deployer_tfstate_key_parameter = " -var deployer_tfstate_key=" + $Deployerstatefile
+    }
+    else {
+        if ($deployer_tfstate_key.Length -gt 0) {
+            $deployer_tfstate_key_parameter = " -var deployer_tfstate_key=" + $deployer_tfstate_key    
+        }
+    }
+    
+    Write-Host $Deployerstatefile
+    Write-Host $deployer_tfstate_key_parameter
+
+    New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""azurerm"" {}`n}" -Force
+
+    $Command = " output automation_version"
+
+    $Cmd = "terraform $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
+
+    $versionLabel = & ([ScriptBlock]::Create($Cmd)) | Out-String 
+
+    Write-Host $versionLabel
+    if ("" -eq $versionLabel) {
+        Write-Host ""
+        Write-Host -ForegroundColor red "The environment was deployed using an older version of the Terrafrom templates"
+        Write-Host ""
+        Write-Host -ForegroundColor red "!!! Risk for Data loss !!!"
+        Write-Host ""
+        Write-Host -ForegroundColor red "Please inspect the output of Terraform plan carefully before proceeding" 
+        Write-Host ""
+        if ($PSCmdlet.ShouldProcess($Parameterfile)) {
+            $ans = Read-Host -Prompt "Do you want to continue Y/N?"
+            if ("Y" -eq $ans) {
+    
+            }
+            else {
+                return 
+            }
+        }
+    }
+    else {
+        Write-Host ""
+        Write-Host -ForegroundColor green "The environment was deployed using the $versionLabel version of the Terrafrom templates"
+        Write-Host ""
+        Write-Host ""
+    }
+
+    Write-Host -ForegroundColor green "Running plan, please wait"
+    $Command = " plan -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
+
+    $Cmd = "terraform $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
+    $planResults = & ([ScriptBlock]::Create($Cmd)) | Out-String 
+    
+    if ($LASTEXITCODE -ne 0) {
+        throw "Error executing command: $Cmd"
+    }
+
+    $planResultsPlain = $planResults -replace '\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]', ''
+
+    if ( $planResultsPlain.Contains('Infrastructure is up-to-date')) {
+        Write-Host ""
+        Write-Host -ForegroundColor Green "Infrastructure is up to date"
+        Write-Host ""
+        return;
+    }
+
+    Write-Host $planResults
+    if (-not $planResultsPlain.Contains('0 to change, 0 to destroy') ) {
+        Write-Host ""
+        Write-Host -ForegroundColor red "!!! Risk for Data loss !!!"
+        Write-Host ""
+        Write-Host -ForegroundColor red "Please inspect the output of Terraform plan carefully before proceeding" 
+        Write-Host ""
+        if ($PSCmdlet.ShouldProcess($Parameterfile)) {
+            $ans = Read-Host -Prompt "Do you want to continue Y/N?"
+            if ("Y" -ne $ans) {
+                return 
+            }
+        }
+    }
+
+    if ($PSCmdlet.ShouldProcess($Parameterfile)) {
+        Write-Host -ForegroundColor green "Running apply"
+        $Command = " apply -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
+        Add-Content -Path "deployment.log" -Value $Cmd
+
+        $Cmd = "terraform $Command"
+        & ([ScriptBlock]::Create($Cmd))  
+        if ($LASTEXITCODE -ne 0) {
+            throw "Error executing command: $Cmd"
+        }
+    }
+    if (Test-Path ".\backend.tf" -PathType Leaf) {
+        Remove-Item -Path ".\backend.tf"  -Force 
+    }
+
+}
+function Read-KVNode {
+    param(
+        [Parameter(Mandatory = $true)][String]$source,
+        [Parameter(Mandatory = $true)][PSCustomObject]$kv,
+        [Parameter(Mandatory = $false)][bool]$CheckIDs = $false
+    )
+
+    if ($null -ne $kv.kv_spn_id) {
+        Write-Host -ForegroundColor White ("SPN keyvault".PadRight(25, ' ') + $kv.kv_spn_id)
+        if($CheckIDs) {
+            $res = Get-AzResource -ResourceId $kv.kv_spn_id -ErrorAction SilentlyContinue
+            if($null -eq $res){
+                Write-Error "The resource" $kv.kv_spn_id "does not exist"
+            }
+        }
+
+    }
+    else {
+        Write-Host -ForegroundColor White ("SPN keyvault".PadRight(25, ' ') + "Deployer")
+    }
+
+    if ($null -ne $kv.kv_user_id) {
+        Write-Host -ForegroundColor White ("User keyvault".PadRight(25, ' ') + $kv.kv_user_id)
+        if($CheckIDs) {
+            $res = Get-AzResource -ResourceId $kv.kv_user_id -ErrorAction SilentlyContinue
+            if($null -eq $res){
+                Write-Error "The resource" $kv.kv_user_id "does not exist"
+            }
+        }
+    }
+    else {
+        Write-Host -ForegroundColor White ("User keyvault".PadRight(25, ' ') + $source)
+    }
+    if ($null -ne $kv.kv_prvt_id) {
+        Write-Host -ForegroundColor White ("Automation keyvault".PadRight(25, ' ') + $kv.kv_prvt_id)
+        if($CheckIDs) {
+            $res = Get-AzResource -ResourceId $kv.kv_prvt_id -ErrorAction SilentlyContinue
+            if($null -eq $res){
+                Write-Error "The resource" $kv.kv_prvt_id "does not exist"
+            }
+        }
+
+    }
+    else {
+        Write-Host -ForegroundColor White ("Automation keyvault".PadRight(25, ' ') + $source)
+    }
+}
+
+function Read-OSNode {
+    param(
+        [Parameter(Mandatory = $true)][string]$Nodename,
+        [Parameter(Mandatory = $true)][PSCustomObject]$os,
+        [Parameter(Mandatory = $false)][bool]$CheckIDs = $false
+    )
+
+    if ($null -ne $os.source_image_id) {
+        Write-Host -ForegroundColor White (($Nodename + " Custom image:").PadRight(25, ' ') + $os.source_image_id)
+        if($CheckIDs) {
+            $res = Get-AzResource -ResourceId $os.source_image_id -ErrorAction SilentlyContinue
+            if($null -eq $res){
+                Write-Error "The resource" $os.source_image_id "does not exist"
+            }
+        }
+
+        if ($null -ne $os.os_type) {
+            Write-Host -ForegroundColor White (($Nodename + " Custom image os type:").PadRight(25, ' ') + $os.os_type)
+        }
+        else {
+            Write-Error "The Operating system must be specified if custom images are used"
+        }
+    }
+    else {
+        if ($null -ne $os.publisher) {
+            Write-Host -ForegroundColor White (($Nodename + " publisher:").PadRight(25, ' ') + $os.publisher)
+        }
+        if ($null -ne $os.offer) {
+            Write-Host -ForegroundColor White (($Nodename + " offer:").PadRight(25, ' ') + $os.offer)
+        }
+        if ($null -ne $os.sku) {
+            Write-Host -ForegroundColor White (($Nodename + " sku:").PadRight(25, ' ') + $os.sku)
+        }
+        if ($null -ne $os.version) {
+            Write-Host -ForegroundColor White (($Nodename + " version:").PadRight(25, ' ') + $os.version)
+        }
+    }
+}
+
+function Read-SubnetNode {
+    param(
+        [Parameter(Mandatory = $true)][string]$Nodename,
+        [Parameter(Mandatory = $true)][PSCustomObject]$subnet,
+        [Parameter(Mandatory = $false)][bool]$CheckIDs = $false
+    )
+    
+    if ($null -ne $subnet.arm_id) {
+        Write-Host -ForegroundColor White (($Nodename + " subnet:").PadRight(25, ' ') + $subnet.arm_id)
+        if($CheckIDs) {
+            $res = Get-AzResource -ResourceId $subnet.arm_id -ErrorAction SilentlyContinue
+            if($null -eq $res){
+                Write-Error "The resource" $subnet.arm_id "does not exist"
+            }
+        }
+    }
+    else {
+        if ($null -ne $subnet.name) {
+            Write-Host -ForegroundColor White (("" + $NodeName + " subnet:").PadRight(25, ' ') + $subnet.name)
+        }
+        else {
+            Write-Host -ForegroundColor White (("" + $NodeName + " subnet:").PadRight(25, ' ') + "(name defined by automation")
+        }
+        if ($null -ne $subnet.prefix) {
+            Write-Host -ForegroundColor White ("  Prefix:".PadRight(25, ' ') + $subnet.prefix)
+        }
+        else {
+            Write-Error "The address prefix for the "+ $NodeName + " subnet (infrastructure.vnets.sap.subnet_xxx) must be defined"
+        }
+    }
+    if ($null -ne $subnet.nsg.arm_id) {
+        Write-Host -ForegroundColor White (($NodeName + " subnet nsg:").PadRight(25, ' ') + $subnet.nsg.arm_id)
+        if($CheckIDs) {
+            $res = Get-AzResource -ResourceId $subnet.nsg.arm_id -ErrorAction SilentlyContinue
+            if($null -eq $res){
+                Write-Error "The resource" $subnet.nsg.arm_id "does not exist"
+            }
+        }
+    }
+    else {
+        if ($null -ne $subnet.nsg.name) {
+            Write-Host -ForegroundColor White (("" + $NodeName + " subnet nsg:").PadRight(25, ' ') + $subnet.nsg.name)
+        }
+        else {
+            Write-Host -ForegroundColor White (("" + $NodeName + " subnet nsg:").PadRight(25, ' ') + "(name defined by automation")    
+        }
+    }
+
+}
+
+function Read-SAPDeploymentTemplate {
+    <#
+    .SYNOPSIS
+        Validates a deployment template
+
+    .DESCRIPTION
+        Validates a deployment template
+
+    .PARAMETER Parameterfile
+        This is the parameter file for the system
+
+    .PARAMETER Type
+        This is the type of the system
+
+    .PARAMETER CheckIDs
+        Boolean flag indicating if the ARM Ids should be validated
+
+    .EXAMPLE 
+
+    #
+    #
+    # Import the module
+    Import-Module "SAPDeploymentUtilities.psd1"
+    Read-SAPDeploymemtTemplat -Parameterfile .\PROD-WEEU-SAP00-X00.json -Type sap_system
+
+    .EXAMPLE 
+
+    #
+    #
+    # Import the module
+    Import-Module "SAPDeploymentUtilities.psd1"
+    Read-SAPDeploymemtTemplat -Parameterfile .\PROD-WEEU-SAP_LIBRARY.json -Type sap_library
+
+    
+.LINK
+    https://github.com/Azure/sap-hana
+
+.NOTES
+    v0.1 - Initial version
+
+.
+
+    #>
+    <#
+Copyright (c) Microsoft Corporation.
+Licensed under the MIT license.
+#>
+    [cmdletbinding()]
+    param(
+        #Parameter file
+        [Parameter(Mandatory = $true)][string]$Parameterfile ,
+        [Parameter(Mandatory = $true)][string]$Type,
+        [Parameter(Mandatory = $false)][bool]$CheckIDs = $false
+    )
+
+    Write-Host -ForegroundColor green ""
+    Write-Host -ForegroundColor green "Validate the parameter file " $Parameterfile " " $Type
+
+    $fInfo = Get-ItemProperty -Path $Parameterfile
+    if (!$fInfo.Exists ) {
+        Write-Error ("File " + $Parameterfile + " does not exist")
+        return
+    }
+
+    $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
+
+    $Environment = $jsonData.infrastructure.environment
+    $region = $jsonData.infrastructure.region
+    $db_zone_count = 0
+    $app_zone_count = 0
+    $scs_zone_count = 0
+    $web_zone_count = 0
+
+    if ("sap_system" -eq $Type) {
+        $db_zone_count = $jsonData.databases[0].zones.Length
+        $app_zone_count = $jsonData.application.app_zones.Length
+        $scs_zone_count = $jsonData.application.scs_zones.Length
+        $web_zone_count = $jsonData.application.web_zones.Length
+    }
+    $zone_count = ($db_zone_count, $app_zone_count, $scs_zone_count, $web_zone_count | Measure-Object -Max).Maximum
+
+    Write-Host -ForegroundColor White "Deployment information"
+    Write-Host -ForegroundColor White "------------------------------------------------------------------------------------------------"
+    Write-Host -ForegroundColor White ("Environment:".PadRight(25, ' ') + $Environment)
+    Write-Host -ForegroundColor White ("Region:".PadRight(25, ' ') + $region)
+    Write-Host "-".PadRight(120, '-')
+    if ($null -ne $jsonData.infrastructure.resource_group.arm_id) {
+        Write-Host -ForegroundColor White ("Resource group:".PadRight(25, ' ') + $jsonData.infrastructure.resource_group.arm_id)
+        if($CheckIDs) {
+            $res = Get-AzResource -ResourceId $jsonData.infrastructure.resource_group.arm_id -ErrorAction SilentlyContinue
+            if($null -eq $res){
+                Write-Error "The resource" $jsonData.infrastructure.resource_group.arm_id "does not exist"
+            }
+        }
+    }
+    else {
+        if ($null -ne $jsonData.infrastructure.resource_group.name) {
+            Write-Host -ForegroundColor White ("Resource group:".PadRight(25, ' ') + $jsonData.infrastructure.resource_group.name)
+        }
+        else {
+            Write-Host -ForegroundColor White ("Resource group:".PadRight(25, ' ') + "(name defined by automation")
+        }
+    }
+    if ( $zone_count -gt 1) {
+        Write-Host -ForegroundColor White ("PPG:".PadRight(25, ' ') + "(" + $zone_count.ToString() + ") (name defined by automation")
+    }
+    else {
+        Write-Host -ForegroundColor White ("PPG:".PadRight(25, ' ') + "(name defined by automation")
+    }
+
+    if ("sap_deployer" -eq $Type) {
+        if ($null -ne $jsonData.infrastructure.vnets.management.armid) {
+            Write-Host -ForegroundColor White ("Virtual Network:".PadRight(25, ' ') + $jsonData.infrastructure.vnets.management.armid)
+            if($CheckIDs) {
+                $res = Get-AzResource -ResourceId $jsonData.infrastructure.vnets.management.armid -ErrorAction SilentlyContinue
+                if($null -eq $res){
+                    Write-Error "The resource" $jsonData.infrastructure.vnets.management.armid "does not exist"
+                }
+            }
+        }
+        else {
+            Write-Host -ForegroundColor White ("Virtual Network:".PadRight(25, ' ') + " (Name defined by automation")
+            if ($null -ne $jsonData.infrastructure.vnets.management.address_space) {
+                Write-Host -ForegroundColor White ("  Address space:".PadRight(25, ' ') + $jsonData.infrastructure.vnets.management.address_space)
+            }
+            else {
+                Write-Error "The address space for the virtual network (infrastructure-vnet.management.address_space) must be defined"
+            }
+        }
+        # Management subnet
+        Read-SubnetNode -Nodename "management" -subnet $jsonData.infrastructure.vnets.management.subnet_mgmt -CheckIDs $CheckIDs
+
+        if ($null -ne $jsonData.infrastructure.vnets.management.subnet_fw) {
+            # Web subnet
+            Read-SubnetNode -Nodename "firewall" -subnet $jsonData.infrastructure.vnets.management.subnet_fw -CheckIDs $CheckIDs
+        }
+
+        if ($null -ne $jsonData.deployers) {
+            if ($null -ne $jsonData.deployers[0].os) {
+                Read-OSNode -Nodename "  Image" -os $jsonData.deployers[0].os -CheckIDs $CheckIDs
+            }
+            if ($null -ne $jsonData.deployers[0].size) {
+                Write-Host -ForegroundColor White ("  sku:".PadRight(25, ' ') + $jsonData.deployers[0].size)    
+            }
+    
+        }
+
+        Write-Host -ForegroundColor White "Keyvault"
+        Write-Host "-".PadRight(120, '-')
+        if ($null -ne $jsonData.key_vault) {
+            Read-KVNode -source "Deployer Keyvault" -kv $jsonData.key_vault -CheckIDs $CheckIDs
+        }
+
+        if ($null -ne $jsonData.firewall_deployment) {
+            Write-Host -ForegroundColor White ("Firewall:".PadRight(25, ' ') + $jsonData.firewall_deployment)
+        }
+        else {
+            Write-Host -ForegroundColor White ("Firewall:".PadRight(25, ' ') + $false)
+        }
+
+    }
+    if ("sap_library" -eq $Type) {
+        Write-Host -ForegroundColor White "Keyvault"
+        Write-Host "-".PadRight(120, '-')
+        if ($null -ne $jsonData.key_vault) {
+            Read-KVNode -source "Library Keyvault" -kv $jsonData.key_vault -CheckIDs $CheckIDs
+        }
+
+    }
+    if ("sap_landscape" -eq $Type) {
+        if ($null -ne $jsonData.infrastructure.vnets.sap.name) {
+            Write-Host -ForegroundColor White ("VNet Logical name:".PadRight(25, ' ') + $jsonData.infrastructure.vnets.sap.name)
+        }
+        else {
+            Write-Error "VNet Logical name (infrastructure-vnet.sap.name) must be defined"
+        }
+        if ($null -ne $jsonData.infrastructure.vnets.sap.armid) {
+            Write-Host -ForegroundColor White ("Virtual Network:".PadRight(25, ' ') + $jsonData.infrastructure.vnets.sap.armid)
+            if($CheckIDs) {
+                $res = Get-AzResource -ResourceId $jsonData.infrastructure.vnets.sap.armid -ErrorAction SilentlyContinue
+                if($null -eq $res){
+                    Write-Error "The resource" $jsonData.infrastructure.vnets.sap.armid "does not exist"
+                }
+            }
+
+        }
+        else {
+            Write-Host -ForegroundColor White ("Virtual Network:".PadRight(25, ' ') + " (Name defined by automation")
+            if ($null -ne $jsonData.infrastructure.vnets.sap.address_space) {
+                Write-Host -ForegroundColor White ("  Address space:".PadRight(25, ' ') + $jsonData.infrastructure.vnets.sap.address_space)
+            }
+            else {
+                Write-Error "The address space for the virtual network (infrastructure-vnet.sap.address_space) must be defined"
+            }
+        }
+
+        Write-Host -ForegroundColor White "Keyvault"
+        Write-Host "-".PadRight(120, '-')
+        if ($null -ne $jsonData.key_vault) {
+            Read-KVNode -source "Workload keyvault" -kv $jsonData.key_vault -CheckIDs $CheckIDs
+        }
+
+    }
+    if ("sap_system" -eq $Type) {
+
+        Write-Host
+        Write-Host -ForegroundColor White "Networking"
+        Write-Host "-".PadRight(120, '-')
+        if ($null -ne $jsonData.infrastructure.vnets.sap.name) {
+            Write-Host -ForegroundColor White ("VNet Logical name:".PadRight(25, ' ') + $jsonData.infrastructure.vnets.sap.name)
+        }
+        else {
+            Write-Error "VNet Logical name (infrastructure-vnet.sap.name) must be defined"
+        }
+
+        # Admin subnet
+        Read-SubnetNode -Nodename "admin" -subnet $jsonData.infrastructure.vnets.sap.subnet_admin -CheckIDs $CheckIDs
+        # Database subnet
+        Read-SubnetNode -Nodename "database" -subnet $jsonData.infrastructure.vnets.sap.subnet_db -CheckIDs $CheckIDs
+        # Application subnet
+        Read-SubnetNode -Nodename "database" -subnet $jsonData.infrastructure.vnets.sap.subnet_app -CheckIDs $CheckIDs
+
+        if ($null -ne $jsonData.infrastructure.vnets.sap.subnet_web) {
+            # Web subnet
+            Read-SubnetNode -Nodename "web" -subnet $jsonData.infrastructure.vnets.sap.subnet_web -CheckIDs $CheckIDs
+        }
+        
+        Write-Host
+        Write-Host -ForegroundColor White "Database tier"
+        Write-Host "-".PadRight(120, '-')
+        Write-Host -ForegroundColor White ("Platform:".PadRight(25, ' ') + $jsonData.databases[0].platform)
+        Write-Host -ForegroundColor White ("High availability:".PadRight(25, ' ') + $jsonData.databases[0].high_availability)
+        Write-Host -ForegroundColor White ("Database load balancer:".PadRight(25, ' ') + "(name defined by automation")
+        if ( $db_zone_count -gt 1) {
+            Write-Host -ForegroundColor White ("Database availability set:".PadRight(25, ' ') + "(" + $db_zone_count.ToString() + ") (name defined by automation")
+        }
+        else {
+            Write-Host -ForegroundColor White ("Database availability set:".PadRight(25, ' ') + "(name defined by automation")
+        }
+    
+        Write-Host -ForegroundColor White ("Number of servers:".PadRight(25, ' ') + $jsonData.databases[0].dbnodes.Length)
+        Write-Host -ForegroundColor White ("Database sizing:".PadRight(25, ' ') + $jsonData.databases[0].size)
+        Read-OSNode -Nodename "Image" -os $jsonData.databases[0].os -CheckIDs $CheckIDs
+        if ($jsonData.databases[0].zones.Length -gt 0) {
+            Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Zonal")    
+            $Zones = "["
+            for ($zone = 0 ; $zone -lt $jsonData.databases[0].zones.Length ; $zone++) {
+                $Zones = $Zones + "" + $jsonData.databases[0].zones[$zone] + ","
+            }
+            $Zones = $Zones.Substring(0, $Zones.Length - 1)
+            $Zones = $Zones + "]"
+            Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $Zones)    
+        }
+        else {
+            Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Regional")    
+        }
+        
+        if ($jsonData.databases[0].use_DHCP) {
+            Write-Host -ForegroundColor White ("Networking:".PadRight(25, ' ') + "Use Azure provided IP addresses")    
+        }
+        else {
+            Write-Host -ForegroundColor White ("Networking:".PadRight(25, ' ') + "Use Customer provided IP addresses")    
+        }
+        if ($jsonData.databases[0].authentication) {
+            if ($jsonData.databases[0].authentication.type.ToLower() -eq "password") {
+                Write-Host -ForegroundColor White ("Authentication:".PadRight(25, ' ') + "Username/password")    
+            }
+            else {
+                Write-Host -ForegroundColor White ("Authentication:".PadRight(25, ' ') + "ssh keys")    
+            }
+    
+        }
+        else {
+            Write-Host -ForegroundColor White ("Authentication:".PadRight(25, ' ') + "ssh keys")    
+        }
+
+        Write-Host
+        Write-Host -ForegroundColor White "Application tier"
+        Write-Host "-".PadRight(120, '-')
+        if ($jsonData.application.authentication) {
+            if ($jsonData.application.authentication.type.ToLower() -eq "password") {
+                Write-Host -ForegroundColor White ("Authentication:".PadRight(25, ' ') + "Username/password")    
+            }
+            else {
+                Write-Host -ForegroundColor White ("Authentication:".PadRight(25, ' ') + "key")    
+            }
+        }
+        else {
+            Write-Host -ForegroundColor White ("Authentication:".PadRight(25, ' ') + "key")    
+        }
+
+        Write-Host -ForegroundColor White "Application servers"
+        if ( $app_zone_count -gt 1) {
+            Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(" + $app_zone_count.ToString() + ") (name defined by automation")
+        }
+        else {
+            Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(name defined by automation")
+        }
+        Write-Host -ForegroundColor White ("  Number of servers:".PadRight(25, ' ') + $jsonData.application.application_server_count)    
+        Read-OSNode -Nodename "  Image" -os $jsonData.application.os -CheckIDs $CheckIDs
+        if ($null -ne $jsonData.application.app_sku) {
+            Write-Host -ForegroundColor White ("  sku:".PadRight(25, ' ') + $jsonData.application.app_sku)    
+        }
+        if ($jsonData.application.app_zones.Length -gt 0) {
+            Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Zonal")    
+            $Zones = "["
+            for ($zone = 0 ; $zone -lt $jsonData.application.app_zones.Length ; $zone++) {
+                $Zones = $Zones + "" + $jsonData.application.app_zones[$zone] + ","
+            }
+            $Zones = $Zones.Substring(0, $Zones.Length - 1)
+            $Zones = $Zones + "]"
+            Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $Zones)    
+        }
+        else {
+            Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Regional")    
+        }
+        
+        Write-Host -ForegroundColor White "Central Services"
+        Write-Host -ForegroundColor White ("  Number of servers:".PadRight(25, ' ') + $jsonData.application.scs_server_count)    
+        Write-Host -ForegroundColor White ("  High availability:".PadRight(25, ' ') + $jsonData.application.scs_high_availability)    
+        Write-Host -ForegroundColor White ("  Load balancer:".PadRight(25, ' ') + "(name defined by automation")
+        if ( $scs_zone_count -gt 1) {
+            Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(" + $scs_zone_count.ToString() + ") (name defined by automation")
+        }
+        else {
+            Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(name defined by automation")
+        }
+        if ($null -ne $jsonData.application.scs_os) {
+            Read-OSNode -Nodename "  Image" -os $jsonData.application.scs_os -CheckIDs $CheckIDs
+        }
+        else {
+            Read-OSNode -Nodename "  Image" -os $jsonData.application.os -CheckIDs $CheckIDs
+        }
+        if ($null -ne $jsonData.application.scs_sku) {
+            Write-Host -ForegroundColor White ("  sku:".PadRight(25, ' ') + $jsonData.application.scs_sku)    
+        }
+        if ($jsonData.application.scs_zones.Length -gt 0) {
+            Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Zonal")    
+            $Zones = "["
+            for ($zone = 0 ; $zone -lt $jsonData.application.scs_zones.Length ; $zone++) {
+                $Zones = $Zones + "" + $jsonData.application.scs_zones[$zone] + ","
+            }
+            $Zones = $Zones.Substring(0, $Zones.Length - 1)
+            $Zones = $Zones + "]"
+            Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $Zones)    
+        }
+        else {
+            Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Regional")    
+        }
+        Write-Host -ForegroundColor White "Web Dispatchers"
+        Write-Host -ForegroundColor White ("  Number of servers:".PadRight(25, ' ') + $jsonData.application.webdispatcher_count)    
+        Write-Host -ForegroundColor White ("  Load balancer:".PadRight(25, ' ') + "(name defined by automation")
+        if ( $web_zone_count -gt 1) {
+            Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(" + $web_zone_count.ToString() + ") (name defined by automation")
+        }
+        else {
+            Write-Host -ForegroundColor White ("  Availability set:".PadRight(25, ' ') + "(name defined by automation")
+        }
+        if ($null -ne $jsonData.application.web_os) {
+            Read-OSNode -Nodename "  Image" -os $jsonData.application.web_os -CheckIDs $CheckIDs
+        }
+        else {
+            Read-OSNode -Nodename "  Image" -os $jsonData.application.os -CheckIDs $CheckIDs
+        }
+        if ($null -ne $jsonData.application.web_sku) {
+            Write-Host -ForegroundColor White ("  sku:".PadRight(25, ' ') + $jsonData.application.web_sku)    
+        }
+
+        if ($jsonData.application.web_zones.Length -gt 0) {
+            Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Zonal")    
+            $Zones = "["
+            for ($zone = 0 ; $zone -lt $jsonData.application.web_zones.Length ; $zone++) {
+                $Zones = $Zones + "" + $jsonData.application.web_zones[$zone] + ","
+            }
+            $Zones = $Zones.Substring(0, $Zones.Length - 1)
+            $Zones = $Zones + "]"
+            Write-Host -ForegroundColor White ("  Zone:".PadRight(25, ' ') + $Zones)    
+        }
+        else {
+            Write-Host -ForegroundColor White ("Deployment:".PadRight(25, ' ') + "Regional")    
+
+        }
+        Write-Host -ForegroundColor White "Keyvault"
+        Write-Host "-".PadRight(120, '-')
+        if ($null -ne $jsonData.key_vault) {
+            Read-KVNode -source "Workload keyvault" -kv $jsonData.key_vault -CheckIDs $CheckIDs
+        }
+    }
+}
+function Remove-SAPSystem {
+    <#
+    .SYNOPSIS
+        Removes a deployment
+
+    .DESCRIPTION
+        Removes a deployment
+
+    .PARAMETER Parameterfile
+        This is the parameter file for the system
+
+    .PARAMETER Type
+        This is the type of the system
+
+    .EXAMPLE 
+
+    #
+    #
+    # Import the module
+    Import-Module "SAPDeploymentUtilities.psd1"
+    Remove-System -Parameterfile .\PROD-WEEU-SAP00-X00.json -Type sap_system
+
+    .EXAMPLE 
+
+    #
+    #
+    # Import the module
+    Import-Module "SAPDeploymentUtilities.psd1"
+    Remove-System -Parameterfile .\PROD-WEEU-SAP_LIBRARY.json -Type sap_library
+
+    
+.LINK
+    https://github.com/Azure/sap-hana
+
+.NOTES
+    v0.1 - Initial version
+
+.
+
+    #>
+    <#
+Copyright (c) Microsoft Corporation.
+Licensed under the MIT license.
+#>
+    [cmdletbinding()]
+    param(
+        #Parameter file
+        [Parameter(Mandatory = $true)][string]$Parameterfile ,
+        [Parameter(Mandatory = $true)][string]$Type
+    )
+
+    Write-Host -ForegroundColor green ""
+    Write-Host -ForegroundColor green "Remove the" $Type
+
+    $fInfo = Get-ItemProperty -Path $Parameterfile
+    if (!$fInfo.Exists ) {
+        Write-Error ("File " + $Parameterfile + " does not exist")
+        return
+    }
+
+    Add-Content -Path "deployment.log" -Value ("Removing the: " + $Type)
+    Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
+
+    $mydocuments = [environment]::getfolderpath("mydocuments")
+    $filePath = $mydocuments + "\sap_deployment_automation.ini"
+    $iniContent = Get-IniContent -Path $filePath
+
+    $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
+
+    $Environment = $jsonData.infrastructure.environment
+    $region = $jsonData.infrastructure.region
+    $combined = $Environment + $region
+
+    $deployer_tfstate_key = $iniContent[$combined]["Deployer"]
+    $landscape_tfstate_key = $iniContent[$combined]["Landscape"]
+
+    $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"] 
+
+    $repo = $iniContent["Common"]["repo"]
+    $changed = $false
+
+    if ($null -eq $repo -or "" -eq $repo) {
+        $repo = Read-Host -Prompt "Please enter the subscription"
+        $iniContent["Common"]["repo"] = $repo
+        $changed = $true
+    }
+
+    if ($changed) {
+        Out-IniFile -InputObject $iniContent -Path $filePath
+    }
+    
+    $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\run\$Type"
+
+    if ($Type -ne "sap_deployer") {
+        $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
+    }
+
+    if ($Type -eq "sap_landscape") {
+        $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
+        if($deployer_tfstate_key.Length -gt 0) {
+            $deployer_tfstate_key_parameter = " -var deployer_tfstate_key=" + $deployer_tfstate_key
+        }
+        else {
+            $deployer_tfstate_key_parameter = " "
+        }
+    }
+
+    if ($Type -eq "sap_library") {
+        $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
+        $deployer_tfstate_key_parameter = " -var deployer_tfstate_key=" + $deployer_tfstate_key
+    }
+
+    if ($Type -eq "sap_system") {
+        $tfstate_parameter = " -var tfstate_resource_id=" + $tfstate_resource_id
+        if($deployer_tfstate_key.Length -gt 0) {
+            $deployer_tfstate_key_parameter = " -var deployer_tfstate_key=" + $deployer_tfstate_key
+        }
+        else {
+            $deployer_tfstate_key_parameter = " "
+        }
+        $landscape_tfstate_key_parameter = " -var landscape_tfstate_key=" + $landscape_tfstate_key
+    }
+
+
+    Write-Host -ForegroundColor green "Running destroy"
+    $Command = " destroy -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
+
+    $Cmd = "terraform $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
+    & ([ScriptBlock]::Create($Cmd))  
+    if ($LASTEXITCODE -ne 0) {
+        throw "Error executing command: $Cmd"
+    }
+
+    if (Test-Path ".\backend.tf" -PathType Leaf) {
+        Remove-Item -Path ".\backend.tf"  -Force 
+    }
+
+    if ($Type -eq "sap_library") {
+        $iniContent[$combined]["REMOTE_STATE_RG"] = "[DELETED]"
+        $iniContent[$combined]["REMOTE_STATE_SA"] = "[DELETED]"
+        $iniContent[$combined]["tfstate_resource_id"] = "[DELETED]"
+        $iniContent[$combined]["kvsubscription"] = "[DELETED]"
+        Out-IniFile -InputObject $iniContent -Path $filePath
+    }
+
+    if ($Type -eq "sap_landscape") {
+        $iniContent[$combined]["Landscape"] = "[DELETED]"
+        Out-IniFile -InputObject $iniContent -Path $filePath
+    }
+    if ($Type -eq "sap_deployer") {
+        $iniContent[$combined]["Deployer"] = "[DELETED]"
+        $iniContent[$combined]["kvsubscription"] = "[DELETED]"
+    }
+
+}
+#>
+Function Set-SAPSPNSecrets {
+    <#
+    .SYNOPSIS
+        Sets the SPN Secrets in Azure Keyvault
+
+    .DESCRIPTION
+        Sets the secrets in Azure Keyvault that are required for the deployment automation
+
+    .PARAMETER Region
+        This is the region name
+
+     .PARAMETER Environment
+        This is the name of the environment.
+
+    .PARAMETER VAultNAme
+        This is the name of the keyvault
+
+    .PARAMETER Client_id
+        This is the SPN Application ID
+
+    .PARAMETER Client_secret
+        This is the SAP Application password
+
+    .PARAMETER Tenant
+        This is the Tenant ID for the SPN
+        
+
+    .EXAMPLE 
+
+    #
+    #
+    # Import the module
+    Import-Module "SAPDeploymentUtilities.psd1"
+    Set-SAPSPNSecrets -Environment PROD -VaultName <vaultname> -Client_id <appId> -Client_secret <clientsecret> -Tenant <TenantID> 
+
+    
+.LINK
+    https://github.com/Azure/sap-hana
+
+.NOTES
+    v0.1 - Initial version
+
+.
+
+    #>
+    <#
+Copyright (c) Microsoft Corporation.
+Licensed under the MIT license.
+#>
+    [cmdletbinding()]
+    param(
+        #Region
+        [Parameter(Mandatory = $true)][string]$Region,
+        #Environment name
+        [Parameter(Mandatory = $true)][string]$Environment,
+        #Keyvault name
+        [Parameter(Mandatory = $true)][string]$VaultName,
+        # #SPN App ID
+        [Parameter(Mandatory = $true)][string]$Client_id = "",
+        #SPN App secret
+        [Parameter(Mandatory = $true)][string]$Client_secret,
+        #Tenant
+        [Parameter(Mandatory = $true)][string]$Tenant = "",
+        #Workload
+        [Parameter(Mandatory = $true)][bool]$Workload = $true
+
+    )
+
+    Write-Host -ForegroundColor green ""
+    Write-Host -ForegroundColor green "Saving the secrets"
+
+    $mydocuments = [environment]::getfolderpath("mydocuments")
+    $filePath = $mydocuments + "\sap_deployment_automation.ini"
+    $iniContent = Get-IniContent -Path $filePath
+
+    $combined = $Environment + $region
+
+    if($false -eq $Workload) {
+        $combined = $region
+    }
+
+    if ($null -eq $iniContent[$combined]) {
+        $Category1 = @{"subscription" = "" }
+        $iniContent += @{$combined = $Category1 }
+    }
+
+    
+    # Subscription
+    $sub = $iniContent[$combined]["subscription"]
+    if ($null -eq $sub -or "" -eq $sub) {
+        $sub = Read-Host -Prompt "Please enter the subscription for the key vault"
+        $iniContent[$combined]["subscription"] = $sub
+    }
+
+    $ctx= Get-AzContext
+    if($null -eq $ctx) {
+        Connect-AzAccount -Subscription $sub
+    }
+ 
+    $UserUPN = ([ADSI]"LDAP://<SID=$([System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value)>").UserPrincipalName
+    If ($UserUPN) {
+        $UPNAsString = $UserUPN.ToString()
+        Set-AzKeyVaultAccessPolicy -VaultName $VaultName -UserPrincipalName $UPNAsString -PermissionsToSecrets Get, List, Set, Recover, Restore
+    }
+
+    Write-Host "Setting the secrets for " $Environment
+
+    # Read keyvault
+    $vault = $iniContent[$combined]["Vault"]
+
+    if ("" -eq $VaultName) {
+        if ($vault -eq "" -or $null -eq $vault) {
+            $vault = Read-Host -Prompt 'Keyvault:'
+        }
+    }
+    else {
+        $vault = $VaultName
+    }
+
+    # Read SPN ID
+    $spnid = $iniContent[$combined]["Client_id"]
+
+    if ("" -eq $Client_id ) {
+        if ($spnid -eq "" -or $null -eq $spnid) {
+            $spnid = Read-Host -Prompt 'SPN App ID:'
+            $iniContent[$combined]["Client_id"] = $spnid 
+        }
+    }
+    else {
+        $spnid = $Client_id
+        $iniContent[$combined]["Client_id"] = $Client_id
+    }
+
+    # Read Tenant
+    $t = $iniContent[$combined]["Tenant"]
+
+    if ("" -eq $Tenant) {
+        if ($t -eq "" -or $null -eq $t) {
+            $t = Read-Host -Prompt 'Tenant:'
+            $iniContent[$combined]["Tenant"] = $t 
+        }
+    }
+    else {
+        $t = $Tenant
+        $iniContent[$combined]["Tenant"] = $Tenant
+    }
+
+    if ("" -eq $Client_secret) {
+        $spnpwd = Read-Host -Prompt 'SPN Password:'
+    }
+    else {
+        $spnpwd = $Client_secret
+    }
+
+    Out-IniFile -InputObject $iniContent -Path $filePath
+
+    $Secret = ConvertTo-SecureString -String $sub -AsPlainText -Force
+    $Secret_name = $Environment + "-subscription-id"
+    Write-Host "Setting the secret "$Secret_name " in vault " $vault
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+
+    $Secret = ConvertTo-SecureString -String $spnid -AsPlainText -Force
+    $Secret_name = $Environment + "-client-id"
+    Write-Host "Setting the secret "$Secret_name " in vault " $vault
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+
+    $Secret = ConvertTo-SecureString -String $t -AsPlainText -Force
+    $Secret_name = $Environment + "-tenant-id"
+    Write-Host "Setting the secret "$Secret_name " in vault " $vault
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+
+    $Secret = ConvertTo-SecureString -String $spnpwd -AsPlainText -Force
+    $Secret_name = $Environment + "-client-secret"
+    Write-Host "Setting the secret "$Secret_name " in vault " $vault
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+
+    $Secret = ConvertTo-SecureString -String $sub -AsPlainText -Force
+    $Secret_name = $Environment + "-subscription"
+    Write-Host "Setting the secret "$Secret_name " in vault " $vault
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+
+}
+
+Add-Type -TypeDefinition @"
+   public enum SAP_Types
+   {
+      sap_deployer,
+      sap_landscape,
+      sap_library,
+      sap_system
+   }
+"@

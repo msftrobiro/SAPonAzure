@@ -33,6 +33,8 @@
 
 export           ANSIBLE_HOST_KEY_CHECKING=False
 
+./get-sshkey.sh
+
 PS3='Please select playbook: '
 options=(                           \
         "Base OS Config"            \

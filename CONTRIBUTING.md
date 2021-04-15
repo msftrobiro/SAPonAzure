@@ -93,17 +93,18 @@ This section captures fundamentals on how new features should be developed and f
 ### PR reviews guidelines
 We need to ensure quality along with agility. We need to move to everyone agreeing on the base requirement and then relying on systems in place to catch and mitigate issues.
 1. Focus on the [PR Basics](#pr-basics). PRs have to adhere to Basics with no exceptions.
-1. In additional to Basics, PR reviews need to focus on the quality of a PR. eg. catching potential issues/bugs, semantic problems, nitpicks, etc...
-1. Keep PRs in an open published state for at least one working day, which would allow everyone in other regions to review.
-1. For hotfixes, keep PRs open for at least 4 business hrs.
-1. The maintainer is [here](https://github.com/Azure/sap-hana/blob/master/CODEOWNERS).
+2. In additional to Basics, PR reviews need to focus on the quality of a PR. eg. catching potential issues/bugs, semantic problems, nitpicks, etc...
+3.  Keep PRs in an open published state for at least one working day, which would allow everyone in other regions to review.
+4. For hotfixes, keep PRs open for at least 4 business hrs.
+5. The maintainer is [here](https://github.com/Azure/sap-hana/blob/master/CODEOWNERS).
+<br/><br/><br/>
 
 ### Release strategy
 1. All new features should be added to feature branch (eg. `feature/remote-tfstate2`)
-1. All features should stay in beta branch until stable before get into master (eg. `beta/v2.3`)
-1. Only merge beta branches into master.
-1. Create releases of current master before and after merge into master.
-1. Releases naming convention: x.x.x-x (eg. `2.3.1-1`)
+2. All features should stay in beta branch until stable before get into master (eg. `beta/v2.3`)
+3. Only merge beta branches into master.
+4. Create releases of current master before and after merge into master.
+5. Releases naming convention: x.x.x-x (eg. `2.3.1-1`)
    - major version number
    - sub version number
    - maintainance version number

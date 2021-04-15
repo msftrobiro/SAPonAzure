@@ -286,7 +286,7 @@ locals {
           type                      = storage_type.name
           lun                       = storage_type.lun_start + idx
         }
-        if ! try(storage_type.growth, false)
+        if !try(storage_type.growth, false)
       ]
       if storage_type.name != "os"
     ]
@@ -308,7 +308,7 @@ locals {
           type                      = storage_type.name
           lun                       = storage_type.lun_start + idx
         }
-        
+
       ]
       if try(storage_type.growth, false)
     ]
@@ -318,8 +318,7 @@ locals {
 
   data_disk_list = flatten([
     for vm_counter, hdb_vm in local.hdb_vms : [
-      for idx, datadisk in local.all_data_disk_per_dbnode : {
-        vm_index                  = vm_counter
+      for datadisk in local.all_data_disk_per_dbnode : {
         name                      = format("%s-%s", hdb_vm.name, datadisk.suffix)
         vm_index                  = vm_counter
         caching                   = datadisk.caching
@@ -334,12 +333,12 @@ locals {
     ]
   ])
 
-//Disks for Ansible
+  //Disks for Ansible
   // host: xxx, LUN: #, type: sapusr, size: #
 
   db_disks_ansible = flatten([for idx, vm in local.hdb_vms : [
-    for idx, datadisk in local.data_disk_per_dbnode :
-      format("{ host: '%s', LUN: %d, type: '%s' }", vm.name, idx, datadisk.type)
+    for idx, datadisk in local.data_disk_list :
+      format("{ host: '%s', LUN: %d, type: '%s' }", vm.name, datadisk.lun, datadisk.type)
   ]])
 
   enable_ultradisk = try(

@@ -443,6 +443,8 @@ fi
 
 if [ 1 == $check_output ]
 then
+    printf "terraform {\n backend \"azurerm\" {} \n}\n" > backend.tf
+
     outputs=$(terraform output )
     if echo "${outputs}" | grep "No outputs"; then
         ok_to_proceed=true
@@ -461,11 +463,8 @@ then
         echo "#########################################################################################"
         echo ""
 
-        printf "terraform {\n backend \"azurerm\" {} \n}\n" > backend.tf
 
         deployed_using_version=$(terraform output automation_version)
-
-        rm backend.tf
 
         if [ ! -n "${deployed_using_version}" ]; then
             echo ""
@@ -484,6 +483,7 @@ then
             if [ $answer == 'Y' ]; then
                 ok_to_proceed=true
             else
+                rm backend.tf
                 exit 1
             fi
         else

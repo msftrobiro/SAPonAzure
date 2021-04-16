@@ -201,6 +201,7 @@ if [ -n "${result}" ]; then
 fi
     
 az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${subscription}"  > stdout.az 2>&1
+
 result=$(grep "ERROR: The user, group or application" stdout.az)
 
 if [ -n "${result}" ]; then 
@@ -211,8 +212,23 @@ if [ -n "${result}" ]; then
     echo "#                                                                                       #" 
     echo "#########################################################################################"
     echo ""
+    rm stdout.az
     exit -1
 fi
+
+result=$(grep "The Vault may not exist" stdout.az)
+if [ -n "${result}" ]; then 
+    printf -v val "%-20.20s could not be found!" "$vaultname" 
+    echo "#########################################################################################"
+    echo "#                                                                                       #" 
+    echo "#                      Keyvault" "${val}" "               #"
+    echo "#                                                                                       #" 
+    echo "#########################################################################################"
+    echo ""
+    rm stdout.az
+    exit -1
+fi
+
 
 
 secretname="${environment}"-client-id

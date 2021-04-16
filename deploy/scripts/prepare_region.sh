@@ -98,35 +98,6 @@ if [ -z $library_parameter_file ]; then
     exit -1
 fi
 
-if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#   Missing environment variables (ARM_SUBSCRIPTION_ID)!!!                              #"
-    echo "#                                                                                       #"
-    echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-hana))                        #"
-    echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    exit -1
-fi
-
-if [ ! -n "$DEPLOYMENT_REPO_PATH" ]; then
-    echo ""
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#   Missing environment variables (DEPLOYMENT_REPO_PATH)!!!                             #"
-    echo "#                                                                                       #"
-    echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-hana))                        #"
-    echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    exit -1
-fi
-
 # Check terraform
 tf=$(terraform -version | grep Terraform)
 if [ ! -n "$tf" ]; then
@@ -187,7 +158,6 @@ automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 deployer_config_information="${automation_config_directory}""${environment}""${region}"
 
-
 if [ $force == 1 ]
 then
     if [ -f $deployer_config_information ]
@@ -198,7 +168,8 @@ fi
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
-if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
+if [ ! -n "$DEPLOYMENT_REPO_PATH" ]; then
+    echo ""
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -209,10 +180,8 @@ if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
-    exit 4
+    exit -1
 fi
-
-load_config_vars ${deployer_config_information} "ARM_SUBSCRIPTION_ID"
 
 templen=$(echo "${ARM_SUBSCRIPTION_ID}" | wc -c)
 # Subscription length is 37
@@ -234,7 +203,7 @@ if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
     echo "#########################################################################################"
     exit 3
 else
-    if [  $arm_config_stored  == false ]
+    if [ $arm_config_stored  -ne false ]
     then
         echo "Storing the configuration"
         save_config_var "ARM_SUBSCRIPTION_ID" "${deployer_config_information}"

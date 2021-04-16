@@ -9,7 +9,7 @@
 function save_config_var() {
     local var_name=${1} var_file=${2}
 
-    sed -e "" -e /${var_name}/d "${var_file}"
+    sed -i -e "" -e /${var_name}/d "${var_file}"
     echo "${var_name}=${!var_name}" >> "${var_file}"
 }
 
@@ -20,7 +20,7 @@ function save_config_vars() {
     
     for var_name  # iterate over function params
     do
-        sed -e "" -e /${var_name}/d "${var_file}"
+        sed -i -e "" -e /${var_name}/d "${var_file}"
         echo "${var_name}=${!var_name}" >> "${var_file}"
         
     done

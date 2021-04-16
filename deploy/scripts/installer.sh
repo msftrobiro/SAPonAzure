@@ -180,6 +180,8 @@ generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region}"
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
+TF_DATA_DIR="$PWD/.terraform"
+ 
 
 if [ "${deployment_system}" == sap_deployer ]
 then
@@ -400,24 +402,22 @@ fi
 
 if [ ! -d ./.terraform/ ];
 then
-    terraform init -upgrade=true -force-copy \
+    terraform -chdir="${terraform_module_directory}"  init -upgrade=true -force-copy \
     --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
     --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
     --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
     --backend-config "container_name=tfstate" \
-    --backend-config "key=${key}.terraform.tfstate" \
-    $terraform_module_directory
+    --backend-config "key=${key}.terraform.tfstate"
 else
     temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
     if [ ! -z "${temp}" ]
     then
-        terraform init -upgrade=true -force-copy \
+        terraform -chdir="${terraform_module_directory}"  init -upgrade=true -force-copy \
         --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
         --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
         --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
         --backend-config "container_name=tfstate" \
-        --backend-config "key=${key}.terraform.tfstate" \
-        $terraform_module_directory
+        --backend-config "key=${key}.terraform.tfstate"
 
     else
         echo ""
@@ -435,7 +435,7 @@ else
             exit 1
         fi
 
-        terraform init -upgrade=true -var-file="${parameterfile}" $terraform_module_directory
+        terraform -chdir="${terraform_module_directory}"  init -upgrade=true -var-file="${parameterfile}"
         check_output=1
         
     fi
@@ -445,7 +445,7 @@ if [ 1 == $check_output ]
 then
     printf "terraform {\n backend \"azurerm\" {} \n}\n" > backend.tf
 
-    outputs=$(terraform output )
+    outputs=$(terraform -chdir="${terraform_module_directory}" output )
     if echo "${outputs}" | grep "No outputs"; then
         ok_to_proceed=true
         new_deployment=true
@@ -464,7 +464,7 @@ then
         echo ""
 
 
-        deployed_using_version=$(terraform output automation_version)
+        deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output automation_version)
 
         if [ ! -n "${deployed_using_version}" ]; then
             echo ""
@@ -513,7 +513,7 @@ then
     rm plan_output.log
 fi
 
-terraform plan -no-color -var-file=$parameterfile $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory 2>error.log 1>plan_output.log 
+terraform -chdir="${terraform_module_directory}" plan -no-color -var-file=$parameterfile $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter 2>error.log 1>plan_output.log 
 
 str1=$(grep "Error: " error.log)
 if [ -n "${str1}" ]
@@ -602,7 +602,7 @@ if [ $ok_to_proceed ]; then
     echo "#########################################################################################"
     echo ""
     
-    terraform apply ${approve} -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory
+    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory
 fi
 
 if [ "${deployment_system}" == sap_landscape ]
@@ -615,7 +615,7 @@ if [ "${deployment_system}" == sap_library ]
 then
     printf "terraform {\n backend \"azurerm\" {} \n}\n" > backend.tf
 
-    REMOTE_STATE_SA=$(terraform output remote_state_storage_account_name| tr -d \")
+    REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
     REMOTE_STATE_RG=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].resourceGroup  | tr -d \" | xargs)
     tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
     STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)

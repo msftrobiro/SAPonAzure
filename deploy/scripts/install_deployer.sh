@@ -110,6 +110,7 @@ if [ $param_dirname != '.' ]; then
 fi
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
+TF_DATA_DIR="$PWD/.terraform"
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     echo ""
@@ -172,7 +173,7 @@ if [ ! -d ./.terraform/ ]; then
     echo "#                                   New deployment                                      #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
-    terraform init -upgrade=true "${terraform_module_directory}"
+    terraform -chdir="${terraform_module_directory}" init -upgrade=true 
 else
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -194,8 +195,8 @@ else
             fi
         fi
         
-        terraform init -upgrade=true  "${terraform_module_directory}"
-        terraform refresh -var-file="${parameterfile}" "${terraform_module_directory}"
+        terraform -chdir="${terraform_module_directory}" init -upgrade=true
+        terraform -chdir="${terraform_module_directory}" refresh -var-file="${parameterfile}" 
     else
         exit 0
     fi
@@ -209,7 +210,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform plan -var-file="${parameterfile}" "$terraform_module_directory"
+terraform -chdir="${terraform_module_directory}"  plan -var-file="${parameterfile}" 
 
 echo ""
 echo "#########################################################################################"
@@ -219,11 +220,11 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform apply ${approve} -var-file="${parameterfile}" "${terraform_module_directory}"
+terraform -chdir="${terraform_module_directory}"  apply ${approve} -var-file="${parameterfile}" 
 
 printf "terraform {\n backend \"local\" {} \n}\n" > backend.tf
 
-keyvault=$(terraform output deployer_kv_user_name | tr -d \")
+keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
 
 temp=$(echo "${keyvault}" | grep "Warning")
 if [ -z "${temp}" ]

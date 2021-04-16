@@ -155,30 +155,52 @@ Licensed under the MIT license.
 
     Out-IniFile -InputObject $iniContent -Path $filePath
 
+    $err=@()
+
     $Secret = ConvertTo-SecureString -String $sub -AsPlainText -Force
     $Secret_name = $Environment + "-subscription-id"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
-    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
+    if($null -ne $err)
+    {
+        throw $err
+    }
 
     $Secret = ConvertTo-SecureString -String $spnid -AsPlainText -Force
     $Secret_name = $Environment + "-client-id"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
-    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
+    if($null -ne $err)
+    {
+        throw $err
+    }
 
     $Secret = ConvertTo-SecureString -String $t -AsPlainText -Force
     $Secret_name = $Environment + "-tenant-id"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
-    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
+    if($null -ne $err)
+    {
+        throw $err
+    }
 
     $Secret = ConvertTo-SecureString -String $spnpwd -AsPlainText -Force
     $Secret_name = $Environment + "-client-secret"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
-    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
+    if($null -ne $err)
+    {
+        throw $err
+    }
 
     $Secret = ConvertTo-SecureString -String $sub -AsPlainText -Force
     $Secret_name = $Environment + "-subscription"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
-    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
+    if($null -ne $err)
+    {
+        throw $err
+    }
 
 }
 

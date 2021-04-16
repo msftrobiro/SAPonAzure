@@ -227,13 +227,25 @@ Licensed under the MIT license.
         $tfstate_resource_id = $rID.ResourceId
 
         $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
-        $iniContent[$combined]["REMOTE_STATE_SA"] = $saNameF
+        $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
         $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
         $changed = $true
     }
     else {
         $rgName = $iniContent[$combined]["REMOTE_STATE_RG"]
         $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"]
+    }
+
+    if ($null -eq $tfstate_resource_id -or "" -eq $tfstate_resource_id) {
+        $rID = Get-AzResource -Name $saName
+        $rgName = $rID.ResourceGroupName
+        $tfstate_resource_id = $rID.ResourceId
+
+        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
+        $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
+        $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
+        $changed = $true
+
     }
 
     # Subscription
@@ -281,9 +293,10 @@ Licensed under the MIT license.
         if ($LASTEXITCODE -ne 0) {
             throw "Error executing command: $Cmd"
         }
+        $sub = $tfstate_resource_id.Split("/")[2]
     }
     
-    $sub = $tfstate_resource_id.Split("/")[2]
+    
     
 
     $Command = " init -upgrade=true -force-copy -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$key"" " + $terraform_module_directory
@@ -291,7 +304,7 @@ Licensed under the MIT license.
     if (Test-Path ".terraform" -PathType Container) {
         $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
         if ("azurerm" -eq $jsonData.backend.type) {
-            $Command = " init -upgrade=true"
+            $Command = " init -upgrade=true -force-copy -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$key"" " + $terraform_module_directory
 
             $ans = Read-Host -Prompt "The system has already been deployed and the statefile is in Azure, do you want to redeploy Y/N?"
             if ("Y" -ne $ans) {
@@ -343,7 +356,7 @@ Licensed under the MIT license.
 
     New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""azurerm"" {}`n}" -Force
 
-    $Command = " -no-color output automation_version"
+    $Command = " output -no-color automation_version"
 
     $Cmd = "terraform $Command"
     $versionLabel = & ([ScriptBlock]::Create($Cmd)) | Out-String 

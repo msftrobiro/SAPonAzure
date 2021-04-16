@@ -156,6 +156,8 @@ generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region}"
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
+TF_DATA_DIR="$PWD/.terraform"
+
 
 echo "${system_config_information}"
 
@@ -258,8 +260,8 @@ echo "#                             Running Terraform destroy                   
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
-
-terraform destroy -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory
+ 
+terraform -chdir="${terraform_module_directory}" destroy -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter 
 
 if [ $deployment_system == sap_deployer ]
 then

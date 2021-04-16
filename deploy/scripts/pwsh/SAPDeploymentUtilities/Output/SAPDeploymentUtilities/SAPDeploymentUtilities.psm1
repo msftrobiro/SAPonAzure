@@ -126,11 +126,13 @@ Licensed under the MIT license.
         #Parameter file
         [Parameter(Mandatory = $true)][string]$DeployerParameterfile,
         [Parameter(Mandatory = $true)][string]$LibraryParameterfile,
-        [Parameter(Mandatory=$false)][Switch]$Force
+        [Parameter(Mandatory = $false)][Switch]$Force
     )
 
     Write-Host -ForegroundColor green ""
     Write-Host -ForegroundColor green "Preparing the azure region for the SAP automation"
+
+    $step = 0
 
     $curDir = Get-Location 
     [IO.DirectoryInfo] $dirInfo = $curDir.ToString()
@@ -148,11 +150,6 @@ Licensed under the MIT license.
 
     $mydocuments = [environment]::getfolderpath("mydocuments")
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
-
-    if($true -eq $Force)
-    {
-        Remove-Item -Path $filePath -ErrorAction SilentlyContinue
-    }
 
     if ( -not (Test-Path -Path $FilePath)) {
         New-Item -Path $mydocuments -Name "sap_deployment_automation.ini" -ItemType "file" -Value "[Common]`nrepo=`nsubscription=`n[$region]`nDeployer=`nLandscape=`n[$Environment]`nDeployer=`n[$combined]`nDeployer=`nSubscription=" -Force
@@ -176,6 +173,13 @@ Licensed under the MIT license.
     catch {
         
     }
+
+    if ($true -eq $Force) {
+        $iniContent.Remove($combined)
+        Out-IniFile -InputObject $iniContent -Path $fileINIPath
+        $iniContent = Get-IniContent -Path $fileINIPath
+    }
+
     try {
         if ($null -ne $iniContent[$combined] ) {
             $iniContent[$combined]["Deployer"] = $key
@@ -191,29 +195,42 @@ Licensed under the MIT license.
         
     }
 
-    $ctx= Get-AzContext
-    if($null -eq $ctx) {
+    if ($null -ne $iniContent[$combined]["step"]) {
+        $step = $iniContent[$combined]["step"]
+    }
+    else {
+        $step = 0
+        $iniContent[$combined]["step"] = $step
+    }
+
+    $ctx = Get-AzContext
+    if ($null -eq $ctx) {
         Connect-AzAccount
     }
  
     $errors_occurred = $false
-    Set-Location -Path $fInfo.Directory.FullName
 
-    if($true -eq $Force)
-    {
-        Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
-        Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
-        Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
+    if (0 -eq $step) {
+        Set-Location -Path $fInfo.Directory.FullName
+        if ($true -eq $Force) {
+            Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
+            Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
+            Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
+        }
 
+        try {
+            New-SAPDeployer -Parameterfile $fInfo.Name 
+            $step = 1
+            $iniContent[$combined]["step"] = $step
+            Out-IniFile -InputObject $iniContent -Path $filePath
+
+        }
+        catch {
+            $errors_occurred = $true
+        }
+        Set-Location -Path $curDir
     }
 
-    try {
-        New-SAPDeployer -Parameterfile $fInfo.Name 
-    }
-    catch {
-        $errors_occurred = $true
-    }
-    Set-Location -Path $curDir
     if ($errors_occurred) {
         return
     }
@@ -221,46 +238,57 @@ Licensed under the MIT license.
     # Re-read ini file
     $iniContent = Get-IniContent -Path $filePath
 
-    $ans = Read-Host -Prompt "Do you want to enter the SPN secrets Y/N?"
-    if ("Y" -eq $ans) {
-        $vault = ""
-        if ($null -ne $iniContent[$combined] ) {
-            $vault = $iniContent[$combined]["Vault"]
-        }
+    if (1 -eq $step) {
 
-        if (($null -eq $vault ) -or ("" -eq $vault)) {
-            $vault = Read-Host -Prompt "Please enter the vault name"
-            $iniContent[$combined]["Vault"] = $vault 
-            Out-IniFile -InputObject $iniContent -Path $filePath
+        $ans = Read-Host -Prompt "Do you want to enter the SPN secrets Y/N?"
+        if ("Y" -eq $ans) {
+            $vault = ""
+            if ($null -ne $iniContent[$combined] ) {
+                $vault = $iniContent[$combined]["Vault"]
+            }
+
+            if (($null -eq $vault ) -or ("" -eq $vault)) {
+                $vault = Read-Host -Prompt "Please enter the vault name"
+                $iniContent[$combined]["Vault"] = $vault 
+                Out-IniFile -InputObject $iniContent -Path $filePath
     
-        }
-        try {
-            Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault  -Workload $false
-        }
-        catch {
-            $errors_occurred = $true
+            }
+            try {
+                Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault  -Workload $false
+                $step = 2
+                $iniContent[$combined]["step"] = $step
+                Out-IniFile -InputObject $iniContent -Path $filePath
+    
+            }
+            catch {
+                $errors_occurred = $true
+            }
         }
     }
 
     $fileDir = $dirInfo.ToString() + $LibraryParameterfile
     [IO.FileInfo] $fInfo = $fileDir
-    Set-Location -Path $fInfo.Directory.FullName
-    if($true -eq $Force)
-    {
-        Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
-        Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
-        Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
+    if (2 -eq $step) {
+        Set-Location -Path $fInfo.Directory.FullName
+        if ($true -eq $Force) {
+            Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
+            Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
+            Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
 
-    }
+        }
 
-    try {
-        New-SAPLibrary -Parameterfile $fInfo.Name -DeployerFolderRelativePath $DeployerRelativePath
-    }
-    catch {
-        $errors_occurred = $true
-    }
+        try {
+            New-SAPLibrary -Parameterfile $fInfo.Name -DeployerFolderRelativePath $DeployerRelativePath
+            $step = 3
+            $iniContent[$combined]["step"] = $step
+            Out-IniFile -InputObject $iniContent -Path $filePath
+        }
+        catch {
+            $errors_occurred = $true
+        }
 
-    Set-Location -Path $curDir
+        Set-Location -Path $curDir
+    }
     if ($errors_occurred) {
         return
     }
@@ -268,31 +296,44 @@ Licensed under the MIT license.
     $fileDir = $dirInfo.ToString() + $DeployerParameterfile
 
     [IO.FileInfo] $fInfo = $fileDir
-    Set-Location -Path $fInfo.Directory.FullName
-    try {
-        New-SAPSystem -Parameterfile $fInfo.Name -Type sap_deployer
-    }
-    catch {
-        Write-Error $_
-        $errors_occurred = $true
-    }
+    if (3 -eq $step) {
+        Write-Host "3"
+        Set-Location -Path $fInfo.Directory.FullName
+        try {
+            New-SAPSystem -Parameterfile $fInfo.Name -Type sap_deployer
+            $step = 4
+            $iniContent[$combined]["step"] = $step
+            Out-IniFile -InputObject $iniContent -Path $filePath
 
-    Set-Location -Path $curDir
+        }
+        catch {
+            Write-Error $_
+            $errors_occurred = $true
+        }
+
+        Set-Location -Path $curDir
+    }
     if ($errors_occurred) {
         return
     }
 
     $fileDir = $dirInfo.ToString() + $LibraryParameterfile
     [IO.FileInfo] $fInfo = $fileDir
-    Set-Location -Path $fInfo.Directory.FullName
-    try {
-        New-SAPSystem -Parameterfile $fInfo.Name -Type sap_library
-    }
-    catch {
-        $errors_occurred = $true
-    }
+    if (4 -eq $step) {
+        Set-Location -Path $fInfo.Directory.FullName
+        try {
+            New-SAPSystem -Parameterfile $fInfo.Name -Type sap_library
+            $step = 5
+            $iniContent[$combined]["step"] = $step
+            Out-IniFile -InputObject $iniContent -Path $filePath
 
-    Set-Location -Path $curDir
+        }
+        catch {
+            $errors_occurred = $true
+        }
+
+        Set-Location -Path $curDir
+    }
     if ($errors_occurred) {
         return
     }
@@ -725,13 +766,25 @@ Licensed under the MIT license.
         $tfstate_resource_id = $rID.ResourceId
 
         $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
-        $iniContent[$combined]["REMOTE_STATE_SA"] = $saNameF
+        $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
         $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
         $changed = $true
     }
     else {
         $rgName = $iniContent[$combined]["REMOTE_STATE_RG"]
         $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"]
+    }
+
+    if ($null -eq $tfstate_resource_id -or "" -eq $tfstate_resource_id) {
+        $rID = Get-AzResource -Name $saName
+        $rgName = $rID.ResourceGroupName
+        $tfstate_resource_id = $rID.ResourceId
+
+        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
+        $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
+        $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
+        $changed = $true
+
     }
 
     # Subscription
@@ -779,9 +832,10 @@ Licensed under the MIT license.
         if ($LASTEXITCODE -ne 0) {
             throw "Error executing command: $Cmd"
         }
+        $sub = $tfstate_resource_id.Split("/")[2]
     }
     
-    $sub = $tfstate_resource_id.Split("/")[2]
+    
     
 
     $Command = " init -upgrade=true -force-copy -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$key"" " + $terraform_module_directory
@@ -789,7 +843,7 @@ Licensed under the MIT license.
     if (Test-Path ".terraform" -PathType Container) {
         $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
         if ("azurerm" -eq $jsonData.backend.type) {
-            $Command = " init -upgrade=true"
+            $Command = " init -upgrade=true -force-copy -reconfigure -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$key"" " + $terraform_module_directory
 
             $ans = Read-Host -Prompt "The system has already been deployed and the statefile is in Azure, do you want to redeploy Y/N?"
             if ("Y" -ne $ans) {
@@ -841,7 +895,7 @@ Licensed under the MIT license.
 
     New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""azurerm"" {}`n}" -Force
 
-    $Command = " -no-color output automation_version"
+    $Command = " output -no-color automation_version"
 
     $Cmd = "terraform $Command"
     $versionLabel = & ([ScriptBlock]::Create($Cmd)) | Out-String 
@@ -1221,11 +1275,10 @@ Licensed under the MIT license.
         [Parameter(Mandatory = $true)][string]$Parameterfile, 
         #Deployer state file
         [Parameter(Mandatory = $false)][string]$Deployerstatefile,
-        [Parameter(Mandatory=$false)][Switch]$Force 
+        [Parameter(Mandatory = $false)][Switch]$Force 
     )
 
-    if($true -eq $Force)
-    {
+    if ($true -eq $Force) {
         Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
         Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
         Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
@@ -1257,8 +1310,7 @@ Licensed under the MIT license.
     $region = $jsonData.infrastructure.region
     $combined = $Environment + $region
 
-    if($true -eq $Force)
-    {
+    if ($true -eq $Force) {
         $iniContent.Remove($combined)
         Out-IniFile -InputObject $iniContent -Path $fileINIPath
         $iniContent = Get-IniContent -Path $fileINIPath
@@ -1289,8 +1341,8 @@ Licensed under the MIT license.
 
     $landscape_tfstate_key = $fInfo.Name.replace(".json", ".terraform.tfstate")
 
-    $ctx= Get-AzContext
-    if($null -eq $ctx) {
+    $ctx = Get-AzContext
+    if ($null -eq $ctx) {
         Connect-AzAccount 
     }
 
@@ -1310,12 +1362,11 @@ Licensed under the MIT license.
     }
     else {
         $deployer_tfstate_key = $iniContent[$combined]["Deployer"]
-        if($null -eq $deployer_tfstate_key -or "" -eq $deployer_tfstate_key)
-        {
-            $deployer_tfstate_key=$Deployerstatefile
-            $iniContent[$combined]["Deployer"]=$Deployerstatefile
+        if ($null -eq $deployer_tfstate_key -or "" -eq $deployer_tfstate_key) {
+            $deployer_tfstate_key = $Deployerstatefile
+            $iniContent[$combined]["Deployer"] = $Deployerstatefile
         }
-        $iniContent[$combined]["Landscape"]=$landscape_tfstate_key
+        $iniContent[$combined]["Landscape"] = $landscape_tfstate_key
         $changed = $true
 
     }
@@ -1327,7 +1378,7 @@ Licensed under the MIT license.
         $sub = Read-Host -Prompt "Please enter the subscription for the deployment"
         $iniContent[$combined]["subscription"] = $sub
         $changed = $true
-   }
+    }
 
     if ($changed) {
         Out-IniFile -InputObject $iniContent -Path $fileINIPath
@@ -1370,11 +1421,8 @@ Licensed under the MIT license.
         $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"].Trim()
 
     }
-
-    Write-Output $saName
-
     if ($null -eq $tfstate_resource_id -or "" -eq $tfstate_resource_id) {
-        $rID = Get-AzResource -Name $saName -Verbose
+        $rID = Get-AzResource -Name $saName 
         $rgName = $rID.ResourceGroupName
         $tfstate_resource_id = $rID.ResourceId
         $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
@@ -1390,14 +1438,17 @@ Licensed under the MIT license.
 
     $Command = " init -upgrade=true -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$envkey"" " + $terraform_module_directory
     if (Test-Path ".terraform" -PathType Container) {
-        $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
+        if (Test-Path ".\.terraform\terraform.tfstate" -PathType Leaf) {
 
-        if ("azurerm" -eq $jsonData.backend.type) {
-            $Command = " init -upgrade=true"
+            $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
 
-            $ans = Read-Host -Prompt ".terraform already exists, do you want to continue Y/N?"
-            if ("Y" -ne $ans) {
-                return
+            if ("azurerm" -eq $jsonData.backend.type) {
+                $Command = " init -upgrade=true"
+
+                $ans = Read-Host -Prompt ".terraform already exists, do you want to continue Y/N?"
+                if ("Y" -ne $ans) {
+                    return
+                }
             }
         }
     } 
@@ -1421,9 +1472,6 @@ Licensed under the MIT license.
         }
     }
     
-    Write-Host $Deployerstatefile
-    Write-Host $deployer_tfstate_key_parameter
-
     New-Item -Path . -Name "backend.tf" -ItemType "file" -Value "terraform {`n  backend ""azurerm"" {}`n}" -Force
 
     $Command = " output automation_version"
@@ -2349,30 +2397,52 @@ Licensed under the MIT license.
 
     Out-IniFile -InputObject $iniContent -Path $filePath
 
+    $err=@()
+
     $Secret = ConvertTo-SecureString -String $sub -AsPlainText -Force
     $Secret_name = $Environment + "-subscription-id"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
-    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
+    if($null -ne $err)
+    {
+        throw $err
+    }
 
     $Secret = ConvertTo-SecureString -String $spnid -AsPlainText -Force
     $Secret_name = $Environment + "-client-id"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
-    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
+    if($null -ne $err)
+    {
+        throw $err
+    }
 
     $Secret = ConvertTo-SecureString -String $t -AsPlainText -Force
     $Secret_name = $Environment + "-tenant-id"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
-    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
+    if($null -ne $err)
+    {
+        throw $err
+    }
 
     $Secret = ConvertTo-SecureString -String $spnpwd -AsPlainText -Force
     $Secret_name = $Environment + "-client-secret"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
-    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
+    if($null -ne $err)
+    {
+        throw $err
+    }
 
     $Secret = ConvertTo-SecureString -String $sub -AsPlainText -Force
     $Secret_name = $Environment + "-subscription"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
-    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret
+    Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
+    if($null -ne $err)
+    {
+        throw $err
+    }
 
 }
 

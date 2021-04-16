@@ -112,6 +112,7 @@ arm_config_stored=false
 config_stored=false
 
 init "${automation_config_directory}" "${generic_config_information}" "${library_config_information}"
+TF_DATA_DIR="$PWD/.terraform"
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     echo ""
@@ -191,8 +192,6 @@ fi
 
 reinitialized=0
 
-terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/bootstrap/"${deployment_system}"/
-
 if [ -f ./backend-config.tfvars ]
 then
     echo "#########################################################################################"
@@ -212,7 +211,7 @@ if [ ! -d ./.terraform/ ]; then
     echo "#                                   New deployment                                      #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
-    terraform init -upgrade=true "${terraform_module_directory}"
+    terraform -chdir="${terraform_module_directory}" init -upgrade=true
     sed -i /REMOTE_STATE_RG/d  "${library_config_information}"
     sed -i /REMOTE_STATE_SA/d  "${library_config_information}"
     sed -i /tfstate_resource_id/d  "${library_config_information}"
@@ -238,7 +237,7 @@ else
                     exit 0
                 fi
             fi
-            terraform init -upgrade=true -reconfigure "${terraform_module_directory}"
+            terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure
         else
             exit 0
         fi
@@ -256,9 +255,9 @@ echo ""
 
 if [ -n "${deployer_statefile_foldername}" ]; then
     echo "Deployer folder specified: "${deployer_statefile_foldername}
-    terraform plan -no-color -var-file="${parameterfile}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${terraform_module_directory}" > plan_output.log 2>&1
+    terraform -chdir="${terraform_module_directory}" plan -no-color -var-file="${parameterfile}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" > plan_output.log 2>&1
 else
-    terraform plan -no-color -var-file="${parameterfile}" "${terraform_module_directory}" > plan_output.log 2>&1
+    terraform -chdir="${terraform_module_directory}" plan -no-color -var-file="${parameterfile}"  > plan_output.log 2>&1
 fi
 
 str1=$(grep "Error: KeyVault " plan_output.log)
@@ -284,14 +283,14 @@ echo "##########################################################################
 echo ""
 
 if [ -n "${deployer_statefile_foldername}" ]; then
-    terraform apply ${approve} -var-file="${parameterfile}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${terraform_module_directory}"
+    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${parameterfile}" -var deployer_statefile_foldername="${deployer_statefile_foldername}"
 else
-    terraform apply ${approve} -var-file="${parameterfile}" "${terraform_module_directory}"
+    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${parameterfile}"
 fi
 
 printf "terraform {\n backend \"local\" {} \n}\n" > backend.tf
 
-REMOTE_STATE_SA=$(terraform output remote_state_storage_account_name| tr -d \")
+REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
 temp=$(echo "${REMOTE_STATE_SA}" | grep -m1 "Warning")
 if [ -z "${temp}" ]
 then

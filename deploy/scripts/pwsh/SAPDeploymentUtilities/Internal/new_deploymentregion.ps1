@@ -40,11 +40,13 @@ Licensed under the MIT license.
         #Parameter file
         [Parameter(Mandatory = $true)][string]$DeployerParameterfile,
         [Parameter(Mandatory = $true)][string]$LibraryParameterfile,
-        [Parameter(Mandatory=$false)][Switch]$Force
+        [Parameter(Mandatory = $false)][Switch]$Force
     )
 
     Write-Host -ForegroundColor green ""
     Write-Host -ForegroundColor green "Preparing the azure region for the SAP automation"
+
+    $step = 0
 
     $curDir = Get-Location 
     [IO.DirectoryInfo] $dirInfo = $curDir.ToString()
@@ -62,11 +64,6 @@ Licensed under the MIT license.
 
     $mydocuments = [environment]::getfolderpath("mydocuments")
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
-
-    if($true -eq $Force)
-    {
-        Remove-Item -Path $filePath -ErrorAction SilentlyContinue
-    }
 
     if ( -not (Test-Path -Path $FilePath)) {
         New-Item -Path $mydocuments -Name "sap_deployment_automation.ini" -ItemType "file" -Value "[Common]`nrepo=`nsubscription=`n[$region]`nDeployer=`nLandscape=`n[$Environment]`nDeployer=`n[$combined]`nDeployer=`nSubscription=" -Force
@@ -90,6 +87,13 @@ Licensed under the MIT license.
     catch {
         
     }
+
+    if ($true -eq $Force) {
+        $iniContent.Remove($combined)
+        Out-IniFile -InputObject $iniContent -Path $fileINIPath
+        $iniContent = Get-IniContent -Path $fileINIPath
+    }
+
     try {
         if ($null -ne $iniContent[$combined] ) {
             $iniContent[$combined]["Deployer"] = $key
@@ -105,29 +109,42 @@ Licensed under the MIT license.
         
     }
 
-    $ctx= Get-AzContext
-    if($null -eq $ctx) {
+    if ($null -ne $iniContent[$combined]["step"]) {
+        $step = $iniContent[$combined]["step"]
+    }
+    else {
+        $step = 0
+        $iniContent[$combined]["step"] = $step
+    }
+
+    $ctx = Get-AzContext
+    if ($null -eq $ctx) {
         Connect-AzAccount
     }
  
     $errors_occurred = $false
-    Set-Location -Path $fInfo.Directory.FullName
 
-    if($true -eq $Force)
-    {
-        Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
-        Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
-        Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
+    if (0 -eq $step) {
+        Set-Location -Path $fInfo.Directory.FullName
+        if ($true -eq $Force) {
+            Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
+            Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
+            Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
+        }
 
+        try {
+            New-SAPDeployer -Parameterfile $fInfo.Name 
+            $step = 1
+            $iniContent[$combined]["step"] = $step
+            Out-IniFile -InputObject $iniContent -Path $filePath
+
+        }
+        catch {
+            $errors_occurred = $true
+        }
+        Set-Location -Path $curDir
     }
 
-    try {
-        New-SAPDeployer -Parameterfile $fInfo.Name 
-    }
-    catch {
-        $errors_occurred = $true
-    }
-    Set-Location -Path $curDir
     if ($errors_occurred) {
         return
     }
@@ -135,46 +152,57 @@ Licensed under the MIT license.
     # Re-read ini file
     $iniContent = Get-IniContent -Path $filePath
 
-    $ans = Read-Host -Prompt "Do you want to enter the SPN secrets Y/N?"
-    if ("Y" -eq $ans) {
-        $vault = ""
-        if ($null -ne $iniContent[$combined] ) {
-            $vault = $iniContent[$combined]["Vault"]
-        }
+    if (1 -eq $step) {
 
-        if (($null -eq $vault ) -or ("" -eq $vault)) {
-            $vault = Read-Host -Prompt "Please enter the vault name"
-            $iniContent[$combined]["Vault"] = $vault 
-            Out-IniFile -InputObject $iniContent -Path $filePath
+        $ans = Read-Host -Prompt "Do you want to enter the SPN secrets Y/N?"
+        if ("Y" -eq $ans) {
+            $vault = ""
+            if ($null -ne $iniContent[$combined] ) {
+                $vault = $iniContent[$combined]["Vault"]
+            }
+
+            if (($null -eq $vault ) -or ("" -eq $vault)) {
+                $vault = Read-Host -Prompt "Please enter the vault name"
+                $iniContent[$combined]["Vault"] = $vault 
+                Out-IniFile -InputObject $iniContent -Path $filePath
     
-        }
-        try {
-            Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault  -Workload $false
-        }
-        catch {
-            $errors_occurred = $true
+            }
+            try {
+                Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault  -Workload $false
+                $step = 2
+                $iniContent[$combined]["step"] = $step
+                Out-IniFile -InputObject $iniContent -Path $filePath
+    
+            }
+            catch {
+                $errors_occurred = $true
+            }
         }
     }
 
     $fileDir = $dirInfo.ToString() + $LibraryParameterfile
     [IO.FileInfo] $fInfo = $fileDir
-    Set-Location -Path $fInfo.Directory.FullName
-    if($true -eq $Force)
-    {
-        Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
-        Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
-        Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
+    if (2 -eq $step) {
+        Set-Location -Path $fInfo.Directory.FullName
+        if ($true -eq $Force) {
+            Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
+            Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
+            Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
 
-    }
+        }
 
-    try {
-        New-SAPLibrary -Parameterfile $fInfo.Name -DeployerFolderRelativePath $DeployerRelativePath
-    }
-    catch {
-        $errors_occurred = $true
-    }
+        try {
+            New-SAPLibrary -Parameterfile $fInfo.Name -DeployerFolderRelativePath $DeployerRelativePath
+            $step = 3
+            $iniContent[$combined]["step"] = $step
+            Out-IniFile -InputObject $iniContent -Path $filePath
+        }
+        catch {
+            $errors_occurred = $true
+        }
 
-    Set-Location -Path $curDir
+        Set-Location -Path $curDir
+    }
     if ($errors_occurred) {
         return
     }
@@ -182,31 +210,44 @@ Licensed under the MIT license.
     $fileDir = $dirInfo.ToString() + $DeployerParameterfile
 
     [IO.FileInfo] $fInfo = $fileDir
-    Set-Location -Path $fInfo.Directory.FullName
-    try {
-        New-SAPSystem -Parameterfile $fInfo.Name -Type sap_deployer
-    }
-    catch {
-        Write-Error $_
-        $errors_occurred = $true
-    }
+    if (3 -eq $step) {
+        Write-Host "3"
+        Set-Location -Path $fInfo.Directory.FullName
+        try {
+            New-SAPSystem -Parameterfile $fInfo.Name -Type sap_deployer
+            $step = 4
+            $iniContent[$combined]["step"] = $step
+            Out-IniFile -InputObject $iniContent -Path $filePath
 
-    Set-Location -Path $curDir
+        }
+        catch {
+            Write-Error $_
+            $errors_occurred = $true
+        }
+
+        Set-Location -Path $curDir
+    }
     if ($errors_occurred) {
         return
     }
 
     $fileDir = $dirInfo.ToString() + $LibraryParameterfile
     [IO.FileInfo] $fInfo = $fileDir
-    Set-Location -Path $fInfo.Directory.FullName
-    try {
-        New-SAPSystem -Parameterfile $fInfo.Name -Type sap_library
-    }
-    catch {
-        $errors_occurred = $true
-    }
+    if (4 -eq $step) {
+        Set-Location -Path $fInfo.Directory.FullName
+        try {
+            New-SAPSystem -Parameterfile $fInfo.Name -Type sap_library
+            $step = 5
+            $iniContent[$combined]["step"] = $step
+            Out-IniFile -InputObject $iniContent -Path $filePath
 
-    Set-Location -Path $curDir
+        }
+        catch {
+            $errors_occurred = $true
+        }
+
+        Set-Location -Path $curDir
+    }
     if ($errors_occurred) {
         return
     }

@@ -179,10 +179,19 @@ automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region}"
 
-init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
-TF_DATA_DIR="$PWD/.terraform"
- 
+param_dirname=$(pwd)
+#Plugins
+mkdir "$HOME/.terraform.d/plugin-cache"
 
+root_dirname=$(pwd)
+
+export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+
+init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
+
+export TF_DATA_DIR="${param_dirname}/.terraform"
+var_file="${param_dirname}"/"${parameterfile}" 
+ 
 if [ "${deployment_system}" == sap_deployer ]
 then
     deployer_tfstate_key=${key}.terraform.tfstate
@@ -402,7 +411,7 @@ fi
 
 if [ ! -d ./.terraform/ ];
 then
-    terraform -chdir="${terraform_module_directory}"  init -upgrade=true -force-copy \
+    terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
     --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
     --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
     --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -412,7 +421,7 @@ else
     temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
     if [ ! -z "${temp}" ]
     then
-        terraform -chdir="${terraform_module_directory}"  init -upgrade=true -force-copy \
+        terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
         --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
         --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
         --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -435,7 +444,7 @@ else
             exit 1
         fi
 
-        terraform -chdir="${terraform_module_directory}"  init -upgrade=true -var-file="${parameterfile}"
+        terraform -chdir="${terraform_module_directory}"  init -upgrade=true -var-file="${var_file}"
         check_output=1
         
     fi
@@ -513,7 +522,7 @@ then
     rm plan_output.log
 fi
 
-terraform -chdir="${terraform_module_directory}" plan -no-color -var-file=$parameterfile $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter 2>error.log 1>plan_output.log 
+terraform -chdir="${terraform_module_directory}" plan -no-color -var-file="${var_file}" $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter 2>error.log 1>plan_output.log 
 
 str1=$(grep "Error: " error.log)
 if [ -n "${str1}" ]
@@ -602,7 +611,7 @@ if [ $ok_to_proceed ]; then
     echo "#########################################################################################"
     echo ""
     
-    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory
+    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter 
 fi
 
 if [ "${deployment_system}" == sap_landscape ]

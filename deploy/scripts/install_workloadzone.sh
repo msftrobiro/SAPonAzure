@@ -340,6 +340,13 @@ fi
 ok_to_proceed=false
 new_deployment=false
 
+#Plugins
+mkdir "$HOME/.terraform.d/plugin-cache"
+
+root_dirname=$(pwd)
+
+export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+
 if [ -f backend.tf ]
 then
     rm backend.tf

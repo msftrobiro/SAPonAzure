@@ -6,10 +6,10 @@ function showhelp {
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#                                                                                       #" 
-    echo "#   This file contains the logic to addd the SPN secrets to the keyvault.               #" 
-    echo "#                                                                                       #" 
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
+    echo "#   This file contains the logic to addd the SPN secrets to the keyvault.               #"
+    echo "#                                                                                       #"
+    echo "#                                                                                       #"
     echo "#   Usage: set_secret.sh                                                                #"
     echo "#      -e environment name                                                              #"
     echo "#      -r region short name                                                             #"
@@ -18,17 +18,17 @@ function showhelp {
     echo "#      -s SPN password                                                                  #"
     echo "#      -t tenant of                                                                     #"
     echo "#      -h Show help                                                                     #"
-    echo "#                                                                                       #" 
-    echo "#   Example:                                                                            #" 
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
+    echo "#   Example:                                                                            #"
+    echo "#                                                                                       #"
     echo "#   [REPO-ROOT]deploy/scripts/set_secret.sh \                                           #"
-	echo "#      -e PROD  \                                                                       #"
-	echo "#      -r weeu  \                                                                       #"
-	echo "#      -v prodweeuusrabc  \                                                             #"
-	echo "#      -c 11111111-1111-1111-1111-111111111111 \                                        #"
-	echo "#      -s SECRETPassword \                                                              #" 
-	echo "#      -t 222222222-2222-2222-2222-222222222222                                         #"
-    echo "#                                                                                       #" 
+    echo "#      -e PROD  \                                                                       #"
+    echo "#      -r weeu  \                                                                       #"
+    echo "#      -v prodweeuusrabc  \                                                             #"
+    echo "#      -c 11111111-1111-1111-1111-111111111111 \                                        #"
+    echo "#      -s SECRETPassword \                                                              #"
+    echo "#      -t 222222222-2222-2222-2222-222222222222                                         #"
+    echo "#                                                                                       #"
     echo "#########################################################################################"
 }
 
@@ -39,15 +39,15 @@ while getopts ":e:c:s:t:h:v:r:x" option; do
         c) client_id=${OPTARG};;
         r) region=${OPTARG};;
         s) client_secret=${OPTARG};;
-        t) tenant=${OPTARG};;
-        v) vaultname=${OPTARG};;
+        t) tenant_id=${OPTARG};;
+        v) keyvault=${OPTARG};;
         h) showhelp
-           exit 0
-           ;;
+            exit 0
+        ;;
         ?) echo "Invalid option: -${OPTARG}."
-           exit 0
-           ;; 
-            
+            exit 0
+        ;;
+        
     esac
 done
 
@@ -73,57 +73,26 @@ then
     mkdir "${automation_config_directory}"
 else
     touch "${environment_config_information}"
-    temp=$(grep "keyvault" "${environment_config_information}")
-    if [ ! -z "${temp}" ]
-    then
-        vaultname=$(echo "${temp}" | cut -d= -f2 | xargs)
-        vaultname_exists=1
-    else
-        vaultname_exists=0
-    fi
+    load_config_vars "${environment_config_information}" "keyvault"
+    load_config_vars "${environment_config_information}" "client_id"
+    load_config_vars "${environment_config_information}" "tenant_id"
+    load_config_vars "${environment_config_information}" "subscription"
     
-    temp=$(grep "SPNAppID" "${environment_config_information}")
-    if [ ! -z "${temp}" ]
-    then
-        client_id=$(echo "${temp}" | cut -d= -f2)
-        client_id_exists=1
-    else
-        client_id_exists=0
-    fi
-    
-    temp=$(grep "Tenant" "${environment_config_information}")
-    if [ ! -z "${temp}" ]
-    then
-        tenant=$(echo "${temp}" | cut -d= -f2)
-        tenant_exists=1
-    else
-        tenant_exists=0
-    fi
-
-    temp=$(grep "subscription=" "${environment_config_information}")
-    if [ ! -z "${temp}" ]
-    then
-        subscription=$(echo "${temp}" | cut -d= -f2)
-        subscription_exists=1
-    else
-        subscription_exists=0
-    fi
-
 fi
 
-if [ ! -n "$vaultname" ]; then
-    read -p "Keyvault name:"  vaultname
-fi 
+if [ ! -n "$keyvault" ]; then
+    read -p "Keyvault name:"  keyvault
+fi
 
 if [ ! -n "$client_id" ]; then
     read -p "SPN App ID:"  client_id
-fi 
+fi
 
 read -p "SPN App Password:"  client_secret
 
-if [ ! -n "${tenant}" ]; then
-    read -p "SPN Tenant ID:"  tenant
-fi 
+if [ ! -n "${tenant_id}" ]; then
+    read -p "SPN Tenant ID:"  tenant_id
+fi
 
 if [ ! -n "$subscription" ]; then
     read -p "SPN Subscription:"  subscription
@@ -134,7 +103,7 @@ if [ ! -n "${environment}" ]; then
     exit -1
 fi
 
-if [ ! -n "${vaultname}" ]; then
+if [ ! -n "${keyvault}" ]; then
     showhelp
     exit -1
 fi
@@ -149,67 +118,46 @@ if [ ! -n "$client_secret" ]; then
     exit -1
 fi
 
-if [ ! -n "${tenant}" ]; then
+if [ ! -n "${tenant_id}" ]; then
     showhelp
     exit -1
 fi
 
 echo "#########################################################################################"
-echo "#                                                                                       #" 
+echo "#                                                                                       #"
 echo "#                              Setting the secrets                                      #"
-echo "#                                                                                       #" 
+echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
 
-touch "${environment_config_information}"
-sed -i /Environment/d  "${environment_config_information}"
-echo "Environment=${environment}" >> "${environment_config_information}"
+save_config_vars "${environment_config_information}" \
+keyvault \
+environment \
+subscription \
+client_id
 
-if [ $vaultname_exists -eq 0 ]
-    then
-    sed -i /keyvault/d  "{$environment_config_information}"
-    echo "keyvault=${vaultname}" >> "${environment_config_information}"
-fi
-
-if [ $subscription_exists -eq 0 ]
-    then
-    sed -i /subscription/d  "{$environment_config_information}"
-    echo "subscription=${subscription}" >> "${environment_config_information}"
-fi
-
-
-if [ $client_id_exists -eq 0 ]
-    then
-    sed -i /SPNAppID/d  "{$environment_config_information}"
-    echo "SPNAppID=${client_id}" >> ${environment_config_information}
-fi
-
-if [ $tenant_exists -eq 0 ]
-    then
-    sed -i /Tenant/d  "{$environment_config_information}"
-    echo "Tenant=${tenant}" >> ${environment_config_information}
-fi
+save_config_var "${environment_config_information}"  tenant_id
 
 secretname="${environment}"-subscription-id
 
-az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${subscription}"  > stdout.az 2>&1
+az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}"  > stdout.az 2>&1
 result=$(grep "ERROR: The user, group or application" stdout.az)
 
-if [ -n "${result}" ]; then 
+if [ -n "${result}" ]; then
     upn=$(az account show | grep name | grep @ | cut -d: -f2 | cut -d, -f1 | tr -d \" | xargs)
-    az keyvault set-policy -n "${vaultname}" --secret-permissions get list recover restore set --upn "${upn}"
+    az keyvault set-policy -n "${keyvault}" --secret-permissions get list recover restore set --upn "${upn}"
 fi
-    
-az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${subscription}"  > stdout.az 2>&1
+
+az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}"  > stdout.az 2>&1
 
 result=$(grep "ERROR: The user, group or application" stdout.az)
 
-if [ -n "${result}" ]; then 
+if [ -n "${result}" ]; then
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
-    echo "#          No access to add the secrets in the" "${vaultname}" "keyvault             #"
-    echo "#            Please add an access policy for the account you use                        #" 
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
+    echo "#          No access to add the secrets in the" "${keyvault}" "keyvault             #"
+    echo "#            Please add an access policy for the account you use                        #"
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
     rm stdout.az
@@ -217,12 +165,12 @@ if [ -n "${result}" ]; then
 fi
 
 result=$(grep "The Vault may not exist" stdout.az)
-if [ -n "${result}" ]; then 
-    printf -v val "%-20.20s could not be found!" "$vaultname" 
+if [ -n "${result}" ]; then
+    printf -v val "%-20.20s could not be found!" "$keyvault"
     echo "#########################################################################################"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#                      Keyvault" "${val}" "               #"
-    echo "#                                                                                       #" 
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
     rm stdout.az
@@ -232,12 +180,12 @@ fi
 
 
 secretname="${environment}"-client-id
-az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${client_id}"
+az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_id}"
 
 secretname="${environment}"-tenant-id
-az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${tenant}"
+az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${tenant_id}"
 
 secretname="${environment}"-client-secret
-az keyvault secret set --name "${secretname}" --vault-name "${vaultname}" --value "${client_secret}"
+az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}"
 
 

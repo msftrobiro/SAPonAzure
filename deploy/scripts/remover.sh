@@ -154,12 +154,17 @@ fi
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region}"
+#Plugins
+mkdir "$HOME/.terraform.d/plugin-cache"
+
+root_dirname=$(pwd)
+
+export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+param_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
-TF_DATA_DIR="$PWD/.terraform"
-
-
-echo "${system_config_information}"
+export TF_DATA_DIR="${param_dirname}"/.terraform
+var_file="${param_dirname}"/"${parameterfile}" 
 
 load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
 load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
@@ -182,7 +187,6 @@ then
 fi
 
 tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
-
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     option="DEPLOYMENT_REPO_PATH"
@@ -261,7 +265,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
  
-terraform -chdir="${terraform_module_directory}" destroy -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter 
+terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter 
 
 if [ $deployment_system == sap_deployer ]
 then

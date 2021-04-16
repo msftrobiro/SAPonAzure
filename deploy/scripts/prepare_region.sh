@@ -158,6 +158,14 @@ automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 deployer_config_information="${automation_config_directory}""${environment}""${region}"
 
+#Plugins
+mkdir "$HOME/.terraform.d/plugin-cache"
+
+root_dirname=$(pwd)
+
+export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+
+
 if [ $force == 1 ]
 then
     if [ -f $deployer_config_information ]
@@ -167,6 +175,11 @@ then
 fi
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
+
+load_config_vars "${generic_config_information}" "DEPLOYMENT_REPO_PATH"
+
+
+
 
 if [ ! -n "$DEPLOYMENT_REPO_PATH" ]; then
     echo ""
@@ -187,7 +200,7 @@ templen=$(echo "${ARM_SUBSCRIPTION_ID}" | wc -c)
 # Subscription length is 37
 if [ 37 != $templen ]
 then
-    arm_config_stored=false
+    arm_config_stored=0
 fi
 
 if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
@@ -203,7 +216,7 @@ if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
     echo "#########################################################################################"
     exit 3
 else
-    if [ $arm_config_stored  -ne false ]
+    if [ "{$arm_config_stored}" != 0 ]
     then
         echo "Storing the configuration"
         save_config_var "ARM_SUBSCRIPTION_ID" "${deployer_config_information}"
@@ -218,16 +231,8 @@ deployer_key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
 library_dirname=$(dirname "${library_parameter_file}")
 library_file_parametername=$(basename "${library_parameter_file}")
 
-#Calculate the depth of the library json folder relative to the root folder from which the code is called
-readarray -d '/' -t levels<<<"${library_dirname}"
-top=${#levels[@]}
-relative_path=""
-
-for (( c=1; c<=$top; c++ ))
-do
-   relative_path="../""${relative_path}"
-done
-
+relative_path="${root_dirname}"/"${deployer_dirname}" 
+export TF_DATA_DIR="${relative_path}"/.terraform
 # Checking for valid az session
 
 temp=$(grep "az login" stdout.az)
@@ -290,7 +295,7 @@ then
     fi
 
     step=1
-    save_config_vars "${system_config_information}" "step"
+    save_config_vars "${deployer_config_information}" "step"
 else
     echo ""
     echo "#########################################################################################"
@@ -335,6 +340,8 @@ fi
 
 if [ 2 == $step ]
 then
+
+
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -342,6 +349,10 @@ then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
+
+    relative_path="${root_dirname}"/"${library_dirname}" 
+    export TF_DATA_DIR="${relative_path}/.terraform"
+    relative_path="${root_dirname}"/"${deployer_dirname}" 
 
     cd "${library_dirname}"
     if [ $force == 1 ]
@@ -358,7 +369,7 @@ then
             rm terraform.tfstate.backup
         fi
     fi
-    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/install_library.sh -p $library_file_parametername -i true -d $relative_path$deployer_dirname
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/install_library.sh -p "${library_file_parametername}" -i true -d "${relative_path}"
     if [ $? -eq 255 ]
         then
         exit $?

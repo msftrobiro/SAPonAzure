@@ -46,6 +46,8 @@ done
 
 deployment_system=sap_deployer
 
+param_dirname=$(dirname "${parameterfile}")
+
 if [ ! -f "${parameterfile}" ]
 then
     printf -v val %-40.40s "$parameterfile"
@@ -57,6 +59,19 @@ then
     echo "#########################################################################################"
     exit
 fi
+
+if [ $param_dirname != '.' ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#   Please run this command from the folder containing the parameter file               #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    exit 3
+fi
+
+
+
 
 # Read environment
 environment=$(cat "${parameterfile}" | jq .infrastructure.environment | tr -d \")
@@ -97,20 +112,12 @@ deployer_config_information="${automation_config_directory}""${environment}""${r
 arm_config_stored=false
 config_stored=false
 
-param_dirname=$(dirname "${parameterfile}")
-
-if [ $param_dirname != '.' ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#   Please run this command from the folder containing the parameter file               #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    exit 3
-fi
+param_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
-TF_DATA_DIR="$PWD/.terraform"
+
+export TF_DATA_DIR="${param_dirname}"/.terraform
+var_file="${param_dirname}"/"${parameterfile}" 
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     echo ""
@@ -130,8 +137,6 @@ else
         save_config_var "DEPLOYMENT_REPO_PATH" "${generic_config_information}"
     fi
 fi
-
-load_config_vars ${deployer_config_information} "ARM_SUBSCRIPTION_ID"
 
 templen=$(echo "${ARM_SUBSCRIPTION_ID}" | wc -c)
 # Subscription length is 37
@@ -173,7 +178,7 @@ if [ ! -d ./.terraform/ ]; then
     echo "#                                   New deployment                                      #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
-    terraform -chdir="${terraform_module_directory}" init -upgrade=true 
+    terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate"
 else
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -195,8 +200,8 @@ else
             fi
         fi
         
-        terraform -chdir="${terraform_module_directory}" init -upgrade=true
-        terraform -chdir="${terraform_module_directory}" refresh -var-file="${parameterfile}" 
+        terraform -chdir="${terraform_module_directory}" init -upgrade=true  -backend-config "path=${param_dirname}"
+        terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" 
     else
         exit 0
     fi
@@ -210,7 +215,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}"  plan -var-file="${parameterfile}" 
+terraform -chdir="${terraform_module_directory}"  plan -var-file="${var_file}" 
 
 echo ""
 echo "#########################################################################################"
@@ -220,9 +225,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}"  apply ${approve} -var-file="${parameterfile}" 
-
-printf "terraform {\n backend \"local\" {} \n}\n" > backend.tf
+terraform -chdir="${terraform_module_directory}"  apply ${approve} -var-file="${var_file}" 
 
 keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
 
@@ -236,7 +239,5 @@ then
         save_config_var "keyvault" "${deployer_config_information}"
     fi
 fi
-
-rm backend.tf
 
 exit 0

@@ -73,25 +73,33 @@ then
     mkdir "${automation_config_directory}"
 else
     touch "${environment_config_information}"
-    load_config_vars "${environment_config_information}" "keyvault"
-    load_config_vars "${environment_config_information}" "client_id"
-    load_config_vars "${environment_config_information}" "tenant_id"
     load_config_vars "${environment_config_information}" "subscription"
-    
+   
 fi
 
 if [ ! -n "$keyvault" ]; then
-    read -p "Keyvault name:"  keyvault
+    load_config_vars "${environment_config_information}" "keyvault"
+    if [ ! -n "$keyvault" ]; then
+        read -p "Keyvault name:"  keyvault
+    fi
 fi
 
 if [ ! -n "$client_id" ]; then
-    read -p "SPN App ID:"  client_id
+    load_config_vars "${environment_config_information}" "client_id"
+    if [ ! -n "$client_id" ]; then
+        read -p "SPN App ID:"  client_id
+    fi
 fi
 
-read -p "SPN App Password:"  client_secret
+if [ ! -n "$client_secret" ]; then
+    read -p "SPN App Password:"  client_secret
+fi
 
 if [ ! -n "${tenant_id}" ]; then
-    read -p "SPN Tenant ID:"  tenant_id
+    load_config_vars "${environment_config_information}" "tenant_id"
+    if [ ! -n "${tenant_id}" ]; then
+        read -p "SPN Tenant ID:"  tenant_id
+    fi
 fi
 
 if [ ! -n "$subscription" ]; then
@@ -99,8 +107,7 @@ if [ ! -n "$subscription" ]; then
 fi
 
 if [ ! -n "${environment}" ]; then
-    showhelp
-    exit -1
+    read -p "Environment:"  environment
 fi
 
 if [ ! -n "${keyvault}" ]; then
@@ -136,7 +143,7 @@ environment \
 subscription \
 client_id
 
-save_config_var "${environment_config_information}"  tenant_id
+save_config_var "${environment_config_information}" tenant_id
 
 secretname="${environment}"-subscription-id
 

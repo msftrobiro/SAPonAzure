@@ -7,9 +7,8 @@
 #########################################################################
 
 function save_config_var() {
-    local var_name=${1} var_file=${2}
-
-    sed -i -e "" -e /${var_name}/d "${var_file}"
+    local var_name=$2 var_file=$1
+    sed -i -e "" -e /$var_name/d "${var_file}"
     echo "${var_name}=${!var_name}" >> "${var_file}"
 }
 

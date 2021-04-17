@@ -141,9 +141,8 @@ save_config_vars "${environment_config_information}" \
 keyvault \
 environment \
 subscription \
-client_id
-
-save_config_var "${environment_config_information}" tenant_id
+client_id \
+tenant_id
 
 secretname="${environment}"-subscription-id
 

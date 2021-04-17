@@ -275,7 +275,12 @@ if [ -n "${str1}" ]; then
     echo "#########################################################################################"
     echo ""
     echo $str1
+    rm plan_output.log
     exit -1
+fi
+
+if [ -f plan_output.log ]; then
+    rm plan_output.log
 fi
 
 echo ""
@@ -292,7 +297,7 @@ else
     terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}"
 fi
 
-printf "terraform {\n backend \"local\" {} \n}\n" > backend.tf
+return_value=-1
 
 REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
 temp=$(echo "${REMOTE_STATE_SA}" | grep -m1 "Warning")
@@ -310,8 +315,9 @@ then
             REMOTE_STATE_SA \
             tfstate_resource_id \
             STATE_SUBSCRIPTION
+        
+        return_value=0
     fi
 fi
 
-rm backend.tf
-exit 0
+exit $return_value

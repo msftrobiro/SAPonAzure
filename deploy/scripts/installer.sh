@@ -179,13 +179,16 @@ automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region}"
 
-param_dirname=$(pwd)
+
 #Plugins
-mkdir "$HOME/.terraform.d/plugin-cache"
-
-root_dirname=$(pwd)
-
+if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
+then
+    mkdir "$HOME/.terraform.d/plugin-cache"
+fi
 export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+
+param_dirname=$(pwd)
+root_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
 
@@ -203,7 +206,8 @@ load_config_vars "${system_config_information}" "tfstate_resource_id"
 load_config_vars "${system_config_information}" "deployer_tfstate_key"
 load_config_vars "${system_config_information}" "landscape_tfstate_key"
 load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
-load_config_vars "${system_config_information}" "ARM_SUBSCRIPTION_ID"
+
+echo "Terraform storage " $REMOTE_STATE_SA
 
 deployer_tfstate_key_parameter=''
 if [ "${deployment_system}" != sap_deployer ]
@@ -396,11 +400,6 @@ fi
 ok_to_proceed=false
 new_deployment=false
 
-if [ -f backend.tf ]
-then
-    rm backend.tf
-fi
-
 check_output=0
 
 if [ $account_set==0 ] 
@@ -452,7 +451,6 @@ fi
 
 if [ 1 == $check_output ]
 then
-    printf "terraform {\n backend \"azurerm\" {} \n}\n" > backend.tf
 
     outputs=$(terraform -chdir="${terraform_module_directory}" output )
     if echo "${outputs}" | grep "No outputs"; then
@@ -492,7 +490,6 @@ then
             if [ $answer == 'Y' ]; then
                 ok_to_proceed=true
             else
-                rm backend.tf
                 exit 1
             fi
         else
@@ -622,7 +619,6 @@ fi
 
 if [ "${deployment_system}" == sap_library ]
 then
-    printf "terraform {\n backend \"azurerm\" {} \n}\n" > backend.tf
 
     REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
     REMOTE_STATE_RG=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].resourceGroup  | tr -d \" | xargs)
@@ -634,8 +630,6 @@ then
     REMOTE_STATE_SA \
     tfstate_resource_id \
     STATE_SUBSCRIPTION
-
-    rm backend.tf
     
 fi
 

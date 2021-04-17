@@ -104,10 +104,10 @@ variable "ssh-timeout" {
 variable "key_vault" {
   description = "Details of keyvault"
   default     = {}
-validation {
+  validation {
     condition = (
-      contains(keys(var.key_vault),"kv_spn_id") ? (
-        length(split("/",var.key_vault.kv_spn_id)) == 9) : (
+      contains(keys(var.key_vault), "kv_spn_id") ? (
+        length(split("/", var.key_vault.kv_spn_id)) == 9) : (
         true
       )
     )

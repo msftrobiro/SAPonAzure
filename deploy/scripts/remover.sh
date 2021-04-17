@@ -155,11 +155,14 @@ automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region}"
 #Plugins
-mkdir "$HOME/.terraform.d/plugin-cache"
+if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
+then
+    mkdir "$HOME/.terraform.d/plugin-cache"
+fi
+export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
 
 root_dirname=$(pwd)
 
-export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
 param_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"

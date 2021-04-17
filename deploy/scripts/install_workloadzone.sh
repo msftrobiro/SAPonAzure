@@ -18,6 +18,9 @@ function showhelp {
     echo "#                                                                                       #"
     echo "#   Usage: install_workloadzone.sh                                                      #"
     echo "#    -p parameter file                                                                  #"
+    echo "#    -f will remove .terraform and local state files before deployment                  #"
+    echo "#    -d Deployer terraform state file name                                              #"
+    echo "#    -e Deployer environment, typically MGMT                                            #"
     echo "#    -i interactive true/false setting the value to false will not prompt before apply  #"
     echo "#    -h Show help                                                                       #"
     echo "#                                                                                       #"
@@ -48,21 +51,20 @@ function missing {
 }
 
 show_help=false
+force=0
 
-while getopts ":p:t:i:d:h" option; do
+while getopts ":p:t:d:h:f:e:i" option; do
     case "${option}" in
         p) parameterfile=${OPTARG};;
         i) approve="--auto-approve";;
+        f) force=1 ;;
         d) deployer_tfstate_key=${OPTARG};;
+        e) deployer_environment=${OPTARG};;
         h) showhelp
             exit 3
         ;;
-        ?) echo "Invalid option: -${OPTARG}."
-            exit 2
-        ;;
     esac
 done
-
 tfstate_resource_id=""
 tfstate_parameter=""
 
@@ -138,11 +140,34 @@ fi
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 workload_config_information="${automation_config_directory}""${environment}""${region}"
-touch $workload_config_information
+
+if [ "${force}" == 1 ]
+then
+    if [ -f $workload_config_information ]
+    then
+        rm $workload_config_information
+    fi
+    if [ -d ./.terraform/ ]; then
+        rm .terraform -r
+    fi
+    
+    if [ -f terraform.tfstate ]; then
+        rm terraform.tfstate
+    fi
+    
+    if [ -f terraform.tfstate.backup ]; then
+        rm terraform.tfstate.backup
+    fi
+    
+fi
+
 
 init "${automation_config_directory}" "${generic_config_information}" "${workload_config_information}"
-TF_DATA_DIR="$PWD/.terraform"
-  
+
+param_dirname=$(pwd)
+export TF_DATA_DIR="${param_dirname}/.terraform"
+var_file="${param_dirname}"/"${parameterfile}"
+
 load_config_vars "${workload_config_information}" "REMOTE_STATE_SA"
 load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
 load_config_vars "${workload_config_information}" "tfstate_resource_id"
@@ -179,42 +204,28 @@ then
     account_set=1
 fi
 
-read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
-answer=${ans^^}
-if [ $answer == 'Y' ]; then
-    load_config_vars ${workload_config_information} "keyvault"
-    if [ ! -z $keyvault ]
-    then
-        # Key vault was specified in ~/.sap_deployment_automation in the deployer file
-        keyvault_param=$(printf " -v %s " "${keyvault}")
-    fi
-    
-    env_param=$(printf " -e %s " "${environment}")
-    region_param=$(printf " -r %s " "${region}")
-    
-    allParams="${env_param}""${keyvault_param}""${region_param}"
-    
-    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh $allParams
-    if [ $? -eq 255 ]
-    then
-        exit $?
-    fi
-fi
-
 if [ -z "${REMOTE_STATE_SA}" ]
 then
     # Ask for deployer environment name and try to read the deployer state file and resource group details from the configuration file
-    read -p "Deployer environment name: " deployer_environment
+    
+    if [ -z $deployer_environment ]
+    then
+        read -p "Deployer environment name: " deployer_environment
+    fi
+
+    echo "REMOTE_STATE_SA" $REMOTE_STATE_SA
     
     deployer_config_information="${automation_config_directory}""${deployer_environment}""${region}"
+    load_config_vars "${deployer_config_information}" "keyvault"
     load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
     load_config_vars "${deployer_config_information}" "tfstate_resource_id"
+    load_config_vars "${deployer_config_information}" "deployer_tfstate_key"
     STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
     
     if [ ! -z "${STATE_SUBSCRIPTION}" ]
     then
-        if [ ${account_set} == 0 ] 
+        if [ ${account_set} == 0 ]
         then
             $(az account set --sub "${STATE_SUBSCRIPTION}")
             account_set=1
@@ -224,8 +235,56 @@ then
         REMOTE_STATE_RG \
         REMOTE_STATE_SA \
         tfstate_resource_id \
-        STATE_SUBSCRIPTION
+        STATE_SUBSCRIPTION \
+        keyvault \
+        deployer_tfstate_key
+
     fi
+fi
+
+if [ ! -z $keyvault ]
+then
+    secretname="${environment}"-client-id
+    echo $keyvault
+    echo $secretname
+    az keyvault secret show --name $secretname --vault $keyvault 2>error.log > kv.log
+    if [ -f error.log ]
+    then
+        if [ grep "ERROR:" error.log ]
+        then
+            read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
+            answer=${ans^^}
+            if [ $answer == 'Y' ]; then
+                load_config_vars ${workload_config_information} "keyvault"
+                if [ ! -z $keyvault ]
+                then
+                    # Key vault was specified in ~/.sap_deployment_automation in the deployer file
+                    keyvault_param=$(printf " -v %s " "${keyvault}")
+                fi
+                
+                env_param=$(printf " -e %s " "${environment}")
+                region_param=$(printf " -r %s " "${region}")
+                
+                allParams="${env_param}""${keyvault_param}""${region_param}"
+                
+                "${DEPLOYMENT_REPO_PATH}"deploy/scripts/set_secrets.sh $allParams
+                if [ $? -eq 255 ]
+                then
+                    exit $?
+                fi
+            fi
+        fi
+    fi
+    if [ -f error.log ]
+    then
+        rm error.log
+    fi
+    
+    if [ -f kv.log ]
+    then
+        rm kv.log
+    fi
+    
 fi
 
 if [ -z "${deployer_tfstate_key}" ]
@@ -275,7 +334,7 @@ if [ ! -n "${REMOTE_STATE_SA}" ]; then
     STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
     if [ ! -z "${STATE_SUBSCRIPTION}" ]
     then
-        if [ $account_set==0 ] 
+        if [ $account_set==0 ]
         then
             $(az account set --sub "${STATE_SUBSCRIPTION}")
             account_set=1
@@ -314,10 +373,7 @@ fi
 
 if [ ! -z "${tfstate_resource_id}" ]
 then
-    if [ "${deployment_system}" != sap_deployer ]
-    then
-        tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
-    fi
+    tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 fi
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
@@ -341,20 +397,16 @@ ok_to_proceed=false
 new_deployment=false
 
 #Plugins
-mkdir "$HOME/.terraform.d/plugin-cache"
-
-root_dirname=$(pwd)
-
-export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
-
-if [ -f backend.tf ]
+if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
 then
-    rm backend.tf
+    mkdir "$HOME/.terraform.d/plugin-cache"
 fi
+export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+root_dirname=$(pwd)
 
 check_output=0
 
-if [ $account_set==0 ] 
+if [ $account_set==0 ]
 then
     $(az account set --sub "${STATE_SUBSCRIPTION}")
     account_set=1
@@ -376,15 +428,13 @@ else
         --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
         --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
         --backend-config "container_name=tfstate" \
-        --backend-config "key=${key}.terraform.tfstate" 
+        --backend-config "key=${key}.terraform.tfstate"
     else
         terraform init -chdir="${terraform_module_directory}" -upgrade=true
         check_output=1
     fi
     
 fi
-
-printf "terraform {\n backend \"azurerm\" {} \n}\n" > backend.tf
 
 if [ 1 == $check_output ]
 then
@@ -448,10 +498,12 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}" plan -var-file=${parameterfile} $tfstate_parameter $deployer_tfstate_key_parameter > plan_output.log
+terraform -chdir="${terraform_module_directory}" plan -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter > plan_output.log
 
-if ! $new_deployment; then
-    if grep "No changes" plan_output.log ; then
+if [ ! $new_deployment ]
+then
+    if [ grep "No changes" plan_output.log ]
+    then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -461,17 +513,10 @@ if ! $new_deployment; then
         echo ""
         rm plan_output.log
         
-        if [ $deployment_system == sap_landscape ]
-        then
-            if [ $landscape_tfstate_key_exists == false ]
-            then
-                echo "landscape_tfstate_key=${key}.terraform.tfstate" >> $workload_config_information
-                landscape_tfstate_key_exists=true
-            fi
-        fi
         exit 0
     fi
-    if ! grep "0 to change, 0 to destroy" plan_output.log ; then
+    if [ grep "0 to change, 0 to destroy" plan_output.log ]
+    then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -508,18 +553,12 @@ if [ $ok_to_proceed ]; then
     echo "#########################################################################################"
     echo ""
     
-    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
+    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
 fi
 
-if [ $deployment_system == sap_landscape ]
-then
-    if [ $landscape_tfstate_key_exists == false ]
-    then
-        sed -i /landscape_tfstate_key/d  "${workload_config_information}"
-        
-        echo "landscape_tfstate_key=${key}.terraform.tfstate" >> $workload_config_information
-    fi
-fi
+return_value=0
+landscape_tfstate_key=${key}.terraform.tfstate
+save_config_var "landscape_tfstate_key" "${workload_config_information}"
 
 
-exit 0
+exit $return_value

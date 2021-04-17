@@ -215,7 +215,25 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}"  plan -var-file="${var_file}" 
+terraform -chdir="${terraform_module_directory}"  plan -var-file="${var_file}" > plan_output.log 2>&1
+str1=$(grep "Error: KeyVault " plan_output.log)
+
+if [ -n "${str1}" ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                           Errors during the plan phase                                #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo $str1
+    rm plan_output.log
+    exit -1
+fi
+
+if [ -f plan_output.log ]; then
+    rm plan_output.log
+fi
 
 echo ""
 echo "#########################################################################################"
@@ -225,10 +243,11 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}"  apply ${approve} -var-file="${var_file}" 
+terraform -chdir="${terraform_module_directory}"  apply ${approve} -var-file="${var_file}"
 
 keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
 
+return_value=-1
 temp=$(echo "${keyvault}" | grep "Warning")
 if [ -z "${temp}" ]
 then
@@ -237,7 +256,10 @@ then
     then
         touch "${deployer_config_information}"
         save_config_var "keyvault" "${deployer_config_information}"
+        return_value=0
+    else
+        return_value=-1
     fi
 fi
 
-exit 0
+exit $return_value

@@ -63,7 +63,8 @@ Licensed under the MIT license.
         #Tenant
         [Parameter(Mandatory = $true)][string]$Tenant = "",
         #Workload
-        [Parameter(Mandatory = $true)][bool]$Workload = $true
+        [Parameter(Mandatory = $false )][Switch]$Workload
+
 
     )
 
@@ -71,25 +72,28 @@ Licensed under the MIT license.
     Write-Host -ForegroundColor green "Saving the secrets"
 
     $mydocuments = [environment]::getfolderpath("mydocuments")
-    $filePath = $mydocuments + "\sap_deployment_automation.ini"
-    $iniContent = Get-IniContent -Path $filePath
+    $fileINIPath = $mydocuments + "\sap_deployment_automation.ini"
+    $iniContent = Get-IniContent -Path $fileINIPath
 
     $combined = $Environment + $region
 
-    if($false -eq $Workload) {
+    if($Workload) {
+        Write-Host ("Setting SPN for workload" + "("+ $combined +")")
+    }
+    else {
         $combined = $region
+        Write-Host ("Setting SPN for deployer" + "("+ $combined +")")
     }
 
     if ($null -eq $iniContent[$combined]) {
         $Category1 = @{"subscription" = "" }
         $iniContent += @{$combined = $Category1 }
     }
-
     
     # Subscription
     $sub = $iniContent[$combined]["subscription"]
     if ($null -eq $sub -or "" -eq $sub) {
-        $sub = Read-Host -Prompt "Please enter the subscription for the key vault"
+        $sub = Read-Host -Prompt "Please enter the subscription for the SPN"
         $iniContent[$combined]["subscription"] = $sub
     }
 
@@ -153,54 +157,38 @@ Licensed under the MIT license.
         $spnpwd = $Client_secret
     }
 
-    Out-IniFile -InputObject $iniContent -Path $filePath
-
-    $err=@()
+    Out-IniFile -InputObject $iniContent -Path $fileINIPath
 
     $Secret = ConvertTo-SecureString -String $sub -AsPlainText -Force
     $Secret_name = $Environment + "-subscription-id"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
     Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
-    if($null -ne $err)
-    {
-        throw $err
-    }
-
+    
     $Secret = ConvertTo-SecureString -String $spnid -AsPlainText -Force
     $Secret_name = $Environment + "-client-id"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
     Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
-    if($null -ne $err)
-    {
-        throw $err
-    }
-
+    
     $Secret = ConvertTo-SecureString -String $t -AsPlainText -Force
     $Secret_name = $Environment + "-tenant-id"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
     Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
-    if($null -ne $err)
-    {
-        throw $err
-    }
-
+    
     $Secret = ConvertTo-SecureString -String $spnpwd -AsPlainText -Force
     $Secret_name = $Environment + "-client-secret"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
     Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
-    if($null -ne $err)
-    {
-        throw $err
-    }
-
+    
     $Secret = ConvertTo-SecureString -String $sub -AsPlainText -Force
     $Secret_name = $Environment + "-subscription"
     Write-Host "Setting the secret "$Secret_name " in vault " $vault
     Set-AzKeyVaultSecret -VaultName $vault -Name $Secret_name -SecretValue $Secret -ErrorAction SilentlyContinue -ErrorVariable err
-    if($null -ne $err)
-    {
-        throw $err
+
+    if ($null -eq (Get-AzKeyVaultSecret -VaultName $vault -Name $Secret_name )) {
+        throw "Could not set the secrets"
     }
+
+
 
 }
 

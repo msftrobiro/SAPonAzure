@@ -27,25 +27,28 @@ git checkout beta
 
     ```bash
     export DEPLOYMENT_REPO_PATH=~/Azure_SAP_Automated_Deployment/sap-hana/
-    export ARM_SUBSCRIPTION_ID=8d8422a3-a9c1-4fe9-b880-adcf61557c71
+    export ARM_SUBSCRIPTION_ID=xxxxx
 
 5. Copy the sample parameter folders with
 
     ```bash
     cd ~/Azure_SAP_Automated_Deployment
     cp sap-hana/documentation/SAP_Automation_on_Azure/Process_Documentation/WORKSPACES WORKSPACES/ -r
+
+    cd ~/Azure_SAP_Automated_Deployment/WORKSPACES/DEPLOYMENT-ORCHESTRATION
+
     ```
 
 Navigate to the ~/Azure_SAP_Automated_Deployment/WORKSPACES/DEPLOYMENT-ORCHESTRATION folder.
 
-The deployment will need the Service Principal details (application id, secret and tenant ID)
+**Note! The deployment will need the Service Principal details (application id, secret and tenant ID)**
 
-## **Listing the contents of the deployment** ##
+## **Listing the contents of the deployment**
 
-For a highlevel overview of what will be deployed use the validate.sh script to list the resources deployed by the deployment. **Note** The list does not contain all artifacts
+For a highlevel overview of what will be deployed use the validate.sh script to list the resources deployed by the deployment. **Note** The list does not contain all artifacts.
 
 ```bash
- ${DEPLOYMENT_REPO_PATH}deploy/scripts/validate.sh -p DEPLOYER/MGMT-WEEU-DEP00-INFRASTRUCTURE/MGMT-WEEU-DEP00-INFRASTRUCTURE.json -t sap_deployer
+${DEPLOYMENT_REPO_PATH}deploy/scripts/validate.sh -p DEPLOYER/MGMT-WEEU-DEP00-INFRASTRUCTURE/MGMT-WEEU-DEP00-INFRASTRUCTURE.json -t sap_deployer
 
 ${DEPLOYMENT_REPO_PATH}deploy/scripts/validate.sh -p LIBRARY/MGMT-WEEU-SAP_LIBRARY/MGMT-WEEU-SAP_LIBRARY.json -t sap_library
 
@@ -137,18 +140,40 @@ ${DEPLOYMENT_REPO_PATH}deploy/scripts/prepare_region.sh
 -d DEPLOYER/MGMT-WEEU-DEP00-INFRASTRUCTURE/MGMT-WEEU-DEP00-INFRASTRUCTURE.json -l LIBRARY/MGMT-WEEU-SAP_LIBRARY/MGMT-WEEU-SAP_LIBRARY.json
 ```
 
+or 
+
+```bash
+${DEPLOYMENT_REPO_PATH}deploy/scripts/prepare_region.sh
+-d DEPLOYER/MGMT-WEEU-DEP00-INFRASTRUCTURE/MGMT-WEEU-DEP00-INFRASTRUCTURE.json -l LIBRARY/MGMT-WEEU-SAP_LIBRARY/MGMT-WEEU-SAP_LIBRARY.json -f
+```
+
 The script will deploy the deployment infrastructure and create the Azure keyvault for storing the Service Principal details. If prompted for the environment details enter "MGMT" and enter the Service Principal details. The script will then deploy the rest of the resources required.
 
-## **Deploying the DEV environment** ##
+The -f parameter can be used to clean up the terraform deployment support files from the file system (.terraform folder, terrafrom.tfstate file)
 
-For deploying the DEV environment (vnet & keyvaults) navigate to the folder(LANDSCAPE/DEV-WEEU-SAP01-INFRASTRUCTURE) containing the DEV-WEEU-SAP01-INFRASTRUCTURE.json parameter file and use the install_workloadzone script.
+## **Deploying the SAP workload zone** ## 
+
+Before the actual SAP system can be deployed a workload zone needs to be prepared. For deploying the DEV workload zone (vnet & keyvaults) navigate to the folder(LANDSCAPE/DEV-WEEU-SAP01-INFRASTRUCTURE) containing the DEV-WEEU-SAP01-INFRASTRUCTURE.json parameter file and use the install_workloadzone script.
 
 ```bash
 ${DEPLOYMENT_REPO_PATH}deploy/scripts/install_workloadzone.sh -p DEV-WEEU-SAP01-INFRASTRUCTURE.json 
 ```
 
-When prompted for the Workload SPN Details choose Y and enter the Service Principal details.
-If prompted enter "MGMT" for the Deployer environment name.
+When prompted for the Workload SPN Details choose Y and enter the Service Principal details. When prompted enter "MGMT" for the Deployer environment name.
+
+If the deployer deployment uses a different environment name it is possible to specify that using the -e parameter:
+
+```bash
+${DEPLOYMENT_REPO_PATH}deploy/scripts/install_workloadzone.sh -p DEV-WEEU-SAP01-INFRASTRUCTURE.json -e MGMT
+```
+
+## **Removing the SAP workload zone** ##
+
+For removing the SAP workload zone  navigate to the folder(DEV-WEEU-SAP01-INFRASTRUCTURE) containing the DEV-WEEU-SAP01-INFRASTRUCTURE.json parameter file and use the remover.sh script.
+
+```bash
+${DEPLOYMENT_REPO_PATH}deploy/scripts/remover.sh -p DEV-WEEU-SAP01-INFRASTRUCTURE.json -t sap_landscape
+```
 
 ## **Deploying the SAP system** ##
 

@@ -76,6 +76,8 @@ The Terraform automation templates are hosted in the public sap-hana github repo
 
 The deployment automation leverages json parameter files to configure the Azure environment. It is highly recommended that these parameter files would be stored in the customers source control environment. For more details on how to optimally structure the folder hierarchy for the deployment parameter files see [Folder hierarchy](./Deployment_folder_structure.md). Having the parameter files in a predefined folder structure will simplify automated deployment operations.
 
+**Note! The json parameter name will become the terraform state file name so the file names need to be unique.
+
 The default deployment model of the SAP Deployment Automation Framework will deploy an Azure Virtual Machine that can be used to execute the deployment activities, future versions of the framework will provide means to use other execution environment as well (Azure DevOps)
 
 ### **Regional planning** ###
@@ -99,7 +101,7 @@ The automation also supports having the deployment environment and the SAP Libra
 
 - Which Azure regions are in scope?
 
-#### **Deployment environment** ####
+#### **Deployment environment services** ####
 
 The deployment environment provides the following services
 
@@ -269,7 +271,7 @@ This step deploys the actual infrastructure for the SAP System (SID)
 
 The repository contains a folder [WORKSPACES](WORKSPACES) that has a set of sample parameter files that can be used to deploy the supporting components and the SAP System. The folder structure is documented here: [Deployment folder structure](Deployment_folder_structure.md)
 
-The name of the environment is **DEV** and it is deployed to West Europe. The SID of the application is ZZZ.
+The name of the environment is **DEV** and it is deployed to West Europe. The SID of the application is X00.
 
 The sample deployment will create a deployment environment, the shared library for state management, the workload virtual network and a SAP system.
 

@@ -45,10 +45,9 @@ Two other phases are involved in the overall end-to-end lifecycle, but these are
    1. [Prepare SAP System Template](./hana/prepare-ini.md)
 
 #### SAP Application
-
 - [Acquire Media](./app/acquire-media.md)
 - [Prepare Media](./app/prepare-sap-library.md)
-- [Prepare BoM](./app/prepare-bom.md)
+- [Prepare BoM](./app/prepare-full-app-bom.md)
 - Prepare Template
    1. [Deploy System Infrastructure](./deploy-system-infrastructure.md)
    1. [Define SAP System](./common/define-sap-system.md)

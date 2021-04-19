@@ -58,6 +58,9 @@ Licensed under the MIT license.
         return
     }
 
+    $ParamFullFile = (Get-ItemProperty -Path $Parameterfile -Name Fullname).Fullname
+
+
     $CachePath = (Join-Path -Path $Env:APPDATA -ChildPath "terraform.d\plugin-cache")
     if ( -not (Test-Path -Path $CachePath)) {
         New-Item -Path $CachePath -ItemType Directory
@@ -129,7 +132,7 @@ Licensed under the MIT license.
 
 
     Write-Host -ForegroundColor green "Running destroy"
-    $Command = " destroy -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
+    $Command = " destroy -var-file " + $ParamFullFile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
 
     $Cmd = "terraform -chdir=$terraform_module_directory $Command"
     Add-Content -Path "deployment.log" -Value $Cmd

@@ -2385,9 +2385,19 @@ Licensed under the MIT license.
         $landscape_tfstate_key_parameter = " -var landscape_tfstate_key=" + $landscape_tfstate_key
     }
 
+    Write-Host -ForegroundColor green "Running refresh"
+    $Command = " refresh -var-file " + $ParamFullFile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter
+
+    $Cmd = "terraform -chdir=$terraform_module_directory $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
+    & ([ScriptBlock]::Create($Cmd))  
+    if ($LASTEXITCODE -ne 0) {
+        throw "Error executing command: $Cmd"
+    }
+
 
     Write-Host -ForegroundColor green "Running destroy"
-    $Command = " destroy -var-file " + $ParamFullFile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
+    $Command = " destroy -var-file " + $ParamFullFile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter
 
     $Cmd = "terraform -chdir=$terraform_module_directory $Command"
     Add-Content -Path "deployment.log" -Value $Cmd

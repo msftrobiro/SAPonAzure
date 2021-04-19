@@ -192,7 +192,6 @@ root_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
 
-export TF_DATA_DIR="${param_dirname}/.terraform"
 var_file="${param_dirname}"/"${parameterfile}" 
  
 if [ "${deployment_system}" == sap_deployer ]
@@ -344,7 +343,6 @@ if [ ! -n "${REMOTE_STATE_RG}" ]; then
     fi
 fi
 
-
 if [ "${deployment_system}" != sap_deployer ]
 then
     if [ ! -n "${tfstate_resource_id}" ]; then
@@ -378,6 +376,7 @@ fi
 
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
+export TF_DATA_DIR="${param_dirname}/.terraform"
 
 if [ ! -d "${terraform_module_directory}" ]
 then
@@ -633,5 +632,5 @@ then
     
 fi
 
-
+unset TF_DATA_DIR
 exit 0

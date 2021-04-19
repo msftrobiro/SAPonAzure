@@ -166,7 +166,6 @@ root_dirname=$(pwd)
 param_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
-export TF_DATA_DIR="${param_dirname}"/.terraform
 var_file="${param_dirname}"/"${parameterfile}" 
 
 load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
@@ -229,6 +228,9 @@ then
     account_set=1
 fi
 
+export TF_DATA_DIR="${param_dirname}"/.terraform
+
+
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
 
 if [ ! -d "${terraform_module_directory}" ]
@@ -287,5 +289,6 @@ then
     sed -i /tfstate_resource_id/d  "${system_config_information}"
 fi
 
+unset TF_DATA_DIR
 
 exit 0

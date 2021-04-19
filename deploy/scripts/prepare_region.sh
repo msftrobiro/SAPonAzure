@@ -302,6 +302,8 @@ else
     echo ""
 fi
 
+unset TF_DATA_DIR
+
 if [ 1 == $step ]
 then
     read -p "Do you want to specify the SPN Details Y/N?"  ans
@@ -333,6 +335,8 @@ then
     step=2
     save_config_var "step" "${deployer_config_information}"
 fi
+
+unset TF_DATA_DIR
 
 if [ 2 == $step ]
 then
@@ -384,6 +388,8 @@ else
     
 fi
 
+unset TF_DATA_DIR
+
 if [ 3 == $step ]
 then
     echo ""
@@ -411,6 +417,8 @@ then
     save_config_var "step" "${deployer_config_information}"
 fi
 
+unset TF_DATA_DIR
+
 if [ 4 == $step ]
 then
     
@@ -433,3 +441,4 @@ then
     step=5
     save_config_var "step" "${deployer_config_information}"
 fi
+unset TF_DATA_DIR

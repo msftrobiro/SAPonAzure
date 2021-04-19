@@ -474,6 +474,8 @@ then
             if [ $answer == 'Y' ]; then
                 ok_to_proceed=true
             else
+                unset TF_DATA_DIR
+
                 exit 1
             fi
         else
@@ -512,7 +514,8 @@ then
         echo "#########################################################################################"
         echo ""
         rm plan_output.log
-        
+        unset TF_DATA_DIR
+    
         exit 0
     fi
     if [ grep "0 to change, 0 to destroy" plan_output.log ]
@@ -534,6 +537,8 @@ then
         if [ $answer == 'Y' ]; then
             ok_to_proceed=true
         else
+            unset TF_DATA_DIR
+
             exit -1
         fi
     else
@@ -560,5 +565,6 @@ return_value=0
 landscape_tfstate_key=${key}.terraform.tfstate
 save_config_var "landscape_tfstate_key" "${workload_config_information}"
 
+unset TF_DATA_DIR
 
 exit $return_value

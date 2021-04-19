@@ -153,7 +153,6 @@ Licensed under the MIT license.
     $Env:TF_DATA_DIR = (Join-Path -Path $fInfo.Directory.FullName -ChildPath ".terraform")
 
     $DeployerParameterPath = $fInfo.Directory.FullName
-
     
     if (0 -eq $step) {
     
@@ -171,7 +170,6 @@ Licensed under the MIT license.
             $step = 1
             $iniContent[$combined]["step"] = $step
             Out-IniFile -InputObject $iniContent -Path $fileINIPath
-
         }
         catch {
             $errors_occurred = $true
@@ -180,6 +178,7 @@ Licensed under the MIT license.
     }
 
     if ($errors_occurred) {
+        $Env:TF_DATA_DIR = $null
         return
     }
 
@@ -209,10 +208,8 @@ Licensed under the MIT license.
                     $vault = Read-Host -Prompt "Please enter the vault name"
                     $iniContent[$combined]["Vault"] = $vault 
                     Out-IniFile -InputObject $iniContent -Path $fileINIPath
-    
                 }
                 try {
-
                     Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault 
                     $iniContent = Get-IniContent -Path $fileINIPath
             
@@ -230,7 +227,6 @@ Licensed under the MIT license.
             $step = 2
             $iniContent[$combined]["step"] = $step
             Out-IniFile -InputObject $iniContent -Path $fileINIPath
-
         }
     }
 
@@ -246,7 +242,6 @@ Licensed under the MIT license.
             Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
             Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
             Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
-
         }
 
         try {
@@ -265,6 +260,7 @@ Licensed under the MIT license.
         Set-Location -Path $curDir
     }
     if ($errors_occurred) {
+        $Env:TF_DATA_DIR = $null
         return
     }
 
@@ -293,6 +289,7 @@ Licensed under the MIT license.
         Set-Location -Path $curDir
     }
     if ($errors_occurred) {
+        $Env:TF_DATA_DIR = $null
         return
     }
 
@@ -318,8 +315,8 @@ Licensed under the MIT license.
 
         Set-Location -Path $curDir
     }
-    if ($errors_occurred) {
-        return
-    }
+
+    $Env:TF_DATA_DIR = $null
+    return
 
 }

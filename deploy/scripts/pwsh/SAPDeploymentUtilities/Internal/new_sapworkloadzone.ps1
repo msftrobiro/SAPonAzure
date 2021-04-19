@@ -84,8 +84,6 @@ Licensed under the MIT license.
     $fileINIPath = $mydocuments + "\sap_deployment_automation.ini"
     $iniContent = Get-IniContent -Path $fileINIPath
 
-    $Env:TF_DATA_DIR = (Join-Path -Path $fInfo.Directory.FullName -ChildPath ".terraform")
-
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
 
     $Environment = $jsonData.infrastructure.environment
@@ -242,8 +240,8 @@ Licensed under the MIT license.
     else {
         $rgName = $iniContent[$combined]["REMOTE_STATE_RG"].Trim()
         $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"].Trim()
-
     }
+
     if ($null -eq $tfstate_resource_id -or "" -eq $tfstate_resource_id) {
         $rID = Get-AzResource -Name $saName 
         $rgName = $rID.ResourceGroupName
@@ -256,6 +254,7 @@ Licensed under the MIT license.
     $sub = $tfstate_resource_id.Split("/")[2]
     
     $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\run\$Type"
+    $Env:TF_DATA_DIR = (Join-Path -Path $fInfo.Directory.FullName -ChildPath ".terraform")
 
     Write-Host -ForegroundColor green "Initializing Terraform"
 
@@ -270,6 +269,7 @@ Licensed under the MIT license.
 
                 $ans = Read-Host -Prompt ".terraform already exists, do you want to continue Y/N?"
                 if ("Y" -ne $ans) {
+                    $Env:TF_DATA_DIR = $null
                     return
                 }
             }
@@ -281,6 +281,7 @@ Licensed under the MIT license.
 
     & ([ScriptBlock]::Create($Cmd)) 
     if ($LASTEXITCODE -ne 0) {
+        $Env:TF_DATA_DIR = $null
         throw "Error executing command: $Cmd"
     }
 
@@ -317,6 +318,7 @@ Licensed under the MIT license.
     
             }
             else {
+                $Env:TF_DATA_DIR = $null
                 return 
             }
         }
@@ -336,6 +338,7 @@ Licensed under the MIT license.
     $planResults = & ([ScriptBlock]::Create($Cmd)) | Out-String 
     
     if ($LASTEXITCODE -ne 0) {
+        $Env:TF_DATA_DIR = $null
         throw "Error executing command: $Cmd"
     }
 
@@ -345,6 +348,7 @@ Licensed under the MIT license.
         Write-Host ""
         Write-Host -ForegroundColor Green "Infrastructure is up to date"
         Write-Host ""
+        $Env:TF_DATA_DIR = $null
         return;
     }
 
@@ -358,6 +362,7 @@ Licensed under the MIT license.
         if ($PSCmdlet.ShouldProcess($Parameterfile)) {
             $ans = Read-Host -Prompt "Do you want to continue Y/N?"
             if ("Y" -ne $ans) {
+                $Env:TF_DATA_DIR = $null
                 return 
             }
         }
@@ -371,8 +376,10 @@ Licensed under the MIT license.
         $Cmd = "terraform -chdir=$terraform_module_directory $Command"
         & ([ScriptBlock]::Create($Cmd))  
         if ($LASTEXITCODE -ne 0) {
+            $Env:TF_DATA_DIR = $null
             throw "Error executing command: $Cmd"
         }
     }
-
+    
+    $Env:TF_DATA_DIR = $null
 }

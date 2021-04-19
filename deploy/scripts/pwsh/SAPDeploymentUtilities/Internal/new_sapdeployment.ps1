@@ -107,7 +107,6 @@ Licensed under the MIT license.
 
     $ParamFullFile = (Get-ItemProperty -Path $Parameterfile -Name Fullname).Fullname
 
-    
     $mydocuments = [environment]::getfolderpath("mydocuments")
     $filePath = $mydocuments + "\sap_deployment_automation.ini"
     $iniContent = Get-IniContent -Path $filePath
@@ -120,8 +119,6 @@ Licensed under the MIT license.
             return;
         }
     }
-
-    $Env:TF_DATA_DIR = (Join-Path -Path $curDir -ChildPath ".terraform")
 
     $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
     $landscapeKey = ""
@@ -293,6 +290,7 @@ Licensed under the MIT license.
     }
     
     $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\run\$Type"
+    $Env:TF_DATA_DIR = (Join-Path -Path $curDir -ChildPath ".terraform")
 
     Write-Host -ForegroundColor green "Initializing Terraform"
 
@@ -316,6 +314,8 @@ Licensed under the MIT license.
 
             $ans = Read-Host -Prompt "The system has already been deployed and the statefile is in Azure, do you want to redeploy Y/N?"
             if ("Y" -ne $ans) {
+                $Env:TF_DATA_DIR = $null
+
                 return
             }
         }
@@ -382,6 +382,7 @@ Licensed under the MIT license.
     
             }
             else {
+                $Env:TF_DATA_DIR = $null
                 return 
             }        
         }
@@ -410,6 +411,7 @@ Licensed under the MIT license.
         Write-Host ""
         Write-Host -ForegroundColor Green "Infrastructure is up to date"
         Write-Host ""
+        $Env:TF_DATA_DIR = $null
         return;
     }
 
@@ -417,6 +419,7 @@ Licensed under the MIT license.
         Write-Host ""
         Write-Host -ForegroundColor Green "Infrastructure is up to date"
         Write-Host ""
+        $Env:TF_DATA_DIR = $null
         return;
     }
 
@@ -431,6 +434,7 @@ Licensed under the MIT license.
         if ($PSCmdlet.ShouldProcess($Parameterfile , $Type)) {
             $ans = Read-Host -Prompt "Do you want to continue Y/N?"
             if ("Y" -ne $ans) {
+                $Env:TF_DATA_DIR = $null
                 return 
             }
         }
@@ -479,5 +483,5 @@ Licensed under the MIT license.
         }
     
     }
-
+    $Env:TF_DATA_DIR = $null
 }

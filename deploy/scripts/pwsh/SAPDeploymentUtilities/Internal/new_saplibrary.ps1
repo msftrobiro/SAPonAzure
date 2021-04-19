@@ -106,6 +106,8 @@ Licensed under the MIT license.
     Write-Host $terraform_module_directory
     $terraform_module_directory = Join-Path -Path $repo -ChildPath "\deploy\terraform\bootstrap\sap_library"
 
+    $Env:TF_DATA_DIR = (Join-Path -Path $curDir -ChildPath ".terraform")
+
     Write-Host -ForegroundColor green "Initializing Terraform"
 
     $statefile=(Join-Path -Path $curDir -ChildPath "terraform.tfstate")
@@ -117,6 +119,7 @@ Licensed under the MIT license.
             Write-Host -ForegroundColor green "State file already migrated to Azure!"
             $ans = Read-Host -Prompt "State is already migrated to Azure. Do you want to re-initialize the library Y/N?"
             if ("Y" -ne $ans) {
+                $Env:TF_DATA_DIR = $null
                 return
             }
             else {
@@ -127,6 +130,7 @@ Licensed under the MIT license.
             if ($PSCmdlet.ShouldProcess($Parameterfile, $DeployerFolderRelativePath)) {
                 $ans = Read-Host -Prompt "The system has already been deployed, do you want to redeploy Y/N?"
                 if ("Y" -ne $ans) {
+                    $Env:TF_DATA_DIR = $null
                     return
                 }
             }
@@ -137,6 +141,7 @@ Licensed under the MIT license.
     Add-Content -Path "deployment.log" -Value $Cmd
     & ([ScriptBlock]::Create($Cmd)) 
     if ($LASTEXITCODE -ne 0) {
+        $Env:TF_DATA_DIR = $null
         throw "Error executing command: $Cmd"
     }
 
@@ -154,6 +159,7 @@ Licensed under the MIT license.
     $planResults = & ([ScriptBlock]::Create($Cmd)) | Out-String 
     
     if ($LASTEXITCODE -ne 0) {
+        $Env:TF_DATA_DIR = $null
         throw "Error executing command: $Cmd"
     }
 
@@ -163,6 +169,7 @@ Licensed under the MIT license.
         Write-Host ""
         Write-Host -ForegroundColor Green "Infrastructure is up to date"
         Write-Host ""
+        $Env:TF_DATA_DIR = $null
         return;
     }
 
@@ -170,6 +177,7 @@ Licensed under the MIT license.
         Write-Host ""
         Write-Host -ForegroundColor Green "Infrastructure is up to date"
         Write-Host ""
+        $Env:TF_DATA_DIR = $null
         return;
     }
 
@@ -189,6 +197,7 @@ Licensed under the MIT license.
         Add-Content -Path "deployment.log" -Value $Cmd
         & ([ScriptBlock]::Create($Cmd))  
         if ($LASTEXITCODE -ne 0) {
+            $Env:TF_DATA_DIR = $null
             throw "Error executing command: $Cmd"
         }
 
@@ -196,6 +205,7 @@ Licensed under the MIT license.
         $Cmd = "terraform -chdir=$terraform_module_directory $Command"
         $rgName = & ([ScriptBlock]::Create($Cmd)) | Out-String 
         if ($LASTEXITCODE -ne 0) {
+            $Env:TF_DATA_DIR = $null
             throw "Error executing command: $Cmd"
         }
         $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName.Replace("""", "")
@@ -204,6 +214,7 @@ Licensed under the MIT license.
         $Cmd = "terraform -chdir=$terraform_module_directory $Command"
         $saName = & ([ScriptBlock]::Create($Cmd)) | Out-String 
         if ($LASTEXITCODE -ne 0) {
+            $Env:TF_DATA_DIR = $null
             throw "Error executing command: $Cmd"
         }
         $iniContent[$combined]["REMOTE_STATE_SA"] = $saName.Replace("""", "")
@@ -212,11 +223,12 @@ Licensed under the MIT license.
         $Cmd = "terraform -chdir=$terraform_module_directory $Command"
         $tfstate_resource_id = & ([ScriptBlock]::Create($Cmd)) | Out-String 
         if ($LASTEXITCODE -ne 0) {
+            $Env:TF_DATA_DIR = $null
             throw "Error executing command: $Cmd"
         }
         $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
 
         Out-IniFile -InputObject $iniContent -Path $filePath
     }
-
+    $Env:TF_DATA_DIR = $null
 }

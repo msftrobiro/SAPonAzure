@@ -8,7 +8,7 @@
 
 **SAP\_Automation\_on\_Azure**
 
-Welcome to the [**SAP on Azure Deployment Automation Framework**](https://github.com/Azure/sap-hana/blob/documentation/v2.3/documentation/SAP_Automation_on_Azure/table_of_contents.md) repository. This repository contains code that will support the automated deployments of SAP platforms in the Azure Cloud.
+Welcome to the [**SAP on Azure Deployment Automation Framework**](https://github.com/Azure/sap-hana/blob/documentation/v2.3/documentation/SAP_Automation_on_Azure/table_of_contents.md) repository. This repository contains code that will support the automated deployments of SAP platforms in the Azure Cloud. For information about how to collaborate in the repo please see the contributing guidelines available here: [Contributing](CONTRIBUTING.md)
 
 This framework allows to deploy infrastructure for SAP landscapes based on SAP HANA and NetWeaver with AnyDB and related infrastructure. All SAP supported operating system versions are being supported by this framework as well. All SAP tiers – SBX, DEV, QA, PROD can be deployed in a chosen region.
 

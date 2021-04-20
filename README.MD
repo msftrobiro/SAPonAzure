@@ -1,86 +1,21 @@
 ### <img src="documentation/SAP_Automation_on_Azure/assets/images/UnicornSAPBlack256x256.png" width="64px"> SAP Deployment Automation Framework <!-- omit in toc -->
-<br/>
 
-# Welcome <!-- omit in toc -->
+# SAP Automation on Azure #
 
-Master Branch's status: [![Build Status](https://dev.azure.com/azuresaphana/Azure-SAP-HANA/_apis/build/status/Azure.sap-hana?branchName=master&api-version=5.1-preview.1)](https://dev.azure.com/azuresaphana/Azure-SAP-HANA/_build/latest?definitionId=6&branchName=master)
+Welcome to the [**SAP on Azure Deployment Automation Framework**](documentation/SAP_Automation_on_Azure/table_of_contents.md) repository. This repository contains code that will support the automated deployments of SAP platforms in the Azure Cloud. For information about how to collaborate in the repo please see the contributing guidelines available here: [Contributing](CONTRIBUTING.md)
 
-<br/><br/>
+This framework allows to deploy infrastructure for SAP landscapes based on SAP HANA and NetWeaver with AnyDB and related infrastructure. All SAP supported operating system versions are being supported by this framework as well. All SAP tiers – SBX, DEV, QA, PROD can be deployed in a chosen region.
 
-## Abstract <!-- omit in toc -->
+**The deployment framework is based on Microsoft best practices and principles for SAP on Azure outlined in a comprehensive documentation which should be followed to ensure supportability by using certified virtual machine and storage solutions, stability, reliability and performance. [**Get started with SAP on Azure VMs - Azure Virtual Machines | Microsoft Docs**](https://docs.microsoft.com/azure/virtual-machines/workloads/sap/get-started)
 
----
-<br/>
+Principles of cloud adoption framework have been incorporated into the automation framework. [Microsoft Cloud Adoption Framework for Azure - Cloud Adoption Framework | Microsoft Docs](https://docs.microsoft.com/azure/cloud-adoption-framework/)
 
-Welcome to the **SAP on Azure Deployment Automation Framework** repository.
-This repository contains code that will support the automated deployments of SAP platforms in the Azure Cloud.
-<br/>
+Please review to glossary which helps to understand the deployment structure: [Glossary](documentation/SAP_Automation_on_Azure/Process_Documentation/glossary.md)
 
-Please follow the linke below to the documentation:
-<br/><br/>
+Deployment steps and pre-deployment requirements can be found here: [SAP Automation on Azure](documentation/SAP_Automation_on_Azure)
 
+Product Documentation is documented here, this is for information purposes and should not be changed.
 
-<center>
+[sap-hana/documentation/SAP_Automation_on_Azure/Software_Documentation at beta · Azure/sap-hana · GitHub](https://github.com/Azure/sap-hana/tree/beta/documentation/SAP_Automation_on_Azure/Software_Documentation)
 
-[<img src="documentation/SAP_Automation_on_Azure/assets/images/documentation-clipart.png" width="256px">](documentation/SAP_Automation_on_Azure/table_of_contents.md)
-
-## [SAP Deployment Automation Framework Documentation](documentation/SAP_Automation_on_Azure/table_of_contents.md) <!-- omit in toc -->
-# Table of contents <!-- omit in toc -->
-
-- [Contributions](#contributions)
-- [Data Collection](#data-collection)
-- [How to Turn off Data Collection](#how-to-turn-off-data-collection)
-- [License & Copyright](#license--copyright)
-- [Contact](#contact)
-
-<br/><br/>
-
----
-
-## Contributions
-
-If you want to contribute to our project, be sure to review the [contributing guidelines](/CONTRIBUTING.md).
-
-We use [GitHub issues](https://github.com/Azure/sap-hana/issues/) for feature requests and bugs.
-
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
-
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-<br>
-
-## Data Collection
-
-The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft's privacy statement. Our privacy statement is located at https://go.microsoft.com/fwlink/?LinkID=824704. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
-
-
-## How to Turn off Data Collection
-
-To turn off data collection, please remove or comment out below IMDS.tf files:
-- Data collection for deployer [here](https://github.com/Azure/sap-hana/blob/master/deploy/terraform/terraform-units/modules/sap_deployer/IMDS.tf)
-- Data collection for sap_library [here](https://github.com/Azure/sap-hana/blob/master/deploy/terraform/terraform-units/modules/sap_library/IMDS.tf)
-- Data collection for sap_landscape [here](https://github.com/Azure/sap-hana/blob/master/deploy/terraform/terraform-units/modules/sap_landscape/IMDS.tf)
-- Data collection for sap_system [here](https://github.com/Azure/sap-hana/blob/master/deploy/terraform/terraform-units/modules/sap_system/common_infrastructure/IMDS.tf)
-
-
-## License & Copyright
-
-Copyright © 2018-2020 Microsoft Azure.
-
-Licensed under the [MIT License](LICENSE).
-
-<br>
-
-## Contact
-
-We look forward to your feedback and welcome any contributions!
-
-Please feel free to reach out to our team at ![image](documentation/SAP_Automation_on_Azure/assets/images/contact.png).
+Post-deployment activities like system copies tbd

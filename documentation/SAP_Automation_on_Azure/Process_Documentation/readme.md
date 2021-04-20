@@ -98,7 +98,7 @@ In the Greenfield scenario no Azure infrastructure components for the SAP on Azu
 
 In the Brownfield scenarion the Automation framework will deploy the systems using existing Azure resources like the virtual network.
 
-For more information see [Deployment scenarios(./deployment_scenarios.md)]
+For more information see [Deployment scenarios](./deployment_scenarios.md)
 
 ## **Region planning** ##
 

@@ -1,15 +1,15 @@
 {
   "infrastructure": {
-    "region"                : "northeurope",
+    "region"                : "westus2",
     "environment"           : "MGMT",
     "resource_group"        : {
-      "name"                : "MGMT-NOEU-SAP_LIBRARY"
+      "name"                : "MGMT-WUS2-SAP_LIBRARY"
     }
   },
   "deployer": {
     "environment"           : "MGMT",
-    "region"                : "northeurope",
-    "vnet"                  : "DEP00",
+    "region"                : "westus2",
+    "vnet"                  : "DEP02",
     "use"                   : false
   },
   "key_vault": {

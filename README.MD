@@ -54,6 +54,11 @@ For more information see [SAP System documentation](/documentation/SAP_Automatio
 
 ![SAP Deployment Automation Framework - Workload zone](/documentation/images/system.png)
 
-Deployment steps and pre-deployment requirements can be found here: [SAP Automation on Azure](documentation/SAP_Automation_on_Azure)
+### Getting started with the SAP Deployment Automation Framework ###
+
+For detailed guidance on how to start using the Deployment Automation Framework see: [Getting started with the SAP Deployment Automation framework](/documentation/SAP_Automation_on_Azure/Process_Documentation/readme.md)
+
+### Contributing to the repository ###
+
 
 For information about how to collaborate in the repository please see the [contributing guidelines](contributions.md)

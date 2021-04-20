@@ -32,19 +32,19 @@ The highlevel process for deployment is illustrated in the diagram below.
 
 The first deployment activity is to prepare the deployment environment. This environment will contain a an Azure virtual machine that can be used to run Terraform and Ansible. The environment will also contain a keyvault for storing credential information. For more information see [Deployer documentation](/documentation/SAP_Automation_on_Azure/Software_Documentation/product_documentation-deployer.md) and [Deployer configuration](/documentation/SAP_Automation_on_Azure/Software_Documentation/configuration-deployer.md)
 
-![SAP Deployment Automation Framework - Deployer](/documentation/images/deployer.png)
+![SAP Deployment Automation Framework - Deployer](/documentation/images/Deployer.png)
 
 ### **SAP Library** ###
 
 The SAP library will provide persistent storage for the Terraform state files as well as storage for the SAP Installation media. For more information see [SAP Library documentation](/documentation/SAP_Automation_on_Azure/Software_Documentation/product_documentation-sap_library.md) and [SAP Library configuration](/documentation/SAP_Automation_on_Azure/Software_Documentation/configuration-sap_library.md)
 
-![SAP Deployment Automation Framework - Library](/documentation/images/library.png)
+![SAP Deployment Automation Framework - Library](/documentation/images/Library.png)
 
 ### **Workload zone** ###
 
 The workload zone will support the partitioning of an SAP landscape into different tiers (Dev, QA, Prod, etc). The workload zone will contain an Azure Virtual Network and Azure Keyvaults for managing the virtual machine credentials for the systems deployed into the workload. For more information see [SAP Workload Zone documentation](/documentation/SAP_Automation_on_Azure/Software_Documentation/product_documentation-sapworkloadzone.md) and [SAP Workload Zone configuration](/documentation/SAP_Automation_on_Azure/Software_Documentation/configuration-sap_workloadzone.md)
 
-![SAP Deployment Automation Framework - Workload zone](/documentation/images/workload_zone.png)
+![SAP Deployment Automation Framework - Workload zone](/documentation/images/Workload_zone.png)
 
 ### **System** ###
 

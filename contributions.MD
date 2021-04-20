@@ -1,4 +1,4 @@
-## Contributions
+## Contributions ##
 
 If you want to contribute to our project, be sure to review the [contributing guidelines](/CONTRIBUTING.md).
 

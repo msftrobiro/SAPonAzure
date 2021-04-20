@@ -8,31 +8,52 @@ The deployment framework is based on Microsoft best practices and principles for
 
 The principles of the SAP Automation frameworks adhers to the principles of the Microsoft cloud adoption framework. [Microsoft Cloud Adoption Framework for Azure - Cloud Adoption Framework | Microsoft Docs](https://docs.microsoft.com/azure/cloud-adoption-framework/)
 
+## Glossary ##
+
+|Term           | Description|
+| :-            | :-         |
+|System         |An SAP system is an instance of an SAP application that has the resources the application needs to run, like virtual machines (VMs), disks, load balancers, proximity placement groups, availability sets, subnets, and network security groups. The application is identified by a unique 3 letter identifier SID.|
+|Landscape      |A landscape is a collection of systems in different environments in an SAP application. The example diagram shows three SAP landscapes: SAP ERP Central Component (ECC), SAP customer relationship management (CRM), and SAP Business Warehouse (BW).|
+|Workload Zone  |A workload zone is also called a deployment environment, and partitions the SAP application into environments like non-prod and prod or can further segment a landscape into tiers like development, quality assurance, and production. A deployment environment provides shared resources like virtual networks and key vaults to all the systems in the Workload Zone.  
+
+<br>
+
+The following diagram illustrates the dependencies between SAP systems, workload zones, and landscapes. In the illustration below the customer has three landscapes: SAP ERP Central Component (ECC), SAP customer relationship management (CRM), and SAP Business Warehouse (BW). Each landscape has four workload zones: sandbox, development, quality assurance, and production. Each workload zone may contain one or more systems.
+
+![SAP Deployment Automation Framework - Process](/documentation/images/SAP_estate.png)
+
 ## SAP Deployment Automation Framework - Process ##
 
 The highlevel process for deployment is illustrated in the diagram below.
 
 ![SAP Deployment Automation Framework - Process](/documentation/images/SAP-Automation_Process.png)
 
+### **Deployment environment** ###
 
-### Deployment environment ###
+The first deployment activity is to prepare the deployment environment. This environment will contain a an Azure virtual machine that can be used to run Terraform and Ansible. The environment will also contain a keyvault for storing credential information. For more information see [Deployer documentation](/documentation/SAP_Automation_on_Azure/Software_Documentation/product_documentation-deployer.md) and [Deployer configuration](/documentation/SAP_Automation_on_Azure/Software_Documentation/configuration-deployer.md)
 
-The first deployment activity is to prepare the deployment environment. This environment will contain a Virtual machine that can be used to run Terraform and Ansible. The environment will also contain a keyvault for storing credential information.
+![SAP Deployment Automation Framework - Deployer](/documentation/images/deployer.png)
 
-![SAP Deployment Automation Framework - Process](/documentation/images/deployer.png)
+### **SAP Library** ###
 
+The SAP library will provide persistent storage for the Terraform state files as well as storage for the SAP Installation media. For more information see [SAP Library documentation](/documentation/SAP_Automation_on_Azure/Software_Documentation/product_documentation-sap_library.md) and [SAP Library configuration](/documentation/SAP_Automation_on_Azure/Software_Documentation/configuration-sap_library.md)
 
+![SAP Deployment Automation Framework - Library](/documentation/images/library.png)
 
-Please review to glossary which helps to understand the deployment structure: [Glossary](documentation/SAP_Automation_on_Azure/Process_Documentation/glossary.md)
+### **Workload zone** ###
+
+The workload zone will support the partitioning of an SAP landscape into different tiers (Dev, QA, Prod, etc). The workload zone will contain an Azure Virtual Network and Azure Keyvaults for managing the virtual machine credentials for the systems deployed into the workload. For more information see [SAP Workload Zone documentation](/documentation/SAP_Automation_on_Azure/Software_Documentation/product_documentation-sapworkloadzone.md) and [SAP Workload Zone configuration](/documentation/SAP_Automation_on_Azure/Software_Documentation/configuration-sap_workloadzone.md)
+
+![SAP Deployment Automation Framework - Workload zone](/documentation/images/workload_zone.png)
+
+### **System** ###
+
+The SAP System is the actual SAP Application, it contains all the Azure artifacts required to host the SAP Application.
+
+For more information see [SAP System documentation](/documentation/SAP_Automation_on_Azure/Software_Documentation/product_documentation-sap_deployment_unit.md) and [SAP System configuration](/documentation/SAP_Automation_on_Azure/Software_Documentation/configuration--sap_deployment_unit.md)
+
+![SAP Deployment Automation Framework - Workload zone](/documentation/images/system.png)
 
 Deployment steps and pre-deployment requirements can be found here: [SAP Automation on Azure](documentation/SAP_Automation_on_Azure)
 
-Product Documentation is documented here, this is for information purposes and should not be changed.
-
-[sap-hana/documentation/SAP_Automation_on_Azure/Software_Documentation at beta · Azure/sap-hana · GitHub](https://github.com/Azure/sap-hana/tree/beta/documentation/SAP_Automation_on_Azure/Software_Documentation)
-
-
-For information about how to collaborate in the repo please see the [contributing guidelines](CONTRIBUTING.md)
-
-
-Post-deployment activities like system copies tbd
+For information about how to collaborate in the repository please see the [contributing guidelines](contributions.md)

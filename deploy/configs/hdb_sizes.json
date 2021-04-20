@@ -1176,6 +1176,7 @@
                 "count": 1,
                 "disk_type": "Premium_LRS",
                 "size_gb": 1024,
+                "use_lvm": true,
                 "caching": "ReadOnly",
                 "write_accelerator": false,
                 "mount_point": "/hana/shared",

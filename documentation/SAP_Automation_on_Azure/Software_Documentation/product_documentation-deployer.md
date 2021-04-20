@@ -8,6 +8,8 @@ The deployment environment provides the following services
 2. Azure Keyvault, this keyvault will containg the Service Principal details and will be used by the Terraform deployments
 3. Azure Firewall, this optional component is used to provide outbound Internet connectivity.
 
+![SAP Deployment Automation Framework - Deployer](../../images/deployer.png)
+
 ## Deployer VM ##
 
 The default Deployer VM is an Ubuntu 18.4 Linux Server. It has a clone of the Github sap-hana repository and both Terraform and Ansible installed.

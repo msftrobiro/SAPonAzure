@@ -197,8 +197,10 @@ Is the deployment a Greenfield deployment (no Azure Infrastructure for the Workl
 
 The Workload Zone provides the following services:
 
-- Azure Virtual Network
+- Azure Virtual Network (including subnets and network security groups)
 - Azure Keyvault for system credentials
+- Storage account for bootdiagnostics
+- Storage account for cloud witness
 
 #### Configuring the Workload Zone ####
 

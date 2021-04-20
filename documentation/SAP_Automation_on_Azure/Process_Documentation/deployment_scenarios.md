@@ -49,6 +49,7 @@ The scenario requires an existing key vault that contains the SPN credentials fo
 "key_vault" : {
     "kv_spn_id"         : "<ARMresourceID>"
 } 
+```
 
 By providing false in the "use" attribute in the deployer section, the automation framwork will not use any information from the deployer state file.
 

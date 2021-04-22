@@ -32,7 +32,7 @@ Once the pre-requisites are met, proceed with the next steps.
 
 5. Navigate to the `Azure_SAP_Automated_Deployment\WORKSPACES\DEPLOYMENT-ORCHESTRATION` folder.
 
-6. Kindly note, that triggering the deployment will need the Service Principal details (application id, secret and tenant ID)
+Kindly note, that triggering the deployment will need the Service Principal details (application id, secret and tenant ID)
 
 ## **Listing the contents of the deployment** ##
 
@@ -138,32 +138,57 @@ For preparing the region (Deployer, Library) use the New-SAPAutomationRegion cmd
 New-SAPAutomationRegion -DeployerParameterfile .\DEPLOYER\MGMT-WEEU-DEP00-INFRASTRUCTURE\MGMT-WEEU-DEP00-INFRASTRUCTURE.json  -LibraryParameterfile .\LIBRARY\MGMT-WEEU-SAP_LIBRARY\MGMT-WEEU-SAP_LIBRARY.json
 ```
 
+or
+
+```PowerShell
+New-SAPAutomationRegion -DeployerParameterfile .\DEPLOYER\MGMT-WEEU-DEP00-INFRASTRUCTURE\MGMT-WEEU-DEP00-INFRASTRUCTURE.json  -LibraryParameterfile .\LIBRARY\MGMT-WEEU-SAP_LIBRARY\MGMT-WEEU-SAP_LIBRARY.json -Force
+```
+
 The script will deploy the deployment infrastructure and create the Azure keyvault for storing the Service Principal details.
 
-If prompted for the environment details enter "MGMT" and enter the Service Principal details.
+The script will deploy the deployment infrastructure and create the Azure keyvault for storing the Service Principal details. If prompted for the environment details enter "MGMT" and enter the Service Principal details. The script will then deploy the rest of the resources required.
+
+The -Force parameter can be used to clean up the terraform deployment support files from the file system (.terraform folder, terrafrom.tfstate file).
 
 The script will them deploy the rest of the resources required.
 
-## **Preparing the "DEV" environment** ##
+## **Deploying the SAP workload zone** ## 
 
-For deploying the SAP system navigate to the folder(LANDSCAPE/DEV-WEEU-SAP01-INFRASTRUCTURE) containing the DEV-WEEU-SAP01-INFRASTRUCTURE.json parameter file and use the New-SAPWorkloadZone cmdlet
+Before the actual SAP system can be deployed a workload zone needs to be prepared. For deploying the DEV workload zone (vnet & keyvaults) navigate to the folder(LANDSCAPE/DEV-WEEU-SAP01-INFRASTRUCTURE) containing the DEV-WEEU-SAP01-INFRASTRUCTURE.json parameter file and use the New-SAPWorkloadZone cmdlet
 
 ```PowerShell
 New-SAPWorkloadZone -Parameterfile .\DEV-WEEU-SAP01-INFRASTRUCTURE.json
 ```
 
-When prompted for the Workload SPN Details choose Y and enter the Service Principal details.
-If prompted enter "MGMT" for the Deployer environment name.
+environment name.
+
+If the deployer deployment uses a different environment name it is possible to specify that using the Deployerenvironment parameter,
+
+```PowerShell
+New-SAPWorkloadZone -Parameterfile .\DEV-WEEU-SAP01-INFRASTRUCTURE.json -Deployerenvironment MGMT
+```
+
+## **Removing the SAP workload zone** ##
+
+For removing the SAP workload zone navigate to the folder(DEV-WEEU-SAP01-INFRASTRUCTURE) containing the DEV-WEEU-SAP01-INFRASTRUCTURE.json parameter file and use the Remove-SAPSystem cmdlet:
+
+Remove-SAPSystem cmdlet:
+
+```PowerShell
+Remove-SAPSystem -Parameterfile .\DEV-WEEU-SAP01-INFRASTRUCTURE.json -Type sap_landscape
+```
 
 ## **Deploying the SAP system** ##
 
-For deploying the SAP system navigate to the folder(DEV-WEEU-SAP01-X00) containing the DEV-WEEU-SAP01-X00.json parameter file and use the New-SAPSystem cmdlet
+For deploying the SAP system navigate to the folder(DEV-WEEU-SAP01-X00) containing the DEV-WEEU-SAP01-X00.json parameter file and use the New-SAPSystem cmdlet:
 
 ```PowerShell
 New-SAPSystem -Parameterfile .\DEV-WEEU-SAP01-X00.json -Type sap_system
 ```
 
 ## **Clean up the deployment** ##
+
+For removing the SAP system navigate to the folder(DEV-WEEU-SAP01-X00) containing the DEV-WEEU-SAP01-X00.json parameter file and use the Remove-SAPSystem cmdlet:
 
 ```PowerShell
 Remove-SAPSystem -Parameterfile .\DEV-WEEU-SAP01-X00.json -Type sap_system

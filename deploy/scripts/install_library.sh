@@ -60,6 +60,19 @@ then
     exit
 fi
 
+if [ ! -d "${deployer_statefile_foldername}" ]
+then
+    printf -v val %-40.40s "$deployer_statefile_foldername"
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                    Directory does not exist:  "${deployer_statefile_foldername}" #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    exit
+fi
+
+
 param_dirname=$(dirname "${parameterfile}")
 
 if [ $param_dirname != '.' ]; then
@@ -111,7 +124,12 @@ library_config_information="${automation_config_directory}""${environment}""${re
 arm_config_stored=false
 config_stored=false
 
+param_dirname=$(pwd)
+
 init "${automation_config_directory}" "${generic_config_information}" "${library_config_information}"
+
+export TF_DATA_DIR="${param_dirname}"/.terraform
+var_file="${param_dirname}"/"${parameterfile}" 
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     echo ""
@@ -125,14 +143,7 @@ if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     exit 4
-else
-    if [ $config_stored == false ]
-    then
-        save_config_var "DEPLOYMENT_REPO_PATH" "${generic_config_information}"
-    fi
 fi
-
-load_config_vars ${library_config_information} "ARM_SUBSCRIPTION_ID"
 
 templen=$(echo "${ARM_SUBSCRIPTION_ID}" | wc -c)
 # Subscription length is 37
@@ -153,12 +164,6 @@ if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     exit 3
-else
-    if [  $arm_config_stored  == false ]
-    then
-        echo "Storing the configuration"
-        save_config_var "ARM_SUBSCRIPTION_ID" "${library_config_information}"
-    fi
 fi
 
 if [ $interactive == false ]; then
@@ -191,13 +196,11 @@ fi
 
 reinitialized=0
 
-terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/bootstrap/"${deployment_system}"/
-
 if [ -f ./backend-config.tfvars ]
 then
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#                          The bootstrapping has already been done!                     #"
+    echo "#                        The bootstrapping has already been done!                       #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
 else
@@ -212,7 +215,7 @@ if [ ! -d ./.terraform/ ]; then
     echo "#                                   New deployment                                      #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
-    terraform init -upgrade=true "${terraform_module_directory}"
+    terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
     sed -i /REMOTE_STATE_RG/d  "${library_config_information}"
     sed -i /REMOTE_STATE_SA/d  "${library_config_information}"
     sed -i /tfstate_resource_id/d  "${library_config_information}"
@@ -238,7 +241,7 @@ else
                     exit 0
                 fi
             fi
-            terraform init -upgrade=true -reconfigure "${terraform_module_directory}"
+            terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
         else
             exit 0
         fi
@@ -256,9 +259,9 @@ echo ""
 
 if [ -n "${deployer_statefile_foldername}" ]; then
     echo "Deployer folder specified: "${deployer_statefile_foldername}
-    terraform plan -no-color -var-file="${parameterfile}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${terraform_module_directory}" > plan_output.log 2>&1
+    terraform -chdir="${terraform_module_directory}" plan -no-color -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" > plan_output.log 2>&1
 else
-    terraform plan -no-color -var-file="${parameterfile}" "${terraform_module_directory}" > plan_output.log 2>&1
+    terraform -chdir="${terraform_module_directory}" plan -no-color -var-file="${var_file}"  > plan_output.log 2>&1
 fi
 
 str1=$(grep "Error: KeyVault " plan_output.log)
@@ -272,7 +275,12 @@ if [ -n "${str1}" ]; then
     echo "#########################################################################################"
     echo ""
     echo $str1
+    rm plan_output.log
     exit -1
+fi
+
+if [ -f plan_output.log ]; then
+    rm plan_output.log
 fi
 
 echo ""
@@ -284,14 +292,14 @@ echo "##########################################################################
 echo ""
 
 if [ -n "${deployer_statefile_foldername}" ]; then
-    terraform apply ${approve} -var-file="${parameterfile}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${terraform_module_directory}"
+    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}"
 else
-    terraform apply ${approve} -var-file="${parameterfile}" "${terraform_module_directory}"
+    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}"
 fi
 
-printf "terraform {\n backend \"local\" {} \n}\n" > backend.tf
+return_value=-1
 
-REMOTE_STATE_SA=$(terraform output remote_state_storage_account_name| tr -d \")
+REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
 temp=$(echo "${REMOTE_STATE_SA}" | grep -m1 "Warning")
 if [ -z "${temp}" ]
 then
@@ -307,8 +315,9 @@ then
             REMOTE_STATE_SA \
             tfstate_resource_id \
             STATE_SUBSCRIPTION
+        
+        return_value=0
     fi
 fi
 
-rm backend.tf
-exit 0
+exit $return_value

@@ -76,7 +76,8 @@ locals {
   resource_suffixes    = var.naming.resource_suffixes
 
   // Imports database sizing information
-  sizes = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/hdb_sizes.json"))
+  sizes         = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/hdb_sizes.json"))
+  custom_sizing = length(var.custom_disk_sizes_filename) > 0
 
   faults = jsondecode(file("${path.module}/../../../../../configs/max_fault_domain_count.json"))
 
@@ -268,7 +269,7 @@ locals {
     }
   ])
 
-  db_sizing = local.enable_deployment ? lookup(local.sizes, local.hdb_size).storage : []
+  db_sizing = local.enable_deployment ? local.custom_sizing ? lookup(try(local.sizes.db, local.sizes), local.hdb_size).storage : lookup(local.sizes, local.hdb_size).storage : []
 
   // List of data disks to be created for HANA DB nodes
   data_disk_per_dbnode = (length(local.hdb_vms) > 0) && local.enable_deployment ? flatten(
@@ -286,7 +287,7 @@ locals {
           type                      = storage_type.name
           lun                       = storage_type.lun_start + idx
         }
-        if ! try(storage_type.growth, false)
+        if !try(storage_type.growth, false)
       ]
       if storage_type.name != "os"
     ]
@@ -308,7 +309,7 @@ locals {
           type                      = storage_type.name
           lun                       = storage_type.lun_start + idx
         }
-        
+
       ]
       if try(storage_type.growth, false)
     ]
@@ -318,8 +319,7 @@ locals {
 
   data_disk_list = flatten([
     for vm_counter, hdb_vm in local.hdb_vms : [
-      for idx, datadisk in local.all_data_disk_per_dbnode : {
-        vm_index                  = vm_counter
+      for datadisk in local.all_data_disk_per_dbnode : {
         name                      = format("%s-%s", hdb_vm.name, datadisk.suffix)
         vm_index                  = vm_counter
         caching                   = datadisk.caching
@@ -334,12 +334,12 @@ locals {
     ]
   ])
 
-//Disks for Ansible
+  //Disks for Ansible
   // host: xxx, LUN: #, type: sapusr, size: #
 
   db_disks_ansible = flatten([for idx, vm in local.hdb_vms : [
-    for idx, datadisk in local.data_disk_per_dbnode :
-      format("{ host: '%s', LUN: %d, type: '%s' }", vm.name, idx, datadisk.type)
+    for idx, datadisk in local.data_disk_list :
+    format("{ host: '%s', LUN: %d, type: '%s' }", vm.name, datadisk.lun, datadisk.type)
   ]])
 
   enable_ultradisk = try(

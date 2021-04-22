@@ -154,10 +154,19 @@ fi
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region}"
+#Plugins
+if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
+then
+    mkdir "$HOME/.terraform.d/plugin-cache"
+fi
+export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+
+root_dirname=$(pwd)
+
+param_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
-
-echo "${system_config_information}"
+var_file="${param_dirname}"/"${parameterfile}" 
 
 load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
 load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
@@ -181,7 +190,6 @@ fi
 
 tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 
-
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     option="DEPLOYMENT_REPO_PATH"
     missing
@@ -189,7 +197,7 @@ if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
 fi
 
 # Checking for valid az session
-
+az account show > stdout.az 2>&1
 temp=$(grep "az login" stdout.az)
 if [ -n "${temp}" ]; then
     echo ""
@@ -219,6 +227,9 @@ then
     $(az account set --sub "${STATE_SUBSCRIPTION}")
     account_set=1
 fi
+
+export TF_DATA_DIR="${param_dirname}"/.terraform
+
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
 
@@ -258,8 +269,18 @@ echo "#                             Running Terraform destroy                   
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
-
-terraform destroy -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory
+ 
+if [ $deployment_system == sap_deployer ]
+then
+    terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" \
+                $landscape_tfstate_key_parameter \
+                $deployer_tfstate_key_parameter
+else
+    terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" \
+                $tfstate_parameter \
+                $landscape_tfstate_key_parameter \
+                $deployer_tfstate_key_parameter
+fi
 
 if [ $deployment_system == sap_deployer ]
 then
@@ -278,5 +299,6 @@ then
     sed -i /tfstate_resource_id/d  "${system_config_information}"
 fi
 
+unset TF_DATA_DIR
 
 exit 0

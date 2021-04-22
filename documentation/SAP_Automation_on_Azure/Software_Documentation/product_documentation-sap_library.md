@@ -7,6 +7,8 @@ The SAP Library provides the following services:
 - Storage for the Terraform state files
 - Storage for the SAP Installation media
 
+![SAP Deployment Automation Framework - Deployer](../../images/library.png)
+
 ## Storage Account for Terraform State files ##
 
 The storage account will be used to store the Terraform state files

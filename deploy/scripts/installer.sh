@@ -179,8 +179,21 @@ automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region}"
 
+
+#Plugins
+if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
+then
+    mkdir "$HOME/.terraform.d/plugin-cache"
+fi
+export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+
+param_dirname=$(pwd)
+root_dirname=$(pwd)
+
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
 
+var_file="${param_dirname}"/"${parameterfile}" 
+ 
 if [ "${deployment_system}" == sap_deployer ]
 then
     deployer_tfstate_key=${key}.terraform.tfstate
@@ -192,7 +205,8 @@ load_config_vars "${system_config_information}" "tfstate_resource_id"
 load_config_vars "${system_config_information}" "deployer_tfstate_key"
 load_config_vars "${system_config_information}" "landscape_tfstate_key"
 load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
-load_config_vars "${system_config_information}" "ARM_SUBSCRIPTION_ID"
+
+echo "Terraform storage " $REMOTE_STATE_SA
 
 deployer_tfstate_key_parameter=''
 if [ "${deployment_system}" != sap_deployer ]
@@ -329,7 +343,6 @@ if [ ! -n "${REMOTE_STATE_RG}" ]; then
     fi
 fi
 
-
 if [ "${deployment_system}" != sap_deployer ]
 then
     if [ ! -n "${tfstate_resource_id}" ]; then
@@ -363,6 +376,7 @@ fi
 
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
+export TF_DATA_DIR="${param_dirname}/.terraform"
 
 if [ ! -d "${terraform_module_directory}" ]
 then
@@ -385,11 +399,6 @@ fi
 ok_to_proceed=false
 new_deployment=false
 
-if [ -f backend.tf ]
-then
-    rm backend.tf
-fi
-
 check_output=0
 
 if [ $account_set==0 ] 
@@ -400,24 +409,22 @@ fi
 
 if [ ! -d ./.terraform/ ];
 then
-    terraform init -upgrade=true -force-copy \
+    terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
     --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
     --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
     --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
     --backend-config "container_name=tfstate" \
-    --backend-config "key=${key}.terraform.tfstate" \
-    $terraform_module_directory
+    --backend-config "key=${key}.terraform.tfstate"
 else
     temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
     if [ ! -z "${temp}" ]
     then
-        terraform init -upgrade=true -force-copy \
+        terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
         --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
         --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
         --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
         --backend-config "container_name=tfstate" \
-        --backend-config "key=${key}.terraform.tfstate" \
-        $terraform_module_directory
+        --backend-config "key=${key}.terraform.tfstate"
 
     else
         echo ""
@@ -435,7 +442,7 @@ else
             exit 1
         fi
 
-        terraform init -upgrade=true -var-file="${parameterfile}" $terraform_module_directory
+        terraform -chdir="${terraform_module_directory}"  init -upgrade=true -var-file="${var_file}"
         check_output=1
         
     fi
@@ -443,7 +450,8 @@ fi
 
 if [ 1 == $check_output ]
 then
-    outputs=$(terraform output )
+
+    outputs=$(terraform -chdir="${terraform_module_directory}" output )
     if echo "${outputs}" | grep "No outputs"; then
         ok_to_proceed=true
         new_deployment=true
@@ -461,11 +469,8 @@ then
         echo "#########################################################################################"
         echo ""
 
-        printf "terraform {\n backend \"azurerm\" {} \n}\n" > backend.tf
 
-        deployed_using_version=$(terraform output automation_version)
-
-        rm backend.tf
+        deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output automation_version)
 
         if [ ! -n "${deployed_using_version}" ]; then
             echo ""
@@ -513,7 +518,7 @@ then
     rm plan_output.log
 fi
 
-terraform plan -no-color -var-file=$parameterfile $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory 2>error.log 1>plan_output.log 
+terraform -chdir="${terraform_module_directory}" plan -no-color -var-file="${var_file}" $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter 2>error.log 1>plan_output.log 
 
 str1=$(grep "Error: " error.log)
 if [ -n "${str1}" ]
@@ -602,7 +607,7 @@ if [ $ok_to_proceed ]; then
     echo "#########################################################################################"
     echo ""
     
-    terraform apply ${approve} -var-file=${parameterfile} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter $terraform_module_directory
+    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter 
 fi
 
 if [ "${deployment_system}" == sap_landscape ]
@@ -613,9 +618,8 @@ fi
 
 if [ "${deployment_system}" == sap_library ]
 then
-    printf "terraform {\n backend \"azurerm\" {} \n}\n" > backend.tf
 
-    REMOTE_STATE_SA=$(terraform output remote_state_storage_account_name| tr -d \")
+    REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
     REMOTE_STATE_RG=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].resourceGroup  | tr -d \" | xargs)
     tfstate_resource_id=$(az resource list --name ${REMOTE_STATE_SA} | jq .[0].id  | tr -d \" | xargs)
     STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
@@ -625,10 +629,8 @@ then
     REMOTE_STATE_SA \
     tfstate_resource_id \
     STATE_SUBSCRIPTION
-
-    rm backend.tf
     
 fi
 
-
+unset TF_DATA_DIR
 exit 0

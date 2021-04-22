@@ -17,23 +17,23 @@ variable "tfstate_resource_id" {
   description = "Resource id of tfstate storage account"
   validation {
     condition = (
-      length(trimspace(try(var.tfstate_resource_id, ""))) != 0
+      length(split("/", var.tfstate_resource_id)) == 9
     )
-    error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided."
+    error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
   }
 
 }
 
 variable "deployer_tfstate_key" {
   description = "The key of deployer's remote tfstate file"
-  default = ""
+  default     = ""
 
 }
 
 locals {
 
   version_label = trimspace(file("${path.module}/../../../configs/version.txt"))
-  
+
   // The environment of sap landscape and sap system
   environment = upper(try(var.infrastructure.environment, ""))
 
@@ -59,10 +59,9 @@ locals {
   iscsi_count = try(local.var_iscsi.iscsi_count, 0)
 
   // Locate the tfstate storage account
-  tfstate_resource_id          = try(var.tfstate_resource_id, "")
-  saplib_subscription_id       = split("/", local.tfstate_resource_id)[2]
-  saplib_resource_group_name   = split("/", local.tfstate_resource_id)[4]
-  tfstate_storage_account_name = split("/", local.tfstate_resource_id)[8]
+  saplib_subscription_id       = split("/", var.tfstate_resource_id)[2]
+  saplib_resource_group_name   = split("/", var.tfstate_resource_id)[4]
+  tfstate_storage_account_name = split("/", var.tfstate_resource_id)[8]
   tfstate_container_name       = module.sap_namegenerator.naming.resource_suffixes.tfstate
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate

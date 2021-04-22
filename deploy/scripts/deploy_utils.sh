@@ -7,21 +7,21 @@
 #########################################################################
 
 function save_config_var() {
-    local var_name="${1}" var_file="${2}"
-    
-    sed -i /${var_name}/d "${var_file}"
+    local var_name=$1 var_file=$2
+    sed -i -e "" -e /$var_name/d "${var_file}"
     echo "${var_name}=${!var_name}" >> "${var_file}"
 }
 
 function save_config_vars() {
     local var_file="${1}" var_name
-    
+       
     shift  # shift params 1 place to remove var_file value from front of list
     
     for var_name  # iterate over function params
     do
-        sed -i /${var_name}/d "${var_file}"
+        sed -i -e "" -e /${var_name}/d "${var_file}"
         echo "${var_name}=${!var_name}" >> "${var_file}"
+        
     done
 }
 
@@ -32,7 +32,7 @@ function load_config_vars() {
     do
         if [ -f "${var_file}" ]
         then
-            var_value="$(grep -m1 "^${var_name}" "${var_file}" | cut -d'=' -f2 | tr -d '"')"
+            var_value="$(grep -m1 "^${var_name}=" "${var_file}" | cut -d'=' -f2 | tr -d '"')"
         fi
         
         [ -z "${var_value}" ] && continue
@@ -47,7 +47,7 @@ function load_config_vars() {
 function init() {
     local automation_config_directory="${1}"
     local generic_config_information="${2}"
-    app_config_information="${3}"
+    local app_config_information="${3}"
     
     if [ ! -d "${automation_config_directory}" ]
     then
@@ -58,17 +58,17 @@ function init() {
         if [ -n "${DEPLOYMENT_REPO_PATH}" ]; then
             # Store repo path in ~/.sap_deployment_automation/config
             save_config_var "DEPLOYMENT_REPO_PATH" "${generic_config_information}"
-            config_stored=true
         fi
         if [ -n "$ARM_SUBSCRIPTION_ID" ]; then
             # Store ARM Subscription info in ~/.sap_deployment_automation
             save_config_var "ARM_SUBSCRIPTION_ID" "${app_config_information}"
-            arm_config_stored=true
         fi
         
     else
         touch "${generic_config_information}"
-        load_config_vars ${generic_config_information} "DEPLOYMENT_REPO_PATH"
+        touch "${app_config_information}"
+        load_config_vars "${generic_config_information}" "DEPLOYMENT_REPO_PATH"
+        load_config_vars "${app_config_information}" "ARM_SUBSCRIPTION_ID"
     fi
     
     

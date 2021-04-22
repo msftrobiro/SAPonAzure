@@ -37,7 +37,7 @@ module "common_infrastructure" {
   application                = var.application
   databases                  = var.databases
   infrastructure             = var.infrastructure
-  options                    = local.options
+  options                    = var.options
   key_vault                  = var.key_vault
   naming                     = module.sap_namegenerator.naming
   service_principal          = local.service_principal
@@ -56,7 +56,7 @@ module "hdb_node" {
   }
   databases                  = var.databases
   infrastructure             = var.infrastructure
-  options                    = local.options
+  options                    = var.options
   resource_group             = module.common_infrastructure.resource_group
   vnet_sap                   = module.common_infrastructure.vnet_sap
   storage_bootdiag_endpoint  = module.common_infrastructure.storage_bootdiag_endpoint
@@ -84,7 +84,7 @@ module "app_tier" {
   }
   application                = var.application
   infrastructure             = var.infrastructure
-  options                    = local.options
+  options                    = var.options
   resource_group             = module.common_infrastructure.resource_group
   vnet_sap                   = module.common_infrastructure.vnet_sap
   storage_bootdiag_endpoint  = module.common_infrastructure.storage_bootdiag_endpoint
@@ -142,7 +142,7 @@ module "output_files" {
   application               = module.app_tier.application
   databases                 = var.databases
   infrastructure            = var.infrastructure
-  options                   = local.options
+  options                   = var.options
   software                  = var.software
   ssh-timeout               = var.ssh-timeout
   authentication            = var.authentication

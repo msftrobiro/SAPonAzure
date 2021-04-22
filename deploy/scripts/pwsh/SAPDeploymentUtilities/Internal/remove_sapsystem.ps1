@@ -58,6 +58,15 @@ Licensed under the MIT license.
         return
     }
 
+    $ParamFullFile = (Get-ItemProperty -Path $Parameterfile -Name Fullname).Fullname
+
+
+    $CachePath = (Join-Path -Path $Env:APPDATA -ChildPath "terraform.d\plugin-cache")
+    if ( -not (Test-Path -Path $CachePath)) {
+        New-Item -Path $CachePath -ItemType Directory
+    }
+    $env:TF_PLUGIN_CACHE_DIR = $CachePath
+
     Add-Content -Path "deployment.log" -Value ("Removing the: " + $Type)
     Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
 
@@ -121,19 +130,25 @@ Licensed under the MIT license.
         $landscape_tfstate_key_parameter = " -var landscape_tfstate_key=" + $landscape_tfstate_key
     }
 
+    Write-Host -ForegroundColor green "Running refresh"
+    $Command = " refresh -var-file " + $ParamFullFile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter
 
-    Write-Host -ForegroundColor green "Running destroy"
-    $Command = " destroy -var-file " + $Parameterfile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + " " + $terraform_module_directory
-
-    $Cmd = "terraform $Command"
+    $Cmd = "terraform -chdir=$terraform_module_directory $Command"
     Add-Content -Path "deployment.log" -Value $Cmd
     & ([ScriptBlock]::Create($Cmd))  
     if ($LASTEXITCODE -ne 0) {
         throw "Error executing command: $Cmd"
     }
 
-    if (Test-Path ".\backend.tf" -PathType Leaf) {
-        Remove-Item -Path ".\backend.tf"  -Force 
+
+    Write-Host -ForegroundColor green "Running destroy"
+    $Command = " destroy -var-file " + $ParamFullFile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter
+
+    $Cmd = "terraform -chdir=$terraform_module_directory $Command"
+    Add-Content -Path "deployment.log" -Value $Cmd
+    & ([ScriptBlock]::Create($Cmd))  
+    if ($LASTEXITCODE -ne 0) {
+        throw "Error executing command: $Cmd"
     }
 
     if ($Type -eq "sap_library") {

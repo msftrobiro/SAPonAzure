@@ -1,7 +1,13 @@
 
 variable "tfstate_resource_id" {
   description = "The resource id of tfstate storage account"
-  default     = ""
+  validation {
+    condition = (
+      length(split("/", var.tfstate_resource_id)) == 9
+    )
+    error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
+  }
+
 }
 
 
@@ -18,10 +24,9 @@ locals {
   spn_key_vault_arm_id = try(var.key_vault.kv_spn_id, try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, ""))
 
   // Locate the tfstate storage account
-  tfstate_resource_id          = try(var.tfstate_resource_id, "")
-  saplib_subscription_id       = split("/", local.tfstate_resource_id)[2]
-  saplib_resource_group_name   = split("/", local.tfstate_resource_id)[4]
-  tfstate_storage_account_name = split("/", local.tfstate_resource_id)[8]
+  saplib_subscription_id       = split("/", var.tfstate_resource_id)[2]
+  saplib_resource_group_name   = split("/", var.tfstate_resource_id)[4]
+  tfstate_storage_account_name = split("/", var.tfstate_resource_id)[8]
   tfstate_container_name       = module.sap_namegenerator.naming.resource_suffixes.tfstate
   deployer_tfstate_key         = length(var.deployer_tfstate_key) > 0 ? var.deployer_tfstate_key : format("%s%s", local.deployer_rg_name, ".terraform.tfstate")
 

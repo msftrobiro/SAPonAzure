@@ -62,7 +62,8 @@ variable "db_asg_id" {
 locals {
   // Imports database sizing information
 
-  sizes = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/anydb_sizes.json"))
+  sizes         = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/anydb_sizes.json"))
+  custom_sizing = length(var.custom_disk_sizes_filename) > 0
 
   faults = jsondecode(file("${path.module}/../../../../../configs/max_fault_domain_count.json"))
 
@@ -294,7 +295,7 @@ locals {
     }
   ])
 
-  db_sizing = local.enable_deployment ? lookup(local.sizes, local.anydb_size).storage : []
+  db_sizing = local.enable_deployment ? local.custom_sizing ? lookup(try(local.sizes.db, local.sizes), local.anydb_size).storage : lookup(local.sizes, local.anydb_size).storage : []
 
   data_disk_per_dbnode = (length(local.anydb_vms) > 0) ? flatten(
     [
@@ -311,9 +312,9 @@ locals {
           type                      = storage_type.name
           lun                       = storage_type.lun_start + idx
         }
-        if ! try(storage_type.growth, false)
+        if !try(storage_type.growth, false)
       ]
-      if storage_type.name != "os" 
+      if storage_type.name != "os"
     ]
   ) : []
 
@@ -356,12 +357,12 @@ locals {
     ]
   ])
 
-//Disks for Ansible
+  //Disks for Ansible
   // host: xxx, LUN: #, type: sapusr, size: #
 
   db_disks_ansible = flatten([for idx, vm in local.anydb_vms : [
-    for idx, datadisk in local.data_disk_per_dbnode :
-      format("{ host: '%s', LUN: %d, type: '%s' }", vm.name, idx, datadisk.type)
+    for idx, datadisk in local.anydb_disks :
+    format("{ host: '%s', LUN: %d, type: '%s' }", vm.name, datadisk.lun, datadisk.type)
   ]])
 
   enable_ultradisk = try(

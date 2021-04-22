@@ -25,6 +25,13 @@ variable "app_disk_sizes_filename" {
 
 variable "tfstate_resource_id" {
   description = "Resource id of tfstate storage account"
+  validation {
+    condition = (
+      length(split("/", var.tfstate_resource_id)) == 9
+    )
+    error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
+  }
+
 }
 
 variable "deployer_tfstate_key" {
@@ -52,20 +59,6 @@ locals {
   vnet_sap_arm_id = data.terraform_remote_state.landscape.outputs.vnet_sap_arm_id
 
   vnet_logical_name = var.infrastructure.vnets.sap.name
-
-  // Options
-  enable_secure_transfer = try(var.options.enable_secure_transfer, true)
-  enable_prometheus      = try(var.options.enable_prometheus, true)
-
-  // Update options with defaults
-  options = merge(var.options, {
-    enable_secure_transfer = local.enable_secure_transfer,
-    enable_prometheus      = local.enable_prometheus
-  })
-
-  file_hosts     = fileexists("${terraform.workspace}/ansible_config_files/hosts") ? file("${terraform.workspace}/ansible_config_files/hosts") : ""
-  file_hosts_yml = fileexists("${terraform.workspace}/ansible_config_files/hosts.yml") ? file("${terraform.workspace}/ansible_config_files/hosts.yml") : ""
-  file_output    = fileexists("${terraform.workspace}/ansible_config_files/output.json") ? file("${terraform.workspace}/ansible_config_files/output.json") : ""
 
   // SAP vnet
   var_infra       = try(var.infrastructure, {})
@@ -111,13 +104,12 @@ locals {
   anchor_ostype = upper(try(local.anchor.os.os_type, "LINUX"))
 
   // Locate the tfstate storage account
-  tfstate_resource_id          = try(var.tfstate_resource_id, "")
-  saplib_subscription_id       = split("/", local.tfstate_resource_id)[2]
-  saplib_resource_group_name   = split("/", local.tfstate_resource_id)[4]
-  tfstate_storage_account_name = split("/", local.tfstate_resource_id)[8]
+  saplib_subscription_id       = split("/", var.tfstate_resource_id)[2]
+  saplib_resource_group_name   = split("/", var.tfstate_resource_id)[4]
+  tfstate_storage_account_name = split("/", var.tfstate_resource_id)[8]
   tfstate_container_name       = module.sap_namegenerator.naming.resource_suffixes.tfstate
   deployer_tfstate_key         = try(var.deployer_tfstate_key, "")
-  landscape_tfstate_key        = try(var.landscape_tfstate_key, "")
+  landscape_tfstate_key        = var.landscape_tfstate_key
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
   spn_key_vault_arm_id = try(var.key_vault.kv_spn_id, try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, ""))

@@ -533,11 +533,7 @@ then
     rm plan_output.log
 fi
 
-echo "${extra_vars}"
-
-echo "-chdir=""${terraform_module_directory}" "plan -no-color -var-file=" "${var_file}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}"
-
-terraform -chdir $terraform_module_directory plan -no-color -var-file=${var_file} "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${extra_vars}" 2>error.log 1>plan_output.log 
+terraform -chdir=$terraform_module_directory plan -no-color -var-file=${var_file} ${tfstate_parameter} ${landscape_tfstate_key_parameter} ${deployer_tfstate_key_parameter} ${extra_vars} 2>error.log 1>plan_output.log 
 cat error.log
 str1=$(grep "Error: " error.log)
 if [ -n "${str1}" ]
@@ -626,7 +622,8 @@ if [ $ok_to_proceed ]; then
     echo "#########################################################################################"
     echo ""
     
-    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${extra_vars}"
+    terraform -chdir=${terraform_module_directory} apply ${approve} -var-file=${var_file} ${tfstate_parameter} ${landscape_tfstate_key_parameter} ${deployer_tfstate_key_parameter} ${extra_vars}
+    
 fi
 
 if [ "${deployment_system}" == sap_landscape ]

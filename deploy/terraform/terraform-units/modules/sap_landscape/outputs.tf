@@ -92,6 +92,7 @@ output "witness_storage_account" {
 }
 
 output "witness_storage_account_key" {
+  sensitive = true
   value = length(var.witness_storage_account.arm_id) > 0 ? (
     data.azurerm_storage_account.witness_storage[0].primary_access_key) : (
     azurerm_storage_account.witness_storage[0].primary_access_key

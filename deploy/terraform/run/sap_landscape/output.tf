@@ -55,11 +55,13 @@ output "automation_version" {
 
 //Witness
 output "witness_storage_account" {
+
   value = module.sap_landscape.witness_storage_account
 }
 
 output "witness_storage_account_key" {
-  value = module.sap_landscape.witness_storage_account_key
+  sensitive = true
+  value     = module.sap_landscape.witness_storage_account_key
 }
 
 output "admin_subnet_id" {

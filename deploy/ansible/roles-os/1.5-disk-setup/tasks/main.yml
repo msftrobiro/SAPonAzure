@@ -47,3 +47,79 @@
 
 # - include_tasks: lvm_mount.yml
 #   when: path_status_flag is defined
+
+- name: Example from an Ansible Playbook
+  ansible.builtin.ping:
+
+- debug:
+  msg: System {{ inventory_hostname }} has uuid {{ ansible_product_uuid }}
+
+  # Get all the unique disk types from sap-parameters
+# Translate this to JINJA later
+
+- name: Get the unique disk types
+  set_fact:
+    disktypes: "{{ (disktypes|default([]) +  [ item.type ])|unique }}"
+    cacheable: yes
+  loop: "{{ disks }}"
+  when: item.host == inventory_hostname
+
+- name: Prepare the disk list
+  set_fact:
+    alldisks: "{{ alldisks|default([]) +  [ { 'type': item.type, 'vg' : 'vg_'+ item.type, 'pvs' :  '/dev/disk/azure/scsi1/lun' + item.LUN } ] }}"
+    cacheable: yes
+  loop: "{{ disks }}"
+  when: item.host == inventory_hostname
+
+- name: Store the data pvs valuas into a list
+  set_fact:
+    pvs_data: "{{ (pvs_data|default([]) +  [ '/dev/disk/azure/scsi1/lun' + item.LUN ]) | list}}"
+    cacheable: yes
+  loop: "{{ disks }}"
+  when: item.type == 'data' and item.host == inventory_hostname
+  
+- name: Convert the data pvs list to a string
+  set_fact:
+    pvs_data_str: "{{ pvs_data | join(',') }}"    
+    cacheable: yes
+
+# Log volume
+
+- name: Store the log pvs valuas into a list
+  set_fact:
+    pvs_log: "{{ (pvs_log|default([]) +  [ '/dev/disk/azure/scsi1/lun' + item.LUN ]) | list}}"
+    cacheable: yes
+  loop: "{{ disks }}"
+  when: item.type == 'log' and item.host == inventory_hostname
+  
+- name: Convert the log pvs list to a string
+  set_fact:
+    pvs_log_str: "{{ pvs_log | join(',') }}"    
+    cacheable: yes
+
+# SAP volume
+
+- name: Store the sap pvs valuas into a list
+  set_fact:
+    pvs_sap: "{{ (pvs_sap|default([]) +  [ '/dev/disk/azure/scsi1/lun' + item.LUN ]) | list}}"
+    cacheable: yes
+  loop: "{{ disks }}"
+  when: item.type == 'sap' and item.host == inventory_hostname
+  
+- name: Convert the sap pvs list to a string
+  set_fact:
+    pvs_sap_str: "{{ pvs_sap | join(',') }}"    
+    cacheable: yes
+
+- name: Create the consolidated variable
+  set_fact:
+    LVM_data: "{{ [{ 'vg':'vg_sap', 'pvs': '{{ pvs_sap_str }}' },{ 'vg':'vg_data', 'pvs': '{{ pvs_data_str }}' },{ 'vg':'vg_log', 'pvs': '{{ pvs_log_str }}' }] }}"
+
+- debug:
+    var: LVM_data
+
+- lvg:
+    vg:     "{{ item.vg }}"
+    pvs:    "{{ item.pvs }}"
+    
+  loop: "{{ LVM_data }}"

@@ -44,6 +44,7 @@ output "deployer_pip" {
 
 // Details of deployer(s)
 output "deployers" {
+  sensitive = true
   value = local.deployers_updated
 }
 

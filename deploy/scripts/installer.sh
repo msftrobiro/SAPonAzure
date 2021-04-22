@@ -442,7 +442,12 @@ else
             exit 1
         fi
 
-        terraform -chdir="${terraform_module_directory}"  init -upgrade=true -var-file="${var_file}"
+        terraform -chdir="${terraform_module_directory}"  init -upgrade=true -reconfigure -var-file="${var_file}" \
+        --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+        --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+        --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+        --backend-config "container_name=tfstate" \
+        --backend-config "key=${key}.terraform.tfstate"
         check_output=1
         
     fi

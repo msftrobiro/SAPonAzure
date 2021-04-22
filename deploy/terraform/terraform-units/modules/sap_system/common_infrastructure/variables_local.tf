@@ -128,7 +128,11 @@ locals {
 
   enable_hdb_deployment = (length(local.hdb_list) > 0) ? true : false
 
-  default_filepath = local.enable_hdb_deployment ? "${path.module}/../../../../../configs/hdb_sizes.json" : "${path.module}/../../../../../configs/anydb_sizes.json"
+  default_filepath = local.enable_hdb_deployment ? (
+    "${path.module}/../../../../../configs/hdb_sizes.json") : (
+    "${path.module}/../../../../../configs/anydb_sizes.json"
+  )
+
 
   //Enable xDB deployment 
   xdb_list = [
@@ -146,7 +150,9 @@ locals {
   enable_sid_deployment = local.enable_db_deployment || local.enable_app_deployment
 
   sizes     = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : local.default_filepath))
-  db_sizing = local.enable_db_deployment ? lookup(local.sizes, var.databases[0].size).storage : []
+  custom_sizing         = length(var.custom_disk_sizes_filename) > 0
+
+  db_sizing = local.enable_sid_deployment ? local.custom_sizing ? lookup(try(local.sizes.db, local.sizes), var.databases[0].size).storage : lookup(local.sizes, var.databases[0].size).storage : []
 
   enable_ultradisk = try(
     compact(

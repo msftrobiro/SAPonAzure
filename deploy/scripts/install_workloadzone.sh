@@ -414,7 +414,7 @@ fi
 
 if [ ! -d ./.terraform/ ];
 then
-    terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+    terraform -chdir="${terraform_module_directory}" init -upgrade=true  --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
     --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
     --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
     --backend-config "container_name=tfstate" \
@@ -430,7 +430,11 @@ else
         --backend-config "container_name=tfstate" \
         --backend-config "key=${key}.terraform.tfstate"
     else
-        terraform init -chdir="${terraform_module_directory}" -upgrade=true
+        terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+        --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+        --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+        --backend-config "container_name=tfstate" \
+        --backend-config "key=${key}.terraform.tfstate"
         check_output=1
     fi
     

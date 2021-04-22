@@ -68,6 +68,7 @@ output "fileshare_lb_ip" {
 
 
 output "application" {
+  sensitive = true
   value = local.application
 }
 

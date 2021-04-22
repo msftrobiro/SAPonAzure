@@ -1,4 +1,5 @@
 output "hdb_vms" {
+  sensitive = true
   value = azurerm_linux_virtual_machine.vm_dbnode
 }
 
@@ -15,10 +16,12 @@ output "loadbalancers" {
 }
 
 output "hdb_sid" {
+  sensitive = true
   value = local.hana_database.instance.sid
 }
 
 output "hana_database_info" {
+  sensitive = true
   value = try(local.enable_deployment ? local.hana_database : map(false), {})
 }
 

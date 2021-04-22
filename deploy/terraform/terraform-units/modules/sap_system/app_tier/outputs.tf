@@ -68,8 +68,8 @@ output "fileshare_lb_ip" {
 
 
 output "application" {
-  sensitive = true
-  value = local.application
+  sensitive = false
+  value     = local.application
 }
 
 // Output for DNS

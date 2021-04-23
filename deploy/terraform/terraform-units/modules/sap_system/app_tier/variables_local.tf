@@ -1,8 +1,8 @@
-variable "anydb_vms" {
+variable "anydb_vm_ids" {
   description = "Deployed anydb VMs"
 }
 
-variable "hdb_vms" {
+variable "hdb_vm_ids" {
   description = "Deployed HDB VMs"
 }
 
@@ -257,7 +257,7 @@ locals {
   web_tags = try(var.application.web_tags, {})
 
   application = merge(var.application,
-    { authentication = local.authentication }
+    { auth_type = local.sid_auth_type }
   )
 
   // OS image for all WebDispatcher VMs
@@ -418,7 +418,7 @@ locals {
   ) : []
 
   scs_data_disks = flatten([
-     for idx, datadisk in local.scs_data_disk_per_dbnode : [
+    for idx, datadisk in local.scs_data_disk_per_dbnode : [
       for vm_counter in range(local.scs_server_count) : {
         suffix                    = datadisk.suffix
         vm_index                  = vm_counter
@@ -487,17 +487,17 @@ locals {
 
   app_disks_ansible = flatten([for vm in local.app_virtualmachine_names : [
     for idx, datadisk in local.app_data_disk_per_dbnode :
-      format("{ host: '%s', LUN: %d, type: '%s' }", vm, idx, "sap")
+    format("{ host: '%s', LUN: %d, type: '%s' }", vm, idx, "sap")
   ]])
 
   scs_disks_ansible = flatten([for vm in local.scs_virtualmachine_names : [
     for idx, datadisk in local.scs_data_disk_per_dbnode :
-      format("{ host: '%s', LUN: %d, type: '%s' }", vm, idx, "sap")
+    format("{ host: '%s', LUN: %d, type: '%s' }", vm, idx, "sap")
   ]])
 
   web_disks_ansible = flatten([for vm in local.web_virtualmachine_names : [
     for idx, datadisk in local.web_data_disk_per_dbnode :
-      format("{ host: '%s', LUN: %d, type: '%s' }", vm, idx, "sap")
+    format("{ host: '%s', LUN: %d, type: '%s' }", vm, idx, "sap")
   ]])
 
 

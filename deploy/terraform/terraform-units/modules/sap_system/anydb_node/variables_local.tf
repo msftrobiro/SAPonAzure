@@ -205,13 +205,8 @@ locals {
     { db_version = local.anydb_version },
     { size = local.anydb_size },
     { os = merge({ os_type = local.anydb_ostype }, local.anydb_os) },
-    { filesystem = local.anydb_fs },
     { high_availability = local.anydb_ha },
-    { authentication = local.authentication },
-    { credentials = {
-      db_systemdb_password = "obsolete"
-      }
-    },
+    { auth_type = local.sid_auth_type },
     { dbnodes = local.dbnodes },
     { loadbalancer = local.loadbalancer }
   )
@@ -249,15 +244,15 @@ locals {
 
   anydb_vms = [
     for idx, dbnode in local.dbnodes : {
-      platform       = local.anydb_platform,
-      name           = dbnode.name
-      computername   = dbnode.computername
-      db_nic_ip      = dbnode.db_nic_ip
-      admin_nic_ip   = dbnode.admin_nic_ip
-      size           = local.anydb_sku
-      os             = local.anydb_ostype,
-      authentication = local.authentication
-      sid            = var.sap_sid
+      platform     = local.anydb_platform,
+      name         = dbnode.name
+      computername = dbnode.computername
+      db_nic_ip    = dbnode.db_nic_ip
+      admin_nic_ip = dbnode.admin_nic_ip
+      size         = local.anydb_sku
+      os           = local.anydb_ostype,
+      auth_type    = local.sid_auth_type,
+      sid          = var.sap_sid
     }
   ]
 

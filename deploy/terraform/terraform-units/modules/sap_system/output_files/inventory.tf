@@ -82,7 +82,7 @@ resource "local_file" "output_json" {
 
 # Generates the Ansible Inventory file
 resource "local_file" "ansible_inventory" {
-  content = templatefile("${path.module}/ansible_inventory.tmpl", {
+  content = templatefile(path.module/ansible_inventory.tmpl, {
     iscsi             = local.iscsi,
     ips_iscsi         = local.ips_iscsi,
     ips_dbnodes_admin = local.ips_dbnodes_admin,
@@ -103,7 +103,7 @@ resource "local_file" "ansible_inventory" {
 
 # Generates the Ansible Inventory file
 resource "local_file" "ansible_inventory_yml" {
-  content = templatefile("${path.module}/ansible_inventory.yml.tmpl", {
+  content = templatefile(path.module/ansible_inventory.yml.tmpl", {
     iscsi             = local.iscsi,
     ips_iscsi         = local.ips_iscsi,
     ips_dbnodes_admin = local.ips_dbnodes_admin,
@@ -123,7 +123,7 @@ resource "local_file" "ansible_inventory_yml" {
 }
 */
 resource "local_file" "ansible_inventory_new_yml" {
-  content = templatefile("${path.module}/ansible_inventory_new.yml.tmpl", {
+  content = templatefile(format("%s%s",path.module,"/ansible_inventory_new.yml.tmpl"), {
     ips_dbnodes       = length(local.hdb_vms) > 0 ? local.ips_dbnodes_admin : local.ips_anydbnodes,
     dbnodes           = length(local.hdb_vms) > 0 ? local.hdb_vms : local.anydb_vms
     ips_scs           = local.ips_scs,
@@ -148,13 +148,13 @@ resource "local_file" "ansible_inventory_new_yml" {
     dbconnectiontype  = length(local.hdb_vms) > 0 ? local.hdb_vms[0].auth_type : local.anydb_vms[0].auth_type
     }
   )
-  filename             = "${path.cwd}/ansible_config_files/${var.hdb_sid}_hosts.yaml"
+  filename             = format("%s/ansible_config_files/%s_hosts.yaml",path.cwd,var.hdb_sid)
   file_permission      = "0660"
   directory_permission = "0770"
 }
 
 resource "local_file" "sap-parameters_yml" {
-  content = templatefile("${path.module}/sap-parameters.yml.tmpl", {
+  content = templatefile(format("%s/sap-parameters.yml.tmpl",path.module), {
     sid          = var.hdb_sid,
     environment  = var.infrastructure.environment,
     kv_uri       = local.kv_name,
@@ -164,7 +164,7 @@ resource "local_file" "sap-parameters_yml" {
     disks        = var.disks
     }
   )
-  filename             = "${path.cwd}/ansible_config_files/sap-parameters.yaml"
+  filename             = format("%s/ansible_config_files/sap-parameters.yaml",path.cwd)
   file_permission      = "0660"
   directory_permission = "0770"
 }

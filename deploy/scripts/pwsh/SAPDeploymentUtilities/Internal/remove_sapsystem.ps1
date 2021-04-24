@@ -68,9 +68,9 @@ Licensed under the MIT license.
     $env:TF_PLUGIN_CACHE_DIR = $CachePath
     $curDir = (Get-Location)
  
-    $extra_vars = " -var-file="
+    $extra_vars = " "
     if (  (Test-Path -Path "terraform.tfvars")) {
-        $extra_vars = $extra_vars + (Join-Path -Path $curDir -ChildPath "terraform.tfvars")
+        $extra_vars = " -var-file=" + (Join-Path -Path $curDir -ChildPath "terraform.tfvars")
     }
 
  
@@ -97,7 +97,9 @@ Licensed under the MIT license.
         $rgName = $rID.ResourceGroupName
 
         $tfstate_resource_id = $rID.ResourceId
-        $Category1 = @{"REMOTE_STATE_RG" = $rgName; "REMOTE_STATE_SA" = $saName; "tfstate_resource_id" = $tfstate_resource_id }
+        $sub = $tfstate_resource_id.Split("/")[2]
+
+        $Category1 = @{"REMOTE_STATE_RG" = $rgName; "REMOTE_STATE_SA" = $saName; "tfstate_resource_id" = $tfstate_resource_id; "kvsubscription" = $sub }
         $iniContent += @{$combined = $Category1 }
         $changed = $true
     }
@@ -124,6 +126,9 @@ Licensed under the MIT license.
      if ($null -ne $sub -and "" -ne $sub) {
         Select-AzSubscription -SubscriptionId $sub
      }
+     else {
+        $sub = $env:ARM_SUBSCRIPTION_ID
+     }
 
      if ($null -eq $saName -or "" -eq $saName) {
         $saName = Read-Host -Prompt "Please specify the storage account name for the terraform storage account"
@@ -131,7 +136,9 @@ Licensed under the MIT license.
         Write-Host $rID
         $rgName = $rID.ResourceGroupName
         $tfstate_resource_id = $rID.ResourceId
+        $sub = $tfstate_resource_id.Split("/")[2]
 
+        $iniContent[$combined]["kvsubscription"] = $sub.Trim() 
         $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
         $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
         $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
@@ -152,7 +159,9 @@ Licensed under the MIT license.
         $rID = Get-AzResource -Name $saName
         $rgName = $rID.ResourceGroupName
         $tfstate_resource_id = $rID.ResourceId
+        $sub = $tfstate_resource_id.Split("/")[2]
 
+        $iniContent[$combined]["kvsubscription"] = $sub.Trim() 
         $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
         $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
         $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id

@@ -148,6 +148,7 @@ resource "null_resource" "prepare-deployer" {
       "sudo sh -c \"echo export PATH=$PATH:/opt/terraform/bin > /etc/profile.d/deploy_server.sh\"",
       // Set env for MSI
       "sudo sh -c \"echo export ARM_USE_MSI=true >> /etc/profile.d/deploy_server.sh\"",
+      "sudo sh -c \"echo export ARM_MSI_ENDPOINT=\"http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01\" >> /etc/profile.d/deploy_server.sh\"",
       "sudo sh -c \"echo export ARM_CLIENT_ID=${azurerm_user_assigned_identity.deployer.client_id} >> /etc/profile.d/deploy_server.sh\"",
       "sudo sh -c \"echo export ARM_SUBSCRIPTION_ID=${data.azurerm_subscription.primary.subscription_id} >> /etc/profile.d/deploy_server.sh\"",
       "sudo sh -c \"echo export ARM_TENANT_ID=${data.azurerm_subscription.primary.tenant_id} >> /etc/profile.d/deploy_server.sh\"",

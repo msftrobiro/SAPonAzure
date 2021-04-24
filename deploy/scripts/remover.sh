@@ -1,13 +1,19 @@
 #!/bin/bash
 #error codes include those from /usr/include/sysexits.h
-#External helper functions
-. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 
 #colors for terminal
 boldreduscore="\e[1;4;31m"
 boldred="\e[1;31m"
 cyan="\e[1;36m"
 resetformatting="\e[0m"
+
+#External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+
+#call stack has full scriptname when using source 
+source "${script_directory}/deploy_utils.sh"
 
 #Internal helper functions
 function showhelp {
@@ -93,11 +99,12 @@ landscape_tfstate_key_parameter=""
 #show_help=false
 #deployer_tfstate_key_exists=false
 #landscape_tfstate_key_exists=false
+working_directory=$(pwd)
+parameterfile_path=$(realpath "${parameterfile}")
+parameterfile_name=$(basename "${parameterfile_path}")
+parameterfile_dirname=$(dirname "${parameterfile_path}")
 
-parameterfile_name=$(basename "${parameterfile}")
-param_dirname=$(dirname "${parameterfile}")
-
-if [ "$param_dirname" != '.' ]; then
+if [ "${parameterfile_dirname}" != "${working_directory}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -152,7 +159,7 @@ if [ ! -n "${region}" ]; then
     exit 65 #data format error
 fi
 
-key=$(echo "${parameterfile_name}" | cut -d. -f1)
+#key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
 if [ ! -f "${parameterfile}" ]; then
     printf -v val %-40.40s "$parameterfile"
@@ -166,22 +173,21 @@ if [ ! -f "${parameterfile}" ]; then
 fi
 
 #Persisting the parameters across executions
-
-automation_config_directory=~/.sap_deployment_automation/
+automation_config_directory="$HOME/.sap_deployment_automation/"
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region}"
+
 #Plugins
 if [ ! -d "$HOME/.terraform.d/plugin-cache" ]; then
     mkdir "$HOME/.terraform.d/plugin-cache"
 fi
 export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
 
-root_dirname=$(pwd)
-
-param_dirname=$(pwd)
+#root_dirname=$(pwd)
+#parameterfile_dirname=$(pwd) <- this would not be necessary we validate this above
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
-var_file="${param_dirname}"/"${parameterfile}"
+var_file="${parameterfile_dirname}"/"${parameterfile}"
 
 load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
 load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
@@ -238,7 +244,7 @@ if [ ! -z "${STATE_SUBSCRIPTION}" ]; then
     account_set=1
 fi
 
-export TF_DATA_DIR="${param_dirname}"/.terraform
+export TF_DATA_DIR="${parameterfile_dirname}"/.terraform
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/run/"${deployment_system}"/
 
@@ -278,6 +284,7 @@ echo ""
 
 #TODO:
 #create retire_region.sh for deleting the deployer and the library in a proper way
+#terraform doesn't seem to tokenize properly when we pass a full string
 if [ "$deployment_system" == "sap_deployer" ]; then
     echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
     terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" \
@@ -287,7 +294,7 @@ if [ "$deployment_system" == "sap_deployer" ]; then
 elif [ "$deployment_system" == "sap_library" ]; then
     echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
 
-    terraform_bootstrap_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/bootstrap/"${deployment_system}"/
+    terraform_bootstrap_directory="${DEPLOYMENT_REPO_PATH}deploy/terraform/bootstrap/${deployment_system}/"
     if [ ! -d "${terraform_bootstrap_directory}" ]; then
         printf -v val %-40.40s "$terraform_bootstrap_directory"
         echo "#########################################################################################"
@@ -311,15 +318,15 @@ else
         $deployer_tfstate_key_parameter
 fi
 
-if [ $deployment_system == sap_deployer ]; then
+if [ "${deployment_system}" == sap_deployer ]; then
     sed -i /deployer_tfstate_key/d "${system_config_information}"
 fi
 
-if [ $deployment_system == sap_landscape ]; then
+if [ "${deployment_system}" == sap_landscape ]; then
     sed -i /landscape_tfstate_key/d "${system_config_information}"
 fi
 
-if [ $deployment_system == sap_library ]; then
+if [ "${deployment_system}" == sap_library ]; then
     sed -i /REMOTE_STATE_RG/d "${system_config_information}"
     sed -i /REMOTE_STATE_SA/d "${system_config_information}"
     sed -i /tfstate_resource_id/d "${system_config_information}"

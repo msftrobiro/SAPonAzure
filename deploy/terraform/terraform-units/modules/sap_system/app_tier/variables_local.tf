@@ -74,7 +74,10 @@ variable "landscape_tfstate" {
 
 locals {
   // Imports Disk sizing sizing information
-  sizes = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : "${path.module}/../../../../../configs/app_sizes.json"))
+  sizes = jsondecode(file(fileexists("${path.cwd}/var.custom_disk_sizes_filename") ? (
+    "${path.cwd}/var.custom_disk_sizes_filename" ) : (
+    "${path.module}/../../../../../configs/app_sizes.json"))
+  )
 
   faults = jsondecode(file("${path.module}/../../../../../configs/max_fault_domain_count.json"))
 

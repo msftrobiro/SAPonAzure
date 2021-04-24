@@ -149,8 +149,8 @@ locals {
   //Enable SID deployment
   enable_sid_deployment = local.enable_db_deployment || local.enable_app_deployment
 
-  sizes     = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? var.custom_disk_sizes_filename : local.default_filepath))
-  custom_sizing         = length(var.custom_disk_sizes_filename) > 0
+  sizes         = jsondecode(file(fileexists("${path.cwd}/var.custom_disk_sizes_filename") ? "${path.cwd}/var.custom_disk_sizes_filename" : local.default_filepath))
+  custom_sizing = length(var.custom_disk_sizes_filename) > 0
 
   db_sizing = local.enable_sid_deployment ? local.custom_sizing ? lookup(try(local.sizes.db, local.sizes), var.databases[0].size).storage : lookup(local.sizes, var.databases[0].size).storage : []
 

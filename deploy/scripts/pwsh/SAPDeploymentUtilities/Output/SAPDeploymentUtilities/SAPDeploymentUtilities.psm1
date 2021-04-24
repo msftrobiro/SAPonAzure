@@ -98,14 +98,51 @@ function New-SAPAutomationRegion {
     .PARAMETER LibraryParameterfile
         This is the parameter file for the library
 
+    .PARAMETER Subscription
+        This is the subscription into which the deployment is performed
+
+    .PARAMETER Client_id
+        This is the Service Principal App ID
+
+    .PARAMETER Client_secret
+        This is the Service Principal password
+
+    .PARAMETER Tenant
+        This is the Tenant ID of the Service Principal
+
+    .PARAMETER Force
+        Performs a cleanup of local configuration before deployment
+
+    .PARAMETER Silent
+        Performs a silent deployment
+
     .EXAMPLE 
 
     #
     #
     # Import the module
     Import-Module "SAPDeploymentUtilities.psd1"
-     New-SAPAutomationRegion -DeployerParameterfile .\DEPLOYER\PROD-WEEU-DEP00-INFRASTRUCTURE\PROD-WEEU-DEP00-INFRASTRUCTURE.json \
-     -LibraryParameterfile .\LIBRARY\PROD-WEEU-SAP_LIBRARY\PROD-WEEU-SAP_LIBRARY.json \
+     New-SAPAutomationRegion -DeployerParameterfile .\DEPLOYER\PROD-WEEU-DEP00-INFRASTRUCTURE\PROD-WEEU-DEP00-INFRASTRUCTURE.json 
+     -LibraryParameterfile .\LIBRARY\PROD-WEEU-SAP_LIBRARY\PROD-WEEU-SAP_LIBRARY.json 
+
+
+    .EXAMPLE 
+
+    #
+    # Import the module
+
+    Import-Module "SAPDeploymentUtilities.psd1"
+
+    # Provide the subscription and SPN details as parameters
+
+     New-SAPAutomationRegion -DeployerParameterfile .\DEPLOYER\PROD-WEEU-DEP00-INFRASTRUCTURE\PROD-WEEU-DEP00-INFRASTRUCTURE.json 
+     -LibraryParameterfile .\LIBRARY\PROD-WEEU-SAP_LIBRARY\PROD-WEEU-SAP_LIBRARY.json 
+     -Subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+     -Client_id yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy
+     -Client_secret ************************
+     -Tenant_id zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz  
+                   
+
 
     
 .LINK
@@ -126,7 +163,15 @@ Licensed under the MIT license.
         #Parameter file
         [Parameter(Mandatory = $true)][string]$DeployerParameterfile,
         [Parameter(Mandatory = $true)][string]$LibraryParameterfile,
-        [Parameter(Mandatory = $false)][Switch]$Force
+        [Parameter(Mandatory = $true)][string]$Subscription,
+        #SPN App ID
+        [Parameter(Mandatory = $true)][string]$Client_id,
+        #SPN App secret
+        [Parameter(Mandatory = $true)][string]$Client_secret,
+        #Tenant
+        [Parameter(Mandatory = $true)][string]$Tenant_id,
+        [Parameter(Mandatory = $false)][Switch]$Force,
+        [Parameter(Mandatory = $false)][Switch]$Silent
     )
 
     Write-Host -ForegroundColor green ""
@@ -219,6 +264,11 @@ Licensed under the MIT license.
         
     }
 
+    if ($null -ne $Subscription) {
+        $iniContent[$combined]["kvsubscription"] = $Subscription
+        Out-IniFile -InputObject $iniContent -Path $fileINIPath
+    }
+
     if ($null -ne $iniContent[$combined]["step"]) {
         $step = $iniContent[$combined]["step"]
     }
@@ -251,7 +301,13 @@ Licensed under the MIT license.
         }
 
         try {
-            New-SAPDeployer -Parameterfile $fInfo.Name 
+            if ($Silent) {
+                New-SAPDeployer -Parameterfile $fInfo.Name -Silent 
+            }
+            else {
+                New-SAPDeployer -Parameterfile $fInfo.Name 
+            }
+            
             $iniContent = Get-IniContent -Path $fileINIPath
             $step = 1
             $iniContent[$combined]["step"] = $step
@@ -277,9 +333,16 @@ Licensed under the MIT license.
         if ($null -ne $vault -and "" -ne $vault) {
             if ($null -eq (Get-AzKeyVaultSecret -VaultName $vault -Name ($Environment + "-client-id") )) {
                 $bAsk = $true
-            }
-            else {
-                $bAsk = $false
+                if (($null -ne $Client_id) -and ($null -ne $Client_secret) -and ($null -ne $Tenant_id)) {
+                    Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault -Client_id $Client_id -Client_secret $Client_secret -Tenant_id $Tenant_id
+                    $iniContent = Get-IniContent -Path $fileINIPath
+                    $iniContent = Get-IniContent -Path $fileINIPath
+            
+                    $step = 2
+                    $iniContent[$combined]["step"] = $step
+                    Out-IniFile -InputObject $iniContent -Path $fileINIPath
+                    $bAsk = $false
+                }
             }
         }
         if ($bAsk) {
@@ -332,7 +395,12 @@ Licensed under the MIT license.
 
         try {
             Write-Host $$DeployerParameterPath
-            New-SAPLibrary -Parameterfile $fInfo.Name -DeployerFolderRelativePath $DeployerParameterPath
+            if ($Silent) {
+                New-SAPLibrary -Parameterfile $fInfo.Name -DeployerFolderRelativePath $DeployerParameterPath  -Silent
+            }
+            else {
+                New-SAPLibrary -Parameterfile $fInfo.Name -DeployerFolderRelativePath $DeployerParameterPath  
+            }
             $iniContent = Get-IniContent -Path $fileINIPath
             
             $step = 3
@@ -359,7 +427,12 @@ Licensed under the MIT license.
 
         Set-Location -Path $fInfo.Directory.FullName
         try {
-            New-SAPSystem -Parameterfile $fInfo.Name -Type sap_deployer
+            if ($Silent) {
+                New-SAPSystem -Parameterfile $fInfo.Name -Type sap_deployer -Silent
+            }
+            else {
+                New-SAPSystem -Parameterfile $fInfo.Name -Type sap_deployer 
+            }
             $iniContent = Get-IniContent -Path $fileINIPath
             
             $step = 4
@@ -387,7 +460,12 @@ Licensed under the MIT license.
 
         Set-Location -Path $fInfo.Directory.FullName
         try {
-            New-SAPSystem -Parameterfile $fInfo.Name -Type sap_library
+            if ($Silent) {
+                New-SAPSystem -Parameterfile $fInfo.Name -Type sap_library -Silent
+            }
+            else {
+                New-SAPSystem -Parameterfile $fInfo.Name -Type sap_library 
+            }
             $iniContent = Get-IniContent -Path $fileINIPath
             
             $step = 5
@@ -443,13 +521,21 @@ Licensed under the MIT license.
     [cmdletbinding(SupportsShouldProcess)]
     param(
         #Parameter file
-        [Parameter(Mandatory = $true)][string]$Parameterfile
+        [Parameter(Mandatory = $true)][string]$Parameterfile,
+        [Parameter(Mandatory = $false)][Switch]$Silent
+
     )
 
     Write-Host -ForegroundColor green ""
     Write-Host -ForegroundColor green "Bootstrap the deployer"
 
     $curDir = Get-Location 
+
+    $autoApprove=""
+    
+    if($Silent) {
+        $autoApprove=" --auto-approve "
+    }
 
     $fInfo = Get-ItemProperty -Path $Parameterfile
     if (!$fInfo.Exists ) {
@@ -482,7 +568,7 @@ Licensed under the MIT license.
     $combined = $Environment + $region
 
     if ($null -ne $iniContent[$combined] ) {
-        $sub = $iniContent[$combined]["subscription"] 
+        $sub = $iniContent[$combined]["kvsubscription"] 
     }
     else {
         $Category1 = @{"subscription" = "" }
@@ -492,16 +578,27 @@ Licensed under the MIT license.
     
     # Subscription & repo path
 
-    $sub = $iniContent[$combined]["subscription"] 
+    $sub = $iniContent[$combined]["kvsubscription"] 
     $repo = $iniContent["Common"]["repo"]
 
     $changed = $false
 
     if ($null -eq $sub -or "" -eq $sub) {
-        $sub = Read-Host -Prompt "Please enter the subscription"
+        if ($null -ne $env:ARM_SUBSCRIPTION_ID) {
+            $sub = $env:ARM_SUBSCRIPTION_ID
+        }
+        else {
+            $sub = Read-Host -Prompt "Please enter the subscription"    
+        }
+        
         $iniContent[$combined]["subscription"] = $sub
         $changed = $true
     }
+
+    $Cmd = "az account set --sub $sub"
+    Add-Content -Path "deployment.log" -Value $Cmd
+
+    & ([ScriptBlock]::Create($Cmd)) 
 
     if ($null -eq $repo -or "" -eq $repo) {
         $repo = Read-Host -Prompt "Please enter the path to the repository"
@@ -595,7 +692,7 @@ Licensed under the MIT license.
     if ($PSCmdlet.ShouldProcess($Parameterfile)) {
         Write-Host -ForegroundColor green "Running apply"
 
-        $Command = " apply -var-file " + $ParamFullFile 
+        $Command = " apply " +$autoApprove +" -var-file " + $ParamFullFile 
         $Cmd = "terraform -chdir=$terraform_module_directory $Command"
         Add-Content -Path "deployment.log" -Value $Cmd
         & ([ScriptBlock]::Create($Cmd)) 
@@ -695,7 +792,8 @@ Licensed under the MIT license.
         [Parameter(Mandatory = $false)][string]$DeployerStateFileKeyName,
         [Parameter(Mandatory = $false)][string]$LandscapeStateFileKeyName,
         [Parameter(Mandatory = $false)][string]$TFStateStorageAccountName,
-        [Parameter(Mandatory = $false)][Switch]$Force
+        [Parameter(Mandatory = $false)][Switch]$Force,
+        [Parameter(Mandatory = $false)][Switch]$Silent
         
     )
 
@@ -703,10 +801,17 @@ Licensed under the MIT license.
     Write-Host -ForegroundColor green "Deploying the" $Type
 
     if ($true -eq $Force) {
-        Remove-Item ".terraform" -ErrorAction SilentlyContinue
+        Remove-Item ".terraform" -ErrorAction SilentlyContinue -Recurse
         Remove-Item "terraform.tfstate" -ErrorAction SilentlyContinue
         Remove-Item "terraform.tfstate.backup" -ErrorAction SilentlyContinue
     }
+
+    $autoApprove=""
+    
+    if($Silent) {
+        $autoApprove=" --auto-approve "
+    }
+
 
     $CachePath = (Join-Path -Path $Env:APPDATA -ChildPath "terraform.d\plugin-cache")
     if ( -not (Test-Path -Path $CachePath)) {
@@ -742,9 +847,9 @@ Licensed under the MIT license.
         }
     }
 
-    $extra_vars = " -var-file="
+    $extra_vars = " "
     if (  (Test-Path -Path "terraform.tfvars")) {
-        $extra_vars = $extra_vars + (Join-Path -Path $curDir -ChildPath "terraform.tfvars")
+        $extra_vars = " -var-file=" + (Join-Path -Path $curDir -ChildPath "terraform.tfvars")
     }
 
     $key = $fInfo.Name.replace(".json", ".terraform.tfstate")
@@ -753,11 +858,12 @@ Licensed under the MIT license.
         $landscapeKey = $key
     }
 
-    
     $ctx = Get-AzContext
     if ($null -eq $ctx) {
         Connect-AzAccount 
     }
+
+    $sub = $env:ARM_SUBSCRIPTION_ID
     
     $jsonData = Get-Content -Path $Parameterfile | ConvertFrom-Json
 
@@ -770,6 +876,8 @@ Licensed under the MIT license.
     $changed = $false
 
     if ($null -eq $iniContent[$combined]) {
+        Select-AzSubscription -SubscriptionId $env:ARM_SUBSCRIPTION_ID
+    
         Write-Error "The Terraform state information is not available"
 
         $saName = Read-Host -Prompt "Please specify the storage account name for the terraform storage account"
@@ -802,6 +910,11 @@ Licensed under the MIT license.
         }
     }
     else {
+        $tfstate_resource_id = $iniContent[$combined]["tfstate_resource_id"]
+        $saName = $iniContent[$combined]["REMOTE_STATE_SA"] 
+        $rgName = $iniContent[$combined]["REMOTE_STATE_RG"] 
+        $sub = $iniContent[$combined]["kvsubscription"]
+        
         if ($Type -eq "sap_system") {
             if ($null -ne $LandscapeStateFileKeyName -and "" -ne $LandscapeStateFileKeyName) {
                 $landscape_tfstate_key = $LandscapeStateFileKeyName
@@ -812,6 +925,16 @@ Licensed under the MIT license.
                 $landscape_tfstate_key = $iniContent[$combined].Landscape
             }
         }
+    }
+
+    if ($null -ne $sub -and "" -ne $sub) {
+        if( $sub -ne $env:ARM_SUBSCRIPTION_ID) {
+            Select-AzSubscription -SubscriptionId $sub
+        }
+        
+    }
+    else {
+        $sub = $env:ARM_SUBSCRIPTION_ID
     }
 
     if ("sap_deployer" -eq $Type) {
@@ -856,14 +979,20 @@ Licensed under the MIT license.
     }
     
     if ($null -eq $saName -or "" -eq $saName) {
+        Select-AzSubscription -SubscriptionId $env:ARM_SUBSCRIPTION_ID
+    
         $saName = Read-Host -Prompt "Please specify the storage account name for the terraform storage account"
         $rID = Get-AzResource -Name $saName
         $rgName = $rID.ResourceGroupName
         $tfstate_resource_id = $rID.ResourceId
+        if ($null -ne $tfstate_resource_id) {
+            $sub = $tfstate_resource_id.Split("/")[2]
+        }
 
-        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
         $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
+        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
         $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
+        $iniContent[$combined]["kvsubscription"] = $sub
         $changed = $true
         if ($changed) {
             Out-IniFile -InputObject $iniContent -Path $filePath
@@ -880,16 +1009,28 @@ Licensed under the MIT license.
         $rID = Get-AzResource -Name $saName
         $rgName = $rID.ResourceGroupName
         $tfstate_resource_id = $rID.ResourceId
+        if ($null -ne $tfstate_resource_id) {
+            $sub = $tfstate_resource_id.Split("/")[2]
+        }
 
-        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
         $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
+        $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
         $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
+        $iniContent[$combined]["kvsubscription"] = $sub
         $changed = $true
 
+        if ($changed) {
+            Out-IniFile -InputObject $iniContent -Path $filePath
+        }
+        $changed = $false
+
+    }
+    else {
+        if ($null -ne $tfstate_resource_id) {
+            $sub = $tfstate_resource_id.Split("/")[2]
+        }
     }
 
-    # Subscription
-    $sub = $iniContent[$combined]["kvsubscription"]
     
     $repo = $iniContent["Common"]["repo"]
 
@@ -1067,7 +1208,8 @@ Licensed under the MIT license.
     if ($PSCmdlet.ShouldProcess($Parameterfile , $Type)) {
 
         Write-Host -ForegroundColor green "Running apply"
-        $Command = " apply -var-file " + $ParamFullFile + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + $extra_vars
+        $Command = " apply " +$autoApprove +" -var-file " + $ParamFullFile 
+        $Command = " apply " +$autoApprove +" -var-file " + $ParamFullFile  + $tfstate_parameter + $landscape_tfstate_key_parameter + $deployer_tfstate_key_parameter + $extra_vars
 
         $Cmd = "terraform -chdir=$terraform_module_directory $Command"
         Add-Content -Path "deployment.log" -Value $Cmd
@@ -1150,13 +1292,21 @@ Licensed under the MIT license.
         #Parameter file
         [Parameter(Mandatory = $true)][string]$Parameterfile,
         #Deployer parameterfile
-        [Parameter(Mandatory = $true)][string]$DeployerFolderRelativePath
+        [Parameter(Mandatory = $true)][string]$DeployerFolderRelativePath,
+        [Parameter(Mandatory = $false)][Switch]$Silent
     )
 
     Write-Host -ForegroundColor green ""
     Write-Host -ForegroundColor green "Bootstrap the library"
     $curDir = Get-Location 
-    Write-Host $DeployerFolderRelativePath
+
+    $autoApprove=""
+    
+    if($Silent) {
+        $autoApprove=" --auto-approve "
+    }
+
+    Write-Host "Using the Deployer state file:" + $DeployerFolderRelativePath
 
     $fInfo = Get-ItemProperty -Path $Parameterfile
     if (!$fInfo.Exists ) {
@@ -1171,7 +1321,6 @@ Licensed under the MIT license.
     $env:TF_PLUGIN_CACHE_DIR = $CachePath
 
     $ParamFullFile = (Get-ItemProperty -Path $Parameterfile -Name Fullname).Fullname
-
 
     Add-Content -Path "deployment.log" -Value "Bootstrap the library"
     Add-Content -Path "deployment.log" -Value (Get-Date -Format "yyyy-MM-dd HH:mm")
@@ -1188,11 +1337,16 @@ Licensed under the MIT license.
 
     # Subscription & repo path
 
-    $sub = $null
+    $sub = $env:ARM_SUBSCRIPTION_ID
     if ($null -ne $iniContent[$combined]) {
-        $sub = $iniContent[$combined]["subscription"]
+        $sub = $iniContent[$combined]["kvsubscription"]
     }
-     
+
+    $ctx = Get-AzContext
+    if ($null -eq $ctx) {
+        Connect-AzAccount 
+    }
+
     $repo = $iniContent["Common"]["repo"]
 
     $changed = $false
@@ -1202,6 +1356,12 @@ Licensed under the MIT license.
         $iniContent[$combined]["subscription"] = $sub
         $changed = $true
     }
+
+    Select-AzSubscription -SubscriptionId $sub
+    $Cmd = "az account set --sub $sub"
+    Add-Content -Path "deployment.log" -Value $Cmd
+
+    & ([ScriptBlock]::Create($Cmd)) 
 
     if ($null -eq $repo -or "" -eq $repo) {
         $repo = Read-Host -Prompt "Please enter the path to the repository"
@@ -1257,12 +1417,11 @@ Licensed under the MIT license.
 
     Write-Host -ForegroundColor green "Running plan"
     if ($DeployerFolderRelativePath -eq "") {
-        $Command = " plan -var-file " + $ParamFullFile
+        $Command = " plan -no-color -var-file " + $ParamFullFile
     }
     else {
-        $Command = " plan -var-file " + $ParamFullFile + " -var deployer_statefile_foldername=" + $DeployerFolderRelativePath
+        $Command = " plan -no-color -var-file " + $ParamFullFile + " -var deployer_statefile_foldername=" + $DeployerFolderRelativePath
     }
-
     
     $Cmd = "terraform -chdir=$terraform_module_directory $Command"
     Add-Content -Path "deployment.log" -Value $Cmd
@@ -1297,12 +1456,12 @@ Licensed under the MIT license.
     
         Write-Host -ForegroundColor green "Running apply"
         if ($DeployerFolderRelativePath -eq "") {
-            $Command = " apply -var-file " + $ParamFullFile  
+            $Command = " apply " +$autoApprove +" -var-file " + $ParamFullFile
         }
         else {
-            $Command = " apply -var-file " + $ParamFullFile + " -var deployer_statefile_foldername=" + $DeployerFolderRelativePath  
+            $Command = " apply " +$autoApprove +" -var-file " + $ParamFullFile + " -var deployer_statefile_foldername=" + $DeployerFolderRelativePath
         }
-
+        
         $Cmd = "terraform -chdir=$terraform_module_directory $Command"
         Add-Content -Path "deployment.log" -Value $Cmd
         & ([ScriptBlock]::Create($Cmd))  
@@ -1391,6 +1550,13 @@ Licensed under the MIT license.
         #Deployer state file
         [Parameter(Mandatory = $false)][string]$Deployerstatefile,
         [Parameter(Mandatory = $false)][string]$Deployerenvironment,
+        [Parameter(Mandatory = $true)][string]$Subscription,
+        #SPN App ID
+        [Parameter(Mandatory = $true)][string]$Client_id,
+        #SPN App secret
+        [Parameter(Mandatory = $true)][string]$Client_secret,
+        #Tenant
+        [Parameter(Mandatory = $true)][string]$Tenant_id,
         [Parameter(Mandatory = $false)][Switch]$Force 
     )
 
@@ -1542,12 +1708,19 @@ Licensed under the MIT license.
     if ($null -ne $vault -and "" -ne $vault) {
         if ($null -eq (Get-AzKeyVaultSecret -VaultName $vault -Name ($Environment + "-client-id") )) {
             $bAsk = $true
+            if(($null -ne $Client_id) -and ($null -ne $Client_secret) -and ($null -ne $Tenant_id)) 
+            {
+                Set-SAPSPNSecrets -Region $region -Environment $Environment -VaultName $vault -Client_id $Client_id -Client_secret $Client_secret -Tenant_id $Tenant_id
+                $iniContent = Get-IniContent -Path $fileINIPath
+                $iniContent = Get-IniContent -Path $fileINIPath
+        
+                $step = 2
+                $iniContent[$combined]["step"] = $step
+                Out-IniFile -InputObject $iniContent -Path $fileINIPath
+                $bAsk = $false
+            }
         }
-        else {
-            $bAsk = $false
-        }
-    }
-    if ($bAsk) {
+    }    if ($bAsk) {
         $ans = Read-Host -Prompt "Do you want to enter the Workload SPN secrets Y/N?"
         if ("Y" -eq $ans) {
             $vault = $iniContent[$combined]["Vault"]
@@ -2323,9 +2496,9 @@ Licensed under the MIT license.
     $env:TF_PLUGIN_CACHE_DIR = $CachePath
     $curDir = (Get-Location)
  
-    $extra_vars = " -var-file="
+    $extra_vars = " "
     if (  (Test-Path -Path "terraform.tfvars")) {
-        $extra_vars = $extra_vars + (Join-Path -Path $curDir -ChildPath "terraform.tfvars")
+        $extra_vars = " -var-file=" + (Join-Path -Path $curDir -ChildPath "terraform.tfvars")
     }
 
  
@@ -2352,7 +2525,9 @@ Licensed under the MIT license.
         $rgName = $rID.ResourceGroupName
 
         $tfstate_resource_id = $rID.ResourceId
-        $Category1 = @{"REMOTE_STATE_RG" = $rgName; "REMOTE_STATE_SA" = $saName; "tfstate_resource_id" = $tfstate_resource_id }
+        $sub = $tfstate_resource_id.Split("/")[2]
+
+        $Category1 = @{"REMOTE_STATE_RG" = $rgName; "REMOTE_STATE_SA" = $saName; "tfstate_resource_id" = $tfstate_resource_id; "kvsubscription" = $sub }
         $iniContent += @{$combined = $Category1 }
         $changed = $true
     }
@@ -2379,6 +2554,9 @@ Licensed under the MIT license.
      if ($null -ne $sub -and "" -ne $sub) {
         Select-AzSubscription -SubscriptionId $sub
      }
+     else {
+        $sub = $env:ARM_SUBSCRIPTION_ID
+     }
 
      if ($null -eq $saName -or "" -eq $saName) {
         $saName = Read-Host -Prompt "Please specify the storage account name for the terraform storage account"
@@ -2386,7 +2564,9 @@ Licensed under the MIT license.
         Write-Host $rID
         $rgName = $rID.ResourceGroupName
         $tfstate_resource_id = $rID.ResourceId
+        $sub = $tfstate_resource_id.Split("/")[2]
 
+        $iniContent[$combined]["kvsubscription"] = $sub.Trim() 
         $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
         $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
         $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
@@ -2407,7 +2587,9 @@ Licensed under the MIT license.
         $rID = Get-AzResource -Name $saName
         $rgName = $rID.ResourceGroupName
         $tfstate_resource_id = $rID.ResourceId
+        $sub = $tfstate_resource_id.Split("/")[2]
 
+        $iniContent[$combined]["kvsubscription"] = $sub.Trim() 
         $iniContent[$combined]["REMOTE_STATE_RG"] = $rgName
         $iniContent[$combined]["REMOTE_STATE_SA"] = $saName
         $iniContent[$combined]["tfstate_resource_id"] = $tfstate_resource_id
@@ -2533,7 +2715,7 @@ Function Set-SAPSPNSecrets {
      .PARAMETER Environment
         This is the name of the environment.
 
-    .PARAMETER VAultNAme
+    .PARAMETER VaultName
         This is the name of the keyvault
 
     .PARAMETER Client_id
@@ -2542,8 +2724,8 @@ Function Set-SAPSPNSecrets {
     .PARAMETER Client_secret
         This is the SAP Application password
 
-    .PARAMETER Tenant
-        This is the Tenant ID for the SPN
+    .PARAMETER Tenant_id
+        This is the Tenant_id ID for the SPN
         
 
     .EXAMPLE 
@@ -2552,7 +2734,7 @@ Function Set-SAPSPNSecrets {
     #
     # Import the module
     Import-Module "SAPDeploymentUtilities.psd1"
-    Set-SAPSPNSecrets -Environment PROD -VaultName <vaultname> -Client_id <appId> -Client_secret <clientsecret> -Tenant <TenantID> 
+    Set-SAPSPNSecrets -Environment PROD -VaultName <vaultname> -Client_id <appId> -Client_secret <clientsecret> -Tenant_id <Tenant_idID> 
 
     
 .LINK
@@ -2577,11 +2759,11 @@ Licensed under the MIT license.
         #Keyvault name
         [Parameter(Mandatory = $true)][string]$VaultName,
         # #SPN App ID
-        [Parameter(Mandatory = $true)][string]$Client_id = "",
+        [Parameter(Mandatory = $true)][string]$Client_id,
         #SPN App secret
         [Parameter(Mandatory = $true)][string]$Client_secret,
-        #Tenant
-        [Parameter(Mandatory = $true)][string]$Tenant = "",
+        #Tenant_id
+        [Parameter(Mandatory = $true)][string]$Tenant_id,
         #Workload
         [Parameter(Mandatory = $false )][Switch]$Workload
 
@@ -2656,18 +2838,18 @@ Licensed under the MIT license.
         $iniContent[$combined]["Client_id"] = $Client_id
     }
 
-    # Read Tenant
-    $t = $iniContent[$combined]["Tenant"]
+    # Read Tenant_id
+    $t = $iniContent[$combined]["Tenant_id"]
 
-    if ("" -eq $Tenant) {
+    if ("" -eq $Tenant_id) {
         if ($t -eq "" -or $null -eq $t) {
-            $t = Read-Host -Prompt 'Tenant:'
-            $iniContent[$combined]["Tenant"] = $t 
+            $t = Read-Host -Prompt 'Tenant_id:'
+            $iniContent[$combined]["Tenant_id"] = $t 
         }
     }
     else {
-        $t = $Tenant
-        $iniContent[$combined]["Tenant"] = $Tenant
+        $t = $Tenant_id
+        $iniContent[$combined]["Tenant_id"] = $Tenant_id
     }
 
     if ("" -eq $Client_secret) {

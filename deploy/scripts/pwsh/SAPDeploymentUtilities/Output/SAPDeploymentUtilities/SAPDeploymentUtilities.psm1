@@ -194,7 +194,6 @@ Licensed under the MIT license.
     $fileDir = Join-Path -Path $dirInfo.ToString() -ChildPath $DeployerParameterfile
     [IO.FileInfo] $fInfo = $fileDir
     
-
     $fInfo = Get-ItemProperty -Path $DeployerParameterfile
     if ($false -eq $fInfo.Exists ) {
         Write-Error ("File " + $DeployerParameterfile + " does not exist")
@@ -246,6 +245,7 @@ Licensed under the MIT license.
             $iniContent.Remove($combined)
             Out-IniFile -InputObject $iniContent -Path $fileINIPath
             $iniContent = Get-IniContent -Path $fileINIPath
+            
         }
     }
 
@@ -254,9 +254,11 @@ Licensed under the MIT license.
             $iniContent[$combined]["Deployer"] = $key
         }
         else {
-            $Category1 = @{"Deployer" = $key }
+            $Category1 = @{"Deployer" = $key}
             $iniContent += @{$combined = $Category1 }
             Out-IniFile -InputObject $iniContent -Path $fileINIPath                    
+            $iniContent = Get-IniContent -Path $fileINIPath
+            
         }
                 
     }
@@ -2779,24 +2781,29 @@ Licensed under the MIT license.
 
     $combined = $Environment + $region
 
-    if($Workload) {
-        Write-Host ("Setting SPN for workload" + "("+ $combined +")")
-    }
-    else {
-        $combined = $region
-        Write-Host ("Setting SPN for deployer" + "("+ $combined +")")
-    }
-
     if ($null -eq $iniContent[$combined]) {
         $Category1 = @{"subscription" = "" }
         $iniContent += @{$combined = $Category1 }
     }
-    
+
+    if($Workload) {
+        Write-Host ("Setting SPN for workload" + "("+ $combined +")")
+        $sub = $iniContent[$combined]["subscription"]
+    }
+    else {
+        $sub = $iniContent[$combined]["kvsubscription"]
+        Write-Host ("Setting SPN for deployer" + "("+ $combined +")")
+    }
+
     # Subscription
-    $sub = $iniContent[$combined]["subscription"]
     if ($null -eq $sub -or "" -eq $sub) {
         $sub = Read-Host -Prompt "Please enter the subscription for the SPN"
-        $iniContent[$combined]["subscription"] = $sub
+        if($Workload) {
+            $iniContent[$combined]["subscription"] = $sub
+        }
+        else {
+            $iniContent[$combined]["kvsubscription"] = $sub
+        }
     }
 
     $ctx= Get-AzContext

@@ -108,7 +108,6 @@ Licensed under the MIT license.
     $fileDir = Join-Path -Path $dirInfo.ToString() -ChildPath $DeployerParameterfile
     [IO.FileInfo] $fInfo = $fileDir
     
-
     $fInfo = Get-ItemProperty -Path $DeployerParameterfile
     if ($false -eq $fInfo.Exists ) {
         Write-Error ("File " + $DeployerParameterfile + " does not exist")
@@ -160,6 +159,7 @@ Licensed under the MIT license.
             $iniContent.Remove($combined)
             Out-IniFile -InputObject $iniContent -Path $fileINIPath
             $iniContent = Get-IniContent -Path $fileINIPath
+            
         }
     }
 
@@ -168,9 +168,11 @@ Licensed under the MIT license.
             $iniContent[$combined]["Deployer"] = $key
         }
         else {
-            $Category1 = @{"Deployer" = $key }
+            $Category1 = @{"Deployer" = $key}
             $iniContent += @{$combined = $Category1 }
             Out-IniFile -InputObject $iniContent -Path $fileINIPath                    
+            $iniContent = Get-IniContent -Path $fileINIPath
+            
         }
                 
     }

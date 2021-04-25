@@ -231,9 +231,9 @@ locals {
   // Note: First 4 IP addresses in a subnet are reserved by Azure
   hdb_ip_offsets = {
     hdb_lb         = 4
-    hdb_admin_vm   = 6
-    hdb_db_vm      = 10
-    hdb_storage_vm = 10
+    hdb_admin_vm   = 4
+    hdb_db_vm      = 5
+    hdb_storage_vm = 4
   }
 
   // Ports used for specific HANA Versions

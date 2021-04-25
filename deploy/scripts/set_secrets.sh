@@ -33,7 +33,7 @@ function showhelp {
 }
 
 
-while getopts ":e:c:s:t:h:v:r:x:w" option; do
+while getopts "e:c:s:t:h:v:r:x:w" option; do
     case "${option}" in
         e) environment=${OPTARG};;
         c) client_id=${OPTARG};;
@@ -75,14 +75,15 @@ then
     mkdir "${automation_config_directory}"
 else
     touch "${environment_config_information}"
-    if [ "$workload" == 1 ] ;
-    then
-        load_config_vars "${environment_config_information}" "subscription"
-    else
-        load_config_vars "${environment_config_information}" "kvsubscription"
-        subscription=$kvsubscription
-    fi
    
+fi
+
+load_config_vars "${environment_config_information}" "subscription"
+
+if [ "$workload" != 1 ] ;
+then
+    load_config_vars "${environment_config_information}" "kvsubscription"
+    subscription=${kvsubscription}
 fi
 
 if [ ! -n "$keyvault" ]; then

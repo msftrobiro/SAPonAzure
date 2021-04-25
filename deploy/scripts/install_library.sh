@@ -1,5 +1,21 @@
 #!/bin/bash
-. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+#error codes include those from /usr/include/sysexits.h
+
+#colors for terminal
+boldreduscore="\e[1;4;31m"
+boldred="\e[1;31m"
+cyan="\e[1;36m"
+resetformatting="\e[0m"
+
+#External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+
+#call stack has full scriptname when using source 
+source "${script_directory}/deploy_utils.sh"
+
+#Internal helper functions
 function showhelp {
     echo ""
     echo "#########################################################################################"
@@ -264,7 +280,8 @@ if [ -n "${str1}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-echo -e "#                          $boldreduscore Errors during the plan phase $resetformatting                                #"    echo "#                                                                                       #"
+    echo -e "#                          $boldreduscore Errors during the plan phase $resetformatting                                #"    
+    echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
     echo $str1
@@ -298,7 +315,7 @@ then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore Errors during the apply phase $resetformatting                               #"
+    echo -e "#                          $boldreduscore Errors during the apply phase $resetformatting                              #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""

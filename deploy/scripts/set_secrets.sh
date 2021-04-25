@@ -33,7 +33,7 @@ function showhelp {
 }
 
 
-while getopts ":e:c:s:t:h:v:r:x" option; do
+while getopts ":e:c:s:t:h:v:r:x:w" option; do
     case "${option}" in
         e) environment=${OPTARG};;
         c) client_id=${OPTARG};;
@@ -43,6 +43,8 @@ while getopts ":e:c:s:t:h:v:r:x" option; do
         v) keyvault=${OPTARG};;
         h) showhelp
             exit 0
+        ;;
+        w) workload=1
         ;;
         ?) echo "Invalid option: -${OPTARG}."
             exit 0
@@ -61,7 +63,7 @@ fi
 
 
 if [ ! -n "${environment}" ]; then
-    read -p "Environment name:"  environment
+    read -p -r "Environment name:"  environment
 fi
 
 environment_config_information="${automation_config_directory}""${environment}""${region}"
@@ -73,41 +75,47 @@ then
     mkdir "${automation_config_directory}"
 else
     touch "${environment_config_information}"
-    load_config_vars "${environment_config_information}" "subscription"
+    if [ $workload == 1 ] ;
+    then
+        load_config_vars "${environment_config_information}" "subscription"
+    else
+        load_config_vars "${environment_config_information}" "kvsubscription"
+        subscription=kvsubscription
+    fi
    
 fi
 
 if [ ! -n "$keyvault" ]; then
     load_config_vars "${environment_config_information}" "keyvault"
     if [ ! -n "$keyvault" ]; then
-        read -p "Keyvault name:"  keyvault
+        read -p -r "Keyvault name:"  keyvault
     fi
 fi
 
 if [ ! -n "$client_id" ]; then
     load_config_vars "${environment_config_information}" "client_id"
     if [ ! -n "$client_id" ]; then
-        read -p "SPN App ID:"  client_id
+        read -p -r "SPN App ID:"  client_id
     fi
 fi
 
 if [ ! -n "$client_secret" ]; then
-    read -p "SPN App Password:"  client_secret
+    read -p -r "SPN App Password:"  client_secret
 fi
 
 if [ ! -n "${tenant_id}" ]; then
     load_config_vars "${environment_config_information}" "tenant_id"
     if [ ! -n "${tenant_id}" ]; then
-        read -p "SPN Tenant ID:"  tenant_id
+        read -p -r "SPN Tenant ID:"  tenant_id
     fi
 fi
 
 if [ ! -n "$subscription" ]; then
-    read -p "SPN Subscription:"  subscription
+    read -p -r "SPN Subscription:"  subscription
 fi
 
 if [ ! -n "${environment}" ]; then
-    read -p "Environment:"  environment
+    read -p -r "Environment:"  environment
 fi
 
 if [ ! -n "${keyvault}" ]; then

@@ -30,12 +30,10 @@ function showhelp {
     echo "#########################################################################################"
 }
 
-interactive=true
-
 while getopts ":p:i:d:h" option; do
     case "${option}" in
         p) parameterfile=${OPTARG};;
-        i) interactive=${OPTARG};;
+        i) approve="--auto-approve" ;;
         d) deployer_statefile_foldername=${OPTARG};;
         h) showhelp
             exit 3
@@ -166,10 +164,6 @@ if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
     exit 3
 fi
 
-if [ $interactive == false ]; then
-    approve="--auto-approve"
-fi
-
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/bootstrap/"${deployment_system}"/
 
 if [ ! -d ${terraform_module_directory} ]
@@ -258,7 +252,7 @@ echo "##########################################################################
 echo ""
 
 if [ -n "${deployer_statefile_foldername}" ]; then
-    echo "Deployer folder specified: "${deployer_statefile_foldername}
+    echo "Deployer folder specified:" "${deployer_statefile_foldername}"
     terraform -chdir="${terraform_module_directory}" plan -no-color -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" > plan_output.log 2>&1
 else
     terraform -chdir="${terraform_module_directory}" plan -no-color -var-file="${var_file}"  > plan_output.log 2>&1
@@ -291,7 +285,9 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-if [ -n "${deployer_statefile_foldername}" ]; then
+if [ -n "${deployer_statefile_foldername}" ]; 
+then
+    echo "Deployer folder specified:" "${deployer_statefile_foldername}"
     terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}"
 else
     terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}"

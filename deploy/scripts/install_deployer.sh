@@ -34,7 +34,7 @@ function showhelp {
 while getopts ":p:i:h" option; do
     case "${option}" in
         p) parameterfile=${OPTARG};;
-        i) interactive=${OPTARG};;
+        i) approve="--auto-approve" ;;
         h) showhelp
             exit 3
         ;;
@@ -116,7 +116,6 @@ param_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
-export TF_DATA_DIR="${param_dirname}"/.terraform
 var_file="${param_dirname}"/"${parameterfile}" 
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
@@ -168,6 +167,7 @@ else
 fi
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"deploy/terraform/bootstrap/"${deployment_system}"/
+export TF_DATA_DIR="${param_dirname}"/.terraform
 
 ok_to_proceed=false
 new_deployment=false
@@ -203,6 +203,7 @@ else
         terraform -chdir="${terraform_module_directory}" init -upgrade=true  -backend-config "path=${param_dirname}"
         terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" 
     else
+        unset TF_DATA_DIR
         exit 0
     fi
 fi
@@ -228,6 +229,7 @@ if [ -n "${str1}" ]; then
     echo ""
     echo $str1
     rm plan_output.log
+    unset TF_DATA_DIR
     exit -1
 fi
 
@@ -243,7 +245,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}"  apply ${approve} -var-file="${var_file}"
+terraform -chdir=${terraform_module_directory}  apply ${approve} -var-file=${var_file}
 
 keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
 
@@ -261,5 +263,5 @@ then
         return_value=-1
     fi
 fi
-
+unset TF_DATA_DIR
 exit $return_value

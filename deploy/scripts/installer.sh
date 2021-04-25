@@ -627,7 +627,7 @@ if [ $ok_to_proceed ]; then
     echo "#########################################################################################"
     echo ""
     
-    terraform -chdir=${terraform_module_directory} apply ${approve} -var-file=${var_file} ${tfstate_parameter} ${landscape_tfstate_key_parameter} ${deployer_tfstate_key_parameter} ${extra_vars}
+    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${extra_vars}"
     
 fi
 

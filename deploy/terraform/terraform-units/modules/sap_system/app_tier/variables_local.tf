@@ -75,11 +75,11 @@ variable "landscape_tfstate" {
 locals {
   // Imports Disk sizing sizing information
   sizes = jsondecode(file(length(var.custom_disk_sizes_filename) > 0 ? (
-    format("%s/%s",path.cwd, var.custom_disk_sizes_filename)) : (
-    format("%s%s",path.module,"/../../../../../configs/app_sizes.json")))
+    format("%s/%s", path.cwd, var.custom_disk_sizes_filename)) : (
+    format("%s%s", path.module, "/../../../../../configs/app_sizes.json")))
   )
 
-  faults = jsondecode(file(format("%s%s",path.module,"/../../../../../configs/max_fault_domain_count.json")))
+  faults = jsondecode(file(format("%s%s", path.module, "/../../../../../configs/max_fault_domain_count.json")))
 
   app_computer_names       = var.naming.virtualmachine_names.APP_COMPUTERNAME
   app_virtualmachine_names = var.naming.virtualmachine_names.APP_VMNAME
@@ -129,8 +129,9 @@ locals {
   vnet_sap_address_space           = try(local.vnet_sap.address_space, [])
 
   // APP subnet
-  var_sub_app    = try(var.infrastructure.vnets.sap.subnet_app, {})
-  sub_app_arm_id = try(local.var_sub_app.arm_id, try(var.landscape_tfstate.app_subnet_id, ""))
+  sub_app_defined = try(var.infrastructure.vnets.sap.subnet_app, null) == null ? false : true
+  var_sub_app     = try(var.infrastructure.vnets.sap.subnet_app, {})
+  sub_app_arm_id  = try(local.var_sub_app.arm_id, try(var.landscape_tfstate.app_subnet_id, ""))
   sub_app_exists = length(trimspace(try(local.var_sub_app.prefix, ""))) > 0 ? (
     false) : (
     length(local.sub_app_arm_id) > 0 ? (

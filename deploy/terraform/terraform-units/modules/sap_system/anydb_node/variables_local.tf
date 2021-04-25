@@ -358,7 +358,7 @@ locals {
 
   db_disks_ansible = flatten([for idx, vm in local.anydb_vms : [
     for idx, datadisk in local.anydb_disks :
-    format("{ host: '%s', LUN: %d, type: '%s' }", vm.name, datadisk.lun, datadisk.type)
+    format("{ host: '%s', LUN: %d, type: '%s' }", vm.computername, datadisk.lun, datadisk.type)
   ]])
 
   enable_ultradisk = try(

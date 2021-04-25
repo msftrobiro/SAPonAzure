@@ -132,7 +132,9 @@ locals {
     "publisher"       = try(local.hdb.os.publisher, local.hdb_custom_image ? "" : "suse")
     "offer"           = try(local.hdb.os.offer, local.hdb_custom_image ? "" : "sles-sap-12-sp5")
     "sku"             = try(local.hdb.os.sku, local.hdb_custom_image ? "" : "gen1")
+    "version"         = try(local.hdb.os.sku, local.hdb_custom_image ? "" : "latest")
   }
+
   hdb_size = try(local.hdb.size, "Default")
   hdb_fs   = try(local.hdb.filesystem, "xfs")
   hdb_ha   = try(local.hdb.high_availability, false)
@@ -330,7 +332,7 @@ locals {
 
   db_disks_ansible = flatten([for idx, vm in local.hdb_vms : [
     for idx, datadisk in local.data_disk_list :
-    format("{ host: '%s', LUN: %d, type: '%s' }", vm.name, datadisk.lun, datadisk.type)
+    format("{ host: '%s', LUN: %d, type: '%s' }", vm.computername, datadisk.lun, datadisk.type)
   ]])
 
   enable_ultradisk = try(

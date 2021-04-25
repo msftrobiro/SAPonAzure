@@ -280,18 +280,30 @@ locals {
 
   // Subnet IP Offsets
   // Note: First 4 IP addresses in a subnet are reserved by Azure
-  ip_offsets = {
-    scs_lb = 4 + 1
-    web_lb = local.sub_web_defined ? (4 + 1) : -2
-    scs_vm = 4 + 6
-    app_vm = 4 + 10
-    web_vm = local.sub_web_defined ? (4 + 2) : -3
+  linux_ip_offsets = {
+    scs_lb = 4 
+    scs_vm = 6
+    app_vm = 10
+    web_lb = local.sub_web_defined ? (4 + 1) : 6
+    web_vm = local.sub_web_defined ? (10) : 50
   }
+
+  windows_ip_offsets = {
+    scs_lb = 4 
+    scs_vm = 6 + 2  # Windows HA SCS may require 4 IPs
+    app_vm = 10 + 2
+    web_lb = local.sub_web_defined ? (4 + 1) : 6 + 2
+    web_vm = local.sub_web_defined ? (10) : 50
+  }
+
+  ip_offsets = local.scs_ostype == "WINDOWS" ? local.windows_ip_offsets : local.linux_ip_offsets
+
   admin_ip_offsets = {
-    app_vm = 4 + 9
-    scs_vm = 4 + 14
-    web_vm = 4 + 19
+    app_vm = 14
+    scs_vm = 10
+    web_vm = 50
   }
+
 
   // Default VM config should be merged with any the user passes in
   app_sizing = lookup(local.sizes.app, local.vm_sizing)

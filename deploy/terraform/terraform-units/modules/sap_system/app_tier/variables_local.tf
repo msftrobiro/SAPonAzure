@@ -285,7 +285,7 @@ locals {
     scs_vm = 6
     app_vm = 10
     web_lb = local.sub_web_defined ? (4 + 1) : 6
-    web_vm = local.sub_web_defined ? (0) : 50
+    web_vm = local.sub_web_defined ? (10) : 50
   }
 
   windows_ip_offsets = {
@@ -293,7 +293,7 @@ locals {
     scs_vm = 6 + 2  # Windows HA SCS may require 4 IPs
     app_vm = 10 + 2
     web_lb = local.sub_web_defined ? (4 + 1) : 6 + 2
-    web_vm = local.sub_web_defined ? (0) : 50
+    web_vm = local.sub_web_defined ? (10) : 50
   }
 
   ip_offsets = local.scs_ostype == "WINDOWS" ? local.windows_ip_offsets : local.linux_ip_offsets

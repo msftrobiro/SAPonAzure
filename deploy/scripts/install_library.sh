@@ -30,7 +30,7 @@ function showhelp {
     echo "#########################################################################################"
 }
 
-while getopts ":p:i:d:h" option; do
+while getopts "p:d:ih" option; do
     case "${option}" in
         p) parameterfile=${OPTARG};;
         i) approve="--auto-approve" ;;
@@ -264,8 +264,7 @@ if [ -n "${str1}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#                           Errors during the plan phase                                #"
-    echo "#                                                                                       #"
+echo -e "#                          $boldreduscore Errors during the plan phase $resetformatting                                #"    echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
     echo $str1
@@ -288,11 +287,26 @@ echo ""
 if [ -n "${deployer_statefile_foldername}" ]; 
 then
     echo "Deployer folder specified:" "${deployer_statefile_foldername}"
-    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}"
+    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" 2>error.log
 else
-    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}"
+    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" 2>error.log
 fi
-
+ 
+str1=$(grep "Error: " error.log)
+if [ -n "${str1}" ]
+then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                          $boldreduscore Errors during the apply phase $resetformatting                               #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    cat error.log
+    rm error.log
+    unset TF_DATA_DIR
+    exit -1
+fi
 return_value=-1
 
 REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")

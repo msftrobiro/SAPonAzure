@@ -63,7 +63,7 @@ fi
 
 
 if [ ! -n "${environment}" ]; then
-    read -p -r "Environment name:"  environment
+    read -p "Environment name:"  environment
 fi
 
 environment_config_information="${automation_config_directory}""${environment}""${region}"
@@ -75,12 +75,12 @@ then
     mkdir "${automation_config_directory}"
 else
     touch "${environment_config_information}"
-    if [ $workload == 1 ] ;
+    if [ "$workload" == 1 ] ;
     then
         load_config_vars "${environment_config_information}" "subscription"
     else
         load_config_vars "${environment_config_information}" "kvsubscription"
-        subscription=kvsubscription
+        subscription=$kvsubscription
     fi
    
 fi
@@ -88,34 +88,34 @@ fi
 if [ ! -n "$keyvault" ]; then
     load_config_vars "${environment_config_information}" "keyvault"
     if [ ! -n "$keyvault" ]; then
-        read -p -r "Keyvault name:"  keyvault
+        read -p "Keyvault name:"  keyvault
     fi
 fi
 
 if [ ! -n "$client_id" ]; then
     load_config_vars "${environment_config_information}" "client_id"
     if [ ! -n "$client_id" ]; then
-        read -p -r "SPN App ID:"  client_id
+        read -p "SPN App ID:"  client_id
     fi
 fi
 
 if [ ! -n "$client_secret" ]; then
-    read -p -r "SPN App Password:"  client_secret
+    read -p "SPN App Password:"  client_secret
 fi
 
 if [ ! -n "${tenant_id}" ]; then
     load_config_vars "${environment_config_information}" "tenant_id"
     if [ ! -n "${tenant_id}" ]; then
-        read -p -r "SPN Tenant ID:"  tenant_id
+        read -p "SPN Tenant ID:"  tenant_id
     fi
 fi
 
 if [ ! -n "$subscription" ]; then
-    read -p -r "SPN Subscription:"  subscription
+    read -p "SPN Subscription:"  subscription
 fi
 
 if [ ! -n "${environment}" ]; then
-    read -p -r "Environment:"  environment
+    read -p "Environment:"  environment
 fi
 
 if [ ! -n "${keyvault}" ]; then

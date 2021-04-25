@@ -1,6 +1,21 @@
 #!/bin/bash
-. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+#error codes include those from /usr/include/sysexits.h
 
+#colors for terminal
+boldreduscore="\e[1;4;31m"
+boldred="\e[1;31m"
+cyan="\e[1;36m"
+resetformatting="\e[0m"
+
+#External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+
+#call stack has full scriptname when using source 
+source "${script_directory}/deploy_utils.sh"
+
+#Internal helper functions
 function showhelp {
     echo ""
     echo "#########################################################################################"
@@ -31,7 +46,7 @@ function showhelp {
     echo "#########################################################################################"
 }
 
-while getopts ":p:i:h" option; do
+while getopts "p:ih" option; do
     case "${option}" in
         p) parameterfile=${OPTARG};;
         i) approve="--auto-approve" ;;
@@ -245,7 +260,23 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir=${terraform_module_directory}  apply ${approve} -var-file=${var_file}
+terraform -chdir="${terraform_module_directory}"  apply "${approve}" -var-file="${var_file}" 2>error.log
+str1=$(grep "Error: " error.log)
+if [ -n "${str1}" ]
+then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                          $boldreduscore Errors during the apply phase $resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    cat error.log
+    rm error.log
+    unset TF_DATA_DIR
+    exit -1
+fi
+
 
 keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
 

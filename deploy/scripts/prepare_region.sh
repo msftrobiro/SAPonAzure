@@ -1,6 +1,20 @@
 #!/bin/bash
 
-. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+#error codes include those from /usr/include/sysexits.h
+
+#colors for terminal
+boldreduscore="\e[1;4;31m"
+boldred="\e[1;31m"
+cyan="\e[1;36m"
+resetformatting="\e[0m"
+
+#External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+
+#call stack has full scriptname when using source 
+source "${script_directory}/deploy_utils.sh"
 
 ################################################################################################
 #                                                                                              #
@@ -74,16 +88,16 @@ function missing {
 
 force=0
 
-while getopts ":d:l:f:i:s:c:p:t:h" option; do
+while getopts "d:l:s:c:p:t:ifh" option; do
     case "${option}" in
         d) deployer_parameter_file=${OPTARG};;
         l) library_parameter_file=${OPTARG};;
-        f) force=1 ;;
         s) subscription=${OPTARG};;
         c) client_id=${OPTARG};;
         p) spn_secret=${OPTARG};;
         t) tenant_id=${OPTARG};;
         i) approve="--auto-approve" ;;
+        f) force=1 ;;
         h)
             showhelp
             exit 3
@@ -96,9 +110,8 @@ while getopts ":d:l:f:i:s:c:p:t:h" option; do
 done
 
 if [ ! -z "$approve" ]; then
-    approveparam=" -i "
+    approveparam=" -i"
 fi
-
 
 if [ -z "$deployer_parameter_file" ]; then
     missing_value='deployer parameter file'
@@ -118,7 +131,7 @@ if [ ! -n "$tf" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#                           Please install Terraform                                    #"
+    echo -e "#                          $boldreduscore  Please install Terraform $resetformatting                                 #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -131,7 +144,7 @@ if [ ! -n "${az}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#                           Please install the Azure CLI                                #"
+    echo -e "#                          $boldreduscore Please install the Azure CLI $resetformatting                               #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -314,7 +327,9 @@ then
         fi
     fi
     
-    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/install_deployer.sh -p "$deployer_file_parametername" "${approveparam}"
+    allParams=$(printf " -p %s %s" "${deployer_file_parametername}" "${approveparam}")
+                
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/install_deployer.sh $allParams
     if [ $? -eq 255 ]
     then
         exit $?
@@ -382,7 +397,7 @@ then
                     exit $?
                 fi
             else
-                read -p -r "Do you want to specify the SPN Details Y/N?"  ans
+                read -p  "Do you want to specify the SPN Details Y/N?"  ans
                 answer=${ans^^}
                 if [ "$answer" == 'Y' ]; then
                     
@@ -437,7 +452,9 @@ then
             rm terraform.tfstate.backup
         fi
     fi
-    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/install_library.sh -p "${library_file_parametername}" "${approveparam}" -d "${relative_path}"
+    allParams=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${approveparam}")
+    
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/install_library.sh $allParams
     if [ $? -eq 255 ]
     then
         exit $?
@@ -475,7 +492,9 @@ then
     then
         rm post_deployment.sh
     fi
-    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/installer.sh -p "$deployer_file_parametername" "${approveparam}" -t sap_deployer
+    allParams=$(printf " -p %s -t sap_deployer %s" "${deployer_file_parametername}" "${approveparam}")
+    
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/installer.sh $allParams
     if [ $? -eq 255 ]
     then
         exit $?
@@ -500,13 +519,15 @@ then
     echo ""
     
     cd "${library_dirname}" || exit
-    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/installer.sh -p "$library_file_parametername"  "${approveparam}" -t sap_library
+    allParams=$(printf " -p %s -t sap_library %s" "${library_file_parametername}" "${approveparam}")
+
+    "${DEPLOYMENT_REPO_PATH}"deploy/scripts/installer.sh $allParams
     if [ $? -eq 255 ]
     then
         exit $?
     fi
     cd "${curdir}" || exit
-    step=5
+    step=3
     save_config_var "step" "${deployer_config_information}"
 fi
 unset TF_DATA_DIR
